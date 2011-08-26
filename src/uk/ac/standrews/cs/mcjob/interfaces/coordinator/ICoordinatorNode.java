@@ -6,12 +6,19 @@ import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
+import uk.ac.standrews.cs.mcjob.coordinator.AlreadyDeployedException;
 import uk.ac.standrews.cs.mcjob.interfaces.IRemoteFuture;
 import uk.ac.standrews.cs.mcjob.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerRemoteReference;
+import uk.ac.standrews.cs.nds.madface.HostDescriptor;
+import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 public interface ICoordinatorNode {
+
+    void addHost(HostDescriptor host_descriptor) throws LibrariesOverwrittenException, AlreadyDeployedException;
+
+    void deployHosts() throws Exception;
 
     <Result extends Serializable> IRemoteFuture<Result> submit(IWorkerRemoteReference remote_reference, IRemoteJob<Result> job) throws RPCException;
 
