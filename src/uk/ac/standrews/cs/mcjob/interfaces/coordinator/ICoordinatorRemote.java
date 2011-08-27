@@ -19,18 +19,18 @@ public interface ICoordinatorRemote {
     String NOTIFY_EXCEPTION_METHOD_NAME = "notifyException";
 
     /**
-     * Notifies job execution completion.
+     * Notifies the coordinator about the result of a submitted job.
      * 
-     * @param job_id the job id
+     * @param job_id the id of the submitted job
      * @param result the result of the completed job
      * @throws RPCException if unable to contact the correspondence
      */
     void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**
-     * Notifies job execution error.
+     * Notifies the coordinator about the exception resulted by a submitted job.
      * 
-     * @param job_id the job id
+     * @param job_id the id of the submitted job
      * @param exception the exception which occurred when trying to execute a job
      * @throws RPCException if unable to contact the correspondence
      */

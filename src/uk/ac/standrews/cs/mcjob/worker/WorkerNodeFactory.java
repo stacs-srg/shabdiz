@@ -10,7 +10,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerNode;
-import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerRemoteReference;
+import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerRemote;
+import uk.ac.standrews.cs.mcjob.worker.rpc.WorkerRemoteProxy;
 import uk.ac.standrews.cs.mcjob.worker.servers.WorkerNodeServer;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.exceptions.DeploymentException;
@@ -69,13 +70,13 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      *
      * @throws RPCException if an error occurs communicating with the remote machine
      */
-    public IWorkerRemoteReference bindToNode(final InetSocketAddress node_address) throws RPCException {
+    public IWorkerRemote bindToNode(final InetSocketAddress node_address) throws RPCException {
 
-        final IWorkerRemoteReference remote_reference = new WorkerRemoteReference(node_address);
+        final IWorkerRemote worker = WorkerRemoteProxy.getProxy(node_address);
 
-        remote_reference.ping(); // Check that the remote application can be contacted.
+        worker.ping(); // Check that the remote application can be contacted.
 
-        return remote_reference;
+        return worker;
     }
 
     /**
@@ -87,9 +88,9 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * @throws TimeoutException if the node cannot be bound to within the timeout interval
      * @throws InterruptedException 
      */
-    public IWorkerRemoteReference bindToNode(final InetSocketAddress node_address, final Duration retry_interval, final Duration timeout_interval) throws TimeoutException, InterruptedException {
+    public IWorkerRemote bindToNode(final InetSocketAddress node_address, final Duration retry_interval, final Duration timeout_interval) throws TimeoutException, InterruptedException {
 
-        return (IWorkerRemoteReference) bindToNode(retry_interval, timeout_interval, node_address);
+        return (IWorkerRemote) bindToNode(retry_interval, timeout_interval, node_address);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -111,9 +112,9 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
     }
 
     @Override
-    protected IWorkerRemoteReference createLocalReference(final Object node, final Object remote_reference) {
+    protected IWorkerRemote createLocalReference(final Object node, final Object remote_reference) {
 
-        return new WorkerLocalReference((IWorkerNode) node, (IWorkerRemoteReference) remote_reference);
+        return null;
     }
 
     @Override

@@ -52,11 +52,11 @@ class WorkerMaintenanceThread extends Thread {
             try {
 
                 final Serializable result = future_result.get();
-                node.handleJobCompletion(job_id, result);
+                node.handleCompletion(job_id, result);
             }
             catch (final Exception e) {
 
-                node.handleJobException(job_id, e);
+                node.handleException(job_id, e);
             }
         }
     }

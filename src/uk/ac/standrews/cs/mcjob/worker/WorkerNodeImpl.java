@@ -52,7 +52,7 @@ public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
     }
 
     @Override
-    public void handleJobCompletion(final UUID job_id, final Serializable result) {
+    public void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
             coordinator_proxy.notifyCompletion(job_id, result);
@@ -67,7 +67,7 @@ public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
     }
 
     @Override
-    public void handleJobException(final UUID job_id, final Exception exception) {
+    public void handleException(final UUID job_id, final Exception exception) {
 
         try {
             coordinator_proxy.notifyException(job_id, exception);

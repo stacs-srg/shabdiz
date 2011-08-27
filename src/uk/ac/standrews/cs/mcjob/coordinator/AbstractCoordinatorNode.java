@@ -12,7 +12,6 @@ import uk.ac.standrews.cs.mcjob.interfaces.IRemoteFuture;
 import uk.ac.standrews.cs.mcjob.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.mcjob.interfaces.coordinator.ICoordinatorNode;
 import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerRemote;
-import uk.ac.standrews.cs.mcjob.interfaces.worker.IWorkerRemoteReference;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.HostState;
 import uk.ac.standrews.cs.nds.madface.MadfaceManagerFactory;
@@ -30,8 +29,8 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
     private final IMadfaceManager madface_manager;
     private final WorkerManager worker_manager;
-    private final Map<IWorkerRemoteReference, HostDescriptor> worker_host_map;
-    private final Map<UUID, IWorkerRemoteReference> job_worker_map;
+    private final Map<IWorkerRemote, HostDescriptor> worker_host_map;
+    private final Map<UUID, IWorkerRemote> job_worker_map;
 
     private boolean deployed = false;
 
@@ -39,8 +38,8 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
     protected AbstractCoordinatorNode(final Set<URL> application_lib_urls, final boolean try_registry_on_connection_error) throws Exception {
 
-        worker_host_map = new ConcurrentSkipListMap<IWorkerRemoteReference, HostDescriptor>();
-        job_worker_map = new ConcurrentSkipListMap<UUID, IWorkerRemoteReference>();
+        worker_host_map = new ConcurrentSkipListMap<IWorkerRemote, HostDescriptor>();
+        job_worker_map = new ConcurrentSkipListMap<UUID, IWorkerRemote>();
 
         worker_manager = new WorkerManager(try_registry_on_connection_error);
         madface_manager = MadfaceManagerFactory.makeMadfaceManager();
@@ -77,28 +76,27 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
         if (!isSubmitted(job_id)) { return false; }
         if (!isDone(job_id)) { return false; }
 
-        final IWorkerRemote remote_worker = job_worker_map.get(job_id).getRemote();
+        final IWorkerRemote remote_worker = job_worker_map.get(job_id);
         return remote_worker.cancel(job_id, may_interrupt_if_running);
     }
 
     @Override
-    public <Result extends Serializable> IRemoteFuture<Result> submit(final IWorkerRemoteReference worker, final IRemoteJob<Result> job) throws RPCException {
+    public <Result extends Serializable> IRemoteFuture<Result> submit(final IWorkerRemote worker, final IRemoteJob<Result> job) throws RPCException {
 
-        final IWorkerRemote remote = worker.getRemote();
-        final UUID job_id = remote.submit(job);
+        final UUID job_id = worker.submit(job);
         job_worker_map.put(job_id, worker);
 
         return new CoordinatedRemoteFuture<Result>(job_id, this);
     }
 
     @Override
-    public Set<IWorkerRemoteReference> getNodes() {
+    public Set<IWorkerRemote> getWorkers() {
 
         return worker_host_map.keySet();
     }
 
     @Override
-    public synchronized void killWorker(final IWorkerRemoteReference worker) throws Exception {
+    public synchronized void killWorker(final IWorkerRemote worker) throws Exception {
 
         cancelJobsByWorker(worker);
 
@@ -129,7 +127,7 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
     protected final IWorkerRemote getRemoteWorker(final UUID job_id) {
 
-        return job_worker_map.get(job_id).getRemote();
+        return job_worker_map.get(job_id);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -154,13 +152,13 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
         madface_manager.dropAll();
     }
 
-    private void KillHostByWorker(final IWorkerRemoteReference worker) throws Exception {
+    private void KillHostByWorker(final IWorkerRemote worker) throws Exception {
 
         final HostDescriptor host = worker_host_map.get(worker);
         killHost(host);
     }
 
-    private void cancelJobsByWorker(final IWorkerRemoteReference worker) {
+    private void cancelJobsByWorker(final IWorkerRemote worker) {
 
         final Set<UUID> jobs_to_cancel = getJobsByWorker(worker);
         cancelJobsSilently(jobs_to_cancel);
@@ -181,11 +179,11 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
         }
     }
 
-    private Set<UUID> getJobsByWorker(final IWorkerRemoteReference worker) {
+    private Set<UUID> getJobsByWorker(final IWorkerRemote worker) {
 
         final Set<UUID> jobs_by_worker = new HashSet<UUID>();
 
-        for (final Entry<UUID, IWorkerRemoteReference> job : job_worker_map.entrySet()) {
+        for (final Entry<UUID, IWorkerRemote> job : job_worker_map.entrySet()) {
 
             if (job.getValue().equals(worker)) { // Check whether the job belongs to worker
                 jobs_by_worker.add(job.getKey());
@@ -201,7 +199,7 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
         madface_manager.drop(host);
     }
 
-    private void drop(final IWorkerRemoteReference worker) {
+    private void drop(final IWorkerRemote worker) {
 
         worker_host_map.remove(worker);
     }
@@ -215,7 +213,7 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
         for (final HostDescriptor deployed_host : madface_manager.getHostDescriptors()) {
 
-            final IWorkerRemoteReference remote_reference = (IWorkerRemoteReference) deployed_host.getApplicationReference();
+            final IWorkerRemote remote_reference = (IWorkerRemote) deployed_host.getApplicationReference();
             worker_host_map.put(remote_reference, deployed_host);
         }
     }

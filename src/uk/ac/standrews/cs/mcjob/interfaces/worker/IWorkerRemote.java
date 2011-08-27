@@ -2,68 +2,41 @@ package uk.ac.standrews.cs.mcjob.interfaces.worker;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import uk.ac.standrews.cs.mcjob.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.nds.madface.IPingable;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * The Interface IMcJobRemote.
+ * Presents the remotely available operations provided by a worker.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorkerRemote {
+public interface IWorkerRemote extends IPingable {
 
     String GET_ADDRESS_METHOD_NAME = "getAddress";
     String SUBMIT_METHOD_NAME = "submit";
-    String CANCEL_METHOD_NAME = "cancel";
-    String IS_CANCELLED_METHOD_NAME = "isCancelled";
-    String IS_DONE_METHOD_NAME = "isDone";
-    String GET_METHOD_NAME = "get";
 
     /**
-     * Returns this node's address.
+     * Returns this worker's address.
      *
-     * @return this node's address
-     * @throws RPCException if an error occurs during the remote call
+     * @return this worker's address
+     * @throws RPCException if unable to make the remote call
      */
     InetSocketAddress getAddress() throws RPCException;
 
     /**
-     * Submit.
+     * Submits a value-returning task for execution to a remote worker and returns a remote Future representing the pending results of the task. 
      *
-     * @param remote_job the job
-     * @return the uUID
-     * @throws RPCException the rPC exception
+     * @param <Result> the type of result returned by the job
+     * @param remote_job the job to submit
+     * @return a remote Future representing pending completion of the task
+     * @throws RejectedExecutionException if the task cannot be scheduled for execution
+     * @throws NullPointerException if the given remote job is <code>null</code>
+     * @throws RPCException if unable to make the remote call
+     * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    UUID submit(IRemoteJob<?> remote_job) throws RPCException;
-
-    /**
-     * Cancel.
-     *
-     * @param job_id the job_id
-     * @param may_interrupt_if_running the may_interrupt_if_running
-     * @return true, if successful
-     * @throws RPCException the rPC exception
-     */
-    boolean cancel(final UUID job_id, final boolean may_interrupt_if_running) throws RPCException;
-
-    /**
-     * Checks if is cancelled.
-     *
-     * @param job_id the job_id
-     * @return true, if is cancelled
-     * @throws RPCException the rPC exception
-     */
-    boolean isCancelled(UUID job_id) throws RPCException;
-
-    /**
-     * Checks if is done.
-     *
-     * @param job_id the job_id
-     * @return true, if is done
-     * @throws RPCException the rPC exception
-     */
-    boolean isDone(UUID job_id) throws RPCException;
-
-    Serializable get(UUID job_id) throws RPCException;
-
+    <Result extends Serializable> IFutureRemote<Result> submit(IRemoteJob<Result> remote_job) throws RejectedExecutionException, NullPointerException, RPCException;
 }
