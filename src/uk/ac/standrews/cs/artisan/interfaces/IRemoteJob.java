@@ -1,10 +1,10 @@
-package uk.ac.standrews.cs.mcjob.interfaces;
+package uk.ac.standrews.cs.artisan.interfaces;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 /**
- * A job.
+ * Presents a computation to be performed on a remote worker.
  * 
  * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

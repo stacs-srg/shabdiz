@@ -20,7 +20,7 @@ public interface IWorkerNode {
     SortedSet<Future<? extends Serializable>> getFutures();
 
     /**
-     * Gets the pending result of a job which matches the given <code>id</code>.
+     * Gets the pending result of a job which its <code>id</code> matches the given <code>id</code>.
      *
      * @param job_id the job id
      * @return the pending result

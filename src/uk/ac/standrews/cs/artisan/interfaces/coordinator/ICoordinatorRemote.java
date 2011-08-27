@@ -6,7 +6,7 @@ import java.util.UUID;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Provides the interface for operations provided to executor nodes by a coordinator node.
+ * Presents the remote functionalities provided by a coordinator.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

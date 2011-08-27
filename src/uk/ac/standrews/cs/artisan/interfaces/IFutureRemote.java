@@ -1,11 +1,11 @@
-package uk.ac.standrews.cs.artisan.interfaces.worker;
+package uk.ac.standrews.cs.artisan.interfaces;
 
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
 /**
- * Represents the result of a remote asynchronous computation.
+ * Presents the result of a remote asynchronous computation.
  *
  * @param <Result> The result type returned by this Future's {@link IFutureRemote#get()} method
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

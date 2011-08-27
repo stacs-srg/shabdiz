@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.util.SortedSet;
 
 import uk.ac.standrews.cs.artisan.coordinator.AlreadyDeployedException;
+import uk.ac.standrews.cs.artisan.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.artisan.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.artisan.interfaces.worker.IFutureRemote;
 import uk.ac.standrews.cs.artisan.interfaces.worker.IWorkerRemote;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Defines the local functionality  which is provided by a coordinator code.
+ * Presents the local functionalities provided by a coordinator.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -28,7 +28,7 @@ public interface ICoordinatorNode {
     void addHost(HostDescriptor host_descriptor) throws LibrariesOverwrittenException, AlreadyDeployedException;
 
     /**
-     * Deploys workers on the hosts which are added using {@link #addHost(HostDescriptor)}.
+     * Deploys a worker on each of the hosts added using {@link #addHost(HostDescriptor)}.
      *
      * @throws AlreadyDeployedException if {@link #deployHosts()} on this coordinator has already been called
      * @throws Exception if unable to deploy the hosts
@@ -36,7 +36,7 @@ public interface ICoordinatorNode {
     void deployHosts() throws Exception;
 
     /**
-     * Submits a remote job to be executed on a remote worker.
+     * Submits a computation to be performed on a worker.
      *
      * @param <Result> the type of result which is returned by the job
      * @param remote_reference the remote_reference
@@ -47,7 +47,7 @@ public interface ICoordinatorNode {
     <Result extends Serializable> IFutureRemote<Result> submit(IWorkerRemote remote_reference, IRemoteJob<Result> job) throws RPCException;
 
     /**
-     * Gets the worker nodes which has been deployed by this coordinator.
+     * Gets the workers which have been deployed by this coordinator.
      *
      * @return the workers
      */
@@ -62,14 +62,14 @@ public interface ICoordinatorNode {
     void killWorker(IWorkerRemote worker) throws Exception;
 
     /**
-     * Kills all the workers.
+     * Kills all the workers which have been deployed by this coordinator.
      *
      * @throws Exception an error has occurred while killing the workers
      */
     void killAllWorkers() throws Exception;
 
     /**
-     * Shuts down the coordinator.
+     * Shuts down this coordinator.
      */
     void shutdown();
 }

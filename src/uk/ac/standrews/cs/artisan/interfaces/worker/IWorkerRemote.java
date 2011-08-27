@@ -5,12 +5,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
+import uk.ac.standrews.cs.artisan.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.artisan.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.nds.madface.IPingable;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Presents the remotely available operations provided by a worker.
+ * Presents the remote functionalities provided by a worker.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -20,7 +21,7 @@ public interface IWorkerRemote extends IPingable {
     String SUBMIT_METHOD_NAME = "submit";
 
     /**
-     * Returns this worker's address.
+     * Gets this worker's address.
      *
      * @return this worker's address
      * @throws RPCException if unable to make the remote call
@@ -28,11 +29,11 @@ public interface IWorkerRemote extends IPingable {
     InetSocketAddress getAddress() throws RPCException;
 
     /**
-     * Submits a value-returning task for execution to a remote worker and returns a remote Future representing the pending results of the task. 
+     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task. 
      *
      * @param <Result> the type of result returned by the job
      * @param remote_job the job to submit
-     * @return a remote Future representing pending completion of the task
+     * @return the pending result of the task
      * @throws RejectedExecutionException if the task cannot be scheduled for execution
      * @throws NullPointerException if the given remote job is <code>null</code>
      * @throws RPCException if unable to make the remote call
