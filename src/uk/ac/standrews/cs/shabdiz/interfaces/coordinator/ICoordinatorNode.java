@@ -3,13 +3,13 @@ package uk.ac.standrews.cs.shabdiz.interfaces.coordinator;
 import java.io.Serializable;
 import java.util.SortedSet;
 
+import uk.ac.standrews.cs.nds.madface.HostDescriptor;
+import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.coordinator.AlreadyDeployedException;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
  * Presents the local functionalities provided by a coordinator.
@@ -39,12 +39,12 @@ public interface ICoordinatorNode {
      * Submits a computation to be performed on a worker.
      *
      * @param <Result> the type of result which is returned by the job
-     * @param remote_reference the remote_reference
-     * @param job the job
-     * @return the i future remote
-     * @throws RPCException the rPC exception
+     * @param worker the remote worker
+     * @param job the computation to be performed remotely
+     * @return the remote pending result of the computation
+     * @throws RPCException if unable to contact the remote worker or if unable to submit the job
      */
-    <Result extends Serializable> IFutureRemote<Result> submit(IWorkerRemote remote_reference, IRemoteJob<Result> job) throws RPCException;
+    <Result extends Serializable> IFutureRemote<Result> submit(IWorkerRemote worker, IRemoteJob<Result> job) throws RPCException;
 
     /**
      * Gets the workers which have been deployed by this coordinator.

@@ -9,10 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
-import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.exceptions.DeploymentException;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
@@ -23,6 +19,11 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
+import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxyFactory;
+import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
  * A factory for creating worker node objects.
@@ -57,7 +58,7 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * @throws InterruptedException 
      * @throws UnreachableCoordinatorException 
      */
-    public IWorkerNode createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, UnreachableCoordinatorException {
+    public IWorkerNode createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         return new WorkerNodeImpl(local_address, coordinator_address);
     }
@@ -72,7 +73,7 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      */
     public IWorkerRemote bindToNode(final InetSocketAddress node_address) throws RPCException {
 
-        final IWorkerRemote worker = WorkerRemoteProxy.getProxy(node_address);
+        final WorkerRemoteProxy worker = WorkerRemoteProxyFactory.getProxy(node_address);
 
         worker.ping(); // Check that the remote application can be contacted.
 

@@ -18,7 +18,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorServer extends ApplicationServer {
+public class CoordinatorRemoteServer extends ApplicationServer {
 
     /** The coordinator server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Coordinator Server";
@@ -26,7 +26,7 @@ public class CoordinatorServer extends ApplicationServer {
     private final ICoordinatorRemote application;
     private final WorkerRemoteMarshaller marshaller;
 
-    public CoordinatorServer(final ICoordinatorRemote application) {
+    public CoordinatorRemoteServer(final ICoordinatorRemote application) {
 
         super();
         this.application = application;

@@ -18,7 +18,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorProxy extends StreamProxy implements ICoordinatorRemote {
+public class CoordinatorRemoteProxy extends StreamProxy implements ICoordinatorRemote {
 
     private final WorkerRemoteMarshaller marshaller;
 
@@ -28,9 +28,9 @@ public class CoordinatorProxy extends StreamProxy implements ICoordinatorRemote 
      * Package protected constructor of a new coordinator proxy. 
      *
      * @param coordinator_node_address the address of a coordinator node
-     * @see CoordinatorProxyFactory#getProxy(InetSocketAddress)
+     * @see CoordinatorRemoteProxyFactory#getProxy(InetSocketAddress)
      */
-    CoordinatorProxy(final InetSocketAddress coordinator_node_address) {
+    CoordinatorRemoteProxy(final InetSocketAddress coordinator_node_address) {
 
         super(coordinator_node_address);
         marshaller = new WorkerRemoteMarshaller();

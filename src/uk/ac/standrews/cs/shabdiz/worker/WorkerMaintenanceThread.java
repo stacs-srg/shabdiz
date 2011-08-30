@@ -4,10 +4,14 @@ import java.io.Serializable;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
 
 class WorkerMaintenanceThread extends Thread {
+
+    private static final Duration MAINTENANCE_LOOP_DELAY = new Duration(5, TimeUnit.SECONDS);
 
     private final IWorkerNode node;
 
@@ -22,6 +26,13 @@ class WorkerMaintenanceThread extends Thread {
         while (!Thread.currentThread().isInterrupted()) {
 
             maintainFutureResults();
+
+            try {
+                MAINTENANCE_LOOP_DELAY.sleep();
+            }
+            catch (final InterruptedException e) {
+                interrupt();
+            }
         }
     }
 

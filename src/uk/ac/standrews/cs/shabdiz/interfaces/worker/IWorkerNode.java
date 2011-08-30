@@ -1,9 +1,12 @@
 package uk.ac.standrews.cs.shabdiz.interfaces.worker;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.Future;
+
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
  * Presents the local functionalities provided by a worker.
@@ -13,11 +16,19 @@ import java.util.concurrent.Future;
 public interface IWorkerNode {
 
     /**
-     * Gets the pending results of the jobs submitted to this worker.
+     * Gets this worker's address.
      *
-     * @return the futures
+     * @return this worker's address
+     * @throws RPCException if unable to make the remote call
      */
-    SortedSet<Future<? extends Serializable>> getFutures();
+    InetSocketAddress getAddress();
+
+    /**
+     * Gets the <code>id</code> of all jobs which have been submitted to this worker.
+     *
+     * @return the set of <code>id</code>s
+     */
+    SortedSet<UUID> getJobIds();
 
     /**
      * Gets the pending result of a job which its <code>id</code> matches the given <code>id</code>.

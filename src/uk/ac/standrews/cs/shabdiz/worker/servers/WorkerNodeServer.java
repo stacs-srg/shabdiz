@@ -20,7 +20,6 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
 import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
-import uk.ac.standrews.cs.shabdiz.worker.UnreachableCoordinatorException;
 import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
 
 /**
@@ -89,7 +88,7 @@ public class WorkerNodeServer {
      * @throws InterruptedException 
      * @throws UnreachableCoordinatorException 
      */
-    public static void main(final String[] args) throws RPCException, UndefinedDiagnosticLevelException, IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, UnreachableCoordinatorException {
+    public static void main(final String[] args) throws RPCException, UndefinedDiagnosticLevelException, IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         final WorkerNodeServer server = new WorkerNodeServer(args);
         try {
@@ -103,7 +102,7 @@ public class WorkerNodeServer {
 
     // -------------------------------------------------------------------------------------------------------
 
-    public IWorkerNode createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, UnreachableCoordinatorException {
+    public IWorkerNode createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         return factory.createNode(local_address, coordinator_address);
     }

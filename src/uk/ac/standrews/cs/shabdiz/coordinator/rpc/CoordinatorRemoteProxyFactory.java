@@ -4,19 +4,19 @@ import java.net.InetSocketAddress;
 import java.util.Hashtable;
 import java.util.Map;
 
-public final class CoordinatorProxyFactory {
+public final class CoordinatorRemoteProxyFactory {
 
-    private static final Map<InetSocketAddress, CoordinatorProxy> COORDINATOR_PROXY_MAP = new Hashtable<InetSocketAddress, CoordinatorProxy>(); // Hashtable is used because it does not permit null key/values
+    private static final Map<InetSocketAddress, CoordinatorRemoteProxy> COORDINATOR_PROXY_MAP = new Hashtable<InetSocketAddress, CoordinatorRemoteProxy>(); // Hashtable is used because it does not permit null key/values
 
-    private CoordinatorProxyFactory() {
+    private CoordinatorRemoteProxyFactory() {
 
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    public static synchronized CoordinatorProxy getProxy(final InetSocketAddress proxy_address) {
+    public static synchronized CoordinatorRemoteProxy getProxy(final InetSocketAddress proxy_address) {
 
-        final CoordinatorProxy proxy;
+        final CoordinatorRemoteProxy proxy;
 
         if (COORDINATOR_PROXY_MAP.containsKey(proxy_address)) {
 
@@ -24,7 +24,7 @@ public final class CoordinatorProxyFactory {
         }
         else {
 
-            proxy = new CoordinatorProxy(proxy_address);
+            proxy = new CoordinatorRemoteProxy(proxy_address);
             COORDINATOR_PROXY_MAP.put(proxy_address, proxy);
         }
 

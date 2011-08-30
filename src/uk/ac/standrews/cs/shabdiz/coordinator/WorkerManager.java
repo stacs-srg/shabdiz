@@ -20,7 +20,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
- * The Class JobjobManager.
+ * Provides management hooks for workers.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -34,6 +34,11 @@ public class WorkerManager extends ApplicationManager {
     private final WorkerNodeFactory factory;
     private final boolean try_registry_on_connection_error;
 
+    /**
+     * Instantiates a new worker manager.
+     *
+     * @param try_registry_on_connection_error  whether to try to lookup a worker from registry upon connection error
+     */
     public WorkerManager(final boolean try_registry_on_connection_error) {
 
         this.try_registry_on_connection_error = try_registry_on_connection_error;

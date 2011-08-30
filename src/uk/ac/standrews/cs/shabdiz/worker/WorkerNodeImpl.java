@@ -5,18 +5,17 @@ import java.net.InetSocketAddress;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorProxy;
-import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorProxyFactory;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxy;
+import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxyFactory;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
 import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.RemoteWorkerException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
 
@@ -25,9 +24,9 @@ public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
     private final InetSocketAddress address;
     private final ExecutorService exexcutor_service;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> future_results;
-    private final CoordinatorProxy coordinator_proxy;
+    private final CoordinatorRemoteProxy coordinator_proxy;
 
-    public WorkerNodeImpl(final InetSocketAddress address, final InetSocketAddress coordinator_address) throws UnreachableCoordinatorException {
+    public WorkerNodeImpl(final InetSocketAddress address, final InetSocketAddress coordinator_address) {
 
         this.address = address;
         coordinator_proxy = makeCoordinatorProxy(coordinator_address);
@@ -37,12 +36,21 @@ public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
+    // Shared local/remote method(s)
+
+    @Override
+    public InetSocketAddress getAddress() {
+
+        return address;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
     // locally accessible methods 
 
     @Override
     public SortedSet<UUID> getJobIds() {
 
-        return future_results.keySet();
+        return future_results.navigableKeySet();
     }
 
     @Override
@@ -81,82 +89,24 @@ public class WorkerNodeImpl implements IWorkerNode, IWorkerRemote {
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
-    // Remotely accessible methods
+    // Remotely accessible method(s)
 
     @Override
-    public InetSocketAddress getAddress() throws RPCException {
+    public <Result extends Serializable> IFutureRemoteReference<Result> submit(final IRemoteJob<Result> job) {
 
-        return address;
-    }
-
-    @Override
-    public UUID submit(final IRemoteJob<? extends Serializable> job) {
-
-        final Future<? extends Serializable> future_result = exexcutor_service.submit(job);
+        final Future<Result> real_future = exexcutor_service.submit(job);
         final UUID job_id = generateJobId();
 
-        future_results.put(job_id, future_result);
+        future_results.put(job_id, real_future);
 
-        return job_id;
-    }
-
-    @Override
-    public boolean cancel(final UUID job_id, final boolean may_interrupt_if_running) throws RemoteWorkerException {
-
-        return getFutureByIdSafely(job_id).cancel(may_interrupt_if_running);
-    }
-
-    @Override
-    public boolean isCancelled(final UUID job_id) throws RemoteWorkerException {
-
-        return getFutureByIdSafely(job_id).isCancelled();
-    }
-
-    @Override
-    public boolean isDone(final UUID job_id) throws RemoteWorkerException {
-
-        return getFutureByIdSafely(job_id).isDone();
-    }
-
-    @Override
-    public Serializable get(final UUID job_id) throws RemoteWorkerException {
-
-        try {
-
-            return getFutureByIdSafely(job_id).get();
-        }
-        catch (final InterruptedException e) {
-
-            throw new RemoteWorkerException(e);
-        }
-        catch (final ExecutionException e) {
-
-            throw new RemoteWorkerException(e);
-        }
+        return new FutureRemoteReference<Result>(job_id, address);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private CoordinatorProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) throws UnreachableCoordinatorException {
+    private CoordinatorRemoteProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) {
 
-        final CoordinatorProxy proxy = CoordinatorProxyFactory.getProxy(coordinator_address);
-        try {
-            proxy.ping(); // XXX ask Al and Graham whether this is a good practice. Counter argument: coordinator may become unreachable at any moment anyway; what's the point of pinging it
-        }
-        catch (final RPCException e) {
-            throw new UnreachableCoordinatorException(e);
-        }
-
-        return proxy;
-    }
-
-    private Future<? extends Serializable> getFutureByIdSafely(final UUID job_id) throws RemoteWorkerException {
-
-        final Future<? extends Serializable> future = future_results.get(job_id);
-
-        if (future == null) { throw new RemoteWorkerException("No job found by id " + job_id); }
-
-        return future;
+        return CoordinatorRemoteProxyFactory.getProxy(coordinator_address);
     }
 
     private UUID generateJobId() {

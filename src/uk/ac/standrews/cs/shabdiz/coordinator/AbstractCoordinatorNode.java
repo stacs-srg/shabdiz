@@ -5,13 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteFuture;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorNode;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.HostState;
 import uk.ac.standrews.cs.nds.madface.MadfaceManagerFactory;
@@ -19,39 +15,48 @@ import uk.ac.standrews.cs.nds.madface.URL;
 import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
 import uk.ac.standrews.cs.nds.madface.interfaces.IMadfaceManager;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
+import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorNode;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
 
 /**
- * The Class JobExecutorNetwork.
+ * An abstract implementation of an {@link ICoordinatorNode}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
-    private final IMadfaceManager madface_manager;
-    private final WorkerManager worker_manager;
-    private final Map<IWorkerRemote, HostDescriptor> worker_host_map;
-    private final Map<UUID, IWorkerRemote> job_worker_map;
+    private final Map<IFutureRemote<? extends Serializable>, IWorkerRemote> future_worker_map; // Maps a remote pending result to a remote worker
+    private final ConcurrentSkipListMap<IWorkerRemote, HostDescriptor> worker_host_map; // Maps a remote worker to a host descriptor; this map is used for convenient lookup of a host descriptor on which a worker has been deployed
+    private final WorkerManager worker_manager; // Provides management hooks for workers
+    private final IMadfaceManager madface_manager; // Handles the deployment of workers
 
-    private boolean deployed = false;
+    private boolean deployed = false; // Whether #deployHosts() is called on this coordinator
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     protected AbstractCoordinatorNode(final Set<URL> application_lib_urls, final boolean try_registry_on_connection_error) throws Exception {
 
+        future_worker_map = new ConcurrentSkipListMap<IFutureRemote<? extends Serializable>, IWorkerRemote>();
         worker_host_map = new ConcurrentSkipListMap<IWorkerRemote, HostDescriptor>();
-        job_worker_map = new ConcurrentSkipListMap<UUID, IWorkerRemote>();
-
         worker_manager = new WorkerManager(try_registry_on_connection_error);
         madface_manager = MadfaceManagerFactory.makeMadfaceManager();
-        configureMadfaceManager(application_lib_urls);
+
+        configureMadfaceManager(application_lib_urls); // Configure madface for the deployment of worker nodes
     }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    protected abstract <Result extends Serializable> IFutureRemote<Result> getFutureRemote(final IFutureRemoteReference<Result> future_remote_reference);
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public void addHost(final HostDescriptor host_descriptor) throws LibrariesOverwrittenException, AlreadyDeployedException {
 
-        if (deployed) { throw new AlreadyDeployedException("Cannot add host once coordinator has deployed the hosts."); }
+        if (deployed) { throw new AlreadyDeployedException("Cannot add anymore host once deployHosts() is called on this coordinator."); } // Check whether this coordinator has already deployed the hosts
 
         madface_manager.add(host_descriptor);
     }
@@ -59,38 +64,28 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
     @Override
     public void deployHosts() throws Exception {
 
-        if (deployed) { throw new AlreadyDeployedException(); }
+        if (deployed) { throw new AlreadyDeployedException(); } // Check whether this coordinator has already deployed the hosts
 
         madface_manager.deployAll();
         madface_manager.waitForAllToReachState(HostState.RUNNING);
         madface_manager.setHostScanning(false);
 
-        populateWorkerHostMap();
-
-        deployed = true;
+        populateWorkerHostMap(); // Populate the map of workers to host descriptors
+        deployed = true; // Set the deployed flag to true
     }
 
     @Override
-    public boolean cancel(final UUID job_id, final boolean may_interrupt_if_running) throws RPCException {
+    public <Result extends Serializable> IFutureRemote<Result> submit(final IWorkerRemote worker, final IRemoteJob<Result> job) throws RPCException {
 
-        if (!isSubmitted(job_id)) { return false; }
-        if (!isDone(job_id)) { return false; }
+        final IFutureRemoteReference<Result> future_remote_reference = worker.submit(job); // Submit the job to the remote worker and retrieve the reference to the remote pending result
+        final IFutureRemote<Result> future_remote = getFutureRemote(future_remote_reference); // Get the wrapper for the remote pending result
+        future_worker_map.put(future_remote, worker); // Remember the pending result of the worker
 
-        final IWorkerRemote remote_worker = job_worker_map.get(job_id);
-        return remote_worker.cancel(job_id, may_interrupt_if_running);
+        return future_remote;
     }
 
     @Override
-    public <Result extends Serializable> IRemoteFuture<Result> submit(final IWorkerRemote worker, final IRemoteJob<Result> job) throws RPCException {
-
-        final UUID job_id = worker.submit(job);
-        job_worker_map.put(job_id, worker);
-
-        return new CoordinatedRemoteFuture<Result>(job_id, this);
-    }
-
-    @Override
-    public Set<IWorkerRemote> getWorkers() {
+    public SortedSet<IWorkerRemote> getWorkers() {
 
         return worker_host_map.keySet();
     }
@@ -98,18 +93,17 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
     @Override
     public synchronized void killWorker(final IWorkerRemote worker) throws Exception {
 
-        cancelJobsByWorker(worker);
-
-        KillHostByWorker(worker);
-        drop(worker);
+        cancelJobsByWorker(worker); // Cancel the jobs submitted to the worker
+        killHostByWorker(worker); // Kill the host on which the worker is running on
+        dropWorker(worker); // Forget about the worker
     }
 
     @Override
     public void killAllWorkers() throws Exception {
 
-        cancelAllJobs();
-        killAllHosts();
-        dropAllWorkers();
+        cancelAllJobs(); // Cancel all the jobs
+        killAllHosts(); // Kill all the hosts that run the workers
+        dropAllWorkers(); // Forget about all the workers
     }
 
     @Override
@@ -120,14 +114,23 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    protected final boolean isSubmitted(final UUID job_id) {
+    protected Set<IFutureRemote<? extends Serializable>> getFuturesByWorker(final IWorkerRemote worker) {
 
-        return job_worker_map.containsKey(job_id);
+        final Set<IFutureRemote<? extends Serializable>> jobs_by_worker = new HashSet<IFutureRemote<? extends Serializable>>();
+
+        for (final Entry<IFutureRemote<? extends Serializable>, IWorkerRemote> job : future_worker_map.entrySet()) {
+
+            if (job.getValue().equals(worker)) { // Check whether the job belongs to the given worker
+                jobs_by_worker.add(job.getKey());
+            }
+        }
+
+        return jobs_by_worker;
     }
 
-    protected final IWorkerRemote getRemoteWorker(final UUID job_id) {
+    protected Set<IFutureRemote<? extends Serializable>> getAllFutures() {
 
-        return job_worker_map.get(job_id);
+        return future_worker_map.keySet();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -142,55 +145,31 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
 
     private void cancelAllJobs() {
 
-        final Set<UUID> jobs_to_cancel = job_worker_map.keySet();
+        final Set<IFutureRemote<? extends Serializable>> jobs_to_cancel = getAllFutures();
         cancelJobsSilently(jobs_to_cancel);
     }
 
     private void killAllHosts() throws Exception {
 
-        madface_manager.killAll(false); // XXX discuss the boolean flag
+        madface_manager.killAll(false);
         madface_manager.dropAll();
     }
 
-    private void KillHostByWorker(final IWorkerRemote worker) throws Exception {
+    private void dropAllWorkers() {
 
-        final HostDescriptor host = worker_host_map.get(worker);
-        killHost(host);
+        worker_host_map.clear();
     }
 
     private void cancelJobsByWorker(final IWorkerRemote worker) {
 
-        final Set<UUID> jobs_to_cancel = getJobsByWorker(worker);
+        final Set<IFutureRemote<? extends Serializable>> jobs_to_cancel = getFuturesByWorker(worker);
         cancelJobsSilently(jobs_to_cancel);
     }
 
-    private synchronized void cancelJobsSilently(final Set<UUID> jobs_to_cancel) {
+    private void killHostByWorker(final IWorkerRemote worker) throws Exception {
 
-        for (final UUID job_id : jobs_to_cancel) {
-
-            try {
-                if (!isDone(job_id)) {
-                    cancel(job_id, true);
-                }
-            }
-            catch (final RPCException e) {
-                // Keep Calm and Carry On
-            }
-        }
-    }
-
-    private Set<UUID> getJobsByWorker(final IWorkerRemote worker) {
-
-        final Set<UUID> jobs_by_worker = new HashSet<UUID>();
-
-        for (final Entry<UUID, IWorkerRemote> job : job_worker_map.entrySet()) {
-
-            if (job.getValue().equals(worker)) { // Check whether the job belongs to worker
-                jobs_by_worker.add(job.getKey());
-            }
-        }
-
-        return jobs_by_worker;
+        final HostDescriptor host = worker_host_map.get(worker);
+        killHost(host);
     }
 
     private void killHost(final HostDescriptor host) throws Exception {
@@ -199,14 +178,24 @@ public abstract class AbstractCoordinatorNode implements ICoordinatorNode {
         madface_manager.drop(host);
     }
 
-    private void drop(final IWorkerRemote worker) {
+    private void dropWorker(final IWorkerRemote worker) {
 
         worker_host_map.remove(worker);
     }
 
-    private void dropAllWorkers() {
+    private synchronized void cancelJobsSilently(final Set<IFutureRemote<? extends Serializable>> jobs_to_cancel) {
 
-        worker_host_map.clear();
+        for (final IFutureRemote<? extends Serializable> pending_result : jobs_to_cancel) {
+
+            try {
+                if (!pending_result.isDone()) {
+                    pending_result.cancel(true);
+                }
+            }
+            catch (final RPCException e) {
+                // Keep Calm and Carry On
+            }
+        }
     }
 
     private void populateWorkerHostMap() {

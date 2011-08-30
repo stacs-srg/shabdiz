@@ -7,14 +7,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 import org.json.JSONWriter;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.nds.rpc.DeserializationException;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
+import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 
 /**
  * The Class McJobRemoteMarshaller.
@@ -22,6 +27,9 @@ import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerRemoteMarshaller extends Marshaller {
+
+    private static final String JOB_ID_KEY = "jobid";
+    private static final String ADDRESS_KEY = "address";
 
     public void serializeSerializable(final Serializable object, final JSONWriter writer) throws JSONException, IOException {
 
@@ -69,6 +77,22 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    public <Result extends Serializable> void serializeResult(final Result result, final JSONWriter writer) throws DeserializationException, JSONException, IOException {
+
+        serializeSerializable(result, writer);
+    }
+
+    public <Result extends Serializable> Result deserializeResult(final JSONReader reader) throws DeserializationException {
+
+        final Serializable deserialized_serializable = deserializeSerializable(reader);
+        try {
+            return (Result) deserialized_serializable;
+        }
+        catch (final ClassCastException e) {
+            throw new DeserializationException(e);
+        }
+    }
+
     public void serializeRemoteJob(final IRemoteJob<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
 
         serializeSerializable(remote_job, writer);
@@ -79,6 +103,68 @@ public class WorkerRemoteMarshaller extends Marshaller {
 
         try {
             return (IRemoteJob<? extends Serializable>) deserializeSerializable(reader);
+        }
+        catch (final Exception e) {
+            throw new DeserializationException(e);
+        }
+    }
+
+    public <Result extends Serializable> void serializeFutureRemoteReference(final IFutureRemoteReference<Result> future_remote, final JSONWriter writer) throws JSONException {
+
+        if (future_remote == null) {
+            writer.value(null);
+        }
+        else {
+            writer.object();
+
+            writer.key(JOB_ID_KEY);
+            serializeUUID(future_remote.getId(), writer);
+
+            writer.key(ADDRESS_KEY);
+            serializeInetSocketAddress(future_remote.getAddress(), writer);
+
+            writer.endObject();
+        }
+    }
+
+    public <Result extends Serializable> IFutureRemoteReference<Result> deserializeFutureRemoteReference(final JSONReader reader) throws DeserializationException {
+
+        try {
+            if (reader.checkNull()) { return null; }
+
+            reader.object();
+
+            reader.key(JOB_ID_KEY);
+            final UUID job_id = deserializeUUID(reader);
+
+            reader.key(ADDRESS_KEY);
+            final InetSocketAddress proxy_address = deserializeInetSocketAddress(reader);
+
+            reader.endObject();
+
+            return new FutureRemoteReference<Result>(job_id, proxy_address);
+        }
+        catch (final Exception e) {
+            throw new DeserializationException(e);
+        }
+    }
+
+    public void serializeTimeUnit(final TimeUnit unit, final JSONWriter writer) throws JSONException {
+
+        if (unit == null) {
+            writer.value(null);
+        }
+        else {
+            writer.value(unit.name());
+        }
+    }
+
+    public TimeUnit deserializeTimeUnit(final JSONReader reader) throws DeserializationException {
+
+        try {
+            if (reader.checkNull()) { return null; }
+
+            return TimeUnit.valueOf(reader.stringValue());
         }
         catch (final Exception e) {
             throw new DeserializationException(e);
