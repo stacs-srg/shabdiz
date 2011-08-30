@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-
+get rid of it.
 /**
  * Presents the local functionalities provided by a worker.
  * 

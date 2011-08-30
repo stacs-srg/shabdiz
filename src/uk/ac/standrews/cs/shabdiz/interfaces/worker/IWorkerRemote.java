@@ -28,7 +28,7 @@ public interface IWorkerRemote {
     InetSocketAddress getAddress() throws RPCException;
 
     /**
-     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task. 
+     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
      *
      * @param remote_job the job to submit
      * @return the reference to the pending result of the submitted task

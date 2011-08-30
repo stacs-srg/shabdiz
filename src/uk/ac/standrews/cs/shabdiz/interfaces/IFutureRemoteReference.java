@@ -10,7 +10,7 @@ import java.util.UUID;
  * @param <Result> The result type returned by this Future's {@link IFutureRemoteReference#get()} method
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IFutureRemoteReference<Result extends Serializable> extends Comparable<UUID> {
+public interface IFutureRemoteReference<Result extends Serializable> {
 
     String GET_ID_METHOD_NAME = "getId";
     String GET_ADDRESS_METHOD_NAME = "getAddress";

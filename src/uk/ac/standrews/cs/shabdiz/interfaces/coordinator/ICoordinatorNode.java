@@ -19,21 +19,18 @@ import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
 public interface ICoordinatorNode {
 
     /**
-     * Adds a host to the list of hosts to be deployed.
+     * Informs the coordinator of the existence of a host on which a worker will be deployed.
      *
      * @param host_descriptor the host descriptor
-     * @throws LibrariesOverwrittenException if the host descriptor's application libraries set are overridden
-     * @throws AlreadyDeployedException if {@link #deployHosts()} on this coordinator has already been called
      */
-    void addHost(HostDescriptor host_descriptor) throws LibrariesOverwrittenException, AlreadyDeployedException;
+    void addHost(HostDescriptor host_descriptor);
 
     /**
      * Deploys a worker on each of the hosts added using {@link #addHost(HostDescriptor)}.
      *
-     * @throws AlreadyDeployedException if {@link #deployHosts()} on this coordinator has already been called
      * @throws Exception if unable to deploy the hosts
      */
-    void deployHosts() throws Exception;
+SortedSet<IWorkerRemote> deployWorkersOnHosts() throws Exception;
 
     /**
      * Submits a computation to be performed on a worker.
@@ -46,13 +43,8 @@ public interface ICoordinatorNode {
      */
     <Result extends Serializable> IFutureRemote<Result> submit(IWorkerRemote worker, IRemoteJob<Result> job) throws RPCException;
 
-    /**
-     * Gets the workers which have been deployed by this coordinator.
-     *
-     * @return the workers
-     */
-    SortedSet<IWorkerRemote> getWorkers();
-
+    get rid of submit, make a smart proxy -> some coordinated worker remote
+    
     /**
      * Kills the given worker.
      *

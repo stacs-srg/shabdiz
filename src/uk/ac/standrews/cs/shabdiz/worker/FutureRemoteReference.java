@@ -51,10 +51,4 @@ public class FutureRemoteReference<Result extends Serializable> implements IFutu
 
         return remote;
     }
-
-    @Override
-    public int compareTo(final UUID other) {
-
-        return getId().compareTo(other);
-    }
 }
