@@ -19,7 +19,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
 
 /**
@@ -102,7 +102,7 @@ public class WorkerNodeServer {
 
     // -------------------------------------------------------------------------------------------------------
 
-    public IWorkerNode createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public IWorker createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         return factory.createNode(local_address, coordinator_address);
     }

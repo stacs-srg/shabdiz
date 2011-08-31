@@ -54,7 +54,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     private void initHandlers() {
 
         handler_map.put(ICoordinatorRemote.NOTIFY_COMPLETION_METHOD_NAME, new NotifyCompletionHandler());
-        handler_map.put(ICoordinatorRemote.NOTIFY_EXCEPTION_METHOD_NAME, new NotifyExceptionHandler());
+        handler_map.put(ICoordinatorRemote.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

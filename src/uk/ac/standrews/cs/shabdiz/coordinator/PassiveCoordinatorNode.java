@@ -25,9 +25,9 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteServer;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
 
 /**
  * Passively coordinates the submission of jobs to a set of remote workers. Listens to the notifications of job completions from workers rather than actively contact them.
@@ -82,7 +82,7 @@ public class PassiveCoordinatorNode extends AbstractCoordinatorNode implements I
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public void addHost(final HostDescriptor host_descriptor) throws LibrariesOverwrittenException, AlreadyDeployedException {
+    public void addHost(final HostDescriptor host_descriptor) throws LibrariesOverwrittenException {
 
         final Object[] application_deployment_params = new Object[]{local_address};
         host_descriptor.applicationDeploymentParams(application_deployment_params);

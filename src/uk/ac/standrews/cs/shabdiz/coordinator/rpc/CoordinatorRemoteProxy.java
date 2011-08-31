@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import org.json.JSONWriter;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorRemote;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
+import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
 /**
  * The Class ExperimentCoordinatorProxy.
@@ -25,7 +25,7 @@ public class CoordinatorRemoteProxy extends StreamProxy implements ICoordinatorR
     // -------------------------------------------------------------------------------------------------------
 
     /**
-     * Package protected constructor of a new coordinator proxy. 
+     * Package protected constructor of a new coordinator proxy.
      *
      * @param coordinator_node_address the address of a coordinator node
      * @see CoordinatorRemoteProxyFactory#getProxy(InetSocketAddress)
@@ -70,7 +70,7 @@ public class CoordinatorRemoteProxy extends StreamProxy implements ICoordinatorR
     public void notifyException(final UUID job_id, final Exception exception) throws RPCException {
 
         try {
-            final AbstractStreamConnection streams = startCall(NOTIFY_EXCEPTION_METHOD_NAME);
+            final AbstractStreamConnection streams = startCall(NOTIFY_EXCEPTION_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = streams.getJSONwriter();
             getMarshaller().serializeUUID(job_id, writer);

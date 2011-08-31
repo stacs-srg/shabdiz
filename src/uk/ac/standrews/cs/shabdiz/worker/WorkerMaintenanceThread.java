@@ -7,15 +7,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
 
 class WorkerMaintenanceThread extends Thread {
 
     private static final Duration MAINTENANCE_LOOP_DELAY = new Duration(5, TimeUnit.SECONDS);
 
-    private final IWorkerNode node;
+    private final WorkerImpl node;
 
-    WorkerMaintenanceThread(final IWorkerNode node) {
+    WorkerMaintenanceThread(final WorkerImpl node) {
 
         this.node = node;
     }

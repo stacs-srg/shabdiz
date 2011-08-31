@@ -11,11 +11,11 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
-import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeImpl;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
+import uk.ac.standrews.cs.shabdiz.worker.WorkerImpl;
 
 /**
  * The Class McJobRemoteServer.
@@ -27,12 +27,12 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private final WorkerRemoteMarshaller marshaller;
 
-    private final WorkerNodeImpl worker_node;
+    private final WorkerImpl worker_node;
 
     /**
      * Instantiates a new worker remote server for a given worker node.
      */
-    public WorkerRemoteServer(final WorkerNodeImpl worker_node) {
+    public WorkerRemoteServer(final WorkerImpl worker_node) {
 
         super();
         this.worker_node = worker_node;
@@ -57,14 +57,14 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(IWorkerRemote.GET_ADDRESS_METHOD_NAME, new GetAddressHandler());
-        handler_map.put(IWorkerRemote.SUBMIT_METHOD_NAME, new SubmitHandler());
+        handler_map.put(IWorker.GET_ADDRESS_METHOD_NAME, new GetAddressHandler());
+        handler_map.put(IWorker.SUBMIT_METHOD_NAME, new SubmitHandler());
 
-        handler_map.put(IFutureRemote.CANCEL_METHOD_NAME, new CancelHandler());
+        handler_map.put(IFutureRemote.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
         handler_map.put(IFutureRemote.GET_METHOD_NAME, new GetHandler());
         handler_map.put(IFutureRemote.GET_WITH_TIMEOUT_METHOD_NAME, new GetWithTimeoutHandler());
         handler_map.put(IFutureRemote.IS_CANCELLED_METHOD_NAME, new IsCancelledHandler());
-        handler_map.put(IFutureRemote.IS_DONE_METHOD_NAME, new IsDoneHandler());
+        handler_map.put(IFutureRemote.IS_DONE_REMOTE_METHOD_NAME, new IsDoneHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

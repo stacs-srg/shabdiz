@@ -12,11 +12,11 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  */
 public interface ICoordinatorRemote {
 
-    /** The method name of {@link #notifyCompletion(UUID, Object)}. */
-    String NOTIFY_COMPLETION_METHOD_NAME = "notifyCompletion";
+    /** The remote method name for {@link #notifyCompletion(UUID, Object)}. */
+    String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
 
-    /** The method name of {@link #notifyException(UUID, Exception)}. */
-    String NOTIFY_EXCEPTION_METHOD_NAME = "notifyException";
+    /** The remote method name for {@link #notifyException(UUID, Exception)}. */
+    String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
 
     /**
      * Notifies the coordinator about the result of a submitted job.

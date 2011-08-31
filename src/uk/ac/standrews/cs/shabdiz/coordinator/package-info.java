@@ -1,5 +1,5 @@
 /**
- * Provides classes which coordinate job execution on workers.
+ * Provides classes the implement coordinator related interfaces.
  */
 package uk.ac.standrews.cs.shabdiz.coordinator;
 

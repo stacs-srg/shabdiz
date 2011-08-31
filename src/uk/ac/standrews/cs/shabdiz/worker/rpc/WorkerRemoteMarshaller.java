@@ -17,8 +17,8 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.DeserializationException;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 
 /**

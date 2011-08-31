@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.shabdiz.worker.rpc;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
+ * Presents a remote exception on a worker.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

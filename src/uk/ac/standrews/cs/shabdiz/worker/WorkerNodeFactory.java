@@ -19,8 +19,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerNode;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxyFactory;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
@@ -58,9 +57,9 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * @throws InterruptedException 
      * @throws UnreachableCoordinatorException 
      */
-    public IWorkerNode createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public IWorker createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return new WorkerNodeImpl(local_address, coordinator_address);
+        return new WorkerImpl(local_address, coordinator_address);
     }
 
     /**
@@ -71,7 +70,7 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      *
      * @throws RPCException if an error occurs communicating with the remote machine
      */
-    public IWorkerRemote bindToNode(final InetSocketAddress node_address) throws RPCException {
+    public IWorker bindToNode(final InetSocketAddress node_address) throws RPCException {
 
         final WorkerRemoteProxy worker = WorkerRemoteProxyFactory.getProxy(node_address);
 
@@ -89,9 +88,9 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * @throws TimeoutException if the node cannot be bound to within the timeout interval
      * @throws InterruptedException 
      */
-    public IWorkerRemote bindToNode(final InetSocketAddress node_address, final Duration retry_interval, final Duration timeout_interval) throws TimeoutException, InterruptedException {
+    public IWorker bindToNode(final InetSocketAddress node_address, final Duration retry_interval, final Duration timeout_interval) throws TimeoutException, InterruptedException {
 
-        return (IWorkerRemote) bindToNode(retry_interval, timeout_interval, node_address);
+        return (IWorker) bindToNode(retry_interval, timeout_interval, node_address);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -113,7 +112,7 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
     }
 
     @Override
-    protected IWorkerRemote createLocalReference(final Object node, final Object remote_reference) {
+    protected IWorker createLocalReference(final Object node, final Object remote_reference) {
 
         return null;
     }

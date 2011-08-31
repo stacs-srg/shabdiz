@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.FutureRemoteProxyFactory;
 
 /**

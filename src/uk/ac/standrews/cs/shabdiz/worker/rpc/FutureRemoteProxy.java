@@ -13,7 +13,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
 
 public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements IFutureRemote<Result> {
 
@@ -46,7 +46,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         try {
 
-            final AbstractStreamConnection connection = startCall(CANCEL_METHOD_NAME);
+            final AbstractStreamConnection connection = startCall(CANCEL_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);
@@ -141,7 +141,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         try {
 
-            final AbstractStreamConnection connection = startCall(IS_DONE_METHOD_NAME);
+            final AbstractStreamConnection connection = startCall(IS_DONE_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);
