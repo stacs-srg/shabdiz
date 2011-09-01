@@ -17,8 +17,8 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.DeserializationException;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 
 /**
@@ -31,6 +31,14 @@ public class WorkerRemoteMarshaller extends Marshaller {
     private static final String JOB_ID_KEY = "jobid";
     private static final String ADDRESS_KEY = "address";
 
+    /**
+     * Serialises a {@link Serializable} using {@link ObjectOutputStream}.
+     *
+     * @param object the object to serialise
+     * @param writer the writer
+     * @throws JSONException if JSON related error occurs
+     * @throws IOException Signals that an I/O exception has occurred
+     */
     public void serializeSerializable(final Serializable object, final JSONWriter writer) throws JSONException, IOException {
 
         if (object == null) {
@@ -54,6 +62,13 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    /**
+     * Deserialises a {@link Serializable}.
+     *
+     * @param reader the reader to read the serialised from
+     * @return the deserialised object
+     * @throws DeserializationException if unable to deserialise
+     */
     public Serializable deserializeSerializable(final JSONReader reader) throws DeserializationException {
 
         ObjectInputStream object_input_stream = null;
@@ -77,11 +92,15 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
-    public <Result extends Serializable> void serializeResult(final Result result, final JSONWriter writer) throws DeserializationException, JSONException, IOException {
-
-        serializeSerializable(result, writer);
-    }
-
+    /**
+     * Deserialises a {@link Serializable} object and casts it to the given generic type.
+     *
+     * @param <Result> the type of result
+     * @param reader the reader to read the serialised from
+     * @return the deserialised object
+     * @throws DeserializationException if unable to deserialise
+     */
+    @SuppressWarnings("unchecked")
     public <Result extends Serializable> Result deserializeResult(final JSONReader reader) throws DeserializationException {
 
         final Serializable deserialized_serializable = deserializeSerializable(reader);
@@ -93,11 +112,26 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    /**
+     * Serialises remote job.
+     *
+     * @param remote_job the remote job to serialise
+     * @param writer the writer
+     * @throws JSONException if a JSON related error occurs
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void serializeRemoteJob(final IRemoteJob<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
 
         serializeSerializable(remote_job, writer);
     }
 
+    /**
+     * Deserialises a {@link IRemoteJob}.
+     *
+     * @param reader the reader to read the serialised job from
+     * @return the deserialised remote job
+     * @throws DeserializationException if unable to deserialise
+     */
     @SuppressWarnings("unchecked")
     public IRemoteJob<?> deserializeRemoteJob(final JSONReader reader) throws DeserializationException {
 
@@ -109,6 +143,14 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    /**
+     * Serialises future remote reference.
+     *
+     * @param <Result> the generic type
+     * @param future_remote the future_remote
+     * @param writer the writer
+     * @throws JSONException if a JSON related error occurs
+     */
     public <Result extends Serializable> void serializeFutureRemoteReference(final IFutureRemoteReference<Result> future_remote, final JSONWriter writer) throws JSONException {
 
         if (future_remote == null) {
@@ -127,7 +169,15 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
-    public <Result extends Serializable> IFutureRemoteReference<Result> deserializeFutureRemoteReference(final JSONReader reader) throws DeserializationException {
+    /**
+     * Deserialises a {@link FutureRemoteReference}.
+     *
+     * @param <Result> the type of result which is pending in the future remote reference
+     * @param reader the reader to read the serialised from
+     * @return the deserialised object
+     * @throws DeserializationException if unable to deserialise
+     */
+    public <Result extends Serializable> FutureRemoteReference<Result> deserializeFutureRemoteReference(final JSONReader reader) throws DeserializationException {
 
         try {
             if (reader.checkNull()) { return null; }
@@ -149,6 +199,13 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    /**
+     * Serialises a {@link TimeUnit} and.
+     *
+     * @param unit the unit
+     * @param writer the writer
+     * @throws JSONException the jSON exception
+     */
     public void serializeTimeUnit(final TimeUnit unit, final JSONWriter writer) throws JSONException {
 
         if (unit == null) {
@@ -159,6 +216,13 @@ public class WorkerRemoteMarshaller extends Marshaller {
         }
     }
 
+    /**
+     * Deserialises a {@link TimeUnit}.
+     *
+     * @param reader the reader to read the serialised from
+     * @return the deserialised object
+     * @throws DeserializationException if unable to deserialise
+     */
     public TimeUnit deserializeTimeUnit(final JSONReader reader) throws DeserializationException {
 
         try {

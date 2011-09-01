@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.interfaces.worker;
+package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
 import java.util.concurrent.ExecutionException;
@@ -15,21 +15,6 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface IFutureRemote<Result extends Serializable> {
-
-    /** The remote method name for {@link #cancel(boolean)}. */
-    String CANCEL_REMOTE_METHOD_NAME = "cancel";
-
-    /** The remote method name for {@link #get()}. */
-    String GET_REMOTE_METHOD_NAME = "get";
-
-    /** The remote method name for {@link #get(long, TimeUnit)}. */
-    String GET_WITH_TIMEOUT_REMOTE_METHOD_NAME = "getWithTimeout";
-
-    /** The remote method name for {@link #isCancelled()}. */
-    String IS_CANCELLED_REMOTE_METHOD_NAME = "isCancelled";
-
-    /** The remote method name for {@link #isDone()}. */
-    String IS_DONE_REMOTE_METHOD_NAME = "isDone";
 
     /**
      * Cancels the remote computation which is submitted to a remote worker.

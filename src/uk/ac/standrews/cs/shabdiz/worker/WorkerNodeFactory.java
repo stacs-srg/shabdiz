@@ -19,7 +19,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxyFactory;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p2pnodefactory is a good name for that class since its factory for node, not necessarily a p2p node
+public class WorkerNodeFactory extends P2PNodeFactory {
 
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port is 55496, and Trombone's is 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
@@ -38,6 +38,9 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
     protected static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
     private static final int COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
+    /**
+     * Instantiates a new worker node factory.
+     */
     public WorkerNodeFactory() {
 
         super();
@@ -47,15 +50,14 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * Creates a new worker node running in the current JVM at a given local network address on a given port.
      *
      * @param local_address the local address of the node
+     * @param coordinator_address the coordinator_address
      * @return the new node
-     *
      * @throws IOException if the node cannot bind to the specified local address
      * @throws RPCException if an error occurs binding the node to the registry
      * @throws AlreadyBoundException if another node is already bound in the registry
      * @throws RegistryUnavailableException if the registry is unavailable
-     * @throws TimeoutException 
-     * @throws InterruptedException 
-     * @throws UnreachableCoordinatorException 
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
      */
     public IWorker createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
@@ -83,10 +85,11 @@ public class WorkerNodeFactory extends P2PNodeFactory { // XXX discuss whether p
      * Binds to an existing remote worker node running at a given network address, checking for liveness, retrying on any error until the timeout interval has elapsed.
      *
      * @param node_address the address of the existing node
+     * @param retry_interval the retry_interval
+     * @param timeout_interval the timeout_interval
      * @return a remote reference to the node
-     *
      * @throws TimeoutException if the node cannot be bound to within the timeout interval
-     * @throws InterruptedException 
+     * @throws InterruptedException the interrupted exception
      */
     public IWorker bindToNode(final InetSocketAddress node_address, final Duration retry_interval, final Duration timeout_interval) throws TimeoutException, InterruptedException {
 

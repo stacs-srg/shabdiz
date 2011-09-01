@@ -12,9 +12,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
+import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.WorkerImpl;
 
 /**
@@ -27,15 +25,17 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private final WorkerRemoteMarshaller marshaller;
 
-    private final WorkerImpl worker_node;
+    private final WorkerImpl worker;
 
     /**
      * Instantiates a new worker remote server for a given worker node.
+     *
+     * @param worker the worker
      */
-    public WorkerRemoteServer(final WorkerImpl worker_node) {
+    public WorkerRemoteServer(final WorkerImpl worker) {
 
         super();
-        this.worker_node = worker_node;
+        this.worker = worker;
         marshaller = new WorkerRemoteMarshaller();
 
         initHandlers();
@@ -57,14 +57,14 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(IWorker.GET_ADDRESS_METHOD_NAME, new GetAddressHandler());
-        handler_map.put(IWorker.SUBMIT_METHOD_NAME, new SubmitHandler());
+        handler_map.put(WorkerRemoteProxy.GET_ADDRESS_REMOTE_METHOD_NAME, new GetAddressHandler());
+        handler_map.put(WorkerRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
 
-        handler_map.put(IFutureRemote.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
-        handler_map.put(IFutureRemote.GET_METHOD_NAME, new GetHandler());
-        handler_map.put(IFutureRemote.GET_WITH_TIMEOUT_METHOD_NAME, new GetWithTimeoutHandler());
-        handler_map.put(IFutureRemote.IS_CANCELLED_METHOD_NAME, new IsCancelledHandler());
-        handler_map.put(IFutureRemote.IS_DONE_REMOTE_METHOD_NAME, new IsDoneHandler());
+        handler_map.put(FutureRemoteProxy.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
+        handler_map.put(FutureRemoteProxy.GET_REMOTE_METHOD_NAME, new GetHandler());
+        handler_map.put(FutureRemoteProxy.GET_WITH_TIMEOUT_REMOTE_METHOD_NAME, new GetWithTimeoutHandler());
+        handler_map.put(FutureRemoteProxy.IS_CANCELLED_REMOTE_METHOD_NAME, new IsCancelledHandler());
+        handler_map.put(FutureRemoteProxy.IS_DONE_REMOTE_METHOD_NAME, new IsDoneHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ public class WorkerRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            marshaller.serializeInetSocketAddress(worker_node.getAddress(), response);
+            marshaller.serializeInetSocketAddress(worker.getAddress(), response);
         }
     }
 
@@ -86,7 +86,7 @@ public class WorkerRemoteServer extends ApplicationServer {
             try {
                 final IRemoteJob<? extends Serializable> job = marshaller.deserializeRemoteJob(args);
 
-                final IFutureRemoteReference<? extends Serializable> future_remote_reference = worker_node.submit(job);
+                final FutureRemoteReference<? extends Serializable> future_remote_reference = worker.submit(job);
                 marshaller.serializeFutureRemoteReference(future_remote_reference, response);
             }
             catch (final DeserializationException e) {
@@ -104,7 +104,7 @@ public class WorkerRemoteServer extends ApplicationServer {
                 final UUID job_id = marshaller.deserializeUUID(args);
                 final boolean may_interrupt_if_running = args.booleanValue();
 
-                final boolean cancelled = worker_node.getFutureById(job_id).cancel(may_interrupt_if_running);
+                final boolean cancelled = worker.getFutureById(job_id).cancel(may_interrupt_if_running);
                 response.value(cancelled);
             }
             catch (final DeserializationException e) {
@@ -121,7 +121,7 @@ public class WorkerRemoteServer extends ApplicationServer {
             try {
                 final UUID job_id = marshaller.deserializeUUID(args);
 
-                final Serializable result = worker_node.getFutureById(job_id).get();
+                final Serializable result = worker.getFutureById(job_id).get();
                 marshaller.serializeSerializable(result, response);
             }
             catch (final DeserializationException e) {
@@ -140,7 +140,7 @@ public class WorkerRemoteServer extends ApplicationServer {
                 final long timeout = args.longValue();
                 final TimeUnit unit = marshaller.deserializeTimeUnit(args);
 
-                final Serializable result = worker_node.getFutureById(job_id).get(timeout, unit);
+                final Serializable result = worker.getFutureById(job_id).get(timeout, unit);
                 marshaller.serializeSerializable(result, response);
             }
             catch (final DeserializationException e) {
@@ -157,7 +157,7 @@ public class WorkerRemoteServer extends ApplicationServer {
             try {
                 final UUID job_id = marshaller.deserializeUUID(args);
 
-                final boolean cancelled = worker_node.getFutureById(job_id).isCancelled();
+                final boolean cancelled = worker.getFutureById(job_id).isCancelled();
                 response.value(cancelled);
             }
             catch (final DeserializationException e) {
@@ -174,7 +174,7 @@ public class WorkerRemoteServer extends ApplicationServer {
             try {
                 final UUID job_id = marshaller.deserializeUUID(args);
 
-                final boolean done = worker_node.getFutureById(job_id).isDone();
+                final boolean done = worker.getFutureById(job_id).isDone();
                 response.value(done);
             }
             catch (final DeserializationException e) {

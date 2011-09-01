@@ -9,8 +9,8 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
+import uk.ac.standrews.cs.shabdiz.coordinator.Coordinator;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
 /**
@@ -23,13 +23,18 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     /** The coordinator server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Coordinator Server";
 
-    private final ICoordinatorRemote application;
+    private final Coordinator coordinator;
     private final WorkerRemoteMarshaller marshaller;
 
-    public CoordinatorRemoteServer(final ICoordinatorRemote application) {
+    /**
+     * Instantiates a new coordinator remote server.
+     *
+     * @param coordinator the coordinator application
+     */
+    public CoordinatorRemoteServer(final Coordinator coordinator) {
 
         super();
-        this.application = application;
+        this.coordinator = coordinator;
 
         marshaller = new WorkerRemoteMarshaller();
         initHandlers();
@@ -53,8 +58,8 @@ public class CoordinatorRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(ICoordinatorRemote.NOTIFY_COMPLETION_METHOD_NAME, new NotifyCompletionHandler());
-        handler_map.put(ICoordinatorRemote.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
+        handler_map.put(CoordinatorRemoteProxy.NOTIFY_COMPLETION_REMOTE_METHOD_NAME, new NotifyCompletionHandler());
+        handler_map.put(CoordinatorRemoteProxy.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -68,7 +73,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
             final UUID job_id = getMarshaller().deserializeUUID(args);
             final Serializable result = marshaller.deserializeSerializable(args);
 
-            application.notifyCompletion(job_id, result);
+            coordinator.notifyCompletion(job_id, result);
             response.value("");
         }
     }
@@ -81,7 +86,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
             final UUID job_id = getMarshaller().deserializeUUID(args);
             final Exception exception = getMarshaller().deserializeException(args);
 
-            application.notifyException(job_id, exception);
+            coordinator.notifyException(job_id, exception);
             response.value("");
         }
     }

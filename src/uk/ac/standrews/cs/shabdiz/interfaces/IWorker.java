@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.interfaces.worker;
+package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 
 /**
  * Presents the remote functionalities provided by a worker.
@@ -14,12 +13,6 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface IWorker {
-
-    /** The remote method name for {@link getAddress()}. */
-    String GET_ADDRESS_METHOD_NAME = "getAddress";
-
-    /** The remote method name for {@link submit(IRemoteJob)}. */
-    String SUBMIT_METHOD_NAME = "submit";
 
     /**
      * Gets this worker's address.
@@ -41,4 +34,11 @@ public interface IWorker {
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
     <Result extends Serializable> IFutureRemoteReference<Result> submit(IRemoteJob<Result> remote_job) throws RPCException;
+
+    /**
+     * Shuts down this worker.
+     * 
+     * @throws RPCException if unable to make the remote call
+     */
+    void shutdown() throws RPCException;
 }

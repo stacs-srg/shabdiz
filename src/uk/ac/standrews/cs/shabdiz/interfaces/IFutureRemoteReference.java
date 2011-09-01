@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.interfaces.worker;
+package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;

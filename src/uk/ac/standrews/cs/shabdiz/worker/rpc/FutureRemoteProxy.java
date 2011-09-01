@@ -13,21 +13,39 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 
+/**
+ * Handles future remote RPC mechanism.
+ *
+ * @param <Result> the type of pending result
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements IFutureRemote<Result> {
+
+    /** The remote method name for {@link IFutureRemote#cancel(boolean)}. */
+    public static final String CANCEL_REMOTE_METHOD_NAME = "cancel";
+
+    /** The remote method name for {@link IFutureRemote#get()}. */
+    public static final String GET_REMOTE_METHOD_NAME = "get";
+
+    /** The remote method name for {@link IFutureRemote#get(long, TimeUnit)}. */
+    public static final String GET_WITH_TIMEOUT_REMOTE_METHOD_NAME = "getWithTimeout";
+
+    /** The remote method name for {@link #isCancelled()}. */
+    public static final String IS_CANCELLED_REMOTE_METHOD_NAME = "isCancelled";
+
+    /** The remote method name for {@link IFutureRemote#isDone()}. */
+    public static final String IS_DONE_REMOTE_METHOD_NAME = "isDone";
 
     private final WorkerRemoteMarshaller marshaller;
     private final UUID job_id;
-    private final InetSocketAddress node_address;
 
     FutureRemoteProxy(final UUID job_id, final InetSocketAddress node_address) {
 
         super(node_address);
 
         this.job_id = job_id;
-        this.node_address = node_address;
-
         marshaller = new WorkerRemoteMarshaller();
     }
 
@@ -70,7 +88,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         try {
 
-            final AbstractStreamConnection connection = startCall(GET_METHOD_NAME);
+            final AbstractStreamConnection connection = startCall(GET_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);
@@ -93,7 +111,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         try {
 
-            final AbstractStreamConnection connection = startCall(GET_METHOD_NAME);
+            final AbstractStreamConnection connection = startCall(GET_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);
@@ -118,7 +136,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         try {
 
-            final AbstractStreamConnection connection = startCall(IS_CANCELLED_METHOD_NAME);
+            final AbstractStreamConnection connection = startCall(IS_CANCELLED_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);

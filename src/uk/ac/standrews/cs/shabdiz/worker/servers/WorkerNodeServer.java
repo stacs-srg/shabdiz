@@ -19,11 +19,11 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
-import uk.ac.standrews.cs.shabdiz.interfaces.worker.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
 
 /**
- * Starts up a Worker node.
+ * THe entry point to start up a new worker.
  * 
  * @author Alan Dearle (al@cs.st-andrews.ac.uk)
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
@@ -31,15 +31,20 @@ import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
  */
 public class WorkerNodeServer {
 
+    /** The parameter that specifies the diagnostic level. */
     public static final String DIAGNOSTIC_LEVEL_KEY = "-D";
+
+    /** The parameter that specifies the local address. */
     public static final String LOCAL_ADDRESS_KEY = "-s";
+
+    /** The parameter that specifies the coordinator address. */
     public static final String COORDINATOR_ADDRESS_KEY = "-c";
 
     private static final String DIAGNOSTIC_DATE_FORMAT = "HH:mm:ss:SSS ";
     private static final DiagnosticLevel DEFAULT_DIAGNOSTIC_LEVEL = DiagnosticLevel.NONE;
     private static final Duration WORKER_SOCKET_READ_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
 
-    private static final WorkerNodeFactory factory;
+    private static final WorkerNodeFactory FACTORY;
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress coordinator_address = null;
@@ -47,12 +52,19 @@ public class WorkerNodeServer {
     // -------------------------------------------------------------------------------------------------------
 
     static {
-        factory = new WorkerNodeFactory();
+        FACTORY = new WorkerNodeFactory();
         StreamProxy.CONNECTION_POOL.setSocketReadTimeout(WORKER_SOCKET_READ_TIMEOUT);
     }
 
     // -------------------------------------------------------------------------------------------------------
 
+    /**
+     * Instantiates a new worker node server.
+     *
+     * @param args the startup arguments
+     * @throws UndefinedDiagnosticLevelException the undefined diagnostic level exception
+     * @throws UnknownHostException the unknown host exception
+     */
     public WorkerNodeServer(final String[] args) throws UndefinedDiagnosticLevelException, UnknownHostException {
 
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
@@ -69,24 +81,22 @@ public class WorkerNodeServer {
      * <dl>
      * <dt>-shost:port (required)</dt>
      * <dd>Specifies the local address and port at which the Shabdiz Worker service should be made available.</dd>
-     *
+     * 
      * <dt>-khost:port (optional)</dt>
      * <dd>Specifies the address and port of an existing Shabdiz coordinator, by which the new node is coordinated.</dd>
-     *
+     * 
      * <dt>-Dlevel (optional)</dt>
      * <dd>Specifies a diagnostic level from 0 (most detailed) to 6 (least detailed).</dd>
      * </dl>
      *
      * @param args see above
-     * @throws RPCException if an error occurs in making the new node accessible for remote access, or in communication with the remote machine
+     * @throws RPCException if an error occurs binding the node to the registry
      * @throws UndefinedDiagnosticLevelException if the specified diagnostic level is not valid
      * @throws IOException if a node cannot be created using the given local address
-     * @throws RPCException if an error occurs binding the node to the registry
      * @throws AlreadyBoundException if another node is already bound in the registry
      * @throws RegistryUnavailableException if the registry is unavailable
-     * @throws TimeoutException 
-     * @throws InterruptedException 
-     * @throws UnreachableCoordinatorException 
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
      */
     public static void main(final String[] args) throws RPCException, UndefinedDiagnosticLevelException, IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
@@ -102,9 +112,20 @@ public class WorkerNodeServer {
 
     // -------------------------------------------------------------------------------------------------------
 
+    /**
+     * Creates a new worker node.
+     *
+     * @return the created worker node
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws RPCException the rPC exception
+     * @throws AlreadyBoundException the already bound exception
+     * @throws RegistryUnavailableException the registry unavailable exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     public IWorker createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return factory.createNode(local_address, coordinator_address);
+        return FACTORY.createNode(local_address, coordinator_address);
     }
 
     // -------------------------------------------------------------------------------------------------------
