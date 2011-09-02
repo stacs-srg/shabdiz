@@ -1,15 +1,15 @@
 package uk.ac.standrews.cs.shabdiz.coordinator.rpc;
 
 import java.io.Serializable;
-import java.util.UUID;
+import java.net.InetSocketAddress;
 
 import org.json.JSONWriter;
 
 import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
-import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.coordinator.Coordinator;
+import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
@@ -23,7 +23,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     /** The coordinator server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Coordinator Server";
 
-    private final Coordinator coordinator;
+    private final ICoordinatorRemote coordinator;
     private final WorkerRemoteMarshaller marshaller;
 
     /**
@@ -31,7 +31,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
      *
      * @param coordinator the coordinator application
      */
-    public CoordinatorRemoteServer(final Coordinator coordinator) {
+    public CoordinatorRemoteServer(final ICoordinatorRemote coordinator) {
 
         super();
         this.coordinator = coordinator;
@@ -43,7 +43,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public Marshaller getMarshaller() {
+    public WorkerRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
@@ -52,6 +52,14 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     public String getApplicationRegistryKey() {
 
         return APPLICATION_REGISTRY_KEY;
+    }
+
+    @Override
+    public InetSocketAddress getAddress() {
+
+        if (server_socket == null || port != 0) { return super.getAddress(); }
+
+        return (InetSocketAddress) server_socket.getLocalSocketAddress();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -70,10 +78,10 @@ public class CoordinatorRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final UUID job_id = getMarshaller().deserializeUUID(args);
+            final IFutureRemoteReference<Serializable> future_reference = getMarshaller().deserializeFutureRemoteReference(args);
             final Serializable result = marshaller.deserializeSerializable(args);
 
-            coordinator.notifyCompletion(job_id, result);
+            coordinator.notifyCompletion(future_reference, result);
             response.value("");
         }
     }
@@ -83,10 +91,10 @@ public class CoordinatorRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final UUID job_id = getMarshaller().deserializeUUID(args);
+            final IFutureRemoteReference<Serializable> future_reference = getMarshaller().deserializeFutureRemoteReference(args);
             final Exception exception = getMarshaller().deserializeException(args);
 
-            coordinator.notifyException(job_id, exception);
+            coordinator.notifyException(future_reference, exception);
             response.value("");
         }
     }

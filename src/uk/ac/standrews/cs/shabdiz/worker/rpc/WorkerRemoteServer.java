@@ -13,7 +13,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
 import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.worker.WorkerImpl;
+import uk.ac.standrews.cs.shabdiz.worker.Worker;
 
 /**
  * The Class McJobRemoteServer.
@@ -25,14 +25,14 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private final WorkerRemoteMarshaller marshaller;
 
-    private final WorkerImpl worker;
+    private final Worker worker;
 
     /**
      * Instantiates a new worker remote server for a given worker node.
      *
      * @param worker the worker
      */
-    public WorkerRemoteServer(final WorkerImpl worker) {
+    public WorkerRemoteServer(final Worker worker) {
 
         super();
         this.worker = worker;
@@ -59,6 +59,7 @@ public class WorkerRemoteServer extends ApplicationServer {
 
         handler_map.put(WorkerRemoteProxy.GET_ADDRESS_REMOTE_METHOD_NAME, new GetAddressHandler());
         handler_map.put(WorkerRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
+        handler_map.put(WorkerRemoteProxy.SHUTDOWN_REMOTE_METHOD_NAME, new ShutdownHandler());
 
         handler_map.put(FutureRemoteProxy.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
         handler_map.put(FutureRemoteProxy.GET_REMOTE_METHOD_NAME, new GetHandler());
@@ -92,6 +93,16 @@ public class WorkerRemoteServer extends ApplicationServer {
             catch (final DeserializationException e) {
                 throw new RemoteWorkerException(e);
             }
+        }
+    }
+
+    private final class ShutdownHandler implements IHandler {
+
+        @Override
+        public void execute(final JSONReader args, final JSONWriter response) throws Exception {
+
+            worker.shutdown();
+            response.value("");
         }
     }
 

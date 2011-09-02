@@ -29,12 +29,12 @@ public class WorkerNetwork implements INetwork {
      * @param coordinator_address the address of the coordinator server
      * @throws Exception if unable to deploy the network of workers
      */
-    WorkerNetwork(final SortedSet<HostDescriptor> host_descriptors, final WorkerManager worker_manager, final Set<URL> application_lib_urls, final InetSocketAddress coordinator_address) throws Exception {
+    WorkerNetwork(final SortedSet<HostDescriptor> host_descriptors, final Set<URL> application_lib_urls, final InetSocketAddress coordinator_address) throws Exception {
 
         madface_manager = MadfaceManagerFactory.makeMadfaceManager();
 
         madface_manager.setHostScanning(true);
-        madface_manager.configureApplication(worker_manager);
+        madface_manager.configureApplication(new WorkerManager());
         madface_manager.configureApplication(application_lib_urls);
 
         for (final HostDescriptor new_node_descriptor : host_descriptors) {

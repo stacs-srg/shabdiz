@@ -14,7 +14,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.FutureRemoteProxyFactory;
  * @param <Result> the type of result returned by the remote computation
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class FutureRemoteReference<Result extends Serializable> implements IFutureRemoteReference<Result> {
+public class FutureRemoteReference<Result extends Serializable> implements IFutureRemoteReference<Result>, Comparable<FutureRemoteReference<Result>> {
 
     private final UUID id;
     private final InetSocketAddress address;
@@ -50,5 +50,11 @@ public class FutureRemoteReference<Result extends Serializable> implements IFutu
     public IFutureRemote<Result> getRemote() {
 
         return remote;
+    }
+
+    @Override
+    public int compareTo(final FutureRemoteReference<Result> other) {
+
+        return id.compareTo(other.id);
     }
 }

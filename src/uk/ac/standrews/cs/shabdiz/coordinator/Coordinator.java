@@ -3,13 +3,10 @@ package uk.ac.standrews.cs.shabdiz.coordinator;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeoutException;
 
@@ -23,13 +20,13 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteServer;
 import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinator;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
-import uk.ac.standrews.cs.shabdiz.interfaces.coordinator.ICoordinatorRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 
 /**
- * An abstract implementation of an {@link ICoordinator}.
+ * Implements a {@link ICoordinator}. Deploys workers on a set of added hosts and provides a coordinated proxy to communicate with them.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -37,18 +34,12 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
 
     private static final int EPHEMERAL_PORT = 0;
 
-    private final Map<IFutureRemote<? extends Serializable>, IWorker> future_worker_map; // Maps a remote pending result to a remote worker
-    private final ConcurrentSkipListMap<IWorker, HostDescriptor> worker_host_map; // Maps a remote worker to a host descriptor; this map is used for convenient lookup of a host descriptor on which a worker has been deployed
-    private final WorkerManager worker_manager; // Provides management hooks for workers
-    private final SortedSet<HostDescriptor> host_descriptors;
-
-    private WorkerNetwork worker_network;
-    private final Set<URL> application_lib_urls;
-    private final InetSocketAddress coordinator_server_address;
-
-    private final CoordinatorRemoteServer server;
-    private final Map<UUID, Serializable> notified_completions;
-    private final Map<UUID, Exception> notified_exceptions;
+    private final Set<URL> application_lib_urls; // URLs to application libraries needed by a worker
+    private final InetSocketAddress coordinator_server_address; // The address on which the coordinator server is exposed
+    private final CoordinatorRemoteServer server; // The server which listens to the notifications from workers
+    private final SortedSet<HostDescriptor> host_descriptors; // Stores hosts on which workers will be deployed
+    private final Map<IFutureRemoteReference<? extends Serializable>, Serializable> notified_completions; // Stores mapping of a remote result reference to its notified result
+    private final Map<IFutureRemoteReference<? extends Serializable>, Exception> notified_exceptions; // Stores mapping of a remote result reference to its notified exception
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,7 +47,6 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      * Instantiates a new  coordinator and  starts a local server which listens to the notifications from workers on an <i>ephemeral</i> port number.
      *
      * @param application_lib_urls the application library URLs
-     * @param try_registry_on_connection_error  whether to try to lookup a worker from registry upon connection error
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -64,9 +54,9 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Coordinator(final Set<URL> application_lib_urls, final boolean try_registry_on_connection_error) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Coordinator(final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        this(EPHEMERAL_PORT, application_lib_urls, try_registry_on_connection_error);
+        this(EPHEMERAL_PORT, application_lib_urls);
     }
 
     /**
@@ -74,7 +64,6 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      *
      * @param port the port on which to start the coordinator server
      * @param application_lib_urls the application library URLs
-     * @param try_registry_on_connection_error  whether to try to lookup a worker from registry upon connection error
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -82,123 +71,111 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Coordinator(final int port, final Set<URL> application_lib_urls, final boolean try_registry_on_connection_error) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Coordinator(final int port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        coordinator_server_address = NetworkUtil.getLocalIPv4InetSocketAddress(port);
         this.application_lib_urls = application_lib_urls;
 
-        future_worker_map = new ConcurrentSkipListMap<IFutureRemote<? extends Serializable>, IWorker>();
-        worker_host_map = new ConcurrentSkipListMap<IWorker, HostDescriptor>();
-        worker_manager = new WorkerManager(try_registry_on_connection_error);
-
         host_descriptors = new TreeSet<HostDescriptor>();
-        notified_completions = new ConcurrentSkipListMap<UUID, Serializable>();
-        notified_exceptions = new ConcurrentSkipListMap<UUID, Exception>();
+        notified_completions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Serializable>();
+        notified_exceptions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Exception>();
 
         server = new CoordinatorRemoteServer(this);
-        expose();
+        expose(NetworkUtil.getLocalIPv4InetSocketAddress(port));
+        coordinator_server_address = server.getAddress();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
-
-        notified_completions.put(job_id, result);
-    }
-
-    @Override
-    public void notifyException(final UUID job_id, final Exception exception) throws RPCException {
-
-        notified_exceptions.put(job_id, exception);
-    }
-
-    @Override
-    public void addHost(final HostDescriptor host_descriptor) {
+    public synchronized void addHost(final HostDescriptor host_descriptor) {
 
         host_descriptors.add(host_descriptor);
     }
 
     @Override
-    public SortedSet<IWorker> deployWorkersOnHosts() throws Exception {
+    public synchronized SortedSet<IWorker> deployWorkersOnHosts() throws Exception {
 
-        worker_network = new WorkerNetwork(host_descriptors, worker_manager, application_lib_urls, coordinator_server_address);
+        final WorkerNetwork worker_network = new WorkerNetwork(host_descriptors, application_lib_urls, coordinator_server_address);
+        final SortedSet<IWorker> deployed_workers_on_hosts = getDeployedWorkersOnHosts(worker_network.getNodes());
 
-        populateWorkerHostMap(); // Populate the map of workers to host descriptors
-        return getDeployedWorkersOnHosts(); // return the set of deployed workers on hosts
+        worker_network.shutdown(); // Shut down the network used to deploy workers
+        dropAllHosts(); // Clear out the hosts on which workers are deployed
+
+        return deployed_workers_on_hosts; // return the set of deployed workers on hosts
     }
 
+    @Override
+    public <Result extends Serializable> void notifyCompletion(final IFutureRemoteReference<Result> future_reference, final Result result) throws RPCException {
+
+        notified_completions.put(future_reference, result);
+    }
+
+    @Override
+    public <Result extends Serializable> void notifyException(final IFutureRemoteReference<Result> future_reference, final Exception exception) throws RPCException {
+
+        notified_exceptions.put(future_reference, exception);
+    }
+
+    /**
+     * Unexposes the coordinator Server which breaks the communication to the workers deployed by this coordinator.
+     * 
+     * @see ICoordinator#shutdown()
+     */
     @Override
     public void shutdown() {
 
         unexpose();
-        worker_network.shutdown();
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-    protected SortedSet<IWorker> getDeployedWorkersOnHosts() {
-
-        return worker_host_map.keySet();
+        // XXX discuss whether to clear out all the notifications
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    Set<IFutureRemote<? extends Serializable>> getFuturesByWorker(final IWorker worker) {
+    boolean notifiedCompletionsContains(final IFutureRemoteReference<? extends Serializable> future_reference) {
 
-        final Set<IFutureRemote<? extends Serializable>> jobs_by_worker = new HashSet<IFutureRemote<? extends Serializable>>();
+        return notified_completions.containsKey(future_reference);
+    }
 
-        for (final Entry<IFutureRemote<? extends Serializable>, IWorker> job : future_worker_map.entrySet()) {
+    boolean notifiedExceptionsContains(final IFutureRemoteReference<? extends Serializable> future_reference) {
 
-            if (job.getValue().equals(worker)) { // Check whether the job belongs to the given worker
-                jobs_by_worker.add(job.getKey());
-            }
+        return notified_exceptions.containsKey(future_reference);
+    }
+
+    Serializable getNotifiedResult(final IFutureRemoteReference<? extends Serializable> future_reference) {
+
+        return notified_completions.get(future_reference);
+    }
+
+    Exception getNotifiedException(final IFutureRemoteReference<? extends Serializable> future_reference) {
+
+        return notified_exceptions.get(future_reference);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    private SortedSet<IWorker> getDeployedWorkersOnHosts(final SortedSet<HostDescriptor> workers_hosts) {
+
+        final SortedSet<IWorker> workers = new TreeSet<IWorker>();
+
+        for (final HostDescriptor worker_host : workers_hosts) { // For each host on which a worker is deployed
+
+            final WorkerRemoteProxy worker_remote_proxy = (WorkerRemoteProxy) worker_host.getApplicationReference(); // Retrieve the reference to the worker
+            final IWorker coordinated_worker = wrapInCoordinatedWorker(worker_remote_proxy); // Wrap the worker in a coordinated implementation
+
+            workers.add(coordinated_worker); // Add the wrapped worker to the list of workers
         }
 
-        return jobs_by_worker;
+        return workers;
     }
 
-    Set<IFutureRemote<? extends Serializable>> getAllFutures() {
+    private CoordinatedWorkerWrapper wrapInCoordinatedWorker(final WorkerRemoteProxy worker_remote_proxy) {
 
-        return future_worker_map.keySet();
+        return new CoordinatedWorkerWrapper(this, worker_remote_proxy);
     }
 
-    boolean notifiedCompletionsContains(final UUID job_id) {
+    private void expose(final InetSocketAddress expose_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return notified_completions.containsKey(job_id);
-    }
-
-    boolean notifiedExceptionsContains(final UUID job_id) {
-
-        return notified_exceptions.containsKey(job_id);
-    }
-
-    Serializable getNotifiedResult(final UUID job_id) {
-
-        return notified_completions.get(job_id);
-    }
-
-    Exception getNotifiedException(final UUID job_id) {
-
-        return notified_exceptions.get(job_id);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    private void populateWorkerHostMap() {
-
-        for (final HostDescriptor deployed_host : worker_network.getNodes()) {
-
-            final WorkerRemoteProxy real_worker = (WorkerRemoteProxy) deployed_host.getApplicationReference();
-            final CoordinatedWorkerWrapper coordinated_worker = new CoordinatedWorkerWrapper(this, real_worker);
-
-            worker_host_map.put(coordinated_worker, deployed_host);
-        }
-    }
-
-    private void expose() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
-
-        server.setLocalAddress(coordinator_server_address.getAddress());
-        server.setPort(coordinator_server_address.getPort());
+        server.setLocalAddress(expose_address.getAddress());
+        server.setPort(expose_address.getPort());
 
         server.start(true);
     }
@@ -211,5 +188,10 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
         catch (final IOException e) {
             Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop coordinator server, because: ", e.getMessage(), e);
         }
+    }
+
+    private void dropAllHosts() {
+
+        host_descriptors.clear();
     }
 }

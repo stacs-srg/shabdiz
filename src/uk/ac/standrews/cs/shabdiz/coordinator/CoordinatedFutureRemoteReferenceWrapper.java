@@ -22,7 +22,7 @@ import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
  */
 public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable> implements IFutureRemoteReference<Result> {
 
-    private final FutureRemoteReference<Result> future_remote_reference;
+    private final FutureRemoteReference<Result> future_reference;
     private final Coordinator coordinator;
     private boolean cancelled = false; // Whether this pending result was cancelled
 
@@ -30,12 +30,12 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
      * Instantiates a new coordinated future remote reference wrapper.
      *
      * @param coordinator the coordinator
-     * @param future_remote_reference the future remote reference to wrap
+     * @param future_reference the future remote reference to wrap
      */
-    CoordinatedFutureRemoteReferenceWrapper(final Coordinator coordinator, final FutureRemoteReference<Result> future_remote_reference) {
+    CoordinatedFutureRemoteReferenceWrapper(final Coordinator coordinator, final FutureRemoteReference<Result> future_reference) {
 
         this.coordinator = coordinator;
-        this.future_remote_reference = future_remote_reference;
+        this.future_reference = future_reference;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -43,20 +43,19 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
     @Override
     public UUID getId() {
 
-        return future_remote_reference.getId();
+        return future_reference.getId();
     }
 
     @Override
     public InetSocketAddress getAddress() {
 
-        return future_remote_reference.getAddress();
+        return future_reference.getAddress();
     }
 
     @Override
     public IFutureRemote<Result> getRemote() {
 
-        final IFutureRemote<Result> real_remote = future_remote_reference.getRemote();
-        final UUID job_id = getId();
+        final IFutureRemote<Result> real_remote = future_reference.getRemote();
 
         return new IFutureRemote<Result>() {
 
@@ -78,10 +77,10 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
 
                     if (isDone()) {
 
-                        if (coordinator.notifiedCompletionsContains(job_id)) { return (Result) coordinator.getNotifiedResult(job_id); }
-                        if (coordinator.notifiedExceptionsContains(job_id)) {
+                        if (coordinator.notifiedCompletionsContains(future_reference)) { return (Result) coordinator.getNotifiedResult(future_reference); }
+                        if (coordinator.notifiedExceptionsContains(future_reference)) {
 
-                            launchAppropreateException(coordinator.getNotifiedException(job_id));
+                            launchAppropreateException(coordinator.getNotifiedException(future_reference));
                         }
 
                         throw new CancellationException();
@@ -113,7 +112,7 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
             @Override
             public boolean isDone() {
 
-                return coordinator.notifiedCompletionsContains(job_id) || coordinator.notifiedExceptionsContains(job_id) || cancelled;
+                return coordinator.notifiedCompletionsContains(future_reference) || coordinator.notifiedExceptionsContains(future_reference) || cancelled;
             }
         };
     }

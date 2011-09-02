@@ -56,6 +56,9 @@ public class WorkerRemoteMarshaller extends Marshaller {
                 final byte[] object_as_bytes = bytes_output_stream.toByteArray();
                 serializeBytes(object_as_bytes, writer);
             }
+            catch (final Exception e) {
+                e.printStackTrace();
+            }
             finally {
                 closeSilently(object_output_stream);
             }
@@ -85,6 +88,7 @@ public class WorkerRemoteMarshaller extends Marshaller {
             return deserialized_object;
         }
         catch (final Exception e) {
+
             throw new DeserializationException(e);
         }
         finally {

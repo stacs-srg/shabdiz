@@ -15,7 +15,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatedWorkerWrapper implements IWorker {
+public class CoordinatedWorkerWrapper implements IWorker, Comparable<CoordinatedWorkerWrapper> {
 
     private final WorkerRemoteProxy worker_remote;
     private final Coordinator coordinator;
@@ -50,5 +50,14 @@ public class CoordinatedWorkerWrapper implements IWorker {
     public void shutdown() throws RPCException {
 
         worker_remote.shutdown();
+    }
+
+    @Override
+    public int compareTo(final CoordinatedWorkerWrapper other) {
+
+        if (equals(other)) { return 0; }
+
+        final int compare_cached_addresses = worker_remote.getCachedAddress().toString().compareTo(other.worker_remote.getCachedAddress().toString());
+        return compare_cached_addresses;
     }
 }

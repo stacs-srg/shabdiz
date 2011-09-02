@@ -176,4 +176,5 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
             return false;
         }
     }
+
 }

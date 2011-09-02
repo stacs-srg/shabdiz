@@ -3,7 +3,6 @@ package uk.ac.standrews.cs.shabdiz.worker;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -28,13 +27,13 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerImpl implements IWorker {
+public class Worker implements IWorker {
 
     private static final int THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> future_results;
+    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_to_future_map;
     private final CoordinatorRemoteProxy coordinator_proxy;
     private final WorkerRemoteServer server;
 
@@ -50,12 +49,12 @@ public class WorkerImpl implements IWorker {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public WorkerImpl(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Worker(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         this.local_address = local_address;
 
         coordinator_proxy = makeCoordinatorProxy(coordinator_address);
-        future_results = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
+        id_to_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         server = new WorkerRemoteServer(this);
@@ -74,6 +73,8 @@ public class WorkerImpl implements IWorker {
     public <Result extends Serializable> FutureRemoteReference<Result> submit(final IRemoteJob<Result> job) {
 
         final UUID job_id = generateJobId();
+        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(job_id, local_address);
+
         final Future<Result> real_future = exexcutor_service.submit(new Callable<Result>() {
 
             @Override
@@ -82,19 +83,21 @@ public class WorkerImpl implements IWorker {
                 try {
                     final Result result = job.call();
 
-                    handleCompletion(job_id, result);
+                    handleCompletion(future_reference, result);
+
                     return result;
                 }
                 catch (final Exception e) {
-                    handleException(job_id, e);
+                    handleException(future_reference, e);
+
                     throw e;
                 }
             }
         });
 
-        future_results.put(job_id, real_future);
+        id_to_future_map.put(job_id, real_future);
 
-        return new FutureRemoteReference<Result>(job_id, local_address);
+        return future_reference;
     }
 
     @Override
@@ -108,7 +111,7 @@ public class WorkerImpl implements IWorker {
                 unexpose();
             }
             catch (final IOException e) {
-                Diagnostic.trace(DiagnosticLevel.RUN, "Unable to un-expose the worker server, because: ", e.getMessage(), e);
+                Diagnostic.trace(DiagnosticLevel.RUN, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
             }
         }
     }
@@ -123,22 +126,17 @@ public class WorkerImpl implements IWorker {
      */
     public Future<? extends Serializable> getFutureById(final UUID job_id) {
 
-        return future_results.get(job_id);
+        return id_to_future_map.get(job_id);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    SortedSet<UUID> getJobIds() {
-
-        return future_results.navigableKeySet();
-    }
-
-    void handleCompletion(final UUID job_id, final Serializable result) {
+    <Result extends Serializable> void handleCompletion(final FutureRemoteReference<Result> future_reference, final Result result) {
 
         try {
-            coordinator_proxy.notifyCompletion(job_id, result);
+            coordinator_proxy.notifyCompletion(future_reference, result);
 
-            future_results.remove(job_id);
+            id_to_future_map.remove(future_reference);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -146,12 +144,12 @@ public class WorkerImpl implements IWorker {
         }
     }
 
-    void handleException(final UUID job_id, final Exception exception) {
+    void handleException(final FutureRemoteReference<? extends Serializable> future_reference, final Exception exception) {
 
         try {
-            coordinator_proxy.notifyException(job_id, exception);
+            coordinator_proxy.notifyException(future_reference, exception);
 
-            future_results.remove(job_id);
+            id_to_future_map.remove(future_reference);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -166,21 +164,21 @@ public class WorkerImpl implements IWorker {
         return CoordinatorRemoteProxyFactory.getProxy(coordinator_address);
     }
 
-    private UUID generateJobId() {
-
-        return UUID.randomUUID();
-    }
-
     private void expose() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         server.setLocalAddress(local_address.getAddress());
         server.setPort(local_address.getPort());
 
-        server.start(false);
+        server.start(true);
     }
 
     private void unexpose() throws IOException {
 
         server.stop();
+    }
+
+    private static synchronized UUID generateJobId() {
+
+        return UUID.randomUUID();
     }
 }

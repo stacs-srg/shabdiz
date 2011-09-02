@@ -12,15 +12,6 @@ import java.util.UUID;
  */
 public interface IFutureRemoteReference<Result extends Serializable> {
 
-    /** The remote method name for {@link #getId()}. */
-    String GET_ID_REMOTE_METHOD_NAME = "getId";
-
-    /** The remote method name for {@link #getAddress()}. */
-    String GET_ADDRESS_REMOTE_METHOD_NAME = "getAddress";
-
-    /** The remote method name for {@link #getRemote()}. */
-    String GET_REMOTE_REMOTE_METHOD_NAME = "getRemote";
-
     /**
      * Gets the globally unique id associated to the value-returning job which its pending result is represented by <code>this</code> .
      *
@@ -29,9 +20,9 @@ public interface IFutureRemoteReference<Result extends Serializable> {
     UUID getId();
 
     /**
-     * Gets the address of this remote future.
+     * Gets the address of the worker on which the result is pending.
      *
-     * @return the address
+     * @return the address of the worker on which the result is pending
      */
     InetSocketAddress getAddress();
 

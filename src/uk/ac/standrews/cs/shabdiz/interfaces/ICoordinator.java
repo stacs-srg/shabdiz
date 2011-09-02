@@ -19,15 +19,15 @@ public interface ICoordinator { // XXX Discuss whether a coordinator is a good n
     void addHost(HostDescriptor host_descriptor);
 
     /**
-     * Blocks until workers are deployed on the hosts added using {@link #addHost(HostDescriptor)} and returns a set of deployed workers.
+     * Deploys workers on hosts and returns the set of deployed workers. This method blocks until on each added host a worker is deployed.
      *
-     * @return the deployed workers
-     * @throws Exception if unable to deploy the hosts
+     * @return the set of deployed workers in order of deployment
+     * @throws Exception if the attempt to deploy workers on hosts fails
      */
     SortedSet<IWorker> deployWorkersOnHosts() throws Exception;
 
     /**
-     * Shuts down this coordinator.
+     * Shuts down this coordinator. This method does <code>not</code> shot down any workers deployed by this coordinator; user may shot down workers by calling {@link IWorker#shutdown()}.
      */
     void shutdown();
 }

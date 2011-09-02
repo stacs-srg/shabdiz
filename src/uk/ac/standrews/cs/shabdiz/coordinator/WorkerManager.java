@@ -15,7 +15,6 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
@@ -26,13 +25,23 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  */
 public class WorkerManager extends ApplicationManager {
 
-    private static final String APPLICATION_NAME = "Shabdiz";
+    private static final boolean DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR = false;
+
+    private static final String APPLICATION_NAME = "Shabdiz Worker";
     private static final String LOCAL_HOSTNAME_SUFFIX = ".local";
     private static final Duration CONNECTION_RETRY = new Duration(5, TimeUnit.SECONDS);
     private static final Duration CONNECTION_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     private final WorkerNodeFactory factory;
     private final boolean try_registry_on_connection_error;
+
+    /**
+     * Instantiates a new worker manager which does not try registry on connection error.
+     */
+    public WorkerManager() {
+
+        this(DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR);
+    }
 
     /**
      * Instantiates a new worker manager.
@@ -92,13 +101,6 @@ public class WorkerManager extends ApplicationManager {
             }
         }
 
-    }
-
-    @Override
-    public void shutdown() {
-
-        super.shutdown();
-        WorkerRemoteProxy.CONNECTION_POOL.shutdown();
     }
 
     @Override

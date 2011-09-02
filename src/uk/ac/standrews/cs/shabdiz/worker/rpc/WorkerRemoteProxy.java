@@ -31,6 +31,8 @@ public class WorkerRemoteProxy extends StreamProxy implements IWorker {
 
     private final WorkerRemoteMarshaller marshaller;
 
+    private final InetSocketAddress worker_cached_address;
+
     /**
      * Package protected constructor of a worker remote proxy.
      *
@@ -40,6 +42,8 @@ public class WorkerRemoteProxy extends StreamProxy implements IWorker {
     WorkerRemoteProxy(final InetSocketAddress worker_address) {
 
         super(worker_address);
+
+        worker_cached_address = worker_address;
         marshaller = new WorkerRemoteMarshaller();
     }
 
@@ -108,5 +112,17 @@ public class WorkerRemoteProxy extends StreamProxy implements IWorker {
         catch (final Exception e) {
             dealWithException(e);
         }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+      * Gets the cached address of this worker proxy.
+      *
+      * @return the cached address of this worker proxy
+      */
+    public final InetSocketAddress getCachedAddress() {
+
+        return worker_cached_address;
     }
 }

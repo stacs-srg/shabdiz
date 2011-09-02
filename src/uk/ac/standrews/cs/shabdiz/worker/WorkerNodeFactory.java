@@ -61,7 +61,7 @@ public class WorkerNodeFactory extends P2PNodeFactory {
      */
     public IWorker createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return new WorkerImpl(local_address, coordinator_address);
+        return new Worker(local_address, coordinator_address);
     }
 
     /**
