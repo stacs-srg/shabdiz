@@ -32,4 +32,6 @@ public interface IFutureRemoteReference<Result extends Serializable> {
      * @return the interface to remote operations
      */
     IFutureRemote<Result> getRemote();
+    
+    Result get() throws  Exception;
 }

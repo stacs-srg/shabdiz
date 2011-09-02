@@ -17,8 +17,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.coordinator.Coordinator;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
@@ -84,9 +84,9 @@ public class CoordinatorTest {
 
             final Coordinator coordinator = new Coordinator(APPLICATION_LIB_URLS);
             System.out.println(" deploying workers");
-            final SortedSet<IWorker> workers = deployWorkers(coordinator, size);
+            final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying");
-            for (final IWorker worker : workers) {
+            for (final IWorkerRemote worker : workers) {
                 final IFutureRemoteReference<String> future_reference = worker.submit(new IRemoteJobImplementation());
 
                 Assert.assertEquals(future_reference.getRemote().get(), HELLO);
@@ -99,7 +99,7 @@ public class CoordinatorTest {
         }
     }
 
-    private static SortedSet<IWorker> deployWorkers(final Coordinator coordinator, final int size) throws Exception {
+    private static SortedSet<IWorkerRemote> deployWorkers(final Coordinator coordinator, final int size) throws Exception {
 
         for (int i = 0; i < size; i++) {
 
@@ -110,7 +110,7 @@ public class CoordinatorTest {
     }
 }
 
-final class IRemoteJobImplementation implements IRemoteJob<String> {
+final class IRemoteJobImplementation implements IJobRemote<String> {
 
     private static final transient long serialVersionUID = -8715065957655698996L;
 

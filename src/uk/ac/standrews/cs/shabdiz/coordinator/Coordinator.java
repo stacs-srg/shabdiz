@@ -22,11 +22,11 @@ import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteServer;
 import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinator;
 import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 
 /**
- * Implements a {@link ICoordinator}. Deploys workers on a set of added hosts and provides a coordinated proxy to communicate with them.
+ * Deploys workers on a set of added hosts and provides a coordinated proxy to communicate with them.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -87,16 +87,10 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public synchronized void addHost(final HostDescriptor host_descriptor) {
-
-        host_descriptors.add(host_descriptor);
-    }
-
-    @Override
-    public synchronized SortedSet<IWorker> deployWorkersOnHosts() throws Exception {
+    public synchronized IWorkerRemote deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
 
         final WorkerNetwork worker_network = new WorkerNetwork(host_descriptors, application_lib_urls, coordinator_server_address);
-        final SortedSet<IWorker> deployed_workers_on_hosts = getDeployedWorkersOnHosts(worker_network.getNodes());
+        final SortedSet<IWorkerRemote> deployed_workers_on_hosts = getDeployedWorkersOnHosts(worker_network.getNodes());
 
         worker_network.shutdown(); // Shut down the network used to deploy workers
         dropAllHosts(); // Clear out the hosts on which workers are deployed
@@ -152,14 +146,14 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private SortedSet<IWorker> getDeployedWorkersOnHosts(final SortedSet<HostDescriptor> workers_hosts) {
+    private SortedSet<IWorkerRemote> getDeployedWorkersOnHosts(final SortedSet<HostDescriptor> workers_hosts) {
 
-        final SortedSet<IWorker> workers = new TreeSet<IWorker>();
+        final SortedSet<IWorkerRemote> workers = new TreeSet<IWorkerRemote>();
 
         for (final HostDescriptor worker_host : workers_hosts) { // For each host on which a worker is deployed
 
             final WorkerRemoteProxy worker_remote_proxy = (WorkerRemoteProxy) worker_host.getApplicationReference(); // Retrieve the reference to the worker
-            final IWorker coordinated_worker = wrapInCoordinatedWorker(worker_remote_proxy); // Wrap the worker in a coordinated implementation
+            final IWorkerRemote coordinated_worker = wrapInCoordinatedWorker(worker_remote_proxy); // Wrap the worker in a coordinated implementation
 
             workers.add(coordinated_worker); // Add the wrapped worker to the list of workers
         }

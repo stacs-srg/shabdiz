@@ -10,11 +10,11 @@ import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
 /**
- * Presents the coordinator server for {@link IRemoteJob}s.
+ * Presents the coordinator server for {@link IJobRemote}s.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

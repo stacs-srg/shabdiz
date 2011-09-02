@@ -11,7 +11,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.Worker;
 
@@ -85,7 +85,7 @@ public class WorkerRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             try {
-                final IRemoteJob<? extends Serializable> job = marshaller.deserializeRemoteJob(args);
+                final IJobRemote<? extends Serializable> job = marshaller.deserializeRemoteJob(args);
 
                 final FutureRemoteReference<? extends Serializable> future_remote_reference = worker.submit(job);
                 marshaller.serializeFutureRemoteReference(future_remote_reference, response);

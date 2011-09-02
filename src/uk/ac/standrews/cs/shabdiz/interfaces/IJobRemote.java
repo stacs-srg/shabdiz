@@ -9,6 +9,6 @@ import java.util.concurrent.Callable;
  * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IRemoteJob<Result extends Serializable> extends Callable<Result>, Serializable {
+public interface IJobRemote<Result extends Serializable> extends Callable<Result>, Serializable {
 
 }

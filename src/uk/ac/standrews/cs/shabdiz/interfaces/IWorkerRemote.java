@@ -12,15 +12,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorker {
-
-    /**
-     * Gets this worker's address.
-     *
-     * @return this worker's address
-     * @throws RPCException if unable to make the remote call
-     */
-    InetSocketAddress getAddress() throws RPCException;
+public interface IWorkerRemote {
 
     /**
      * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
@@ -33,7 +25,7 @@ public interface IWorker {
      * @throws RPCException if unable to make the remote call
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    <Result extends Serializable> IFutureRemoteReference<Result> submit(IRemoteJob<Result> remote_job) throws RPCException;
+    <Result extends Serializable> IFutureRemoteReference<Result> submit(IJobRemote<Result> remote_job) throws RPCException;
 
     /**
      * Shuts down this worker.

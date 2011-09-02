@@ -18,16 +18,16 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxy;
 import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxyFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.IRemoteJob;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
 
 /**
- * An implementation of {@link IWorker}. It notifies the coordinator about the completion of the submitted jobs.
+ * An implementation of {@link IWorkerRemote}. It notifies the coordinator about the completion of the submitted jobs.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Worker implements IWorker {
+public class Worker implements IWorkerRemote {
 
     private static final int THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
 
@@ -70,7 +70,7 @@ public class Worker implements IWorker {
     }
 
     @Override
-    public <Result extends Serializable> FutureRemoteReference<Result> submit(final IRemoteJob<Result> job) {
+    public <Result extends Serializable> FutureRemoteReference<Result> submit(final IJobRemote<Result> job) {
 
         final UUID job_id = generateJobId();
         final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(job_id, local_address);

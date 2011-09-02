@@ -5,11 +5,13 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
@@ -25,7 +27,7 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
     private final FutureRemoteReference<Result> future_reference;
     private final Coordinator coordinator;
     private boolean cancelled = false; // Whether this pending result was cancelled
-
+    private final volatile CountDownLatch result_available;
     /**
      * Instantiates a new coordinated future remote reference wrapper.
      *
@@ -36,6 +38,7 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
 
         this.coordinator = coordinator;
         this.future_reference = future_reference;
+        result_available = new CountDownLatch(1);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
