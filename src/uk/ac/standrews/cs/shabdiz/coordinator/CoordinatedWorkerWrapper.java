@@ -56,4 +56,33 @@ public class CoordinatedWorkerWrapper implements IWorkerRemote, Comparable<Coord
         final int compare_cached_addresses = worker_remote.getCachedAddress().toString().compareTo(other.worker_remote.getCachedAddress().toString());
         return compare_cached_addresses;
     }
+
+    @Override
+    public int hashCode() {
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (coordinator == null ? 0 : coordinator.hashCode());
+        result = prime * result + (worker_remote == null ? 0 : worker_remote.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        final CoordinatedWorkerWrapper other = (CoordinatedWorkerWrapper) obj;
+        if (coordinator == null) {
+            if (other.coordinator != null) { return false; }
+        }
+        else if (!coordinator.equals(other.coordinator)) { return false; }
+        if (worker_remote == null) {
+            if (other.worker_remote != null) { return false; }
+        }
+        else if (!worker_remote.equals(other.worker_remote)) { return false; }
+        return true;
+    }
+
 }
