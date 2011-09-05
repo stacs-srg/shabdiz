@@ -31,6 +31,29 @@ public class WorkerRemoteMarshaller extends Marshaller {
     private static final String JOB_ID_KEY = "jobid";
     private static final String ADDRESS_KEY = "address";
 
+    //TODO improve exception serialisation/deserialisation
+    @Override
+    public void serializeException(final Exception e, final JSONWriter writer) throws JSONException {
+
+        try {
+            serializeSerializable(e, writer);
+        }
+        catch (final IOException e1) {
+            new JSONException(e1);
+        }
+    }
+
+    @Override
+    public Exception deserializeException(final JSONReader reader) {
+
+        try {
+            return (Exception) deserializeSerializable(reader);
+        }
+        catch (final DeserializationException e) {
+            return new RuntimeException("could not instantiate serialized exception ", e);
+        }
+    }
+
     /**
      * Serialises a {@link Serializable} using {@link ObjectOutputStream}.
      *

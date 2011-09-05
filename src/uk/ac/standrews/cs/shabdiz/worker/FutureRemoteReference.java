@@ -57,4 +57,32 @@ public class FutureRemoteReference<Result extends Serializable> implements IFutu
 
         return id.compareTo(other.id);
     }
+
+    @Override
+    public int hashCode() {
+
+        return (id == null ? 0 : id.hashCode()) + (address == null ? 0 : address.hashCode());
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+
+        if (this == object) { return true; }
+        if (object == null) { return false; }
+        if (getClass() != object.getClass()) { return false; }
+
+        @SuppressWarnings("rawtypes")
+        final FutureRemoteReference other = (FutureRemoteReference) object;
+        if (address == null) {
+            if (other.address != null) { return false; }
+        }
+        else if (!address.equals(other.address)) { return false; }
+        if (id == null) {
+            if (other.id != null) { return false; }
+        }
+        else if (!id.equals(other.id)) { return false; }
+
+        return true;
+    }
+
 }

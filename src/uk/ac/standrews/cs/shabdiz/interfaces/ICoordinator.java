@@ -8,13 +8,14 @@ import uk.ac.standrews.cs.nds.madface.HostDescriptor;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface ICoordinator {
-fix the comment
+
     /**
-     * Deploys workers on hosts and returns the set of deployed workers. 
-     * This method blocks until on each added host a worker is deployed.
+     * Deploys worker on a described host and returns the reference to the deployed worker.
+     * This method blocks until the worker is deployed.
      *
-     * @return the set of deployed workers in order of deployment
-     * @throws Exception if the attempt to deploy workers on hosts fails
+     * @param host_descriptor the descriptor of the host on which a worker is deployed
+     * @return the reference to the deployed worker
+     * @throws Exception if the attempt to deploy worker on host fails
      */
     IWorkerRemote deployWorkerOnHost(HostDescriptor host_descriptor) throws Exception;
 

@@ -3,15 +3,12 @@ package uk.ac.standrews.cs.shabdiz.coordinator;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
@@ -27,18 +24,19 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
     private final FutureRemoteReference<Result> future_reference;
     private final Coordinator coordinator;
     private boolean cancelled = false; // Whether this pending result was cancelled
-    private final volatile CountDownLatch result_available;
+    private volatile CountDownLatch result_available;
+
     /**
      * Instantiates a new coordinated future remote reference wrapper.
      *
      * @param coordinator the coordinator
      * @param future_reference the future remote reference to wrap
      */
-    CoordinatedFutureRemoteReferenceWrapper(final Coordinator coordinator, final FutureRemoteReference<Result> future_reference) {
+    CoordinatedFutureRemoteReferenceWrapper(final Coordinator coordinator, final FutureRemoteReference<Result> future_reference, final CountDownLatch result_available) {
 
         this.coordinator = coordinator;
         this.future_reference = future_reference;
-        result_available = new CountDownLatch(1);
+        this.result_available = result_available;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -76,34 +74,23 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
             @SuppressWarnings("unchecked")
             public Result get() throws InterruptedException, ExecutionException, RPCException {
 
-                while (!Thread.currentThread().isInterrupted()) {
+                result_available.await(); // Wait until the result is available
 
-                    if (isDone()) {
+                if (coordinator.notifiedCompletionsContains(future_reference)) { return (Result) coordinator.getNotifiedResult(future_reference); }
 
-                        if (coordinator.notifiedCompletionsContains(future_reference)) { return (Result) coordinator.getNotifiedResult(future_reference); }
-                        if (coordinator.notifiedExceptionsContains(future_reference)) {
-
-                            launchAppropreateException(coordinator.getNotifiedException(future_reference));
-                        }
-
-                        throw new CancellationException();
-                    }
+                if (coordinator.notifiedExceptionsContains(future_reference)) {
+                    launchAppropreateException(coordinator.getNotifiedException(future_reference));
                 }
 
-                throw new InterruptedException();
+                throw new CancellationException();
             }
 
             @Override
             public Result get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, RPCException {
 
-                return new FutureTask<Result>(new Callable<Result>() {
+                result_available.await(timeout, unit);
 
-                    @Override
-                    public Result call() throws Exception {
-
-                        return get();
-                    }
-                }).get(timeout, unit);
+                return get();
             }
 
             @Override
@@ -126,7 +113,9 @@ public class CoordinatedFutureRemoteReferenceWrapper<Result extends Serializable
 
         if (exception instanceof InterruptedException) { throw (InterruptedException) exception; }
         if (exception instanceof ExecutionException) { throw (ExecutionException) exception; }
+        if (exception instanceof RPCException) { throw (RPCException) exception; }
+        if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
 
-        throw new RPCException(exception);
+        throw new ExecutionException("unexpected exception was notified to the coordinator", exception);
     }
 }

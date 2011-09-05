@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,7 +32,7 @@ public class Worker implements IWorkerRemote {
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_to_future_map;
+    private final ConcurrentSkipListMap<FutureRemoteReference<? extends Serializable>, Future<? extends Serializable>> reference_to_future_map;
     private final CoordinatorRemoteProxy coordinator_proxy;
     private final WorkerRemoteServer server;
 
@@ -54,7 +53,7 @@ public class Worker implements IWorkerRemote {
         this.local_address = local_address;
 
         coordinator_proxy = makeCoordinatorProxy(coordinator_address);
-        id_to_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
+        reference_to_future_map = new ConcurrentSkipListMap<FutureRemoteReference<? extends Serializable>, Future<? extends Serializable>>();
         exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         server = new WorkerRemoteServer(this);
@@ -64,38 +63,28 @@ public class Worker implements IWorkerRemote {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public InetSocketAddress getAddress() {
-
-        return local_address;
-    }
-
-    @Override
     public <Result extends Serializable> FutureRemoteReference<Result> submit(final IJobRemote<Result> job) {
 
-        final UUID job_id = generateJobId();
-        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(job_id, local_address);
+        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(generateJobId(), local_address);
 
-        final Future<Result> real_future = exexcutor_service.submit(new Callable<Result>() {
+        exexcutor_service.execute(new Runnable() {
 
             @Override
-            public Result call() throws Exception {
+            public void run() {
+
+                final Future<Result> real_future = exexcutor_service.submit(job);
+                reference_to_future_map.put(future_reference, real_future);
 
                 try {
-                    final Result result = job.call();
+                    final Result result = real_future.get();
 
                     handleCompletion(future_reference, result);
-
-                    return result;
                 }
                 catch (final Exception e) {
                     handleException(future_reference, e);
-
-                    throw e;
                 }
             }
         });
-
-        id_to_future_map.put(job_id, real_future);
 
         return future_reference;
     }
@@ -126,7 +115,7 @@ public class Worker implements IWorkerRemote {
      */
     public Future<? extends Serializable> getFutureById(final UUID job_id) {
 
-        return id_to_future_map.get(job_id);
+        return reference_to_future_map.get(job_id);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -136,7 +125,7 @@ public class Worker implements IWorkerRemote {
         try {
             coordinator_proxy.notifyCompletion(future_reference, result);
 
-            id_to_future_map.remove(future_reference);
+            reference_to_future_map.remove(future_reference);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -149,7 +138,7 @@ public class Worker implements IWorkerRemote {
         try {
             coordinator_proxy.notifyException(future_reference, exception);
 
-            id_to_future_map.remove(future_reference);
+            reference_to_future_map.remove(future_reference);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception

@@ -1,18 +1,19 @@
-package uk.ac.standrews.cs.shabdiz.test;
+package uk.ac.standrews.cs.shabdiz.test.integrity;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
 
-import junit.framework.Assert;
-
-import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.URL;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.coordinator.Coordinator;
@@ -22,16 +23,15 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
- * The Class CoordinatorTest.
+ * Tests whether a result/exception return by a job is working.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorTest {
+public class ResultReturnTest {
 
-    private static final int[] WORKER_NETWORK_SIZE = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    private static final int[] WORKER_NETWORK_SIZE = {1};
+    static final String HELLO = "hello";
 
-    /** The Constant HELLO. */
-    public static final String HELLO = "hello";
     private static final Set<URL> APPLICATION_LIB_URLS = new HashSet<URL>();
     static {
         try {
@@ -61,22 +61,12 @@ public class CoordinatorTest {
     }
 
     /**
-     * Tears down the test.
-     *
-     * @throws Exception the exception
-     */
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
-    /**
      * Test.
      *
      * @throws Exception the exception
      */
     @Test
-    public void test() throws Exception {
+    public void sayHelloTest() throws Exception {
 
         for (final int size : WORKER_NETWORK_SIZE) {
 
@@ -85,13 +75,56 @@ public class CoordinatorTest {
             final Coordinator coordinator = new Coordinator(APPLICATION_LIB_URLS);
             System.out.println(" deploying workers");
             final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
-            System.out.println("done deploying");
+            System.out.println("done deploying workers");
             for (final IWorkerRemote worker : workers) {
-                final IFutureRemoteReference<String> future_reference = worker.submit(new IRemoteJobImplementation());
+                final IFutureRemoteReference<String> future_reference = worker.submit(new SayHelloRemoteJob());
 
                 Assert.assertEquals(future_reference.getRemote().get(), HELLO);
 
-                worker.shutdown();
+                try {
+                    worker.shutdown();
+                }
+                catch (final RPCException e) {
+                    // ignore
+                }
+            }
+
+            coordinator.shutdown();
+            System.out.println(">>> Done");
+        }
+    }
+
+    /**
+     * Test.
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void throwExeptionTest() throws Exception {
+
+        for (final int size : WORKER_NETWORK_SIZE) {
+
+            System.out.println(">>> Worker network size : " + size);
+
+            final Coordinator coordinator = new Coordinator(APPLICATION_LIB_URLS);
+            System.out.println(" deploying workers");
+            final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
+            System.out.println("done deploying workers");
+            for (final IWorkerRemote worker : workers) {
+                final IFutureRemoteReference<String> future_reference = worker.submit(new NullPointerExceptionRemoteJob());
+                try {
+                    future_reference.getRemote().get();
+                }
+                catch (final ExecutionException e) {
+                    Assert.assertTrue(e.getCause() instanceof NullPointerException && e.getCause().getMessage().equals("test"));
+                }
+
+                try {
+                    worker.shutdown();
+                }
+                catch (final RPCException e) {
+                    // ignore
+                }
             }
 
             coordinator.shutdown();
@@ -101,22 +134,34 @@ public class CoordinatorTest {
 
     private static SortedSet<IWorkerRemote> deployWorkers(final Coordinator coordinator, final int size) throws Exception {
 
+        final SortedSet<IWorkerRemote> deployed_workers = new TreeSet<IWorkerRemote>();
         for (int i = 0; i < size; i++) {
 
-            coordinator.addHost(new HostDescriptor());
+            deployed_workers.add(coordinator.deployWorkerOnHost(new HostDescriptor()));
         }
 
-        return coordinator.deployWorkersOnHosts();
+        return deployed_workers;
     }
 }
 
-final class IRemoteJobImplementation implements IJobRemote<String> {
+final class SayHelloRemoteJob implements IJobRemote<String> {
 
     private static final transient long serialVersionUID = -8715065957655698996L;
 
     @Override
     public String call() throws Exception {
 
-        return CoordinatorTest.HELLO;
+        return ResultReturnTest.HELLO;
+    }
+}
+
+final class NullPointerExceptionRemoteJob implements IJobRemote<String> {
+
+    private static final long serialVersionUID = 9089082845434872396L;
+
+    @Override
+    public String call() throws Exception {
+
+        throw new NullPointerException("test");
     }
 }

@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.shabdiz.coordinator;
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -20,7 +19,6 @@ public class CoordinatedWorkerWrapper implements IWorkerRemote, Comparable<Coord
 
     private final WorkerRemoteProxy worker_remote;
     private final Coordinator coordinator;
-    private final volatile CountDownLatch result_available;
 
     /**
      * Instantiates a new coordinated worker wrapper.
@@ -32,21 +30,16 @@ public class CoordinatedWorkerWrapper implements IWorkerRemote, Comparable<Coord
 
         this.worker_remote = worker_remote;
         this.coordinator = coordinator;
-        result_available = new CountDownLatch(1);
-    }
-
-    @Override
-    public InetSocketAddress getAddress() throws RPCException {
-
-        return worker_remote.getAddress();
     }
 
     @Override
     public <Result extends Serializable> IFutureRemoteReference<Result> submit(final IJobRemote<Result> remote_job) throws RPCException {
 
         final FutureRemoteReference<Result> real_future_remote = worker_remote.submit(remote_job);
+        final CountDownLatch result_available = coordinator.getResultAvailableLatch(real_future_remote);
 
-        return new CoordinatedFutureRemoteReferenceWrapper<Result>(coordinator, real_future_remote);
+        return new CoordinatedFutureRemoteReferenceWrapper<Result>(coordinator, real_future_remote, result_available);
+
     }
 
     @Override

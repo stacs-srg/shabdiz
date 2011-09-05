@@ -57,7 +57,6 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(WorkerRemoteProxy.GET_ADDRESS_REMOTE_METHOD_NAME, new GetAddressHandler());
         handler_map.put(WorkerRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
         handler_map.put(WorkerRemoteProxy.SHUTDOWN_REMOTE_METHOD_NAME, new ShutdownHandler());
 
@@ -69,15 +68,6 @@ public class WorkerRemoteServer extends ApplicationServer {
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
-
-    private final class GetAddressHandler implements IHandler {
-
-        @Override
-        public void execute(final JSONReader args, final JSONWriter response) throws Exception {
-
-            marshaller.serializeInetSocketAddress(worker.getAddress(), response);
-        }
-    }
 
     private final class SubmitHandler implements IHandler {
 
