@@ -11,6 +11,8 @@
 
 	<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 
+	<property name="project-name" value="shabdiz" />
+	
 	<path id="project-classpath">
 		<pathelement location="bin" />
 		<pathelement location="src" />
@@ -29,10 +31,10 @@
 	<property name="checkstyle-check-dir" value="src" />
 	<property name="cpd-check-dir" value="src" />
 
-	<property name="findbugs-src-dir" value="src/uk/ac/standrews/cs/shabdiz" />
-	<property name="findbugs-check-dir" value="bin/uk/ac/standrews/cs/shabdiz" />
+	<property name="findbugs-src-dir" value="src/uk/ac/standrews/cs/${project-name}" />
+	<property name="findbugs-check-dir" value="bin/uk/ac/standrews/cs/${project-name}" />
 
-	<property name="test-name" value="uk.ac.standrews.cs.shabdiz.test.CheckInTests" />
+	<property name="test-name" value="uk.ac.standrews.cs.${project-name}.test.CheckInTests" />
 	<property name="cobertura-exclude" value="**/test/**/*.class" />
 	<property name="cobertura-src" value="test" />
 
@@ -41,13 +43,13 @@
 	<!-- Run nightly tests. -->
 	<target name="do-test-nightly">
 		<ant target="do-test-no-coverage" antfile="build-hudson.xml">
-			<property name="test-name" value="uk.ac.standrews.cs.shabdiz.test.NightlyTests" />
+			<property name="test-name" value="uk.ac.standrews.cs.${project-name}.test.NightlyTests" />
 		</ant>
 	</target>
 
 	<!-- Generate project jar. -->
 	<target name="project-jar">
-		<jar destfile="bin/shabdiz.jar">
+		<jar destfile="bin/${project-name}.jar">
 			<fileset dir="bin" includes="**/*.class" />
 			<fileset dir="src" />
 		</jar>
@@ -61,7 +63,7 @@
 
 	<!-- Generate project release containing jar and libraries. -->
 	<target name="project-release">
-		<zip destfile="bin/shabdiz.zip">
+		<zip destfile="bin/${project-name}.zip">
 			<fileset dir="bin" includes="**/*.jar" />
 			<fileset dir="lib" includes="**/*.jar" />
 		</zip>
@@ -69,7 +71,7 @@
 
 	<!-- Generate javadoc. -->
 	<target name="release-doc">
-		<javadoc classpath="${classpath}" sourcepath="src" destdir="doc" packagenames="uk.ac.standrews.cs.shabdiz.*" access="public" linksource="yes" source="1.6" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" splitindex="false" use="false" author="true" version="true" verbose="true">
+		<javadoc classpath="${classpath}" sourcepath="src" destdir="doc" packagenames="uk.ac.standrews.cs.${project-name}.*" access="public" linksource="yes" source="1.6" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" splitindex="false" use="false" author="true" version="true" verbose="true">
 
 			<!-- Link to Java API from generated documentation. -->
 			<link href="${doc-java}" />
