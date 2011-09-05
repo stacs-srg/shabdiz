@@ -32,7 +32,7 @@ public class Worker implements IWorkerRemote {
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<FutureRemoteReference<? extends Serializable>, Future<? extends Serializable>> reference_to_future_map;
+    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> reference_to_future_map;
     private final CoordinatorRemoteProxy coordinator_proxy;
     private final WorkerRemoteServer server;
 
@@ -53,7 +53,7 @@ public class Worker implements IWorkerRemote {
         this.local_address = local_address;
 
         coordinator_proxy = makeCoordinatorProxy(coordinator_address);
-        reference_to_future_map = new ConcurrentSkipListMap<FutureRemoteReference<? extends Serializable>, Future<? extends Serializable>>();
+        reference_to_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         server = new WorkerRemoteServer(this);
@@ -65,7 +65,8 @@ public class Worker implements IWorkerRemote {
     @Override
     public <Result extends Serializable> FutureRemoteReference<Result> submit(final IJobRemote<Result> job) {
 
-        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(generateJobId(), local_address);
+        final UUID job_id = generateJobId();
+        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(job_id, local_address);
 
         exexcutor_service.execute(new Runnable() {
 
@@ -73,7 +74,7 @@ public class Worker implements IWorkerRemote {
             public void run() {
 
                 final Future<Result> real_future = exexcutor_service.submit(job);
-                reference_to_future_map.put(future_reference, real_future);
+                reference_to_future_map.put(job_id, real_future);
 
                 try {
                     final Result result = real_future.get();
@@ -125,7 +126,7 @@ public class Worker implements IWorkerRemote {
         try {
             coordinator_proxy.notifyCompletion(future_reference, result);
 
-            reference_to_future_map.remove(future_reference);
+            reference_to_future_map.remove(future_reference.getId());
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -138,7 +139,7 @@ public class Worker implements IWorkerRemote {
         try {
             coordinator_proxy.notifyException(future_reference, exception);
 
-            reference_to_future_map.remove(future_reference);
+            reference_to_future_map.remove(future_reference.getId());
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception

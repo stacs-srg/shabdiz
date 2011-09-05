@@ -39,7 +39,7 @@ public class WorkerRemoteMarshaller extends Marshaller {
             serializeSerializable(e, writer);
         }
         catch (final IOException e1) {
-            new JSONException(e1);
+            new JSONException("unable to serialise exception as Java Serializable : " + e1.getMessage());
         }
     }
 
