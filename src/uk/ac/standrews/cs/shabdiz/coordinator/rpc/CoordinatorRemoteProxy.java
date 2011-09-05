@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.shabdiz.coordinator.rpc;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.UUID;
 
 import org.json.JSONWriter;
 
@@ -20,10 +19,10 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
  */
 public class CoordinatorRemoteProxy extends StreamProxy implements ICoordinatorRemote {
 
-    /** The remote method name for {@link #notifyCompletion(UUID, Object)}. */
+    /** The remote method name for {@link #notifyCompletion(IFutureRemoteReference, Serializable)}. */
     public static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
 
-    /** The remote method name for {@link #notifyException(UUID, Exception)}. */
+    /** The remote method name for {@link #notifyException(IFutureRemoteReference, Exception)}. */
     public static final String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
 
     private final WorkerRemoteMarshaller marshaller;

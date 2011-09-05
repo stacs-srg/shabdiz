@@ -20,9 +20,6 @@ import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
  */
 public class WorkerRemoteProxy extends StreamProxy implements IWorkerRemote {
 
-    /** The remote method name for {@link IWorkerRemote#getAddress()}. */
-    public static final String GET_ADDRESS_REMOTE_METHOD_NAME = "getAddress";
-
     /** The remote method name for {@link IWorkerRemote#submit(IJobRemote)}. */
     public static final String SUBMIT_REMOTE_METHOD_NAME = "submit";
 

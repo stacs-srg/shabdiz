@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Presents a reference to the pending result of a remote asynchronous computation.
  *
- * @param <Result> The result type returned by this Future's {@link IFutureRemoteReference#get()} method
+ * @param <Result> The result type returned by this Future's {@link IFutureRemote#get()} method
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface IFutureRemoteReference<Result extends Serializable> {
