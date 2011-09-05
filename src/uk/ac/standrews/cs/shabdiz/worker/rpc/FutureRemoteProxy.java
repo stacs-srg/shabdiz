@@ -119,7 +119,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
             marshaller.serializeUUID(job_id, writer);
 
             final JSONReader reader = makeCall(connection);
-            final Result result = marshaller.<Result> deserializeResult(reader);
+            final Result result = marshaller.<Result>deserializeResult(reader);
 
             finishCall(connection);
 
@@ -144,7 +144,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
             marshaller.serializeTimeUnit(unit, writer);
 
             final JSONReader reader = makeCall(connection);
-            final Result result = marshaller.<Result> deserializeResult(reader);
+            final Result result = marshaller.<Result>deserializeResult(reader);
 
             finishCall(connection);
 
