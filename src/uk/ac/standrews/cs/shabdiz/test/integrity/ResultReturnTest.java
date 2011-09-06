@@ -25,9 +25,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.test.integrity;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
@@ -37,7 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.madface.URL;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
@@ -56,18 +52,6 @@ public class ResultReturnTest {
 
     private static final int[] WORKER_NETWORK_SIZE = {1};
     static final String HELLO = "hello";
-
-    private static final Set<URL> APPLICATION_LIB_URLS = new HashSet<URL>();
-    static {
-        try {
-            APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
-            APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/json.jar"));
-            APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Sets the up the test.
@@ -97,7 +81,7 @@ public class ResultReturnTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Coordinator coordinator = new Coordinator(APPLICATION_LIB_URLS);
+            final Coordinator coordinator = new Coordinator();
             System.out.println(" deploying workers");
             final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
@@ -131,7 +115,7 @@ public class ResultReturnTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Coordinator coordinator = new Coordinator(APPLICATION_LIB_URLS);
+            final Coordinator coordinator = new Coordinator();
             System.out.println(" deploying workers");
             final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");

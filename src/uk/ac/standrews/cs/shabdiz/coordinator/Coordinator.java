@@ -28,6 +28,7 @@ package uk.ac.standrews.cs.shabdiz.coordinator;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -50,6 +51,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinator;
 import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
 import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 
@@ -73,6 +75,21 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
     private final IMadfaceManager madface_manager;
 
     // -------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Instantiates a new coordinator. The coordinator is exposed on local address on an ephemeral port number.
+     *
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws RPCException the rPC exception
+     * @throws AlreadyBoundException the already bound exception
+     * @throws RegistryUnavailableException the registry unavailable exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
+    public Coordinator() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+
+        this(new HashSet<URL>());
+    }
 
     /**
      * Instantiates a new  coordinator and  starts a local server which listens to the notifications from workers on an <i>ephemeral</i> port number.
@@ -103,6 +120,8 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      * @throws TimeoutException the timeout exception
      */
     public Coordinator(final int port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+
+        application_lib_urls.addAll(LibraryUtil.SHABDIZ_APPLICATION_LIB_URLS); // Add the libraries needed by Shabdiz itself
 
         notified_completions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Serializable>();
         notified_exceptions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Exception>();
