@@ -28,11 +28,10 @@ package uk.ac.standrews.cs.shabdiz.interfaces;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 
 /**
- * Presents the local functionalities provided by a coordinator.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ICoordinator {
+public interface ILauncher {
 
     /**
      * Deploys worker on a described host and returns the reference to the deployed worker.

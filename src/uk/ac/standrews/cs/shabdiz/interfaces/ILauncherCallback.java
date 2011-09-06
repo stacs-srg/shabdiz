@@ -26,15 +26,15 @@
 package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Presents the remote functionalities provided by a coordinator.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ICoordinatorRemote {
+public interface ILauncherCallback {
 
     /**
      * Notifies the coordinator about the result of a submitted job.
@@ -44,7 +44,7 @@ public interface ICoordinatorRemote {
      * @param result the result of the completed job
      * @throws RPCException if unable to contact the correspondence
      */
-    <Result extends Serializable> void notifyCompletion(IFutureRemoteReference<Result> future_reference, Result result) throws RPCException;
+    <Result extends Serializable> void notifyCompletion(UUID job_id, Result result) throws RPCException;
 
     /**
      * Notifies the coordinator about the exception resulted by a submitted job.
@@ -54,5 +54,5 @@ public interface ICoordinatorRemote {
      * @param exception the exception which occurred when trying to execute a job
      * @throws RPCException if unable to contact the correspondence
      */
-    <Result extends Serializable> void notifyException(IFutureRemoteReference<Result> future_reference, Exception exception) throws RPCException;
+    <Result extends Serializable> void notifyException(UUID job_id, Exception exception) throws RPCException;
 }

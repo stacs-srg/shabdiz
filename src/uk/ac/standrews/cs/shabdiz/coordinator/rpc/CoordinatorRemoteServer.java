@@ -33,7 +33,7 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
-import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
@@ -48,7 +48,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
     /** The coordinator server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Coordinator Server";
 
-    private final ICoordinatorRemote coordinator;
+    private final ILauncherCallback coordinator;
     private final WorkerRemoteMarshaller marshaller;
 
     /**
@@ -56,7 +56,7 @@ public class CoordinatorRemoteServer extends ApplicationServer {
      *
      * @param coordinator the coordinator application
      */
-    public CoordinatorRemoteServer(final ICoordinatorRemote coordinator) {
+    public CoordinatorRemoteServer(final ILauncherCallback coordinator) {
 
         super();
         this.coordinator = coordinator;

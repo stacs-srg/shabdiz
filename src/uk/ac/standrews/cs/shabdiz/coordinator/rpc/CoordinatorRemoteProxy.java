@@ -33,7 +33,7 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorRemoteProxy extends StreamProxy implements ICoordinatorRemote {
+public class CoordinatorRemoteProxy extends StreamProxy implements ILauncherCallback {
 
     /** The remote method name for {@link #notifyCompletion(IFutureRemoteReference, Serializable)}. */
     public static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";

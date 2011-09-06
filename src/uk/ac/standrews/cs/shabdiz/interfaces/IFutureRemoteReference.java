@@ -45,13 +45,6 @@ public interface IFutureRemoteReference<Result extends Serializable> {
     UUID getId();
 
     /**
-     * Gets the address of the worker on which the result is pending.
-     *
-     * @return the address of the worker on which the result is pending
-     */
-    InetSocketAddress getAddress();
-
-    /**
      * Gets the remote operations provided by the remote pending result.
      *
      * @return the interface to remote operations

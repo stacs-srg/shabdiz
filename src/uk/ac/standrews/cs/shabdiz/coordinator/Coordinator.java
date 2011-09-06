@@ -31,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -47,8 +48,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteServer;
-import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinator;
-import uk.ac.standrews.cs.shabdiz.interfaces.ICoordinatorRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
+import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
@@ -60,7 +61,7 @@ import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Coordinator implements ICoordinator, ICoordinatorRemote {
+public class Coordinator implements ILauncher, ILauncherCallback {
 
     private static final int EPHEMERAL_PORT = 0;
 
@@ -72,6 +73,9 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
     private final Map<IFutureRemoteReference<? extends Serializable>, Exception> notified_exceptions; // Stores mapping of a remote result reference to its notified exception
     private final Map<IFutureRemoteReference<? extends Serializable>, CountDownLatch> future_latch_map; // Stores mapping of a remote result reference to its result availability latch
 
+    private final Map<UUID, IFutureRemoteReference<? extends Serializable>> id_future_reference_map;
+    
+    
     private final IMadfaceManager madface_manager;
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -174,7 +178,7 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
 
     /**
      * Unexposes the coordinator Server which breaks the communication to the workers deployed by this coordinator.
-     * @see ICoordinator#shutdown()
+     * @see ILauncher#shutdown()
      */
     @Override
     public void shutdown() {
