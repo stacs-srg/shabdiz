@@ -92,7 +92,7 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
     }
 
     /**
-     * Instantiates a new  coordinator and  starts a local server which listens to the notifications from workers on an <i>ephemeral</i> port number.
+     * Instantiates a new  coordinator and exposes the coordinator on local address on an <i>ephemeral</i> port number.
      *
      * @param application_lib_urls the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
@@ -121,7 +121,7 @@ public class Coordinator implements ICoordinator, ICoordinatorRemote {
      */
     public Coordinator(final int port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        application_lib_urls.addAll(LibraryUtil.SHABDIZ_APPLICATION_LIB_URLS); // Add the libraries needed by Shabdiz itself
+        application_lib_urls.addAll(LibraryUtil.getShabdizApplicationLibraryURLs()); // Add the libraries needed by Shabdiz itself
 
         notified_completions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Serializable>();
         notified_exceptions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Exception>();

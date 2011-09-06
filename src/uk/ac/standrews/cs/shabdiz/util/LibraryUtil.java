@@ -36,20 +36,28 @@ import uk.ac.standrews.cs.nds.madface.URL;
  */
 public final class LibraryUtil {
 
-    /** The set of application library URLs needed by Shabdiz framework. */
-    public static final Set<URL> SHABDIZ_APPLICATION_LIB_URLS = new HashSet<URL>();
-    static {
-        try {
-            SHABDIZ_APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
-            SHABDIZ_APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/json.jar"));
-            SHABDIZ_APPLICATION_LIB_URLS.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
-    }
+    private static Set<URL> shabdiz_application_lib_urls;
 
     private LibraryUtil() {
 
+    }
+
+    /**
+     * Gets the set of application library URLs required by Shabdiz.
+     *
+     * @return the set of application library URLs required by Shabdiz
+     * @throws IOException if one of the URLs are not reachable.
+     */
+    public static Set<URL> getShabdizApplicationLibraryURLs() throws IOException {
+
+        if (shabdiz_application_lib_urls == null) {
+
+            shabdiz_application_lib_urls = new HashSet<URL>();
+            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
+            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/json.jar"));
+            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
+        }
+
+        return shabdiz_application_lib_urls;
     }
 }
