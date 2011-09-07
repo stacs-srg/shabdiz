@@ -38,10 +38,10 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
-import uk.ac.standrews.cs.shabdiz.impl.WorkerNodeServer;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
  * Tests whether a result/exception return by a job is working.

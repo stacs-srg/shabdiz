@@ -52,6 +52,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
+import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 import com.mindbright.ssh2.SSH2Exception;
 
