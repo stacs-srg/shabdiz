@@ -23,32 +23,36 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.interfaces;
+package uk.ac.standrews.cs.shabdiz.impl;
 
-import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.util.UUID;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Presents a reference to the pending result of a remote asynchronous computation.
- *
- * @param <Result> The result type returned by this Future's {@link IFutureRemote#get()} method
+ * Presents a remote exception on a worker.
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IFutureRemoteReference<Result extends Serializable> {
+public class RemoteWorkerException extends RPCException {
+
+    private static final long serialVersionUID = 4506906155644771341L;
 
     /**
-     * Gets the globally unique id associated to the value-returning job which its pending result is represented by <code>this</code> .
+     * Instantiates a new remote worker exception.
      *
-     * @return the id of the submitted value-returning job
+     * @param message the message
      */
-    UUID getId();
+    public RemoteWorkerException(final String message) {
+
+        super(message);
+    }
 
     /**
-     * Gets the remote operations provided by the remote pending result.
+     * Instantiates a new remote worker exception from a given cause.
      *
-     * @return the interface to remote operations
+     * @param cause the cause
      */
-    IFutureRemote<Result> getRemote();
+    public RemoteWorkerException(final Throwable cause) {
 
+        super(cause);
+    }
 }

@@ -31,6 +31,7 @@ import java.util.UUID;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
+ * Receives notifications from workers about the outcome of a submitted job.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -39,20 +40,18 @@ public interface ILauncherCallback {
     /**
      * Notifies the coordinator about the result of a submitted job.
      *
-     * @param <Result> the type of result returned by the submitted job
-     * @param future_reference the reference to the pending result of the submitted job
+     * @param job_id the globally unique id of the submitted job
      * @param result the result of the completed job
      * @throws RPCException if unable to contact the correspondence
      */
-    <Result extends Serializable> void notifyCompletion(UUID job_id, Result result) throws RPCException;
+    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**
      * Notifies the coordinator about the exception resulted by a submitted job.
      *
-     * @param <Result> the type of result returned by the submitted job
-     * @param future_reference the reference to the pending result of the submitted job
+     * @param job_id the globally unique id of the submitted job
      * @param exception the exception which occurred when trying to execute a job
      * @throws RPCException if unable to contact the correspondence
      */
-    <Result extends Serializable> void notifyException(UUID job_id, Exception exception) throws RPCException;
+    void notifyException(UUID job_id, Exception exception) throws RPCException;
 }

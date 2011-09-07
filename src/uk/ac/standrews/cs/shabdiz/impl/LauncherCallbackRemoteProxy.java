@@ -23,10 +23,11 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.coordinator.rpc;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 
 import org.json.JSONWriter;
 
@@ -34,42 +35,40 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
 /**
- * The Class ExperimentCoordinatorProxy.
+ * RPC proxy to communicate with a launcher callback server.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorRemoteProxy extends StreamProxy implements ILauncherCallback {
+public class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallback {
 
-    /** The remote method name for {@link #notifyCompletion(IFutureRemoteReference, Serializable)}. */
+    /** The remote method name for {@link #notifyCompletion(UUID, Serializable)}. */
     public static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
 
-    /** The remote method name for {@link #notifyException(IFutureRemoteReference, Exception)}. */
+    /** The remote method name for {@link #notifyException(UUID, Exception)}. */
     public static final String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
 
-    private final WorkerRemoteMarshaller marshaller;
+    private final ShabdizRemoteMarshaller marshaller;
 
     // -------------------------------------------------------------------------------------------------------
 
     /**
-     * Package protected constructor of a new coordinator proxy.
+     * Package protected constructor of a new launcher callback proxy.
      *
-     * @param coordinator_node_address the address of a coordinator node
-     * @see CoordinatorRemoteProxyFactory#getProxy(InetSocketAddress)
+     * @param coordinator_node_address the address of a launcher call back server
+     * @see LauncherCallbackRemoteProxyFactory#getProxy(InetSocketAddress)
      */
-    CoordinatorRemoteProxy(final InetSocketAddress coordinator_node_address) {
+    LauncherCallbackRemoteProxy(final InetSocketAddress coordinator_node_address) {
 
         super(coordinator_node_address);
-        marshaller = new WorkerRemoteMarshaller();
+        marshaller = new ShabdizRemoteMarshaller();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public WorkerRemoteMarshaller getMarshaller() {
+    public ShabdizRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
@@ -77,13 +76,13 @@ public class CoordinatorRemoteProxy extends StreamProxy implements ILauncherCall
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public <Result extends Serializable> void notifyCompletion(final IFutureRemoteReference<Result> future_reference, final Result result) throws RPCException {
+    public void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
 
         try {
             final AbstractStreamConnection streams = startCall(NOTIFY_COMPLETION_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = streams.getJSONwriter();
-            marshaller.serializeFutureRemoteReference(future_reference, writer);
+            marshaller.serializeUUID(job_id, writer);
             marshaller.serializeSerializable(result, writer);
 
             makeVoidCall(streams);
@@ -96,13 +95,13 @@ public class CoordinatorRemoteProxy extends StreamProxy implements ILauncherCall
     }
 
     @Override
-    public <Result extends Serializable> void notifyException(final IFutureRemoteReference<Result> future_reference, final Exception exception) throws RPCException {
+    public void notifyException(final UUID job_id, final Exception exception) throws RPCException {
 
         try {
             final AbstractStreamConnection streams = startCall(NOTIFY_EXCEPTION_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = streams.getJSONwriter();
-            marshaller.serializeFutureRemoteReference(future_reference, writer);
+            marshaller.serializeUUID(job_id, writer);
             marshaller.serializeException(exception, writer);
 
             makeVoidCall(streams);

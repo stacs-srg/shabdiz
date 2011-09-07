@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.worker.servers;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,8 +44,6 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
-import uk.ac.standrews.cs.shabdiz.impl.WorkerFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
 
 /**
  * THe entry point to start up a new worker.
@@ -139,13 +137,13 @@ public class WorkerNodeServer {
      *
      * @return the created worker node
      * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
      * @throws RegistryUnavailableException the registry unavailable exception
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
+     * @throws RPCException the rPC exception
      */
-    public IWorkerNode createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Worker createNode() throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
         return WorkerFactory.createNode(local_address, coordinator_address);
     }

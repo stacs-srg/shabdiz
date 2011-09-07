@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.worker.rpc;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -42,19 +40,14 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.DeserializationException;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
 
 /**
  * The Class McJobRemoteMarshaller.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerRemoteMarshaller extends Marshaller {
-
-    private static final String JOB_ID_KEY = "jobid";
-    private static final String ADDRESS_KEY = "address";
+public class ShabdizRemoteMarshaller extends Marshaller {
 
     //TODO improve exception serialisation/deserialisation
     @Override
@@ -189,62 +182,6 @@ public class WorkerRemoteMarshaller extends Marshaller {
 
         try {
             return (IJobRemote<? extends Serializable>) deserializeSerializable(reader);
-        }
-        catch (final Exception e) {
-            throw new DeserializationException(e);
-        }
-    }
-
-    /**
-     * Serialises future remote reference.
-     *
-     * @param <Result> the generic type
-     * @param future_remote the future_remote
-     * @param writer the writer
-     * @throws JSONException if a JSON related error occurs
-     */
-    public <Result extends Serializable> void serializeFutureRemoteReference(final IFutureRemoteReference<Result> future_remote, final JSONWriter writer) throws JSONException {
-
-        if (future_remote == null) {
-            writer.value(null);
-        }
-        else {
-            writer.object();
-
-            writer.key(JOB_ID_KEY);
-            serializeUUID(future_remote.getId(), writer);
-
-            writer.key(ADDRESS_KEY);
-            serializeInetSocketAddress(future_remote.getAddress(), writer);
-
-            writer.endObject();
-        }
-    }
-
-    /**
-     * Deserialises a {@link FutureRemoteReference}.
-     *
-     * @param <Result> the type of result which is pending in the future remote reference
-     * @param reader the reader to read the serialised from
-     * @return the deserialised object
-     * @throws DeserializationException if unable to deserialise
-     */
-    public <Result extends Serializable> FutureRemoteReference<Result> deserializeFutureRemoteReference(final JSONReader reader) throws DeserializationException {
-
-        try {
-            if (reader.checkNull()) { return null; }
-
-            reader.object();
-
-            reader.key(JOB_ID_KEY);
-            final UUID job_id = deserializeUUID(reader);
-
-            reader.key(ADDRESS_KEY);
-            final InetSocketAddress proxy_address = deserializeInetSocketAddress(reader);
-
-            reader.endObject();
-
-            return new FutureRemoteReference<Result>(job_id, proxy_address);
         }
         catch (final Exception e) {
             throw new DeserializationException(e);

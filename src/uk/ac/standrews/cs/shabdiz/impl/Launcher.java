@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.coordinator;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
@@ -47,35 +46,24 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteServer;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
-import uk.ac.standrews.cs.shabdiz.worker.FutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteProxy;
 
 /**
  * Deploys workers on a set of added hosts and provides a coordinated proxy to communicate with them.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Coordinator implements ILauncher, ILauncherCallback {
+public class Launcher implements ILauncher, ILauncherCallback {
 
     private static final int EPHEMERAL_PORT = 0;
 
-    private static final int ONE = 1;
+    private final InetSocketAddress callback_server_address; // The address on which the callback server is exposed
+    private final LauncherCallbackServer callback_server; // The server which listens to the callbacks  from workers
+    private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to its remote result
 
-    private final InetSocketAddress coordinator_server_address; // The address on which the coordinator server is exposed
-    private final CoordinatorRemoteServer server; // The server which listens to the notifications from workers
-    private final Map<IFutureRemoteReference<? extends Serializable>, Serializable> notified_completions; // Stores mapping of a remote result reference to its notified result
-    private final Map<IFutureRemoteReference<? extends Serializable>, Exception> notified_exceptions; // Stores mapping of a remote result reference to its notified exception
-    private final Map<IFutureRemoteReference<? extends Serializable>, CountDownLatch> future_latch_map; // Stores mapping of a remote result reference to its result availability latch
-
-    private final Map<UUID, IFutureRemoteReference<? extends Serializable>> id_future_reference_map;
-    
-    
     private final IMadfaceManager madface_manager;
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -90,7 +78,7 @@ public class Coordinator implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Coordinator() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Launcher() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         this(new HashSet<URL>());
     }
@@ -106,7 +94,7 @@ public class Coordinator implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Coordinator(final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Launcher(final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         this(EPHEMERAL_PORT, application_lib_urls);
     }
@@ -114,7 +102,7 @@ public class Coordinator implements ILauncher, ILauncherCallback {
     /**
      * Instantiates a new coordinator node and starts a local server which listens to the notifications from workers on the given port number.
      *
-     * @param port the port on which to start the coordinator server
+     * @param callback_server_port the port on which the callback server is exposed
      * @param application_lib_urls the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
@@ -123,20 +111,19 @@ public class Coordinator implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Coordinator(final int port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public Launcher(final int callback_server_port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         application_lib_urls.addAll(LibraryUtil.getShabdizApplicationLibraryURLs()); // Add the libraries needed by Shabdiz itself
 
-        notified_completions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Serializable>();
-        notified_exceptions = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, Exception>();
-        future_latch_map = new ConcurrentSkipListMap<IFutureRemoteReference<? extends Serializable>, CountDownLatch>();
+        id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
 
-        server = new CoordinatorRemoteServer(this);
-        expose(NetworkUtil.getLocalIPv4InetSocketAddress(port));
-        coordinator_server_address = server.getAddress();
+        callback_server = new LauncherCallbackServer(this);
+        expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
+
+        callback_server_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
 
         madface_manager = MadfaceManagerFactory.makeMadfaceManager();
-        madface_manager.configureApplication(new WorkerManager());
+        madface_manager.configureApplication(new WorkerManager(this));
         madface_manager.configureApplication(application_lib_urls);
     }
 
@@ -154,26 +141,31 @@ public class Coordinator implements ILauncher, ILauncherCallback {
 
         host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
 
-        final WorkerRemoteProxy worker_remote_proxy = (WorkerRemoteProxy) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
-        final IWorkerRemote coordinated_worker = wrapInCoordinatedWorker(worker_remote_proxy); // Wrap the worker's remote proxy in a coordinated version
+        final IWorkerRemote worker_remote = (WorkerPassiveRemoteProxy) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
 
-        return coordinated_worker; // return the coordinated proxy to the worker
+        return worker_remote; // return the coordinated proxy to the worker
     }
 
     @Override
-    public <Result extends Serializable> void notifyCompletion(final IFutureRemoteReference<Result> future_reference, final Result result) throws RPCException {
+    public void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
 
-        System.out.println("Coordinator.notifyCompletion() -> future_reference: " + future_reference);
-        System.out.println("Coordinator.notifyCompletion() -> result: " + result);
-        notified_completions.put(future_reference, result);
-        countDownLatch(future_reference);
+        if (id_future_map.containsKey(job_id)) {
+            id_future_map.get(job_id).setResult(result);
+        }
+        else {
+            Diagnostic.trace(DiagnosticLevel.RUN, "Launcher was notified about an unknown job completion ", job_id);
+        }
     }
 
     @Override
-    public <Result extends Serializable> void notifyException(final IFutureRemoteReference<Result> future_reference, final Exception exception) throws RPCException {
+    public void notifyException(final UUID job_id, final Exception exception) throws RPCException {
 
-        notified_exceptions.put(future_reference, exception);
-        countDownLatch(future_reference);
+        if (id_future_map.containsKey(job_id)) {
+            id_future_map.get(job_id).setException(exception);
+        }
+        else {
+            Diagnostic.trace(DiagnosticLevel.RUN, "Launcher was notified about an unknown job exception ", job_id);
+        }
     }
 
     /**
@@ -189,68 +181,32 @@ public class Coordinator implements ILauncher, ILauncherCallback {
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
-    // Package protected methods
 
-    boolean notifiedCompletionsContains(final FutureRemoteReference<? extends Serializable> future_reference) {
+    void notifySubmission(final FutureRemoteProxy<? extends Serializable> future_remote) {
 
-        return notified_completions.containsKey(future_reference);
-    }
-
-    boolean notifiedExceptionsContains(final FutureRemoteReference<? extends Serializable> future_reference) {
-
-        return notified_exceptions.containsKey(future_reference);
-    }
-
-    Serializable getNotifiedResult(final FutureRemoteReference<? extends Serializable> future_reference) {
-
-        return notified_completions.get(future_reference);
-    }
-
-    Exception getNotifiedException(final FutureRemoteReference<? extends Serializable> future_reference) {
-
-        return notified_exceptions.get(future_reference);
-    }
-
-    CountDownLatch getResultAvailableLatch(final FutureRemoteReference<? extends Serializable> future_reference) {
-
-        final CountDownLatch result_available = new CountDownLatch(ONE);
-        future_latch_map.put(future_reference, result_available); // Associate the given future reference with a latch
-
-        return result_available;
+        id_future_map.put(future_remote.getId(), future_remote);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private <Result extends Serializable> void countDownLatch(final IFutureRemoteReference<Result> future_reference) {
-
-        if (future_latch_map.containsKey(future_reference)) {
-            future_latch_map.get(future_reference).countDown();
-        }
-    }
-
     private void configureApplicationDeploymentParams(final HostDescriptor host_descriptor) {
 
-        final Object[] application_deployment_params = new Object[]{coordinator_server_address};
+        final Object[] application_deployment_params = new Object[]{callback_server_address};
         host_descriptor.applicationDeploymentParams(application_deployment_params);
-    }
-
-    private CoordinatedWorkerWrapper wrapInCoordinatedWorker(final WorkerRemoteProxy worker_remote_proxy) {
-
-        return new CoordinatedWorkerWrapper(this, worker_remote_proxy);
     }
 
     private void expose(final InetSocketAddress expose_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        server.setLocalAddress(expose_address.getAddress());
-        server.setPort(expose_address.getPort());
+        callback_server.setLocalAddress(expose_address.getAddress());
+        callback_server.setPort(expose_address.getPort());
 
-        server.start(true);
+        callback_server.start(true);
     }
 
     private void unexpose() {
 
         try {
-            server.stop();
+            callback_server.stop();
         }
         catch (final IOException e) {
             Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop coordinator server, because: ", e.getMessage(), e);

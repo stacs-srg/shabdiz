@@ -28,6 +28,7 @@ package uk.ac.standrews.cs.shabdiz.interfaces;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 
 /**
+ * Deploys worker on host.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

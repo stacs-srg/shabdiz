@@ -23,36 +23,36 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.worker.rpc;
+package uk.ac.standrews.cs.shabdiz.interfaces;
+
+import java.io.Serializable;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.impl.Launcher;
 
 /**
- * Presents a remote exception on a worker.
+ * Presents a special type of worker which is deployed by {@link Launcher}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class RemoteWorkerException extends RPCException {
-
-    private static final long serialVersionUID = 4506906155644771341L;
+public interface IWorkerNode {
 
     /**
-     * Instantiates a new remote worker exception.
+     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
      *
-     * @param message the message
+     * @param job the job to submit
+     * @return the globally unique id of the submitted job
+     * @throws RPCException if unable to make the remote call
+     * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    public RemoteWorkerException(final String message) {
-
-        super(message);
-    }
+    UUID submitJob(IJobRemote<? extends Serializable> job) throws RPCException;
 
     /**
-     * Instantiates a new remote worker exception from a given cause.
-     *
-     * @param cause the cause
+     * Shuts down this worker.
+     * 
+     * @throws RPCException if unable to make the remote call
      */
-    public RemoteWorkerException(final Throwable cause) {
-
-        super(cause);
-    }
+    void shutdown() throws RPCException;
 }

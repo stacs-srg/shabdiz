@@ -34,8 +34,8 @@ import java.util.concurrent.TimeoutException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Presents the result of a remote asynchronous computation. 
- * This class is a remote implementation of {@link Future} where methods may throw {@link RPCException}.
+ * Presents the result of a remote asynchronous computation.
+ * This class is a remote implementation of {@link Future} where in addition methods may throw {@link RPCException}.
  * 
  * @param <Result> The result type returned by this Future's {@link IFutureRemote#get()} method
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)

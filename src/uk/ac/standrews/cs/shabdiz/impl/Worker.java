@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.worker;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,25 +40,22 @@ import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxy;
-import uk.ac.standrews.cs.shabdiz.coordinator.rpc.CoordinatorRemoteProxyFactory;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
 
 /**
- * An implementation of {@link IWorkerRemote}. It notifies the coordinator about the completion of the submitted jobs.
+ * An implementation of {@link IWorkerNode}. It notifies the coordinator about the completion of the submitted jobs.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Worker implements IWorkerRemote {
+class Worker implements IWorkerNode {
 
     private static final int THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> reference_to_future_map;
-    private final CoordinatorRemoteProxy coordinator_proxy;
+    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_future_map;
+    private final LauncherCallbackRemoteProxy launcher_callback_proxy;
     private final WorkerRemoteServer server;
 
     /**
@@ -73,12 +70,12 @@ public class Worker implements IWorkerRemote {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Worker(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    Worker(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
         this.local_address = local_address;
 
-        coordinator_proxy = makeCoordinatorProxy(coordinator_address);
-        reference_to_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
+        launcher_callback_proxy = makeCoordinatorProxy(coordinator_address);
+        id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         server = new WorkerRemoteServer(this);
@@ -88,31 +85,29 @@ public class Worker implements IWorkerRemote {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public <Result extends Serializable> FutureRemoteReference<Result> submit(final IJobRemote<Result> job) {
+    public UUID submitJob(final IJobRemote<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
-        final FutureRemoteReference<Result> future_reference = new FutureRemoteReference<Result>(job_id, local_address);
 
         exexcutor_service.execute(new Runnable() {
 
             @Override
             public void run() {
 
-                final Future<Result> real_future = exexcutor_service.submit(job);
-                reference_to_future_map.put(job_id, real_future);
+                final Future<? extends Serializable> real_future = exexcutor_service.submit(job);
+                id_future_map.put(job_id, real_future);
 
                 try {
-                    final Result result = real_future.get();
 
-                    handleCompletion(future_reference, result);
+                    handleCompletion(job_id, real_future.get());
                 }
                 catch (final Exception e) {
-                    handleException(future_reference, e);
+                    handleException(job_id, e);
                 }
             }
         });
 
-        return future_reference;
+        return job_id;
     }
 
     @Override
@@ -133,25 +128,23 @@ public class Worker implements IWorkerRemote {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Gets the pending result of a submitted job with the given id.
-     *
-     * @param job_id the job id
-     * @return the pending result
-     */
-    public Future<? extends Serializable> getFutureById(final UUID job_id) {
+    boolean submittedJobsContain(final UUID job_id) {
 
-        return reference_to_future_map.get(job_id);
+        return id_future_map.containsKey(job_id);
+    }
+
+    Future<? extends Serializable> getFutureById(final UUID job_id) {
+
+        return id_future_map.get(job_id);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    <Result extends Serializable> void handleCompletion(final FutureRemoteReference<Result> future_reference, final Result result) {
+    void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
-            coordinator_proxy.notifyCompletion(future_reference, result);
 
-            reference_to_future_map.remove(future_reference.getId());
+            launcher_callback_proxy.notifyCompletion(job_id, result); // Tell launcher about the result
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -159,12 +152,11 @@ public class Worker implements IWorkerRemote {
         }
     }
 
-    void handleException(final FutureRemoteReference<? extends Serializable> future_reference, final Exception exception) {
+    void handleException(final UUID job_id, final Exception exception) {
 
         try {
-            coordinator_proxy.notifyException(future_reference, exception);
 
-            reference_to_future_map.remove(future_reference.getId());
+            launcher_callback_proxy.notifyException(job_id, exception); // Tell launcher about the exception
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
@@ -174,12 +166,12 @@ public class Worker implements IWorkerRemote {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private CoordinatorRemoteProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) {
+    private LauncherCallbackRemoteProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) {
 
-        return CoordinatorRemoteProxyFactory.getProxy(coordinator_address);
+        return LauncherCallbackRemoteProxyFactory.getProxy(coordinator_address);
     }
 
-    private void expose() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    private void expose() throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
         server.setLocalAddress(local_address.getAddress());
         server.setPort(local_address.getPort());

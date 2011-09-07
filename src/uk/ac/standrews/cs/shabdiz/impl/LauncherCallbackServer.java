@@ -23,10 +23,11 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.coordinator.rpc;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 
 import org.json.JSONWriter;
 
@@ -34,41 +35,38 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteMarshaller;
 
 /**
- * Presents the coordinator server for {@link IJobRemote}s.
+ * Serves the incoming callback notifications from workers.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class CoordinatorRemoteServer extends ApplicationServer {
+public class LauncherCallbackServer extends ApplicationServer {
 
     /** The coordinator server registry key. */
-    public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Coordinator Server";
+    public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
 
     private final ILauncherCallback coordinator;
-    private final WorkerRemoteMarshaller marshaller;
+    private final ShabdizRemoteMarshaller marshaller;
 
     /**
      * Instantiates a new coordinator remote server.
      *
      * @param coordinator the coordinator application
      */
-    public CoordinatorRemoteServer(final ILauncherCallback coordinator) {
+    public LauncherCallbackServer(final ILauncherCallback coordinator) {
 
         super();
         this.coordinator = coordinator;
 
-        marshaller = new WorkerRemoteMarshaller();
+        marshaller = new ShabdizRemoteMarshaller();
         initHandlers();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public WorkerRemoteMarshaller getMarshaller() {
+    public ShabdizRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
@@ -91,8 +89,8 @@ public class CoordinatorRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(CoordinatorRemoteProxy.NOTIFY_COMPLETION_REMOTE_METHOD_NAME, new NotifyCompletionHandler());
-        handler_map.put(CoordinatorRemoteProxy.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
+        handler_map.put(LauncherCallbackRemoteProxy.NOTIFY_COMPLETION_REMOTE_METHOD_NAME, new NotifyCompletionHandler());
+        handler_map.put(LauncherCallbackRemoteProxy.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -103,10 +101,10 @@ public class CoordinatorRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final IFutureRemoteReference<Serializable> future_reference = getMarshaller().deserializeFutureRemoteReference(args);
+            final UUID job_id = getMarshaller().deserializeUUID(args);
             final Serializable result = marshaller.deserializeSerializable(args);
 
-            coordinator.notifyCompletion(future_reference, result);
+            coordinator.notifyCompletion(job_id, result);
             response.value("");
         }
     }
@@ -116,10 +114,10 @@ public class CoordinatorRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final IFutureRemoteReference<Serializable> future_reference = getMarshaller().deserializeFutureRemoteReference(args);
+            final UUID job_id = getMarshaller().deserializeUUID(args);
             final Exception exception = getMarshaller().deserializeException(args);
 
-            coordinator.notifyException(future_reference, exception);
+            coordinator.notifyException(job_id, exception);
             response.value("");
         }
     }

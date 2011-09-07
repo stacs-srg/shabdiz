@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.coordinator;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -39,9 +39,6 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.worker.WorkerNodeFactory;
-import uk.ac.standrews.cs.shabdiz.worker.rpc.WorkerRemoteServer;
-import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
  * Provides management hooks for workers.
@@ -57,26 +54,29 @@ public class WorkerManager extends ApplicationManager {
     private static final Duration CONNECTION_RETRY = new Duration(5, TimeUnit.SECONDS);
     private static final Duration CONNECTION_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    private final WorkerNodeFactory factory;
+    private final WorkerFactory factory;
     private final boolean try_registry_on_connection_error;
 
     /**
      * Instantiates a new worker manager which does not try registry on connection error.
+     *
+     * @param launcher the launcher
      */
-    public WorkerManager() {
+    public WorkerManager(final Launcher launcher) {
 
-        this(DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR);
+        this(launcher, DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR);
     }
 
     /**
      * Instantiates a new worker manager.
      *
+     * @param launcher the launcher
      * @param try_registry_on_connection_error  whether to try to lookup a worker from registry upon connection error
      */
-    public WorkerManager(final boolean try_registry_on_connection_error) {
+    public WorkerManager(final Launcher launcher, final boolean try_registry_on_connection_error) {
 
         this.try_registry_on_connection_error = try_registry_on_connection_error;
-        factory = new WorkerNodeFactory();
+        factory = new WorkerFactory(launcher);
     }
 
     @Override

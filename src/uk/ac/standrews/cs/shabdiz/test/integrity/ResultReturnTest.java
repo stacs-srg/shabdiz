@@ -25,8 +25,8 @@
  */
 package uk.ac.standrews.cs.shabdiz.test.integrity;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
@@ -37,11 +37,11 @@ import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.coordinator.Coordinator;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemoteReference;
+import uk.ac.standrews.cs.shabdiz.impl.Launcher;
+import uk.ac.standrews.cs.shabdiz.impl.WorkerNodeServer;
+import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
-import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
  * Tests whether a result/exception return by a job is working.
@@ -50,7 +50,7 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  */
 public class ResultReturnTest {
 
-    private static final int[] WORKER_NETWORK_SIZE = {1};
+    private static final int[] WORKER_NETWORK_SIZE = {5};
     static final String HELLO = "hello";
 
     /**
@@ -81,14 +81,14 @@ public class ResultReturnTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Coordinator coordinator = new Coordinator();
+            final Launcher coordinator = new Launcher();
             System.out.println(" deploying workers");
-            final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
+            final Set<IWorkerRemote> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
             for (final IWorkerRemote worker : workers) {
-                final IFutureRemoteReference<String> future_reference = worker.submit(new SayHelloRemoteJob());
+                final IFutureRemote<String> future = worker.submit(new SayHelloRemoteJob());
 
-                Assert.assertEquals(future_reference.getRemote().get(), HELLO);
+                Assert.assertEquals(future.get(), HELLO);
 
                 try {
                     worker.shutdown();
@@ -115,14 +115,14 @@ public class ResultReturnTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Coordinator coordinator = new Coordinator();
+            final Launcher coordinator = new Launcher();
             System.out.println(" deploying workers");
-            final SortedSet<IWorkerRemote> workers = deployWorkers(coordinator, size);
+            final Set<IWorkerRemote> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
             for (final IWorkerRemote worker : workers) {
-                final IFutureRemoteReference<String> future_reference = worker.submit(new NullPointerExceptionRemoteJob());
+                final IFutureRemote<String> future = worker.submit(new NullPointerExceptionRemoteJob());
                 try {
-                    future_reference.getRemote().get();
+                    future.get();
                 }
                 catch (final ExecutionException e) {
                     Assert.assertTrue(e.getCause() instanceof NullPointerException && e.getCause().getMessage().equals("test"));
@@ -141,9 +141,9 @@ public class ResultReturnTest {
         }
     }
 
-    private static SortedSet<IWorkerRemote> deployWorkers(final Coordinator coordinator, final int size) throws Exception {
+    private static Set<IWorkerRemote> deployWorkers(final Launcher coordinator, final int size) throws Exception {
 
-        final SortedSet<IWorkerRemote> deployed_workers = new TreeSet<IWorkerRemote>();
+        final Set<IWorkerRemote> deployed_workers = new HashSet<IWorkerRemote>();
         for (int i = 0; i < size; i++) {
 
             deployed_workers.add(coordinator.deployWorkerOnHost(new HostDescriptor()));
