@@ -119,7 +119,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
             case DONE_WITH_EXCEPTION:
                 launchAppropreateException(exception);
-
+                break;
             case CANCELLED:
                 throw new CancellationException();
 

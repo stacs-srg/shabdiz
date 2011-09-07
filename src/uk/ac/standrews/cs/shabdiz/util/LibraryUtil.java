@@ -52,10 +52,13 @@ public final class LibraryUtil {
 
         if (shabdiz_application_lib_urls == null) {
 
-            shabdiz_application_lib_urls = new HashSet<URL>();
-            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
-            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/json.jar"));
-            shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
+            synchronized (shabdiz_application_lib_urls) {
+
+                shabdiz_application_lib_urls = new HashSet<URL>();
+                shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
+                shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/json.jar"));
+                shabdiz_application_lib_urls.add(new URL("http://beast.cs.st-andrews.ac.uk:8080/hudson/job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
+            }
         }
 
         return shabdiz_application_lib_urls;
