@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class LauncherCallbackServer extends ApplicationServer {
+public class LauncherCallbackRemoteServer extends ApplicationServer {
 
     /** The coordinator server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
@@ -54,7 +54,7 @@ public class LauncherCallbackServer extends ApplicationServer {
      *
      * @param coordinator the coordinator application
      */
-    public LauncherCallbackServer(final ILauncherCallback coordinator) {
+    public LauncherCallbackRemoteServer(final ILauncherCallback coordinator) {
 
         super();
         this.coordinator = coordinator;

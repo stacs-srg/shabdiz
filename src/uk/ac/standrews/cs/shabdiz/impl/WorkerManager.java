@@ -46,7 +46,7 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerManager extends ApplicationManager {
+class WorkerManager extends ApplicationManager {
 
     private static final boolean DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR = false;
 
@@ -55,29 +55,26 @@ public class WorkerManager extends ApplicationManager {
     private static final Duration CONNECTION_RETRY = new Duration(5, TimeUnit.SECONDS);
     private static final Duration CONNECTION_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    private final WorkerFactory factory;
+    private final WorkerRemoteFactory factory;
     private final boolean try_registry_on_connection_error;
 
     /**
      * Instantiates a new worker manager which does not try registry on connection error.
-     *
-     * @param launcher the launcher
      */
-    public WorkerManager(final Launcher launcher) {
+    WorkerManager() {
 
-        this(launcher, DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR);
+        this(DEFAULT_TRY_REGISTRY_ON_CONNECTION_ERROR);
     }
 
     /**
      * Instantiates a new worker manager.
      *
-     * @param launcher the launcher
      * @param try_registry_on_connection_error  whether to try to lookup a worker from registry upon connection error
      */
-    public WorkerManager(final Launcher launcher, final boolean try_registry_on_connection_error) {
+    public WorkerManager(final boolean try_registry_on_connection_error) {
 
         this.try_registry_on_connection_error = try_registry_on_connection_error;
-        factory = new WorkerFactory(launcher);
+        factory = new WorkerRemoteFactory();
     }
 
     @Override

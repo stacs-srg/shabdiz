@@ -28,6 +28,7 @@ package uk.ac.standrews.cs.shabdiz.test.integrity;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +39,6 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
@@ -86,7 +86,7 @@ public class NormalOperationTest {
             final Set<IWorker> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
             for (final IWorker worker : workers) {
-                final IFutureRemote<String> future = worker.submit(new SayHelloRemoteJob());
+                final Future<String> future = worker.submit(new SayHelloRemoteJob());
 
                 Assert.assertEquals(future.get(), HELLO);
 
@@ -120,7 +120,7 @@ public class NormalOperationTest {
             final Set<IWorker> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
             for (final IWorker worker : workers) {
-                final IFutureRemote<String> future = worker.submit(new NullPointerExceptionRemoteJob());
+                final Future<String> future = worker.submit(new NullPointerExceptionRemoteJob());
                 try {
                     future.get();
                 }

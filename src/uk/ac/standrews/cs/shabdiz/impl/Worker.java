@@ -25,167 +25,47 @@
  */
 package uk.ac.standrews.cs.shabdiz.impl;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
-import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 
 /**
- * An implementation of {@link IWorkerNode}. It notifies the coordinator about the completion of the submitted jobs.
+ * Implements a passive mechanism by which a {@link IWorker} can be contacted.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class Worker implements IWorkerNode {
+class Worker implements IWorker {
 
-    private static final int THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
-
-    private final InetSocketAddress local_address;
-    private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_future_map;
-    private final LauncherCallbackRemoteProxy launcher_callback_proxy;
-    private final WorkerRemoteServer server;
+    private final InetSocketAddress worker_address;
+    private final Launcher launcher;
 
     /**
-     * Instantiates a new worker.
+     * Instantiates a new coordinated worker wrapper.
      *
-     * @param local_address the address on which the worker is exposed
-     * @param coordinator_address the coordinator address
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
-     * @throws AlreadyBoundException the already bound exception
-     * @throws RegistryUnavailableException the registry unavailable exception
-     * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
+     * @param worker_remote the worker remote to wrap
+     * @param launcher the coordinator of the remote worker
      */
-    Worker(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
+    Worker(final Launcher launcher, final InetSocketAddress worker_address) {
 
-        this.local_address = local_address;
-
-        launcher_callback_proxy = makeCoordinatorProxy(coordinator_address);
-        id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-
-        server = new WorkerRemoteServer(this);
-        expose();
+        this.worker_address = worker_address;
+        this.launcher = launcher;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public UUID submitJob(final IJobRemote<? extends Serializable> job) {
+    public <Result extends Serializable> Future<Result> submit(final IJobRemote<Result> job) throws RPCException {
 
-        final UUID job_id = generateJobId();
-
-        exexcutor_service.execute(new Runnable() {
-
-            @Override
-            public void run() {
-
-                final Future<? extends Serializable> real_future = exexcutor_service.submit(job);
-                id_future_map.put(job_id, real_future);
-
-                try {
-
-                    handleCompletion(job_id, real_future.get());
-                }
-                catch (final Exception e) {
-                    handleException(job_id, e);
-                }
-            }
-        });
-
-        return job_id;
+        return launcher.submitJob(job, worker_address);
     }
 
     @Override
-    public synchronized void shutdown() {
+    public void shutdown() throws RPCException {
 
-        exexcutor_service.shutdownNow();
-
-        if (exexcutor_service.isTerminated()) {
-
-            try {
-                unexpose();
-            }
-            catch (final IOException e) {
-                Diagnostic.trace(DiagnosticLevel.RUN, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    boolean submittedJobsContain(final UUID job_id) {
-
-        return id_future_map.containsKey(job_id);
-    }
-
-    Future<? extends Serializable> getFutureById(final UUID job_id) {
-
-        return id_future_map.get(job_id);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    void handleCompletion(final UUID job_id, final Serializable result) {
-
-        try {
-
-            launcher_callback_proxy.notifyCompletion(job_id, result); // Tell launcher about the result
-        }
-        catch (final RPCException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
-            e.printStackTrace();
-        }
-    }
-
-    void handleException(final UUID job_id, final Exception exception) {
-
-        try {
-
-            launcher_callback_proxy.notifyException(job_id, exception); // Tell launcher about the exception
-        }
-        catch (final RPCException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
-            e.printStackTrace();
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    private LauncherCallbackRemoteProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) {
-
-        return LauncherCallbackRemoteProxyFactory.getProxy(coordinator_address);
-    }
-
-    private void expose() throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
-
-        server.setLocalAddress(local_address.getAddress());
-        server.setPort(local_address.getPort());
-
-        server.start(true);
-    }
-
-    private void unexpose() throws IOException {
-
-        server.stop();
-    }
-
-    private static synchronized UUID generateJobId() {
-
-        return UUID.randomUUID();
+        launcher.shutdownWorker(worker_address);
     }
 }

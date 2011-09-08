@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public final class LauncherCallbackRemoteProxyFactory {
 
-    private static final Map<InetSocketAddress, LauncherCallbackRemoteProxy> COORDINATOR_PROXY_MAP = new Hashtable<InetSocketAddress, LauncherCallbackRemoteProxy>(); // Hashtable is used because it does not permit null key/values
+    private static final Map<InetSocketAddress, LauncherCallbackRemoteProxy> LAUNCHER_CALLBACK_PROXY_MAP = new Hashtable<InetSocketAddress, LauncherCallbackRemoteProxy>(); // Hashtable is used because it does not permit null key/values
 
     private LauncherCallbackRemoteProxyFactory() {
 
@@ -55,14 +55,14 @@ public final class LauncherCallbackRemoteProxyFactory {
 
         final LauncherCallbackRemoteProxy proxy;
 
-        if (COORDINATOR_PROXY_MAP.containsKey(proxy_address)) {
+        if (LAUNCHER_CALLBACK_PROXY_MAP.containsKey(proxy_address)) {
 
-            proxy = COORDINATOR_PROXY_MAP.get(proxy_address);
+            proxy = LAUNCHER_CALLBACK_PROXY_MAP.get(proxy_address);
         }
         else {
 
             proxy = new LauncherCallbackRemoteProxy(proxy_address);
-            COORDINATOR_PROXY_MAP.put(proxy_address, proxy);
+            LAUNCHER_CALLBACK_PROXY_MAP.put(proxy_address, proxy);
         }
 
         return proxy;

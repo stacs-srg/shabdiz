@@ -103,8 +103,8 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
             cancelled = cancelOnRemote(may_interrupt_if_running);
         }
         catch (RPCException e) {
-            setException(e);
 
+            setException(e);
             cancelled = false;
         }
 
@@ -224,6 +224,6 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
         if (exception instanceof RPCException) { throw new ExecutionException(exception); }
         if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
 
-        throw new ExecutionException("unexpected exception was notified by the launcher : " + exception.getClass(), exception);
+        throw new ExecutionException("unexpected exception was notified by the worker : " + exception.getClass(), exception);
     }
 }

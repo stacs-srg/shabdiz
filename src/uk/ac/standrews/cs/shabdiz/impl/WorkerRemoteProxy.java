@@ -28,7 +28,6 @@ package uk.ac.standrews.cs.shabdiz.impl;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
-import java.util.concurrent.Future;
 
 import org.json.JSONWriter;
 
@@ -37,51 +36,77 @@ import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 
 /**
- * Implements a passive mechanism by which a {@link IWorker} can be contacted.
+ * Handles communication with an {@link IWorkerRemote}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class WorkerPassiveRemoteProxy implements IWorker {
+class WorkerRemoteProxy extends StreamProxy implements IWorkerRemote {
 
-    /** The remote method name for {@link IWorkerNode#submit(IJobRemote)}. */
+    /** The remote method name for {@link IWorkerRemote#submit(IJobRemote)}. */
     static final String SUBMIT_REMOTE_METHOD_NAME = "submitJob";
 
-    /** The remote method name for {@link IWorkerNode#shutdown()}. */
+    /** The remote method name for {@link IWorkerRemote#shutdown()}. */
     static final String SHUTDOWN_REMOTE_METHOD_NAME = "shutdown";
 
     private final ShabdizRemoteMarshaller marshaller;
-    private final InetSocketAddress worker_address;
-    private final Launcher launcher;
 
-    /**
-     * Instantiates a new coordinated worker wrapper.
-     *
-     * @param worker_remote the worker remote to wrap
-     * @param launcher the coordinator of the remote worker
-     */
-    WorkerPassiveRemoteProxy(final Launcher launcher, final InetSocketAddress worker_address) {
+    WorkerRemoteProxy(final InetSocketAddress worker_address) {
 
+        super(worker_address);
 
-        this.worker_address = worker_address;
-        this.launcher = launcher;
         marshaller = new ShabdizRemoteMarshaller();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final IJobRemote<Result> job) throws RPCException {
+    public ShabdizRemoteMarshaller getMarshaller() {
 
-        return launcher.submitJob(job, worker_address);
+        return marshaller;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public UUID submitJob(final IJobRemote<? extends Serializable> job) throws RPCException {
+
+        try {
+
+            final AbstractStreamConnection connection = startCall(SUBMIT_REMOTE_METHOD_NAME);
+
+            final JSONWriter writer = connection.getJSONwriter();
+            marshaller.serializeRemoteJob(job, writer);
+
+            final JSONReader reader = makeCall(connection);
+            final UUID job_id = marshaller.deserializeUUID(reader);
+
+            finishCall(connection);
+
+            return job_id;
+        }
+        catch (final Exception e) {
+
+            dealWithException(e);
+            return null;
+        }
     }
 
     @Override
     public void shutdown() throws RPCException {
 
-        launcher.shutdownWorker(worker_address);
+        try {
+
+            final AbstractStreamConnection streams = startCall(SHUTDOWN_REMOTE_METHOD_NAME);
+
+            makeVoidCall(streams);
+
+            finishCall(streams);
+        }
+        catch (final Exception e) {
+            dealWithException(e);
+        }
     }
 }

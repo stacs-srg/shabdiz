@@ -49,14 +49,14 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private final ShabdizRemoteMarshaller marshaller;
 
-    private final Worker worker;
+    private final WorkerRemote worker;
 
     /**
      * Instantiates a new worker remote server for a given worker node.
      *
      * @param worker the worker
      */
-    public WorkerRemoteServer(final Worker worker) {
+    public WorkerRemoteServer(final WorkerRemote worker) {
 
         super();
         this.worker = worker;
@@ -81,8 +81,8 @@ public class WorkerRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(WorkerPassiveRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
-        handler_map.put(WorkerPassiveRemoteProxy.SHUTDOWN_REMOTE_METHOD_NAME, new ShutdownHandler());
+        handler_map.put(WorkerRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
+        handler_map.put(WorkerRemoteProxy.SHUTDOWN_REMOTE_METHOD_NAME, new ShutdownHandler());
 
         handler_map.put(FutureRemoteProxy.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
     }

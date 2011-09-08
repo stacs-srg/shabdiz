@@ -36,8 +36,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import org.json.JSONWriter;
-
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.HostState;
 import uk.ac.standrews.cs.nds.madface.MadfaceManagerFactory;
@@ -46,8 +44,6 @@ import uk.ac.standrews.cs.nds.madface.interfaces.IMadfaceManager;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
-import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
@@ -67,7 +63,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
     private static final int EPHEMERAL_PORT = 0;
 
     private final InetSocketAddress callback_server_address; // The address on which the callback server is exposed
-    private final LauncherCallbackServer callback_server; // The server which listens to the callbacks  from workers
+    private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to its remote result
 
     private final IMadfaceManager madface_manager;
@@ -123,13 +119,13 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
 
-        callback_server = new LauncherCallbackServer(this);
+        callback_server = new LauncherCallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
 
         callback_server_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
 
         madface_manager = MadfaceManagerFactory.makeMadfaceManager();
-        madface_manager.configureApplication(new WorkerManager(this));
+        madface_manager.configureApplication(new WorkerManager());
         madface_manager.configureApplication(application_lib_urls);
     }
 
@@ -147,7 +143,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
 
-        final IWorker worker_remote = (WorkerPassiveRemoteProxy) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
+        final IWorker worker_remote = (Worker) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
 
         return worker_remote; // return the coordinated proxy to the worker
     }
@@ -188,44 +184,19 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-     <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, InetSocketAddress worker_address) throws RPCException {
-         
-        try {
+    <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, final InetSocketAddress worker_address) throws RPCException {
 
-            final AbstractStreamConnection connection = startCall(SUBMIT_REMOTE_METHOD_NAME);
+        final UUID job_id = WorkerRemoteProxyFactory.getProxy(worker_address).submitJob(job);
+        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
+        id_future_map.put(job_id, future_remote);
 
-            final JSONWriter writer = connection.getJSONwriter();
-            marshaller.serializeRemoteJob(job, writer);
-
-            final JSONReader reader = makeCall(connection);
-            final UUID job_id = marshaller.deserializeUUID(reader);
-
-            finishCall(connection);
-
-            final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-            id_future_map.put(job_id, future_remote);
-
-            return future_remote;
-        }
-        catch (final Exception e) {
-            dealWithException(e);
-            
-            return null;
-        }
+        return future_remote;
     }
-     void shutdownWorker(InetSocketAddress worker_address){
-         try {
 
-             final AbstractStreamConnection streams = startCall(SHUTDOWN_REMOTE_METHOD_NAME);
+    void shutdownWorker(final InetSocketAddress worker_address) throws RPCException {
 
-             makeVoidCall(streams);
-
-             finishCall(streams);
-         }
-         catch (final Exception e) {
-             dealWithException(e);
-         }
-     }
+        WorkerRemoteProxyFactory.getProxy(worker_address).shutdown();
+    }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 

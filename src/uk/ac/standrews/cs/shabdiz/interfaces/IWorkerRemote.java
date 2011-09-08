@@ -37,7 +37,7 @@ import uk.ac.standrews.cs.shabdiz.impl.Launcher;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorkerNode {
+public interface IWorkerRemote {
 
     /**
      * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.

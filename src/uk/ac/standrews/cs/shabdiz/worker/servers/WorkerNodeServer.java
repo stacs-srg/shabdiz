@@ -44,8 +44,8 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
-import uk.ac.standrews.cs.shabdiz.impl.WorkerFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
+import uk.ac.standrews.cs.shabdiz.impl.WorkerRemoteFactory;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 
 /**
  * THe entry point to start up a new worker.
@@ -145,9 +145,9 @@ public class WorkerNodeServer {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public IWorkerNode createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public IWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return WorkerFactory.createNode(local_address, coordinator_address);
+        return WorkerRemoteFactory.createNode(local_address, coordinator_address);
     }
 
     // -------------------------------------------------------------------------------------------------------

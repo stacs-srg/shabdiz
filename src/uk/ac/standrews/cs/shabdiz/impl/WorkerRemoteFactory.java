@@ -52,17 +52,18 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 import com.mindbright.ssh2.SSH2Exception;
 
 /**
- * A factory for creating worker node objects.
+ * A factory for creating {@link IWorkerRemote} objects.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerFactory { //extends P2PNodeFactory {
+public class WorkerRemoteFactory {
 
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port is 55496, and Trombone's is 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
@@ -70,16 +71,12 @@ public class WorkerFactory { //extends P2PNodeFactory {
     private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(10, TimeUnit.SECONDS); // Timeout for individual connection attempt.
     private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
     private static final int COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
-    private final Launcher launcher;
 
     /**
      * Instantiates a new worker node factory.
-     *
-     * @param launcher the launcher
      */
-    public WorkerFactory(final Launcher launcher) {
+    public WorkerRemoteFactory() {
 
-        this.launcher = launcher;
     }
 
     /**
@@ -119,9 +116,9 @@ public class WorkerFactory { //extends P2PNodeFactory {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public static Worker createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public static IWorkerRemote createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return new Worker(local_address, coordinator_address);
+        return new WorkerRemote(local_address, coordinator_address);
     }
 
     /**
@@ -132,9 +129,9 @@ public class WorkerFactory { //extends P2PNodeFactory {
      *
      * @throws RPCException if an error occurs communicating with the remote machine
      */
-    public WorkerPassiveRemoteProxy bindToNode(final InetSocketAddress worker_address) throws RPCException {
+    public IWorkerRemote bindToNode(final InetSocketAddress worker_address) throws RPCException {
 
-        final WorkerPassiveRemoteProxy worker = new WorkerPassiveRemoteProxy(launcher, worker_address);
+        final WorkerRemoteProxy worker = WorkerRemoteProxyFactory.getProxy(worker_address);
 
         worker.ping(); // Check that the remote application can be contacted.
 
@@ -152,12 +149,12 @@ public class WorkerFactory { //extends P2PNodeFactory {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException if the node cannot be bound to within the timeout interval
      */
-    public WorkerPassiveRemoteProxy bindToNode(final InetSocketAddress worker_address, final Duration timeout_interval, final Duration retry_interval) throws RPCException, InterruptedException, TimeoutException {
+    public IWorkerRemote bindToNode(final InetSocketAddress worker_address, final Duration timeout_interval, final Duration retry_interval) throws RPCException, InterruptedException, TimeoutException {
 
-        final Callable<WorkerPassiveRemoteProxy> action = new Callable<WorkerPassiveRemoteProxy>() {
+        final Callable<IWorkerRemote> action = new Callable<IWorkerRemote>() {
 
             @Override
-            public WorkerPassiveRemoteProxy call() throws Exception {
+            public IWorkerRemote call() throws Exception {
 
                 return bindToNode(worker_address);
             }
@@ -177,7 +174,7 @@ public class WorkerFactory { //extends P2PNodeFactory {
 
     // -------------------------------------------------------------------------------------------------------
 
-    private WorkerPassiveRemoteProxy bindToNodeWithRetry(final HostDescriptor host_descriptor) throws UnknownHostException, TimeoutException, InterruptedException, RPCException {
+    private IWorkerRemote bindToNodeWithRetry(final HostDescriptor host_descriptor) throws UnknownHostException, TimeoutException, InterruptedException, RPCException {
 
         return bindToNode(host_descriptor.getInetSocketAddress(), INDIVIDUAL_TIMEOUT_INTERVAL, RETRY_INTERVAL);
     }

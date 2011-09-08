@@ -49,7 +49,6 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
  */
 public class ShabdizRemoteMarshaller extends Marshaller {
 
-    //TODO improve exception serialisation/deserialisation
     @Override
     public void serializeException(final Exception e, final JSONWriter writer) throws JSONException {
 
