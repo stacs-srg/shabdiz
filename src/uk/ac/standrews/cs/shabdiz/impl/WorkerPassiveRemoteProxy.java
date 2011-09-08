@@ -45,7 +45,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class WorkerPassiveRemoteProxy extends StreamProxy implements IWorker {
+class WorkerPassiveRemoteProxy implements IWorker {
 
     /** The remote method name for {@link IWorkerNode#submit(IJobRemote)}. */
     static final String SUBMIT_REMOTE_METHOD_NAME = "submitJob";
@@ -65,19 +65,10 @@ class WorkerPassiveRemoteProxy extends StreamProxy implements IWorker {
      */
     WorkerPassiveRemoteProxy(final Launcher launcher, final InetSocketAddress worker_address) {
 
-        super(worker_address);
 
         this.worker_address = worker_address;
         this.launcher = launcher;
         marshaller = new ShabdizRemoteMarshaller();
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    @Override
-    public ShabdizRemoteMarshaller getMarshaller() {
-
-        return marshaller;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -91,16 +82,6 @@ class WorkerPassiveRemoteProxy extends StreamProxy implements IWorker {
     @Override
     public void shutdown() throws RPCException {
 
-        try {
-
-            final AbstractStreamConnection streams = startCall(SHUTDOWN_REMOTE_METHOD_NAME);
-
-            makeVoidCall(streams);
-
-            finishCall(streams);
-        }
-        catch (final Exception e) {
-            dealWithException(e);
-        }
+        launcher.shutdownWorker(worker_address);
     }
 }

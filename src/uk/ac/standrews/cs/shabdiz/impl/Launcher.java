@@ -213,6 +213,19 @@ public class Launcher implements ILauncher, ILauncherCallback {
             return null;
         }
     }
+     void shutdownWorker(InetSocketAddress worker_address){
+         try {
+
+             final AbstractStreamConnection streams = startCall(SHUTDOWN_REMOTE_METHOD_NAME);
+
+             makeVoidCall(streams);
+
+             finishCall(streams);
+         }
+         catch (final Exception e) {
+             dealWithException(e);
+         }
+     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
