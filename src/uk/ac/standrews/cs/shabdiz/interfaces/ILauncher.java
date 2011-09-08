@@ -42,11 +42,11 @@ public interface ILauncher {
      * @return the reference to the deployed worker
      * @throws Exception if the attempt to deploy worker on host fails
      */
-    IWorkerRemote deployWorkerOnHost(HostDescriptor host_descriptor) throws Exception;
+    IWorker deployWorkerOnHost(HostDescriptor host_descriptor) throws Exception;
 
     /**
      * Shuts down this coordinator. This method does <code>not</code> shot down any workers deployed by this coordinator.
-     * User may shot down workers by calling {@link IWorkerRemote#shutdown()}.
+     * User may shot down workers by calling {@link IWorker#shutdown()}.
      */
     void shutdown();
 }

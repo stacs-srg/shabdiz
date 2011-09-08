@@ -28,6 +28,7 @@ package uk.ac.standrews.cs.shabdiz.impl;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 import org.json.JSONWriter;
 
@@ -35,17 +36,16 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerNode;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 
 /**
- * Implements a passive mechanism by which a {@link IWorkerRemote} can be contacted.
+ * Implements a passive mechanism by which a {@link IWorker} can be contacted.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class WorkerPassiveRemoteProxy extends StreamProxy implements IWorkerRemote, IWorkerNode {
+class WorkerPassiveRemoteProxy extends StreamProxy implements IWorker {
 
     /** The remote method name for {@link IWorkerNode#submit(IJobRemote)}. */
     static final String SUBMIT_REMOTE_METHOD_NAME = "submitJob";
@@ -83,14 +83,9 @@ class WorkerPassiveRemoteProxy extends StreamProxy implements IWorkerRemote, IWo
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public <Result extends Serializable> IFutureRemote<Result> submit(final IJobRemote<Result> job) throws RPCException {
+    public <Result extends Serializable> Future<Result> submit(final IJobRemote<Result> job) throws RPCException {
 
-        final UUID job_id = submitJob(job);
-
-        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-        launcher.notifySubmission(future_remote);
-
-        return future_remote;
+        return launcher.submitJob(job, worker_address);
     }
 
     @Override
@@ -108,30 +103,4 @@ class WorkerPassiveRemoteProxy extends StreamProxy implements IWorkerRemote, IWo
             dealWithException(e);
         }
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    @Override
-    public UUID submitJob(final IJobRemote<? extends Serializable> job) throws RPCException {
-
-        try {
-
-            final AbstractStreamConnection connection = startCall(SUBMIT_REMOTE_METHOD_NAME);
-
-            final JSONWriter writer = connection.getJSONwriter();
-            marshaller.serializeRemoteJob(job, writer);
-
-            final JSONReader reader = makeCall(connection);
-            final UUID job_id = marshaller.deserializeUUID(reader);
-
-            finishCall(connection);
-
-            return job_id;
-        }
-        catch (final Exception e) {
-            dealWithException(e);
-            return null;
-        }
-    }
-
 }

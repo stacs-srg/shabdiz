@@ -31,6 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -40,14 +41,13 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 
 /**
  * The Class CoordinatedFutureRemoteReferenceWrapper.
  *
  * @param <Result> the generic type
  */
-public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements IFutureRemote<Result> {
+public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements Future<Result> {
 
     /** The remote method name for {@link IFutureRemote#cancel(boolean)}. */
     public static final String CANCEL_REMOTE_METHOD_NAME = "cancel";
@@ -94,12 +94,19 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public boolean cancel(final boolean may_interrupt_if_running) throws RPCException {
+    public boolean cancel(final boolean may_interrupt_if_running) {
 
         if (isDone()) { return false; } // Check whether the job is done; if so, cannot be cancelled
 
-        final boolean cancelled = cancelOnRemote(may_interrupt_if_running);
-        // XXX discuss whether to set the exception and release this future in case of RPC exception
+        boolean cancelled;
+        try {
+            cancelled = cancelOnRemote(may_interrupt_if_running);
+        }
+        catch (RPCException e) {
+            setException(e);
+
+            cancelled = false;
+        }
 
         if (cancelled) {
             updateState(State.CANCELLED);
@@ -109,7 +116,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
     }
 
     @Override
-    public Result get() throws InterruptedException, ExecutionException, RPCException {
+    public Result get() throws InterruptedException, ExecutionException {
 
         job_done_latch.await(); // Wait until the job is done
 
@@ -131,7 +138,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
     }
 
     @Override
-    public Result get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, RPCException {
+    public Result get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 
         if (job_done_latch.await(timeout, unit)) { return get(); }
 
@@ -210,11 +217,11 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
         }
     }
 
-    private void launchAppropreateException(final Exception exception) throws InterruptedException, ExecutionException, RPCException {
+    private void launchAppropreateException(final Exception exception) throws InterruptedException, ExecutionException {
 
         if (exception instanceof InterruptedException) { throw (InterruptedException) exception; }
         if (exception instanceof ExecutionException) { throw (ExecutionException) exception; }
-        if (exception instanceof RPCException) { throw (RPCException) exception; }
+        if (exception instanceof RPCException) { throw new ExecutionException(exception); }
         if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
 
         throw new ExecutionException("unexpected exception was notified by the launcher : " + exception.getClass(), exception);

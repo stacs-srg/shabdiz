@@ -40,7 +40,7 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
 import uk.ac.standrews.cs.shabdiz.interfaces.IFutureRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
@@ -83,9 +83,9 @@ public class NormalOperationTest {
 
             final Launcher coordinator = new Launcher();
             System.out.println(" deploying workers");
-            final Set<IWorkerRemote> workers = deployWorkers(coordinator, size);
+            final Set<IWorker> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
-            for (final IWorkerRemote worker : workers) {
+            for (final IWorker worker : workers) {
                 final IFutureRemote<String> future = worker.submit(new SayHelloRemoteJob());
 
                 Assert.assertEquals(future.get(), HELLO);
@@ -117,9 +117,9 @@ public class NormalOperationTest {
 
             final Launcher coordinator = new Launcher();
             System.out.println(" deploying workers");
-            final Set<IWorkerRemote> workers = deployWorkers(coordinator, size);
+            final Set<IWorker> workers = deployWorkers(coordinator, size);
             System.out.println("done deploying workers");
-            for (final IWorkerRemote worker : workers) {
+            for (final IWorker worker : workers) {
                 final IFutureRemote<String> future = worker.submit(new NullPointerExceptionRemoteJob());
                 try {
                     future.get();
@@ -141,9 +141,9 @@ public class NormalOperationTest {
         }
     }
 
-    private static Set<IWorkerRemote> deployWorkers(final Launcher coordinator, final int size) throws Exception {
+    private static Set<IWorker> deployWorkers(final Launcher coordinator, final int size) throws Exception {
 
-        final Set<IWorkerRemote> deployed_workers = new HashSet<IWorkerRemote>();
+        final Set<IWorker> deployed_workers = new HashSet<IWorker>();
         for (int i = 0; i < size; i++) {
 
             deployed_workers.add(coordinator.deployWorkerOnHost(new HostDescriptor()));

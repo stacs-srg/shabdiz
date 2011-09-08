@@ -33,7 +33,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+
+import org.json.JSONWriter;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.HostState;
@@ -43,12 +46,15 @@ import uk.ac.standrews.cs.nds.madface.interfaces.IMadfaceManager;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
+import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
 import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
 
 /**
@@ -130,7 +136,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public synchronized IWorkerRemote deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
+    public synchronized IWorker deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
 
         configureApplicationDeploymentParams(host_descriptor); // Configure the host's application deployment parameters
 
@@ -141,7 +147,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
 
-        final IWorkerRemote worker_remote = (WorkerPassiveRemoteProxy) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
+        final IWorker worker_remote = (WorkerPassiveRemoteProxy) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
 
         return worker_remote; // return the coordinated proxy to the worker
     }
@@ -182,9 +188,30 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    void notifySubmission(final FutureRemoteProxy<? extends Serializable> future_remote) {
+     <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, InetSocketAddress worker_address) throws RPCException {
+         
+        try {
 
-        id_future_map.put(future_remote.getId(), future_remote);
+            final AbstractStreamConnection connection = startCall(SUBMIT_REMOTE_METHOD_NAME);
+
+            final JSONWriter writer = connection.getJSONwriter();
+            marshaller.serializeRemoteJob(job, writer);
+
+            final JSONReader reader = makeCall(connection);
+            final UUID job_id = marshaller.deserializeUUID(reader);
+
+            finishCall(connection);
+
+            final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
+            id_future_map.put(job_id, future_remote);
+
+            return future_remote;
+        }
+        catch (final Exception e) {
+            dealWithException(e);
+            
+            return null;
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

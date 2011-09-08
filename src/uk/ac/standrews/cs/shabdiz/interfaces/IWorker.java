@@ -27,6 +27,7 @@ package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
@@ -35,7 +36,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorkerRemote {
+public interface IWorker {
 
     /**
      * Submits a value-returning task for execution to this worker and returns the pending result of the task.
@@ -46,7 +47,7 @@ public interface IWorkerRemote {
      * @throws RPCException if unable to make the remote call
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    <Result extends Serializable> IFutureRemote<Result> submit(IJobRemote<Result> job) throws RPCException;
+    <Result extends Serializable> Future<Result> submit(IJobRemote<Result> job) throws RPCException;
 
     /**
      * Shuts down this worker.
