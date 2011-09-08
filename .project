@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>shabdiz</name>
-	<comment></comment>
+	<comment>A distributed job execution framework</comment>
 	<projects>
 	</projects>
 	<buildSpec>

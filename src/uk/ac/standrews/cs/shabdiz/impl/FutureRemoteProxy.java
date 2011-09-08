@@ -43,27 +43,40 @@ import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 
 /**
- * The Class CoordinatedFutureRemoteReferenceWrapper.
+ * Presents a proxy to the pending result of a remote computation.
+ * The communications between this class and the remote worker which executes the computation are performed passively.
  *
- * @param <Result> the generic type
+ * @param <Result> the type of pending result
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements Future<Result> {
 
     /** The remote method name for {@link Future#cancel(boolean)}. */
     public static final String CANCEL_REMOTE_METHOD_NAME = "cancel";
 
-    private static final int LATCH_COUNT = 1;
+    private static final int LATCH_COUNT = 1; // The latch count is one because there is only one notification is needed to be received from the remote worker to release this pending result
 
     private enum State {
-        WAITING, DONE_WITH_RESULT, DONE_WITH_EXCEPTION, CANCELLED
+
+        /** Indicates that this future is pending for the notification from the remote worker. */
+        PENDING,
+
+        /** Indicates that pending has ended in a result. */
+        DONE_WITH_RESULT,
+
+        /** Indicates that pending has ended in an exception. */
+        DONE_WITH_EXCEPTION,
+
+        /** Indicates that pending has ended in cancellation of the job. */
+        CANCELLED;
     }
 
-    private final UUID job_id;
-    private final ShabdizRemoteMarshaller marshaller;
-    private final CountDownLatch job_done_latch;
+    private final UUID job_id; // The globally unique ID of the job
+    private final ShabdizRemoteMarshaller marshaller; // Serialises/deserialises the exchanged communication messages
+    private final CountDownLatch job_done_latch; // Allows this thread to wait until the remote computation is complete
 
-    private Exception exception;
-    private Result result;
+    private Exception exception; // Placeholder of the exception which is produced as the outcome of the remote job execution
+    private Result result; // Placeholder of the result which is produced as the outcome of the remote job execution
     private State current_state; // Current state of this future remote
 
     /**
@@ -78,7 +91,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         this.job_id = job_id;
 
-        current_state = State.WAITING; // Set the current state to waiting
+        current_state = State.PENDING;
         job_done_latch = new CountDownLatch(LATCH_COUNT);
         marshaller = new ShabdizRemoteMarshaller();
     }
@@ -104,7 +117,7 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
         }
         catch (RPCException e) {
 
-            setException(e);
+            setException(e); // Since unable to communicate with the remote worker, there is no point to wait for notification.
             cancelled = false;
         }
 
@@ -154,15 +167,10 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
     @Override
     public boolean isDone() {
 
-        return current_state != State.WAITING;
+        return current_state != State.PENDING;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
-
-    UUID getId() {
-
-        return job_id;
-    }
 
     void setException(final Exception exception) {
 
@@ -212,8 +220,8 @@ public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy 
 
         current_state = new_state;
 
-        if (current_state != State.WAITING) {
-            job_done_latch.countDown();
+        if (current_state != State.PENDING) { // Check whether this future is no longer pending
+            job_done_latch.countDown(); // Release the waiting latch
         }
     }
 

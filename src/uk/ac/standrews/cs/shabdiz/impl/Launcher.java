@@ -64,7 +64,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     private final InetSocketAddress callback_server_address; // The address on which the callback server is exposed
     private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
-    private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to its remote result
+    private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
 
     private final IMadfaceManager madface_manager;
 
@@ -170,7 +170,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     /**
-     * Unexposes the coordinator Server which breaks the communication to the workers deployed by this coordinator.
+     * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
+     * Note that any pending {@link Future} will end in exception.
+     * 
      * @see ILauncher#shutdown()
      */
     @Override
@@ -178,7 +180,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         unexpose();
         madface_manager.shutdown();
-        // XXX discuss whether to clear out all the notifications
+        releaseAllPendingFutures(); // Release the futures which are still pending for notification
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -220,6 +222,19 @@ public class Launcher implements ILauncher, ILauncherCallback {
         }
         catch (final IOException e) {
             Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop coordinator server, because: ", e.getMessage(), e);
+        }
+    }
+
+    private void releaseAllPendingFutures() {
+
+        final RPCException unexposed_launcher_exception = new RPCException("Launcher is been shut down, no longer can receive notifications from workers");
+
+        for (final FutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
+
+            if (!future_remote.isDone()) { // Check whether the result is pending
+
+                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+            }
         }
     }
 }
