@@ -26,7 +26,7 @@ final class WorkerRemoteProxyFactory {
      * @param proxy_address the proxy address
      * @return the proxy associated to the given address
      */
-    public static synchronized WorkerRemoteProxy getProxy(final InetSocketAddress proxy_address) {
+    static synchronized WorkerRemoteProxy getProxy(final InetSocketAddress proxy_address) {
 
         final WorkerRemoteProxy proxy;
 

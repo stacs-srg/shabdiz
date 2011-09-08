@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class RemoteWorkerException extends RPCException {
+class RemoteWorkerException extends RPCException {
 
     private static final long serialVersionUID = 4506906155644771341L;
 
@@ -41,7 +41,7 @@ public class RemoteWorkerException extends RPCException {
      *
      * @param message the message
      */
-    public RemoteWorkerException(final String message) {
+    RemoteWorkerException(final String message) {
 
         super(message);
     }
@@ -51,7 +51,7 @@ public class RemoteWorkerException extends RPCException {
      *
      * @param cause the cause
      */
-    public RemoteWorkerException(final Throwable cause) {
+    RemoteWorkerException(final Throwable cause) {
 
         super(cause);
     }

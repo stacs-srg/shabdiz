@@ -72,10 +72,7 @@ public class WorkerRemoteFactory {
     private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
     private static final int COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
-    /**
-     * Instantiates a new worker node factory.
-     */
-    public WorkerRemoteFactory() {
+    WorkerRemoteFactory() {
 
     }
 
@@ -93,7 +90,7 @@ public class WorkerRemoteFactory {
      * @throws DeploymentException the deployment exception
      * @throws RPCException the rPC exception
      */
-    public void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException, RPCException {
+    void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException, RPCException {
 
         if (host_descriptor.getPort() == 0) {
             createAndBindToNodeOnFreePort(host_descriptor);
@@ -129,7 +126,7 @@ public class WorkerRemoteFactory {
      *
      * @throws RPCException if an error occurs communicating with the remote machine
      */
-    public IWorkerRemote bindToNode(final InetSocketAddress worker_address) throws RPCException {
+    IWorkerRemote bindToNode(final InetSocketAddress worker_address) throws RPCException {
 
         final WorkerRemoteProxy worker = WorkerRemoteProxyFactory.getProxy(worker_address);
 
@@ -149,7 +146,7 @@ public class WorkerRemoteFactory {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException if the node cannot be bound to within the timeout interval
      */
-    public IWorkerRemote bindToNode(final InetSocketAddress worker_address, final Duration timeout_interval, final Duration retry_interval) throws RPCException, InterruptedException, TimeoutException {
+    IWorkerRemote bindToNode(final InetSocketAddress worker_address, final Duration timeout_interval, final Duration retry_interval) throws RPCException, InterruptedException, TimeoutException {
 
         final Callable<IWorkerRemote> action = new Callable<IWorkerRemote>() {
 

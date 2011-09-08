@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerRemoteServer extends ApplicationServer {
+class WorkerRemoteServer extends ApplicationServer {
 
     /** The worker server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Worker Server";
@@ -56,7 +56,7 @@ public class WorkerRemoteServer extends ApplicationServer {
      *
      * @param worker the worker
      */
-    public WorkerRemoteServer(final WorkerRemote worker) {
+    WorkerRemoteServer(final WorkerRemote worker) {
 
         super();
         this.worker = worker;

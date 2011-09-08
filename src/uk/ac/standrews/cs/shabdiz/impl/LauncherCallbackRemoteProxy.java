@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallback {
+class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallback {
 
     /** The remote method name for {@link #notifyCompletion(UUID, Serializable)}. */
     public static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";

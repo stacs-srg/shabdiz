@@ -47,7 +47,11 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ShabdizRemoteMarshaller extends Marshaller {
+class ShabdizRemoteMarshaller extends Marshaller {
+
+    ShabdizRemoteMarshaller() {
+
+    }
 
     @Override
     public void serializeException(final Exception e, final JSONWriter writer) throws JSONException {

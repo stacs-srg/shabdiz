@@ -35,7 +35,7 @@ import java.util.Map;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public final class LauncherCallbackRemoteProxyFactory {
+final class LauncherCallbackRemoteProxyFactory {
 
     private static final Map<InetSocketAddress, LauncherCallbackRemoteProxy> LAUNCHER_CALLBACK_PROXY_MAP = new Hashtable<InetSocketAddress, LauncherCallbackRemoteProxy>(); // Hashtable is used because it does not permit null key/values
 
@@ -51,7 +51,7 @@ public final class LauncherCallbackRemoteProxyFactory {
      * @param proxy_address the proxy address
      * @return the proxy associated to the given address
      */
-    public static synchronized LauncherCallbackRemoteProxy getProxy(final InetSocketAddress proxy_address) {
+    static synchronized LauncherCallbackRemoteProxy getProxy(final InetSocketAddress proxy_address) {
 
         final LauncherCallbackRemoteProxy proxy;
 

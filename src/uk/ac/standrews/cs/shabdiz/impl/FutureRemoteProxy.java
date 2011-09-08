@@ -49,7 +49,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements Future<Result> {
+class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements Future<Result> {
 
     /** The remote method name for {@link Future#cancel(boolean)}. */
     public static final String CANCEL_REMOTE_METHOD_NAME = "cancel";
