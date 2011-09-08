@@ -143,9 +143,8 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
 
-        final IWorker worker_remote = (Worker) host_descriptor.getApplicationReference(); // Retrieve the remote proxy of the deployed worker
-
-        return worker_remote; // return the coordinated proxy to the worker
+        final IWorker worker = new Worker(this, host_descriptor.getInetSocketAddress()); // XXX dsicuss (Worker) host_descriptor.getApplicationReference(); // Retrieval of  the remote proxy of the deployed worker
+        return worker; // return the coordinated proxy to the worker
     }
 
     @Override
