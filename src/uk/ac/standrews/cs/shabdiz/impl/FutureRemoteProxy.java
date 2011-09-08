@@ -49,7 +49,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
  */
 public class FutureRemoteProxy<Result extends Serializable> extends StreamProxy implements Future<Result> {
 
-    /** The remote method name for {@link IFutureRemote#cancel(boolean)}. */
+    /** The remote method name for {@link Future#cancel(boolean)}. */
     public static final String CANCEL_REMOTE_METHOD_NAME = "cancel";
 
     private static final int LATCH_COUNT = 1;
