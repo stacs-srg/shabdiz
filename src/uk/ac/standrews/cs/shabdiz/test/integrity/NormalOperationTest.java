@@ -48,7 +48,7 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ResultReturnTest {
+public class NormalOperationTest {
 
     private static final int[] WORKER_NETWORK_SIZE = {5};
     static final String HELLO = "hello";
@@ -160,7 +160,7 @@ final class SayHelloRemoteJob implements IJobRemote<String> {
     @Override
     public String call() throws Exception {
 
-        return ResultReturnTest.HELLO;
+        return NormalOperationTest.HELLO;
     }
 }
 
