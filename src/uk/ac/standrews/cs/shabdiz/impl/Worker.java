@@ -44,10 +44,10 @@ class Worker implements IWorker {
     private final Launcher launcher;
 
     /**
-     * Instantiates a new coordinated worker wrapper.
+     * Instantiates a new worker which is contacted passively.
      *
      * @param worker_remote the worker remote to wrap
-     * @param launcher the coordinator of the remote worker
+     * @param launcher the launcher by which the remote correspondence of this worker is launched
      */
     Worker(final Launcher launcher, final InetSocketAddress worker_address) {
 

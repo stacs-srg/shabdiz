@@ -70,7 +70,7 @@ public class WorkerRemoteFactory {
     private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(30, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
     private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(10, TimeUnit.SECONDS); // Timeout for individual connection attempt.
     private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
-    private static final int COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
+    private static final int LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
     WorkerRemoteFactory() {
 
@@ -104,7 +104,7 @@ public class WorkerRemoteFactory {
      * Creates a new worker node running in the current JVM at a given local network address on a given port.
      *
      * @param local_address the local address of the node
-     * @param coordinator_address the coordinator_address
+     * @param launcher_callback_address the launcher callback address
      * @return the new node
      * @throws IOException if the node cannot bind to the specified local address
      * @throws RPCException if an error occurs binding the node to the registry
@@ -113,9 +113,9 @@ public class WorkerRemoteFactory {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public static IWorkerRemote createNode(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public static IWorkerRemote createNode(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return new WorkerRemote(local_address, coordinator_address);
+        return new WorkerRemote(local_address, launcher_callback_address);
     }
 
     /**
@@ -182,10 +182,10 @@ public class WorkerRemoteFactory {
 
         args.add(WorkerNodeServer.LOCAL_ADDRESS_KEY + NetworkUtil.formatHostAddress(host_descriptor.getHost(), port));
 
-        final InetSocketAddress coordinator_address = getCoordinatorAddress(host_descriptor);
-        if (coordinator_address == null) { throw new DeploymentException("argument [coordinator address] is not set"); }
+        final InetSocketAddress launcher_callback_address = getLauncherCallbackAddress(host_descriptor);
+        if (launcher_callback_address == null) { throw new DeploymentException("argument [launcher callback address] is not set"); }
 
-        args.add(WorkerNodeServer.COORDINATOR_ADDRESS_KEY + NetworkUtil.formatHostAddress(coordinator_address.getHostName(), coordinator_address.getPort()));
+        args.add(WorkerNodeServer.LAUNCHER_CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(launcher_callback_address.getHostName(), launcher_callback_address.getPort()));
         args.add(WorkerNodeServer.DIAGNOSTIC_LEVEL_KEY + Diagnostic.getLevel().numericalValue());
 
         return args;
@@ -285,15 +285,15 @@ public class WorkerRemoteFactory {
         throw new IllegalStateException("Unexpected checked exception", e);
     }
 
-    private static InetSocketAddress getCoordinatorAddress(final HostDescriptor host_descriptor) throws DeploymentException {
+    private static InetSocketAddress getLauncherCallbackAddress(final HostDescriptor host_descriptor) throws DeploymentException {
 
         final Object[] args = host_descriptor.getApplicationDeploymentParams();
 
-        if (isParamNull(args, COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX)) { return null; }
+        if (isParamNull(args, LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX)) { return null; }
 
-        final Object arg = args[COORDINATOR_ADDRESS_DEPLOYMENT_PARAM_INDEX];
+        final Object arg = args[LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX];
         if (arg instanceof InetSocketAddress) { return (InetSocketAddress) arg; }
-        throw new DeploymentException("argument [coordinator address] is not of type InetSocketAddress");
+        throw new DeploymentException("argument [launcher callback address] is not of type InetSocketAddress");
     }
 
     private static boolean isParamNull(final Object[] args, final int index) {

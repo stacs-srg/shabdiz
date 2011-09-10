@@ -80,10 +80,10 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
     private State current_state; // Current state of this future remote
 
     /**
-     * Instantiates a new coordinated future remote reference wrapper.
+     * Instantiates a new proxy to the pending result of a remote computation.
      *
-     * @param coordinator the coordinator
-     * @param future_reference the future remote reference to wrap
+     * @param job_id the id of the remote computation
+     * @param worker_address the address of the worker which performs the computation
      */
     FutureRemoteProxy(final UUID job_id, final InetSocketAddress worker_address) {
 

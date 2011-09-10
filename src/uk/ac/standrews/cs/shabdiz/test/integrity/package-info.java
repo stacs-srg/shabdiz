@@ -1,5 +1,5 @@
 /**
- * Tests related to the integrity of coordinator and worker.
+ * Tests related to the integrity of launcher and worker.
  */
 package uk.ac.standrews.cs.shabdiz.test.integrity;
 

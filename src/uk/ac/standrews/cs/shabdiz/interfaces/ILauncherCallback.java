@@ -38,7 +38,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 public interface ILauncherCallback {
 
     /**
-     * Notifies the coordinator about the result of a submitted job.
+     * Notifies the launcher about the result of a completed job.
      *
      * @param job_id the globally unique id of the submitted job
      * @param result the result of the completed job
@@ -47,7 +47,7 @@ public interface ILauncherCallback {
     void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**
-     * Notifies the coordinator about the exception resulted by a submitted job.
+     * Notifies the launcher about the exception resulted by executing a job.
      *
      * @param job_id the globally unique id of the submitted job
      * @param exception the exception which occurred when trying to execute a job

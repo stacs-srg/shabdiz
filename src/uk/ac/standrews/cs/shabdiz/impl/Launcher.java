@@ -54,7 +54,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
 
 /**
- * Deploys workers on a set of added hosts and provides a coordinated proxy to communicate with them.
+ * Deploys workers on hosts. Uses MADFACE to deploy workers.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -71,7 +71,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Instantiates a new coordinator. The coordinator is exposed on local address on an ephemeral port number.
+     * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      *
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
@@ -86,7 +86,8 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     /**
-     * Instantiates a new  coordinator and exposes the coordinator on local address on an <i>ephemeral</i> port number.
+     * Instantiates a new  launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
+     * The given application library URLs are loaded on any worker which is deployed by this launcher.
      *
      * @param application_lib_urls the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
@@ -102,7 +103,8 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     /**
-     * Instantiates a new coordinator node and starts a local server which listens to the notifications from workers on the given port number.
+     * Instantiates a new  launcher and exposes the launcher callback on local address with the given port number.
+     * The given application library URLs are loaded on any worker which is deployed by this launcher.
      *
      * @param callback_server_port the port on which the callback server is exposed
      * @param application_lib_urls the application library URLs
@@ -144,7 +146,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
         host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
 
         final IWorker worker = new Worker(this, host_descriptor.getInetSocketAddress()); // XXX dsicuss (Worker) host_descriptor.getApplicationReference(); // Retrieval of  the remote proxy of the deployed worker
-        return worker; // return the coordinated proxy to the worker
+        return worker;
     }
 
     @Override
@@ -221,7 +223,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
             callback_server.stop();
         }
         catch (final IOException e) {
-            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop coordinator server, because: ", e.getMessage(), e);
+            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop launcher callback server, because: ", e.getMessage(), e);
         }
     }
 

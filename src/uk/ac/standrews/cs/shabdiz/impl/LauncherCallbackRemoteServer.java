@@ -43,21 +43,21 @@ import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
  */
 class LauncherCallbackRemoteServer extends ApplicationServer {
 
-    /** The coordinator server registry key. */
+    /** The launcher callback server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
 
-    private final ILauncherCallback coordinator;
+    private final ILauncherCallback launcher_callback;
     private final ShabdizRemoteMarshaller marshaller;
 
     /**
-     * Instantiates a new coordinator remote server.
+     * Instantiates a new launcher callback server.
      *
-     * @param coordinator the coordinator application
+     * @param launcher_callback the launcher callback
      */
-    public LauncherCallbackRemoteServer(final ILauncherCallback coordinator) {
+    public LauncherCallbackRemoteServer(final ILauncherCallback launcher_callback) {
 
         super();
-        this.coordinator = coordinator;
+        this.launcher_callback = launcher_callback;
 
         marshaller = new ShabdizRemoteMarshaller();
         initHandlers();
@@ -104,7 +104,7 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
             final UUID job_id = getMarshaller().deserializeUUID(args);
             final Serializable result = marshaller.deserializeSerializable(args);
 
-            coordinator.notifyCompletion(job_id, result);
+            launcher_callback.notifyCompletion(job_id, result);
             response.value("");
         }
     }
@@ -117,7 +117,7 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
             final UUID job_id = getMarshaller().deserializeUUID(args);
             final Exception exception = getMarshaller().deserializeException(args);
 
-            coordinator.notifyException(job_id, exception);
+            launcher_callback.notifyException(job_id, exception);
             response.value("");
         }
     }

@@ -37,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
+import uk.ac.standrews.cs.nds.registry.stream.RegistryFactory;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
@@ -44,7 +45,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 
 /**
- * An implementation of {@link IWorkerRemote}. It notifies the coordinator about the completion of the submitted jobs.
+ * An implementation of {@link IWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -55,14 +56,15 @@ class WorkerRemote implements IWorkerRemote {
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_future_map;
-    private final LauncherCallbackRemoteProxy launcher_callback_proxy;
     private final WorkerRemoteServer server;
+
+    private final InetSocketAddress launcher_callback_address;
 
     /**
      * Instantiates a new worker.
      *
      * @param local_address the address on which the worker is exposed
-     * @param coordinator_address the coordinator address
+     * @param launcher_callback_address the launcher callback address
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -70,11 +72,11 @@ class WorkerRemote implements IWorkerRemote {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress coordinator_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
+    WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
         this.local_address = local_address;
+        this.launcher_callback_address = launcher_callback_address;
 
-        launcher_callback_proxy = makeCoordinatorProxy(coordinator_address);
         id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
@@ -115,14 +117,19 @@ class WorkerRemote implements IWorkerRemote {
 
         exexcutor_service.shutdownNow();
 
-        if (exexcutor_service.isTerminated()) {
+        try {
+            RegistryFactory.FACTORY.getLocalRegistryServer().stop();
+        }
+        catch (final Exception e) {
 
-            try {
-                unexpose();
-            }
-            catch (final IOException e) {
-                Diagnostic.trace(DiagnosticLevel.RUN, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
-            }
+            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop the local registry server, because: ", e.getMessage(), e);
+        }
+
+        try {
+            unexpose();
+        }
+        catch (final IOException e) {
+            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
         }
     }
 
@@ -144,10 +151,10 @@ class WorkerRemote implements IWorkerRemote {
 
         try {
 
-            launcher_callback_proxy.notifyCompletion(job_id, result); // Tell launcher about the result
+            LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyCompletion(job_id, result); // Tell launcher about the result
         }
         catch (final RPCException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
+            // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             e.printStackTrace();
         }
     }
@@ -156,17 +163,12 @@ class WorkerRemote implements IWorkerRemote {
 
         try {
 
-            launcher_callback_proxy.notifyException(job_id, exception); // Tell launcher about the exception
+            LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyException(job_id, exception); // Tell launcher about the exception
         }
         catch (final RPCException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the coordinator rpc exception
+            // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             e.printStackTrace();
         }
-    }
-
-    private LauncherCallbackRemoteProxy makeCoordinatorProxy(final InetSocketAddress coordinator_address) {
-
-        return LauncherCallbackRemoteProxyFactory.getProxy(coordinator_address);
     }
 
     private void expose() throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {

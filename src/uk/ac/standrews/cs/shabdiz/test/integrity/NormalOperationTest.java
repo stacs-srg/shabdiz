@@ -44,13 +44,13 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
- * Tests whether a result/exception return by a job is working.
+ * Tests whether a deployed job returns expected result.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class NormalOperationTest {
 
-    private static final int[] WORKER_NETWORK_SIZE = {5};
+    private static final int[] WORKER_NETWORK_SIZE = {1};
     static final String HELLO = "hello";
 
     /**
@@ -81,9 +81,9 @@ public class NormalOperationTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Launcher coordinator = new Launcher();
+            final Launcher launcher = new Launcher();
             System.out.println(" deploying workers");
-            final Set<IWorker> workers = deployWorkers(coordinator, size);
+            final Set<IWorker> workers = deployWorkers(launcher, size);
             System.out.println("done deploying workers");
             for (final IWorker worker : workers) {
                 final Future<String> future = worker.submit(new SayHelloRemoteJob());
@@ -98,7 +98,7 @@ public class NormalOperationTest {
                 }
             }
 
-            coordinator.shutdown();
+            //            launcher.shutdown();
             System.out.println(">>> Done");
         }
     }
@@ -115,9 +115,9 @@ public class NormalOperationTest {
 
             System.out.println(">>> Worker network size : " + size);
 
-            final Launcher coordinator = new Launcher();
+            final Launcher launcher = new Launcher();
             System.out.println(" deploying workers");
-            final Set<IWorker> workers = deployWorkers(coordinator, size);
+            final Set<IWorker> workers = deployWorkers(launcher, size);
             System.out.println("done deploying workers");
             for (final IWorker worker : workers) {
                 final Future<String> future = worker.submit(new NullPointerExceptionRemoteJob());
@@ -136,17 +136,17 @@ public class NormalOperationTest {
                 }
             }
 
-            coordinator.shutdown();
+            launcher.shutdown();
             System.out.println(">>> Done");
         }
     }
 
-    private static Set<IWorker> deployWorkers(final Launcher coordinator, final int size) throws Exception {
+    private static Set<IWorker> deployWorkers(final Launcher launcher, final int size) throws Exception {
 
         final Set<IWorker> deployed_workers = new HashSet<IWorker>();
         for (int i = 0; i < size; i++) {
 
-            deployed_workers.add(coordinator.deployWorkerOnHost(new HostDescriptor()));
+            deployed_workers.add(launcher.deployWorkerOnHost(new HostDescriptor()));
         }
 
         return deployed_workers;

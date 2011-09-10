@@ -56,12 +56,12 @@ class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallba
     /**
      * Package protected constructor of a new launcher callback proxy.
      *
-     * @param coordinator_node_address the address of a launcher call back server
+     * @param launcher_callback_address the address of a launcher call back server
      * @see LauncherCallbackRemoteProxyFactory#getProxy(InetSocketAddress)
      */
-    LauncherCallbackRemoteProxy(final InetSocketAddress coordinator_node_address) {
+    LauncherCallbackRemoteProxy(final InetSocketAddress launcher_callback_address) {
 
-        super(coordinator_node_address);
+        super(launcher_callback_address);
         marshaller = new ShabdizRemoteMarshaller();
     }
 
