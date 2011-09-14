@@ -32,7 +32,9 @@ import java.util.Set;
 import uk.ac.standrews.cs.nds.madface.URL;
 
 /**
- * The Class ShabdizApplicationLibraryUtil.
+ * Utility class that provides application library urls used by Shabdiz.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class LibraryUtil {
 
