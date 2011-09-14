@@ -37,7 +37,6 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
-import uk.ac.standrews.cs.nds.registry.stream.RegistryFactory;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
@@ -117,20 +116,43 @@ class WorkerRemote implements IWorkerRemote {
 
         exexcutor_service.shutdownNow();
 
-        try {
-            RegistryFactory.FACTORY.getLocalRegistryServer().stop();
-        }
-        catch (final Exception e) {
-
-            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop the local registry server, because: ", e.getMessage(), e);
-        }
+        //        try {
+        //
+        //            final RegistryServer local_registry_server = RegistryFactory.FACTORY.getLocalRegistryServer();
+        //
+        //            if (local_registry_server != null) {
+        //                local_registry_server.stop();
+        //            }
+        //            else {
+        //                RegistryFactory.FACTORY.getRegistry().shutdown();
+        //            }
+        //        }
+        //        catch (final Exception e) {
+        //
+        //            Diagnostic.trace(DiagnosticLevel.NONE, "Unable to stop the local registry server, because: ", e.getMessage(), e);
+        //        }
 
         try {
             unexpose();
         }
         catch (final IOException e) {
-            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
+            Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
         }
+
+        //        ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
+        //        ThreadGroup parentGroup;
+        //        while ((parentGroup = rootGroup.getParent()) != null) {
+        //            rootGroup = parentGroup;
+        //        }
+        //
+        //        Thread[] threads = new Thread[rootGroup.activeCount()];
+        //        while (rootGroup.enumerate(threads, true) == threads.length) {
+        //            threads = new Thread[threads.length * 2];
+        //        }
+        //
+        //        for (final Thread t : threads) {
+        //            System.out.println("thread: " + t.getName());
+        //        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

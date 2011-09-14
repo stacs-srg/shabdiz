@@ -25,11 +25,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.test.integrity;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,8 +38,8 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
@@ -50,23 +49,26 @@ import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
  */
 public class NormalOperationTest {
 
-    private static final int[] WORKER_NETWORK_SIZE = {1};
-    static final String HELLO = "hello";
+    private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
+    private static final String HELLO = "hello";
+
+    private HostDescriptor local_host_descriptor;
+    private Launcher launcher;
+    private IWorker worker;
 
     /**
      * Sets the up the test.
      *
-     * @throws Exception the exception
+     * @throws Exception if unable to set up
      */
     @Before
     public void setUp() throws Exception {
 
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
-        // Kill any lingering Shabdiz Worker processes.
-        final HostDescriptor local_host_descriptor = new HostDescriptor();
-        local_host_descriptor.getProcessManager().killMatchingProcesses(WorkerNodeServer.class.getSimpleName());
-        local_host_descriptor.shutdown();
+        local_host_descriptor = new HostDescriptor();
+        launcher = new Launcher();
+        worker = launcher.deployWorkerOnHost(local_host_descriptor);
     }
 
     /**
@@ -77,30 +79,8 @@ public class NormalOperationTest {
     @Test
     public void sayHelloTest() throws Exception {
 
-        for (final int size : WORKER_NETWORK_SIZE) {
-
-            System.out.println(">>> Worker network size : " + size);
-
-            final Launcher launcher = new Launcher();
-            System.out.println(" deploying workers");
-            final Set<IWorker> workers = deployWorkers(launcher, size);
-            System.out.println("done deploying workers");
-            for (final IWorker worker : workers) {
-                final Future<String> future = worker.submit(new SayHelloRemoteJob());
-
-                Assert.assertEquals(future.get(), HELLO);
-
-                try {
-                    worker.shutdown();
-                }
-                catch (final RPCException e) {
-                    // ignore
-                }
-            }
-
-            //            launcher.shutdown();
-            System.out.println(">>> Done");
-        }
+        final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
+        Assert.assertEquals(HELLO, future.get());
     }
 
     /**
@@ -111,66 +91,37 @@ public class NormalOperationTest {
     @Test
     public void throwExeptionTest() throws Exception {
 
-        for (final int size : WORKER_NETWORK_SIZE) {
+        final NullPointerException npe = new NullPointerException(TEST_EXCEPTION_MESSAGE);
+        final Future<String> future = worker.submit(TestJobRemoteFactory.makeThrowExceptionJob(npe));
 
-            System.out.println(">>> Worker network size : " + size);
+        try {
+            future.get(); // Expect the execution exception to be thrown
+        }
+        catch (final ExecutionException e) {
+            Assert.assertTrue(e.getCause() != null);
+            Assert.assertTrue(e.getCause() instanceof NullPointerException);
+            Assert.assertTrue(e.getCause().getMessage().equals(TEST_EXCEPTION_MESSAGE));
+        }
 
-            final Launcher launcher = new Launcher();
-            System.out.println(" deploying workers");
-            final Set<IWorker> workers = deployWorkers(launcher, size);
-            System.out.println("done deploying workers");
-            for (final IWorker worker : workers) {
-                final Future<String> future = worker.submit(new NullPointerExceptionRemoteJob());
-                try {
-                    future.get();
-                }
-                catch (final ExecutionException e) {
-                    Assert.assertTrue(e.getCause() instanceof NullPointerException && e.getCause().getMessage().equals("test"));
-                }
+    }
 
-                try {
-                    worker.shutdown();
-                }
-                catch (final RPCException e) {
-                    // ignore
-                }
-            }
+    /**
+     * Cleans up after tests.
+     *
+     * @throws Exception if unable to clean up
+     */
+    @After
+    public void tearDown() throws Exception {
 
+        try {
+            worker.shutdown();
             launcher.shutdown();
-            System.out.println(">>> Done");
         }
-    }
-
-    private static Set<IWorker> deployWorkers(final Launcher launcher, final int size) throws Exception {
-
-        final Set<IWorker> deployed_workers = new HashSet<IWorker>();
-        for (int i = 0; i < size; i++) {
-
-            deployed_workers.add(launcher.deployWorkerOnHost(new HostDescriptor()));
+        catch (final RPCException e) {
+            //ignore;
         }
 
-        return deployed_workers;
-    }
-}
-
-final class SayHelloRemoteJob implements IJobRemote<String> {
-
-    private static final transient long serialVersionUID = -8715065957655698996L;
-
-    @Override
-    public String call() throws Exception {
-
-        return NormalOperationTest.HELLO;
-    }
-}
-
-final class NullPointerExceptionRemoteJob implements IJobRemote<String> {
-
-    private static final long serialVersionUID = 9089082845434872396L;
-
-    @Override
-    public String call() throws Exception {
-
-        throw new NullPointerException("test");
+        local_host_descriptor.getProcessManager().killMatchingProcesses(WorkerNodeServer.class.getSimpleName()); // Kill any lingering Shabdiz Worker processes.
+        local_host_descriptor.shutdown();
     }
 }

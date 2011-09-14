@@ -124,13 +124,13 @@ public class WorkerNodeServer {
 
         final WorkerNodeServer server = new WorkerNodeServer(args);
         try {
+
             server.createNode();
             Diagnostic.trace("Started Shabdiz worker node at " + server.local_address);
         }
         catch (final IOException e) {
             Diagnostic.trace("Couldn't start Shabdiz worker node at " + server.local_address + " : " + e.getMessage());
         }
-
     }
 
     // -------------------------------------------------------------------------------------------------------

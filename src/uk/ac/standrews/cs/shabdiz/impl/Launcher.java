@@ -37,10 +37,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.madface.HostState;
-import uk.ac.standrews.cs.nds.madface.MadfaceManagerFactory;
 import uk.ac.standrews.cs.nds.madface.URL;
-import uk.ac.standrews.cs.nds.madface.interfaces.IMadfaceManager;
+import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -66,7 +64,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
     private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
 
-    private final IMadfaceManager madface_manager;
+    private final WorkerRemoteFactory worker_remote_factory;
+
+    private final Set<URL> application_lib_urls;
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,18 +117,16 @@ public class Launcher implements ILauncher, ILauncherCallback {
      */
     public Launcher(final int callback_server_port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        application_lib_urls.addAll(LibraryUtil.getShabdizApplicationLibraryURLs()); // Add the libraries needed by Shabdiz itself
+        this.application_lib_urls = application_lib_urls;
+        this.application_lib_urls.addAll(LibraryUtil.getShabdizApplicationLibraryURLs()); // Add the libraries needed by Shabdiz itself
 
         id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
 
         callback_server = new LauncherCallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
-
         callback_server_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
 
-        madface_manager = MadfaceManagerFactory.makeMadfaceManager();
-        madface_manager.configureApplication(new WorkerManager());
-        madface_manager.configureApplication(application_lib_urls);
+        worker_remote_factory = new WorkerRemoteFactory();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -136,17 +134,10 @@ public class Launcher implements ILauncher, ILauncherCallback {
     @Override
     public synchronized IWorker deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
 
-        configureApplicationDeploymentParams(host_descriptor); // Configure the host's application deployment parameters
+        configureHostDescriptor(host_descriptor); // Prepare host for deployment
+        worker_remote_factory.createNode(host_descriptor); // Deploy.
 
-        madface_manager.setHostScanning(true); // Start MADFACE scanners
-        madface_manager.deploy(host_descriptor); // Deploy worker on host
-        madface_manager.waitForHostToReachState(host_descriptor, HostState.RUNNING); // Block until the worker is running
-        madface_manager.setHostScanning(false); // Stop MADFACE scanners
-
-        host_descriptor.shutdown(); // XXX discuss whether to shut down the process manager of host descriptor
-
-        final IWorker worker = new Worker(this, host_descriptor.getInetSocketAddress()); // XXX dsicuss (Worker) host_descriptor.getApplicationReference(); // Retrieval of  the remote proxy of the deployed worker
-        return worker;
+        return new Worker(this, host_descriptor.getInetSocketAddress()); // Return the smart proxy to the worker remote.
     }
 
     @Override
@@ -181,7 +172,6 @@ public class Launcher implements ILauncher, ILauncherCallback {
     public void shutdown() {
 
         unexpose();
-        madface_manager.shutdown();
         releaseAllPendingFutures(); // Release the futures which are still pending for notification
     }
 
@@ -203,10 +193,12 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private void configureApplicationDeploymentParams(final HostDescriptor host_descriptor) {
+    private void configureHostDescriptor(final HostDescriptor host_descriptor) throws LibrariesOverwrittenException {
 
         final Object[] application_deployment_params = new Object[]{callback_server_address};
         host_descriptor.applicationDeploymentParams(application_deployment_params);
+
+        host_descriptor.applicationURLs(application_lib_urls);
     }
 
     private void expose(final InetSocketAddress expose_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {

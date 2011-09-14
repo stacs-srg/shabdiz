@@ -60,14 +60,13 @@ import com.mindbright.ssh2.SSH2Exception;
 /**
  * A factory for creating {@link IWorkerRemote} objects.
  * 
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerRemoteFactory {
 
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port is 55496, and Trombone's is 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
-    private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(30, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
+    private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(300, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
     private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(10, TimeUnit.SECONDS); // Timeout for individual connection attempt.
     private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
     private static final int LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
