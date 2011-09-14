@@ -139,20 +139,7 @@ class WorkerRemote implements IWorkerRemote {
             Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
         }
 
-        //        ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
-        //        ThreadGroup parentGroup;
-        //        while ((parentGroup = rootGroup.getParent()) != null) {
-        //            rootGroup = parentGroup;
-        //        }
-        //
-        //        Thread[] threads = new Thread[rootGroup.activeCount()];
-        //        while (rootGroup.enumerate(threads, true) == threads.length) {
-        //            threads = new Thread[threads.length * 2];
-        //        }
-        //
-        //        for (final Thread t : threads) {
-        //            System.out.println("thread: " + t.getName());
-        //        }
+        LauncherCallbackRemoteProxy.CONNECTION_POOL.shutdown();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
