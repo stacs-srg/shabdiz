@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.worker.servers;
+package uk.ac.standrews.cs.shabdiz.servers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

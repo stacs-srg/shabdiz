@@ -39,8 +39,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.servers.WorkerNodeServer;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
-import uk.ac.standrews.cs.shabdiz.worker.servers.WorkerNodeServer;
 
 /**
  * Tests whether a deployed job returns expected result.
