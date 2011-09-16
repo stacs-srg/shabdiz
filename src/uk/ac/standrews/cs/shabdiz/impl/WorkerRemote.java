@@ -50,7 +50,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
  */
 class WorkerRemote implements IWorkerRemote {
 
-    private static final int THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
+    private static final int DEFAULT_THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
@@ -59,25 +59,18 @@ class WorkerRemote implements IWorkerRemote {
 
     private final InetSocketAddress launcher_callback_address;
 
-    /**
-     * Instantiates a new worker.
-     *
-     * @param local_address the address on which the worker is exposed
-     * @param launcher_callback_address the launcher callback address
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
-     * @throws AlreadyBoundException the already bound exception
-     * @throws RegistryUnavailableException the registry unavailable exception
-     * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
-     */
     WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
+
+        this(local_address, launcher_callback_address, DEFAULT_THREAD_POOL_SIZE);
+    }
+
+    WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address, final int thread_pool_size) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
         this.local_address = local_address;
         this.launcher_callback_address = launcher_callback_address;
 
         id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor_service = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        exexcutor_service = Executors.newFixedThreadPool(thread_pool_size);
 
         server = new WorkerRemoteServer(this);
         expose();

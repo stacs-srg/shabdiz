@@ -65,12 +65,16 @@ public class WorkerNodeServer {
     /** The parameter that specifies the launcher callback address. */
     public static final String LAUNCHER_CALLBACK_ADDRESS_KEY = "-c";
 
+    /** The parameter that specifies the thread pool size of local executor. */
+    public static final String THREAD_POOL_SIZE_KEY = "-t";
+
     private static final String DIAGNOSTIC_DATE_FORMAT = "HH:mm:ss:SSS ";
     private static final DiagnosticLevel DEFAULT_DIAGNOSTIC_LEVEL = DiagnosticLevel.NONE;
     private static final Duration WORKER_SOCKET_READ_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
+    private Integer thread_pool_size = null;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -86,6 +90,7 @@ public class WorkerNodeServer {
      * @param args the startup arguments
      * @throws UndefinedDiagnosticLevelException the undefined diagnostic level exception
      * @throws UnknownHostException the unknown host exception
+     * @throws NumberFormatException if the given thread pool size cannot be converted to an integer value
      */
     public WorkerNodeServer(final String[] args) throws UndefinedDiagnosticLevelException, UnknownHostException {
 
@@ -94,6 +99,7 @@ public class WorkerNodeServer {
         configureDiagnostics(arguments);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
+        configureThreadPoolSize(arguments);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -102,10 +108,13 @@ public class WorkerNodeServer {
      * The following command line parameters are available:
      * <dl>
      * <dt>-shost:port (required)</dt>
-     * <dd>Specifies the local address and port at which the Shabdiz Worker service should be made available.</dd>
+     * <dd>Specifies the local address and port at which the worker service should be made available.</dd>
      * 
-     * <dt>-khost:port (optional)</dt>
-     * <dd>Specifies the address and port of an existing Shabdiz launcher callback server.</dd>
+     * <dt>-chost:port (required)</dt>
+     * <dd>Specifies the address and port of an existing launcher callback server.</dd>
+     * 
+     * <dt>-tsize (optional)</dt>
+     * <dd>Specifies the thread pool size of this worker's local executor. The size must be an integer and <code><= 0</code></dd>
      * 
      * <dt>-Dlevel (optional)</dt>
      * <dd>Specifies a diagnostic level from 0 (most detailed) to 6 (least detailed).</dd>
@@ -126,10 +135,10 @@ public class WorkerNodeServer {
         try {
 
             server.createNode();
-            Diagnostic.trace("Started Shabdiz worker node at " + server.local_address);
+            Diagnostic.trace("Started Shabdiz worker at " + server.local_address);
         }
         catch (final IOException e) {
-            Diagnostic.trace("Couldn't start Shabdiz worker node at " + server.local_address + " : " + e.getMessage());
+            Diagnostic.trace("Couldn't start Shabdiz worker at " + server.local_address + " : " + e.getMessage());
         }
     }
 
@@ -148,7 +157,12 @@ public class WorkerNodeServer {
      */
     public IWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return WorkerRemoteFactory.createNode(local_address, launcher_callback_address);
+        if (thread_pool_size == null) {
+            return WorkerRemoteFactory.createNode(local_address, launcher_callback_address);
+        }
+        else {
+            return WorkerRemoteFactory.createNode(local_address, launcher_callback_address, thread_pool_size);
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -184,5 +198,14 @@ public class WorkerNodeServer {
         }
         launcher_callback_address = NetworkUtil.extractInetSocketAddress(known_address_parameter, 0);
 
+    }
+
+    private void configureThreadPoolSize(final Map<String, String> arguments) {
+
+        final String thread_pool_size_as_string = arguments.get(THREAD_POOL_SIZE_KEY);
+
+        if (thread_pool_size_as_string != null) {
+            thread_pool_size = Integer.valueOf(thread_pool_size_as_string);
+        }
     }
 }

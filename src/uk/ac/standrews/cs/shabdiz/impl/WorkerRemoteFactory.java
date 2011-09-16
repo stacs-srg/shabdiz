@@ -118,6 +118,25 @@ public class WorkerRemoteFactory {
     }
 
     /**
+     * Creates a new worker node running in the current JVM at a given local network address on a given port.
+     *
+     * @param local_address the local address of the node
+     * @param launcher_callback_address the launcher callback address
+     * @param thread_pool_size the thread pool size of local executor
+     * @return the new worker
+     * @throws IOException if the node cannot bind to the specified local address
+     * @throws RPCException if an error occurs binding the node to the registry
+     * @throws AlreadyBoundException if another node is already bound in the registry
+     * @throws RegistryUnavailableException if the registry is unavailable
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
+    public static IWorkerRemote createNode(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address, final int thread_pool_size) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+
+        return new WorkerRemote(local_address, launcher_callback_address, thread_pool_size);
+    }
+
+    /**
      * Binds to an existing remote worker node running at a given network address, checking for liveness.
      *
      * @param worker_address the address of the existing worker
