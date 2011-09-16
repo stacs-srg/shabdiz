@@ -116,22 +116,6 @@ class WorkerRemote implements IWorkerRemote {
 
         exexcutor_service.shutdownNow();
 
-        //        try {
-        //
-        //            final RegistryServer local_registry_server = RegistryFactory.FACTORY.getLocalRegistryServer();
-        //
-        //            if (local_registry_server != null) {
-        //                local_registry_server.stop();
-        //            }
-        //            else {
-        //                RegistryFactory.FACTORY.getRegistry().shutdown();
-        //            }
-        //        }
-        //        catch (final Exception e) {
-        //
-        //            Diagnostic.trace(DiagnosticLevel.NONE, "Unable to stop the local registry server, because: ", e.getMessage(), e);
-        //        }
-
         try {
             unexpose();
         }

@@ -1,0 +1,132 @@
+/*
+ * shabdiz Library
+ * Copyright (C) 2011 Distributed Systems Architecture Research Group
+ * <http://www-systems.cs.st-andrews.ac.uk/>
+ *
+ * This file is part of shabdiz, a variation of the Chord protocol
+ * <http://pdos.csail.mit.edu/chord/>, where each node strives to maintain
+ * a list of all the nodes in the overlay in order to provide one-hop
+ * routing.
+ *
+ * shabdiz is a free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shabdiz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shabdiz.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
+ */
+package uk.ac.standrews.cs.shabdiz.util;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+
+import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
+import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+
+/**
+ * Utility to manage pending result of {@link IJobRemote}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public final class JobRemoteUtil {
+
+    private JobRemoteUtil() {
+
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Blocks until all the given futures are done.
+     *
+     * @param futures the futures to wait for
+     */
+    public static void blockUntilFuturesAreDone(final Set<Future<?>> futures) {
+
+        for (final Future<?> future : futures) {
+            try {
+                future.get();
+            }
+            catch (final Exception e) {
+                // ignore;
+            }
+        }
+    }
+
+    /**
+     * Blocks until either the given timeout duration has elapsed or all the given futures are done.
+     *
+     * @param futures the futures to wait for
+     * @param timeout the timeout
+     * @throws TimeoutException if the timeout duration has elapsed before all the futures are done
+     * @throws InterruptedException if the blocking was interrupted
+     */
+    public static void blockUntilFuturesAreDone(final Set<Future<?>> futures, final Duration timeout) throws TimeoutException, InterruptedException {
+
+        final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, timeout, true, true, JobRemoteUtil.class.getSimpleName());
+
+        try {
+            timeout_executor.executeWithTimeout(new Runnable() {
+
+                @Override
+                public void run() {
+
+                    blockUntilFuturesAreDone(futures);
+                }
+            });
+        }
+        finally {
+            timeout_executor.shutdown();
+        }
+    }
+
+    /**
+     * Wraps a list of given jobs into a single job which executes the given jobs sequentially and returns their results in an array containing the result of each of the jobs.
+     * The list of results is in the same oder as the given jobs to wrap.
+     *
+     * @param squential_jobs the jobs to execute sequentially
+     * @return the single job which executes the given jobs sequentially
+     */
+    public static IJobRemote<ArrayList<Serializable>> wrapIntoASequentialJob(final ArrayList<IJobRemote<? extends Serializable>> squential_jobs) {
+
+        return new SequentialJobRemoteWrapper(squential_jobs);
+
+    }
+}
+
+final class SequentialJobRemoteWrapper implements IJobRemote<ArrayList<Serializable>> {
+
+    private static final long serialVersionUID = 818815948631765997L;
+
+    private final ArrayList<IJobRemote<? extends Serializable>> squential_jobs;
+
+    SequentialJobRemoteWrapper(final ArrayList<IJobRemote<? extends Serializable>> squential_jobs) {
+
+        this.squential_jobs = squential_jobs;
+    }
+
+    @Override
+    public ArrayList<Serializable> call() throws Exception {
+
+        final ArrayList<Serializable> results = new ArrayList<Serializable>();
+
+        for (final IJobRemote<? extends Serializable> sequential_job : squential_jobs) {
+
+            results.add(sequential_job.call());
+        }
+
+        return results;
+    }
+}
