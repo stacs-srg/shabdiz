@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  *
- * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
+ * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
 package uk.ac.standrews.cs.shabdiz.util;
 

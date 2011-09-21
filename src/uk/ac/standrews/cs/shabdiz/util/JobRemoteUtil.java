@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  *
- * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
+ * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
@@ -49,7 +49,7 @@ public final class JobRemoteUtil {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Blocks until all the given futures are done.
+     * Blocks until all the given futures are done, either in a result or exception.
      *
      * @param <Result> the type of pending result
      * @param futures the futures to wait for
@@ -58,11 +58,10 @@ public final class JobRemoteUtil {
 
         for (final Future<?> future : futures) {
             try {
-                System.out.println("JobRemoteUtil.blockUntilFuturesAreDone() -> future.get(): " + future.get());
+                future.get();
             }
             catch (final Exception e) {
-                System.out.println("JobRemoteUtil.blockUntilFuturesAreDone() -> e: " + e);
-                e.printStackTrace();
+                // ignore
             }
         }
     }
