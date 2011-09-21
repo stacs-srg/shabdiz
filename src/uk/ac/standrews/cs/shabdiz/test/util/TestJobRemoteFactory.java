@@ -23,7 +23,7 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.util;
+package uk.ac.standrews.cs.shabdiz.test.util;
 
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 

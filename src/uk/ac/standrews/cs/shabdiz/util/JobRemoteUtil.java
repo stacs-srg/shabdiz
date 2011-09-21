@@ -26,7 +26,6 @@
 package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -34,6 +33,7 @@ import java.util.concurrent.TimeoutException;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.util.job.wrapper.JobRemoteSequentialWrapper;
 
 /**
  * Utility to manage pending result of {@link IJobRemote}.
@@ -51,16 +51,18 @@ public final class JobRemoteUtil {
     /**
      * Blocks until all the given futures are done.
      *
+     * @param <Result> the type of pending result
      * @param futures the futures to wait for
      */
-    public static void blockUntilFuturesAreDone(final Set<Future<?>> futures) {
+    public static <Result> void blockUntilFuturesAreDone(final Set<Future<Result>> futures) {
 
         for (final Future<?> future : futures) {
             try {
-                future.get();
+                System.out.println("JobRemoteUtil.blockUntilFuturesAreDone() -> future.get(): " + future.get());
             }
             catch (final Exception e) {
-                // ignore;
+                System.out.println("JobRemoteUtil.blockUntilFuturesAreDone() -> e: " + e);
+                e.printStackTrace();
             }
         }
     }
@@ -68,12 +70,13 @@ public final class JobRemoteUtil {
     /**
      * Blocks until either the given timeout duration has elapsed or all the given futures are done.
      *
+     * @param <Result> the type of pending result
      * @param futures the futures to wait for
      * @param timeout the timeout
      * @throws TimeoutException if the timeout duration has elapsed before all the futures are done
      * @throws InterruptedException if the blocking was interrupted
      */
-    public static void blockUntilFuturesAreDone(final Set<Future<?>> futures, final Duration timeout) throws TimeoutException, InterruptedException {
+    public static <Result> void blockUntilFuturesAreDone(final Set<Future<Result>> futures, final Duration timeout) throws TimeoutException, InterruptedException {
 
         final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, timeout, true, true, JobRemoteUtil.class.getSimpleName());
 
@@ -99,34 +102,8 @@ public final class JobRemoteUtil {
      * @param squential_jobs the jobs to execute sequentially
      * @return the single job which executes the given jobs sequentially
      */
-    public static IJobRemote<ArrayList<Serializable>> wrapIntoASequentialJob(final ArrayList<IJobRemote<? extends Serializable>> squential_jobs) {
+    public static IJobRemote<Serializable[]> wrapIntoASequentialJob(final IJobRemote<? extends Serializable>... squential_jobs) {
 
-        return new SequentialJobRemoteWrapper(squential_jobs);
-
-    }
-}
-
-final class SequentialJobRemoteWrapper implements IJobRemote<ArrayList<Serializable>> {
-
-    private static final long serialVersionUID = 818815948631765997L;
-
-    private final ArrayList<IJobRemote<? extends Serializable>> squential_jobs;
-
-    SequentialJobRemoteWrapper(final ArrayList<IJobRemote<? extends Serializable>> squential_jobs) {
-
-        this.squential_jobs = squential_jobs;
-    }
-
-    @Override
-    public ArrayList<Serializable> call() throws Exception {
-
-        final ArrayList<Serializable> results = new ArrayList<Serializable>();
-
-        for (final IJobRemote<? extends Serializable> sequential_job : squential_jobs) {
-
-            results.add(sequential_job.call());
-        }
-
-        return results;
+        return new JobRemoteSequentialWrapper(squential_jobs);
     }
 }

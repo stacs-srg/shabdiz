@@ -68,4 +68,38 @@ class Worker implements IWorker {
 
         launcher.shutdownWorker(worker_address);
     }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public int hashCode() {
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (launcher == null ? 0 : launcher.hashCode());
+        result = prime * result + (worker_address == null ? 0 : worker_address.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+
+        final Worker other = (Worker) obj;
+
+        if (worker_address == null) {
+            if (other.worker_address != null) { return false; }
+        }
+        else if (!worker_address.equals(other.worker_address)) { return false; }
+
+        if (launcher == null) {
+            if (other.launcher != null) { return false; }
+        }
+        else if (!launcher.equals(other.launcher)) { return false; }
+
+        return true;
+    }
 }

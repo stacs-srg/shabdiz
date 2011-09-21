@@ -23,60 +23,45 @@
  *
  * For more information, see <http://beast.cs.st-andrews.ac.uk:8080/hudson/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.test.integrity;
+package uk.ac.standrews.cs.shabdiz.util;
 
-import org.junit.Test;
+import java.util.LinkedHashSet;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
+import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
-import uk.ac.standrews.cs.shabdiz.test.util.TestJobRemoteFactory;
 
 /**
- * The Class TerminationTest.
+ * Provides utility methods for a {@link Launcher}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class TerminationTest {
+public final class LauncherUtil {
 
-    /**
-     * Test.
-     *
-     * @throws Exception the exception
-     */
-    @Test(expected = RPCException.class)
-    public void test() throws Exception {
+    private LauncherUtil() {
 
-        final Launcher launcher = new Launcher();
-
-        final HostDescriptor host_descriptor = new HostDescriptor();
-        host_descriptor.deployInLocalProcess(true);
-
-        final IWorker worker = launcher.deployWorkerOnHost(host_descriptor);
-        worker.submit(TestJobRemoteFactory.makeEchoJob("hello"));
-
-        try {
-            worker.shutdown();
-        }
-        catch (final RPCException e) {
-            e.printStackTrace();
-        }
-        launcher.shutdown();
-
-        System.out.println("Done");
     }
 
+    // -------------------------------------------------------------------------------------------------------------------------------
+
     /**
-     * The main method.
+     * Deploys a worker on each of the given hosts.
      *
-     * @param args the arguments
-     * @throws Exception the exception
+     * @param launcher the launcher which is used to deploy workers
+     * @param worker_hosts the set of hosts on which workers are deployed
+     * @return the sets of deployed workers on hosts
+     * @throws Exception if unable to deploy
      */
-    public static void main(final String[] args) throws Exception {
+    public static LinkedHashSet<IWorker> deployWorkersOnHosts(final ILauncher launcher, final LinkedHashSet<HostDescriptor> worker_hosts) throws Exception {
 
-        final TerminationTest t = new TerminationTest();
+        final LinkedHashSet<IWorker> deployed_workers = new LinkedHashSet<IWorker>();
 
-        t.test();
+        for (final HostDescriptor worker_host : worker_hosts) {
+
+            deployed_workers.add(launcher.deployWorkerOnHost(worker_host));
+        }
+
+        return deployed_workers;
     }
 }
