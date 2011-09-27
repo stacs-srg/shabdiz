@@ -31,12 +31,12 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 
 /**
- * Retries a given job until it returns a desired result or the given timeout elapses.
+ * Retries a given job until it returns a matching result or the given timeout elapses.
  *
  * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class JobRemoteDesiredResultWrapper<Result extends Serializable> extends JobRemoteTimedWrapper<Result> {
+public class JobRemoteMatchingResultWrapper<Result extends Serializable> extends JobRemoteTimedWrapper<Result> {
 
     private static final long serialVersionUID = 8452981241994840258L;
 
@@ -44,11 +44,11 @@ public class JobRemoteDesiredResultWrapper<Result extends Serializable> extends 
      * Instantiates a new job remote retry wrapper.
      *
      * @param job the job to retry
-     * @param desired_result the desired result which is expected to be returned by the condition
+     * @param matching_result the desired result which is expected to be returned by the condition
      * @param overall_timeout the overall timeout of retrying until the desired result is returned
      * @param loop_delay the delay between retries
      */
-    public JobRemoteDesiredResultWrapper(final IJobRemote<Result> job, final Result desired_result, final Duration overall_timeout, final Duration loop_delay) {
+    public JobRemoteMatchingResultWrapper(final IJobRemote<Result> job, final Result matching_result, final Duration overall_timeout, final Duration loop_delay) {
 
         super(new IJobRemote<Result>() {
 
@@ -57,10 +57,10 @@ public class JobRemoteDesiredResultWrapper<Result extends Serializable> extends 
             @Override
             public Result call() throws Exception {
 
-                while (!Thread.currentThread().isInterrupted() && !job.call().equals(desired_result)) {
+                while (!Thread.currentThread().isInterrupted() && !job.call().equals(matching_result)) {
                     loop_delay.sleep();
                 }
-                return desired_result;
+                return matching_result;
             }
         }, overall_timeout);
     }

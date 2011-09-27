@@ -34,6 +34,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.JavaProcessDescriptor;
@@ -63,6 +64,9 @@ import com.mindbright.ssh2.SSH2Exception;
  */
 public class WorkerRemoteFactory {
 
+    private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
+    private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
+
     private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(300, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
     private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(10, TimeUnit.SECONDS); // Timeout for individual connection attempt.
     private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
@@ -88,8 +92,17 @@ public class WorkerRemoteFactory {
      */
     void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException, RPCException {
 
-        if (host_descriptor.getPort() == 0) {
-            createAndBindToNodeOnFreePort(host_descriptor);
+        if (host_descriptor.getPort() == 0) { // Check whether host descriptor's port is unspecified
+
+            if (host_descriptor.local()) { // Check whether the host descriptor represents the local host
+
+                final int free_local_port = NetworkUtil.getFreePort(); // Find a free port on the local machine
+                host_descriptor.port(free_local_port); // Set the port to the host descriptor
+                createAndBindToNodeOnSpecifiedPort(host_descriptor); // Create node on the specified port and bind to it
+            }
+            else {
+                createAndBindToNodeOnFreePort(host_descriptor);
+            }
         }
         else {
             createAndBindToNodeOnSpecifiedPort(host_descriptor);
@@ -260,7 +273,7 @@ public class WorkerRemoteFactory {
 
                     while (!Thread.currentThread().isInterrupted()) {
 
-                        final int next = NetworkUtil.getFreePort();
+                        final int next = NEXT_PORT.getAndIncrement();
                         host_descriptor.port(next);
 
                         try {

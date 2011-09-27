@@ -65,6 +65,7 @@ public class TerminationTest {
         launcher.shutdown();
 
         System.out.println("Done");
+
     }
 
     /**

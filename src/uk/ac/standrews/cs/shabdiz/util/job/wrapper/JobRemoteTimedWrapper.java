@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 
 /**
- * Wraps an {@link IJobRemote} in a timed job.
+ * Allows to set a timeout to an existing {@link IJobRemote}.
  *
  * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -49,12 +49,12 @@ public class JobRemoteTimedWrapper<Result extends Serializable> implements IJobR
     /**
      * Instantiates a new job remote timed wrapper.
      *
-     * @param timed_job the timed_job
+     * @param job the job to wrap
      * @param timeout the timeout
      */
-    public JobRemoteTimedWrapper(final IJobRemote<Result> timed_job, final Duration timeout) {
+    public JobRemoteTimedWrapper(final IJobRemote<Result> job, final Duration timeout) {
 
-        this.timed_job = timed_job;
+        this.timed_job = job;
         this.timeout = timeout;
     }
 
@@ -69,5 +69,4 @@ public class JobRemoteTimedWrapper<Result extends Serializable> implements IJobR
             timeout_executor.shutdown();
         }
     }
-
 }
