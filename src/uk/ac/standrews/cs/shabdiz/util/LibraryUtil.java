@@ -67,6 +67,7 @@ public final class LibraryUtil {
 
         shabdiz_application_lib_urls = new HashSet<URL>();
 
+        shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/bin/shabdiz.jar"));
         shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
         shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/lib/json.jar"));
         shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
