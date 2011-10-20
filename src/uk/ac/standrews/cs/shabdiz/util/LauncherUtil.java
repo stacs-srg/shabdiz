@@ -58,7 +58,7 @@ public final class LauncherUtil {
         final LinkedHashSet<IWorker> deployed_workers = new LinkedHashSet<IWorker>();
 
         for (final HostDescriptor worker_host : worker_hosts) {
-            System.out.print("Deploying worker on " + worker_host.getHost() + "...");
+            System.out.println("Deploying worker on " + worker_host.getHost() + "...");
             deployed_workers.add(launcher.deployWorkerOnHost(worker_host));
             System.out.println("Done.");
         }
