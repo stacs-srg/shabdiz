@@ -68,8 +68,8 @@ public class WorkerRemoteFactory {
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
     private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(300, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
-    private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(20, TimeUnit.SECONDS); // Timeout for individual connection attempt.
-    private static final Duration RETRY_INTERVAL = new Duration(3, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
+    private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(30, TimeUnit.SECONDS); // Timeout for individual connection attempt.
+    private static final Duration RETRY_INTERVAL = new Duration(6, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
     private static final int LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
     WorkerRemoteFactory() {
