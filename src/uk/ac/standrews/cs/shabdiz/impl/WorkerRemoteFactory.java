@@ -96,7 +96,7 @@ public class WorkerRemoteFactory {
 
             if (host_descriptor.local()) { // Check whether the host descriptor represents the local host
 
-                final int free_local_port = NetworkUtil.getFreePort(); // Find a free port on the local machine
+                final int free_local_port = NetworkUtil.findFreeLocalTCPPort(); // Find a free port on the local machine
                 host_descriptor.port(free_local_port); // Set the port to the host descriptor
                 createAndBindToNodeOnSpecifiedPort(host_descriptor); // Create node on the specified port and bind to it
             }

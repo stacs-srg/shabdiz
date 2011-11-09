@@ -15,7 +15,7 @@ public class GetFreePortJobRemote implements IJobRemote<Integer> {
     @Override
     public Integer call() throws Exception {
 
-        final int free_port = NetworkUtil.getFreePort();
+        final int free_port = NetworkUtil.findFreeLocalTCPPort();
         return Integer.valueOf(free_port);
     }
 }
