@@ -89,8 +89,9 @@ public class WorkerRemoteFactory {
      * @throws UnsupportedPlatformException the unsupported platform exception
      * @throws DeploymentException the deployment exception
      * @throws RPCException the rPC exception
+     * @throws ExecutionException
      */
-    void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException, RPCException {
+    void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException, RPCException, ExecutionException {
 
         if (host_descriptor.getPort() == 0) { // Check whether host descriptor's port is unspecified
 
@@ -259,7 +260,7 @@ public class WorkerRemoteFactory {
         return args.toArray(new String[0]);
     }
 
-    private void createAndBindToNodeOnFreePort(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException {
+    private void createAndBindToNodeOnFreePort(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, ExecutionException {
 
         // TODO have target node select free port and notify back to temporary server.
 
@@ -274,14 +275,18 @@ public class WorkerRemoteFactory {
                     while (!Thread.currentThread().isInterrupted()) {
 
                         final int next = NEXT_PORT.getAndIncrement();
-                        host_descriptor.port(next);
 
-                        try {
-                            createAndBindToNodeOnSpecifiedPort(host_descriptor);
-                            break;
-                        }
-                        catch (final TimeoutException e) {
-                            Diagnostic.trace("timed out trying to connect to port: " + host_descriptor.getPort());
+                        if (NetworkUtil.isPortFree(host_descriptor, next)) {
+
+                            host_descriptor.port(next);
+
+                            try {
+                                createAndBindToNodeOnSpecifiedPort(host_descriptor);
+                                break;
+                            }
+                            catch (final TimeoutException e) {
+                                Diagnostic.trace("timed out trying to connect to port: " + host_descriptor.getPort());
+                            }
                         }
                     }
                     return null;
@@ -296,7 +301,7 @@ public class WorkerRemoteFactory {
         }
     }
 
-    private static void launderException(final Exception e) throws SSH2Exception, IOException, TimeoutException, InvalidServerClassException, UnknownPlatformException, InterruptedException {
+    private static void launderException(final Exception e) throws SSH2Exception, IOException, TimeoutException, InvalidServerClassException, UnknownPlatformException, InterruptedException, ExecutionException {
 
         if (e instanceof ExecutionException) {
             launderException((Exception) e.getCause());
@@ -308,6 +313,7 @@ public class WorkerRemoteFactory {
         if (e instanceof UnknownPlatformException) { throw (UnknownPlatformException) e; }
         if (e instanceof InvalidServerClassException) { throw (InvalidServerClassException) e; }
         if (e instanceof RuntimeException) { throw (RuntimeException) e; }
+        if (e instanceof ExecutionException) { throw (ExecutionException) e; }
 
         throw new IllegalStateException("Unexpected checked exception", e);
     }

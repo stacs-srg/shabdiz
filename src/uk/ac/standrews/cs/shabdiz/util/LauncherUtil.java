@@ -25,7 +25,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
@@ -53,14 +53,17 @@ public final class LauncherUtil {
      * @return the sets of deployed workers on hosts
      * @throws Exception if unable to deploy
      */
-    public static LinkedHashSet<IWorker> deployWorkersOnHosts(final ILauncher launcher, final LinkedHashSet<HostDescriptor> worker_hosts) throws Exception {
+    public static IWorker[] deployWorkersOnHosts(final ILauncher launcher, final List<HostDescriptor> worker_hosts) throws Exception {
 
-        final LinkedHashSet<IWorker> deployed_workers = new LinkedHashSet<IWorker>();
+        final IWorker[] deployed_workers = new IWorker[worker_hosts.size()];
 
+        int count = 0;
         for (final HostDescriptor worker_host : worker_hosts) {
             System.out.println("Deploying worker on " + worker_host.getHost() + "...");
-            deployed_workers.add(launcher.deployWorkerOnHost(worker_host));
+            deployed_workers[count] = launcher.deployWorkerOnHost(worker_host);
             System.out.println("Done.");
+
+            count++;
         }
 
         return deployed_workers;
