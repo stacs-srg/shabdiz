@@ -206,7 +206,8 @@ public class Launcher implements ILauncher, ILauncherCallback {
         callback_server.setLocalAddress(expose_address.getAddress());
         callback_server.setPort(expose_address.getPort());
 
-        callback_server.start(true);
+        //        callback_server.start(true);
+        callback_server.startWithNoRegistry();
     }
 
     private void unexpose() {

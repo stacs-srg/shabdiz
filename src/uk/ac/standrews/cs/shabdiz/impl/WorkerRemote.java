@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
@@ -162,7 +163,8 @@ class WorkerRemote implements IWorkerRemote {
         server.setLocalAddress(local_address.getAddress());
         server.setPort(local_address.getPort());
 
-        server.start(true);
+        //        server.start(true);
+        server.startWithNoRegistry();
     }
 
     private void unexpose() throws IOException {
