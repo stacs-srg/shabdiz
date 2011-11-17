@@ -58,6 +58,12 @@ class Worker implements IWorker {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
+    public InetSocketAddress getAddress() throws RPCException {
+
+        return worker_address;
+    }
+
+    @Override
     public <Result extends Serializable> Future<Result> submit(final IJobRemote<Result> job) throws RPCException {
 
         return launcher.submitJob(job, worker_address);

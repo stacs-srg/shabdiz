@@ -26,6 +26,7 @@
 package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -37,6 +38,14 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface IWorker {
+
+    /**
+     * Gets the address on which the worker is exposed.
+     * 
+     * @return the address on which the worker is exposed
+     * @throws RPCException if unable to retrieve the address
+     */
+    InetSocketAddress getAddress() throws RPCException;
 
     /**
      * Submits a value-returning task for execution to this worker and returns the pending result of the task.
