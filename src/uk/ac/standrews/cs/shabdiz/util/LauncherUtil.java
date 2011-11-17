@@ -26,6 +26,9 @@
 package uk.ac.standrews.cs.shabdiz.util;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
@@ -67,5 +70,21 @@ public final class LauncherUtil {
         }
 
         return deployed_workers;
+    }
+
+    /**
+     * Waits for a set of given futures until all have a result available. If one of the futures results  in exception, this method throws the exception immediately.
+     *
+     * @param <T> the generic type
+     * @param futures the futures to wait for
+     * @throws InterruptedException if one of the futures has interrupted
+     * @throws ExecutionException if one of the futures has ended in exception
+     */
+    public static <T> void waitForFutures(final Set<Future<T>> futures) throws InterruptedException, ExecutionException {
+
+        for (final Future<?> ring_stable_futue : futures) {
+
+            ring_stable_futue.get();
+        }
     }
 }
