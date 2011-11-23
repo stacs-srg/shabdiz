@@ -25,7 +25,8 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -56,17 +57,13 @@ public final class LauncherUtil {
      * @return the sets of deployed workers on hosts
      * @throws Exception if unable to deploy
      */
-    public static IWorker[] deployWorkersOnHosts(final ILauncher launcher, final List<HostDescriptor> worker_hosts) throws Exception {
+    public static Collection<IWorker> deployWorkersOnHosts(final ILauncher launcher, final Collection<HostDescriptor> worker_hosts) throws Exception {
 
-        final IWorker[] deployed_workers = new IWorker[worker_hosts.size()];
+        final Collection<IWorker> deployed_workers = new ArrayList<IWorker>();
 
-        int count = 0;
         for (final HostDescriptor worker_host : worker_hosts) {
-            System.out.println("Deploying worker on " + worker_host.getHost() + "...");
-            deployed_workers[count] = launcher.deployWorkerOnHost(worker_host);
-            System.out.println("Done.");
 
-            count++;
+            deployed_workers.add(launcher.deployWorkerOnHost(worker_host));
         }
 
         return deployed_workers;
