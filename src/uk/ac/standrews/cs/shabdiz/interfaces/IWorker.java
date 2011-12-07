@@ -43,9 +43,8 @@ public interface IWorker {
      * Gets the address on which the worker is exposed.
      * 
      * @return the address on which the worker is exposed
-     * @throws RPCException if unable to retrieve the address
      */
-    InetSocketAddress getAddress() throws RPCException;
+    InetSocketAddress getAddress();
 
     /**
      * Submits a value-returning task for execution to this worker and returns the pending result of the task.

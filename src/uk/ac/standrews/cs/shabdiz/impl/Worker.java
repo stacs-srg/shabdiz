@@ -58,7 +58,7 @@ class Worker implements IWorker {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public InetSocketAddress getAddress() throws RPCException {
+    public InetSocketAddress getAddress() {
 
         return worker_address;
     }
