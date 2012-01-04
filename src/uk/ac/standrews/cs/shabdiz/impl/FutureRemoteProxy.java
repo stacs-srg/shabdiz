@@ -115,7 +115,7 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
         try {
             cancelled = cancelOnRemote(may_interrupt_if_running);
         }
-        catch (RPCException e) {
+        catch (final RPCException e) {
 
             setException(e); // Since unable to communicate with the remote worker, there is no point to wait for notification.
             cancelled = false;
@@ -186,9 +186,56 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
             this.result = (Result) result;
             updateState(State.DONE_WITH_RESULT);
         }
-        catch (ClassCastException e) {
+        catch (final ClassCastException e) {
             setException(new ExecutionException("Unable to cast the notified result to the appropriate type", e));
         }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public int hashCode() {
+
+        final int prime = 7;
+        int result = 1;
+        result = prime * result + (current_state == null ? 0 : current_state.hashCode());
+        result = prime * result + (exception == null ? 0 : exception.hashCode());
+        result = prime * result + (job_done_latch == null ? 0 : job_done_latch.hashCode());
+        result = prime * result + (job_id == null ? 0 : job_id.hashCode());
+        result = prime * result + (marshaller == null ? 0 : marshaller.hashCode());
+        result = prime * result + (this.result == null ? 0 : this.result.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        final FutureRemoteProxy other = (FutureRemoteProxy) obj;
+        if (current_state != other.current_state) { return false; }
+        if (exception == null) {
+            if (other.exception != null) { return false; }
+        }
+        else if (!exception.equals(other.exception)) { return false; }
+        if (job_done_latch == null) {
+            if (other.job_done_latch != null) { return false; }
+        }
+        else if (!job_done_latch.equals(other.job_done_latch)) { return false; }
+        if (job_id == null) {
+            if (other.job_id != null) { return false; }
+        }
+        else if (!job_id.equals(other.job_id)) { return false; }
+        if (marshaller == null) {
+            if (other.marshaller != null) { return false; }
+        }
+        else if (!marshaller.equals(other.marshaller)) { return false; }
+        if (result == null) {
+            if (other.result != null) { return false; }
+        }
+        else if (!result.equals(other.result)) { return false; }
+        return true;
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

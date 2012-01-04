@@ -141,24 +141,24 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     @Override
-    public void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
+    public synchronized void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setResult(result);
         }
         else {
-            Diagnostic.trace(DiagnosticLevel.RUN, "Launcher was notified about an unknown job completion ", job_id);
+            Diagnostic.trace(DiagnosticLevel.NONE, "Launcher was notified about an unknown job completion ", job_id);
         }
     }
 
     @Override
-    public void notifyException(final UUID job_id, final Exception exception) throws RPCException {
+    public synchronized void notifyException(final UUID job_id, final Exception exception) throws RPCException {
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setException(exception);
         }
         else {
-            Diagnostic.trace(DiagnosticLevel.RUN, "Launcher was notified about an unknown job exception ", job_id);
+            Diagnostic.trace(DiagnosticLevel.NONE, "Launcher was notified about an unknown job exception ", job_id);
         }
     }
 
@@ -177,7 +177,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, final InetSocketAddress worker_address) throws RPCException {
+    synchronized <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, final InetSocketAddress worker_address) throws RPCException {
 
         final UUID job_id = WorkerRemoteProxyFactory.getProxy(worker_address).submitJob(job);
         final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
