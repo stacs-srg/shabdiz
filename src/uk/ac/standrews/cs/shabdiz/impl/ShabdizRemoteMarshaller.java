@@ -47,7 +47,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class ShabdizRemoteMarshaller extends Marshaller {
+public class ShabdizRemoteMarshaller extends Marshaller {
 
     ShabdizRemoteMarshaller() {
 
@@ -83,7 +83,7 @@ class ShabdizRemoteMarshaller extends Marshaller {
      * @throws JSONException if JSON related error occurs
      * @throws IOException Signals that an I/O exception has occurred
      */
-    public void serializeSerializable(final Serializable object, final JSONWriter writer) throws JSONException, IOException {
+    public static void serializeSerializable(final Serializable object, final JSONWriter writer) throws JSONException, IOException {
 
         if (object == null) {
             writer.value(null);
@@ -116,7 +116,7 @@ class ShabdizRemoteMarshaller extends Marshaller {
      * @return the deserialised object
      * @throws DeserializationException if unable to deserialise
      */
-    public Serializable deserializeSerializable(final JSONReader reader) throws DeserializationException {
+    public static Serializable deserializeSerializable(final JSONReader reader) throws DeserializationException {
 
         ObjectInputStream object_input_stream = null;
 
@@ -229,7 +229,7 @@ class ShabdizRemoteMarshaller extends Marshaller {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private void closeSilently(final Closeable closable) {
+    private static void closeSilently(final Closeable closable) {
 
         if (closable == null) { return; }
 
