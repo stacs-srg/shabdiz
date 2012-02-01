@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
@@ -51,8 +50,6 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
  */
 class WorkerRemote implements IWorkerRemote {
 
-    private static final int DEFAULT_THREAD_POOL_SIZE = 10; // TODO add a parameter for it in entry point server
-
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor_service;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_future_map;
@@ -62,16 +59,11 @@ class WorkerRemote implements IWorkerRemote {
 
     WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
 
-        this(local_address, launcher_callback_address, DEFAULT_THREAD_POOL_SIZE);
-    }
-
-    WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address, final int thread_pool_size) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
-
         this.local_address = local_address;
         this.launcher_callback_address = launcher_callback_address;
 
         id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor_service = Executors.newFixedThreadPool(thread_pool_size);
+        exexcutor_service = Executors.newCachedThreadPool();
 
         server = new WorkerRemoteServer(this);
         expose();

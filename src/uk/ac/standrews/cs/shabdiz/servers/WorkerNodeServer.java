@@ -74,7 +74,6 @@ public class WorkerNodeServer {
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
-    private Integer thread_pool_size = null;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -99,7 +98,6 @@ public class WorkerNodeServer {
         configureDiagnostics(arguments);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
-        configureThreadPoolSize(arguments);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -112,9 +110,6 @@ public class WorkerNodeServer {
      * 
      * <dt>-chost:port (required)</dt>
      * <dd>Specifies the address and port of an existing launcher callback server.</dd>
-     * 
-     * <dt>-tsize (optional)</dt>
-     * <dd>Specifies the thread pool size of this worker's local executor. The size must be an integer and <code><= 0</code></dd>
      * 
      * <dt>-Dlevel (optional)</dt>
      * <dd>Specifies a diagnostic level from 0 (most detailed) to 6 (least detailed).</dd>
@@ -157,12 +152,7 @@ public class WorkerNodeServer {
      */
     public IWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        if (thread_pool_size == null) {
-            return WorkerRemoteFactory.createNode(local_address, launcher_callback_address);
-        }
-        else {
-            return WorkerRemoteFactory.createNode(local_address, launcher_callback_address, thread_pool_size);
-        }
+        return WorkerRemoteFactory.createNode(local_address, launcher_callback_address);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -198,14 +188,5 @@ public class WorkerNodeServer {
         }
         launcher_callback_address = NetworkUtil.extractInetSocketAddress(known_address_parameter, 0);
 
-    }
-
-    private void configureThreadPoolSize(final Map<String, String> arguments) {
-
-        final String thread_pool_size_as_string = arguments.get(THREAD_POOL_SIZE_KEY);
-
-        if (thread_pool_size_as_string != null) {
-            thread_pool_size = Integer.valueOf(thread_pool_size_as_string);
-        }
     }
 }
