@@ -114,14 +114,19 @@ class WorkerRemote implements IWorkerRemote {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    boolean submittedJobsContain(final UUID job_id) {
+    boolean cancelJob(final UUID job_id, final boolean may_interrupt_if_running) throws RemoteWorkerException {
 
-        return id_future_map.containsKey(job_id);
-    }
+        if (id_future_map.containsKey(job_id)) {
+            final boolean cancelled = id_future_map.get(job_id).cancel(may_interrupt_if_running);
 
-    Future<? extends Serializable> getFutureById(final UUID job_id) {
+            if (cancelled) {
+                id_future_map.remove(job_id);
+            }
 
-        return id_future_map.get(job_id);
+            return cancelled;
+        }
+
+        throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -129,8 +134,8 @@ class WorkerRemote implements IWorkerRemote {
     private void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
-
             LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyCompletion(job_id, result); // Tell launcher about the result
+            id_future_map.remove(job_id);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
@@ -141,8 +146,8 @@ class WorkerRemote implements IWorkerRemote {
     private void handleException(final UUID job_id, final Exception exception) {
 
         try {
-
             LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyException(job_id, exception); // Tell launcher about the exception
+            id_future_map.remove(job_id);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception

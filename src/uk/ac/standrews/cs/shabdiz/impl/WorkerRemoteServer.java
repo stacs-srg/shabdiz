@@ -125,11 +125,8 @@ class WorkerRemoteServer extends ApplicationServer {
                 final UUID job_id = marshaller.deserializeUUID(args);
                 final boolean may_interrupt_if_running = args.booleanValue();
 
-                if (worker.submittedJobsContain(job_id)) {
-
-                    final boolean cancelled = worker.getFutureById(job_id).cancel(may_interrupt_if_running);
-                    response.value(cancelled);
-                }
+                final boolean cancelled = worker.cancelJob(job_id, may_interrupt_if_running);
+                response.value(cancelled);
 
                 throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
             }
