@@ -64,7 +64,7 @@ import com.mindbright.ssh2.SSH2Exception;
  */
 public class WorkerRemoteFactory {
 
-    private static final List<String> WORKER_JVM_PARAMS = Arrays.asList(new String[]{"Xmx128m"});
+    private static final List<String> WORKER_JVM_PARAMS = Arrays.asList(new String[]{"-Xmx128m"});
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
