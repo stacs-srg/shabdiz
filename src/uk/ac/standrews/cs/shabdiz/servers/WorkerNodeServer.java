@@ -70,7 +70,7 @@ public class WorkerNodeServer {
 
     private static final String DIAGNOSTIC_DATE_FORMAT = "HH:mm:ss:SSS ";
     private static final DiagnosticLevel DEFAULT_DIAGNOSTIC_LEVEL = DiagnosticLevel.NONE;
-    private static final Duration WORKER_SOCKET_READ_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
+    private static final Duration WORKER_SOCKET_READ_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;

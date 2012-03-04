@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.JavaProcessDescriptor;
-import uk.ac.standrews.cs.nds.madface.ProcessDescriptor;
 import uk.ac.standrews.cs.nds.madface.exceptions.DeploymentException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnsupportedPlatformException;
@@ -64,6 +64,7 @@ import com.mindbright.ssh2.SSH2Exception;
  */
 public class WorkerRemoteFactory {
 
+    private static final List<String> WORKER_JVM_PARAMS = Arrays.asList(new String[]{"Xmx128m"});
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
@@ -219,10 +220,12 @@ public class WorkerRemoteFactory {
             }
         }
         else {
-            ProcessDescriptor java_process_descriptor = null;
+            JavaProcessDescriptor java_process_descriptor = null;
             try {
                 // Create a node process.
-                java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(WorkerNodeServer.class).args(args);
+                java_process_descriptor = new JavaProcessDescriptor();
+                java_process_descriptor.classToBeInvoked(WorkerNodeServer.class).args(args);
+                java_process_descriptor.jvmParams(WORKER_JVM_PARAMS);
                 final Process process = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
 
                 host_descriptor.process(process);
