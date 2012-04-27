@@ -27,14 +27,11 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.impl.Launcher;
-import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
 
 /**
  * Provides utility methods for a {@link Launcher}.
@@ -47,41 +44,38 @@ public final class LauncherUtil {
 
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     /**
-     * Deploys a worker on each of the given hosts.
-     *
-     * @param launcher the launcher which is used to deploy workers
-     * @param worker_hosts the set of hosts on which workers are deployed
-     * @return the sets of deployed workers on hosts
-     * @throws Exception if unable to deploy
-     */
-    public static Collection<IWorker> deployWorkersOnHosts(final ILauncher launcher, final Collection<HostDescriptor> worker_hosts) throws Exception {
-
-        final Collection<IWorker> deployed_workers = new ArrayList<IWorker>();
-
-        for (final HostDescriptor worker_host : worker_hosts) {
-
-            deployed_workers.add(launcher.deployWorkerOnHost(worker_host));
-        }
-
-        return deployed_workers;
-    }
-
-    /**
-     * Waits for a set of given futures until all have a result available. If one of the futures results  in exception, this method throws the exception immediately.
+     * Waits for a collection of given futures until all have a result available. If one of the futures results  in exception, this method throws the exception immediately.
      *
      * @param <T> the generic type
      * @param futures the futures to wait for
      * @throws InterruptedException if one of the futures has interrupted
      * @throws ExecutionException if one of the futures has ended in exception
      */
-    public static <T> void waitForFutures(final Set<Future<T>> futures) throws InterruptedException, ExecutionException {
+    public static <T> void awaitFutures(final Collection<Future<T>> futures) throws InterruptedException, ExecutionException {
 
-        for (final Future<?> ring_stable_futue : futures) {
+        for (final Future<T> future : futures) {
 
-            ring_stable_futue.get();
+            future.get();
         }
+    }
+
+    /**
+     * Gets the results of a collection of given futures. If one of the futures results  in exception, this method throws the exception immediately.
+     *
+     * @param <T> the generic type
+     * @param futures the futures to wait for
+     * @return the results of the given futures
+     * @throws InterruptedException if one of the futures has interrupted
+     * @throws ExecutionException if one of the futures has ended in exception
+     */
+    public static <T> Collection<T> awaitAndGetFutures(final Collection<Future<T>> futures) throws InterruptedException, ExecutionException {
+
+        final List<T> results = new ArrayList<T>();
+        for (final Future<T> future : futures) {
+
+            results.add(future.get());
+        }
+        return results;
     }
 }

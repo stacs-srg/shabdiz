@@ -132,7 +132,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public synchronized IWorker deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
+    public IWorker deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
 
         configureHostDescriptor(host_descriptor); // Prepare host for deployment
         worker_remote_factory.createNode(host_descriptor); // Deploy.

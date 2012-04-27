@@ -45,7 +45,7 @@ public interface ILauncher {
     IWorker deployWorkerOnHost(HostDescriptor host_descriptor) throws Exception;
 
     /**
-     * Shuts down this launcher. This method does <code>not</code> shot down any workers deployed by this launcher.
+     * Shuts down this launcher. This method does <i>not</i> shot down any workers deployed by this launcher.
      * User may shot down workers by calling {@link IWorker#shutdown()}.
      */
     void shutdown();
