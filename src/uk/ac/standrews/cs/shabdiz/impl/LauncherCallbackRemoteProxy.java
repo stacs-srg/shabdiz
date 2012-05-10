@@ -44,10 +44,10 @@ import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
 class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallback {
 
     /** The remote method name for {@link #notifyCompletion(UUID, Serializable)}. */
-    public static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
+    static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
 
     /** The remote method name for {@link #notifyException(UUID, Exception)}. */
-    public static final String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
+    static final String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
 
     private final ShabdizRemoteMarshaller marshaller;
 
@@ -83,7 +83,7 @@ class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallba
 
             final JSONWriter writer = streams.getJSONwriter();
             marshaller.serializeUUID(job_id, writer);
-            marshaller.serializeSerializable(result, writer);
+            ShabdizRemoteMarshaller.serializeSerializable(result, writer);
 
             makeVoidCall(streams);
 
