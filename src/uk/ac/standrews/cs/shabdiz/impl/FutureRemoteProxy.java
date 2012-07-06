@@ -213,7 +213,7 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
         if (this == obj) { return true; }
         if (obj == null) { return false; }
         if (getClass() != obj.getClass()) { return false; }
-        final FutureRemoteProxy other = (FutureRemoteProxy) obj;
+        final FutureRemoteProxy<?> other = (FutureRemoteProxy<?>) obj;
         if (current_state != other.current_state) { return false; }
         if (exception == null) {
             if (other.exception != null) { return false; }

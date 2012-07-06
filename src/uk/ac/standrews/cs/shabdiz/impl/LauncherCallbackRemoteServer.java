@@ -102,7 +102,7 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             final UUID job_id = getMarshaller().deserializeUUID(args);
-            final Serializable result = marshaller.deserializeSerializable(args);
+            final Serializable result = ShabdizRemoteMarshaller.deserializeSerializable(args);
 
             launcher_callback.notifyCompletion(job_id, result);
             response.value("");
