@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -64,7 +63,6 @@ import com.mindbright.ssh2.SSH2Exception;
  */
 public class WorkerRemoteFactory {
 
-    private static final List<String> WORKER_JVM_PARAMS = Arrays.asList(new String[]{"-XX:+HeapDumpOnOutOfMemoryError", "-Xmx128m"});
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
@@ -79,7 +77,7 @@ public class WorkerRemoteFactory {
 
     /**
      * Creates a new node running at a given network address on a given port, establishing a new one-node ring. The process handle and application reference for the node are established and assigned to the appropriate fields of the host descriptor.
-     *
+     * 
      * @param host_descriptor a structure containing access details for a remote host
      * @throws IOException if an error occurs when reading communicating with the remote host
      * @throws SSH2Exception if an SSH connection to the remote host cannot be established
@@ -113,7 +111,7 @@ public class WorkerRemoteFactory {
 
     /**
      * Creates a new worker node running in the current JVM at a given local network address on a given port.
-     *
+     * 
      * @param local_address the local address of the node
      * @param launcher_callback_address the launcher callback address
      * @return the new node
@@ -131,10 +129,9 @@ public class WorkerRemoteFactory {
 
     /**
      * Binds to an existing remote worker node running at a given network address, checking for liveness.
-     *
+     * 
      * @param worker_address the address of the existing worker
      * @return a remote reference to the node
-     *
      * @throws RPCException if an error occurs communicating with the remote machine
      */
     IWorkerRemote bindToNode(final InetSocketAddress worker_address) throws RPCException {
@@ -148,7 +145,7 @@ public class WorkerRemoteFactory {
 
     /**
      * Binds to an existing remote worker running at a given network address, checking for liveness, retrying on any error until the timeout interval has elapsed.
-     *
+     * 
      * @param worker_address the address of the existing worker
      * @param timeout_interval the timeout_interval
      * @param retry_interval the retry_interval
@@ -225,7 +222,7 @@ public class WorkerRemoteFactory {
                 // Create a node process.
                 java_process_descriptor = new JavaProcessDescriptor();
                 java_process_descriptor.classToBeInvoked(WorkerNodeServer.class).args(args);
-                java_process_descriptor.jvmParams(WORKER_JVM_PARAMS);
+                java_process_descriptor.jvmParams(host_descriptor.getJVMDeploymentParams());
                 final Process process = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
 
                 host_descriptor.process(process);

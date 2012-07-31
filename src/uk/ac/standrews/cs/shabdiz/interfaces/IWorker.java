@@ -37,7 +37,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorker {
+public interface IWorker extends Comparable<IWorker> {
 
     /**
      * Gets the address on which the worker is exposed.
@@ -48,7 +48,7 @@ public interface IWorker {
 
     /**
      * Submits a value-returning task for execution to this worker and returns the pending result of the task.
-     *
+     * 
      * @param <Result> the type of pending result
      * @param job the job to submit
      * @return the pending result of the job

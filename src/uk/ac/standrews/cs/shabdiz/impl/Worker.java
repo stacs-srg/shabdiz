@@ -45,7 +45,7 @@ class Worker implements IWorker {
 
     /**
      * Instantiates a new worker which is contacted passively.
-     *
+     * 
      * @param worker_remote the worker remote to wrap
      * @param launcher the launcher by which the remote correspondence of this worker is launched
      */
@@ -107,5 +107,11 @@ class Worker implements IWorker {
         else if (!launcher.equals(other.launcher)) { return false; }
 
         return true;
+    }
+
+    @Override
+    public int compareTo(final IWorker other) {
+
+        return getAddress().toString().compareTo(other.getAddress().toString());
     }
 }

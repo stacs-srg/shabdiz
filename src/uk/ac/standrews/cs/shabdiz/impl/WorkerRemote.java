@@ -38,8 +38,10 @@ import java.util.concurrent.TimeoutException;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
+import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 
@@ -63,7 +65,7 @@ class WorkerRemote implements IWorkerRemote {
         this.launcher_callback_address = launcher_callback_address;
 
         id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor_service = Executors.newCachedThreadPool();
+        exexcutor_service = Executors.newCachedThreadPool(new NamingThreadFactory("worker_on_" + local_address.getPort() + "_"));
 
         server = new WorkerRemoteServer(this);
         expose();
@@ -109,7 +111,7 @@ class WorkerRemote implements IWorkerRemote {
             Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
         }
 
-        LauncherCallbackRemoteProxy.CONNECTION_POOL.shutdown();
+        StreamProxy.CONNECTION_POOL.shutdown();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

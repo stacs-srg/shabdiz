@@ -28,7 +28,9 @@ package uk.ac.standrews.cs.shabdiz.impl;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -59,7 +61,7 @@ import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
 public class Launcher implements ILauncher, ILauncherCallback {
 
     private static final int EPHEMERAL_PORT = 0;
-
+    private static final List<String> DEFAULT_WORKER_JVM_PARAMS = Arrays.asList(new String[]{"-Xmx128m"}); // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private final InetSocketAddress callback_server_address; // The address on which the callback server is exposed
     private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
@@ -72,7 +74,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
-     *
+     * 
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -86,9 +88,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     /**
-     * Instantiates a new  launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
+     * Instantiates a new launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     *
+     * 
      * @param application_lib_urls the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
@@ -103,9 +105,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
     }
 
     /**
-     * Instantiates a new  launcher and exposes the launcher callback on local address with the given port number.
+     * Instantiates a new launcher and exposes the launcher callback on local address with the given port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     *
+     * 
      * @param callback_server_port the port on which the callback server is exposed
      * @param application_lib_urls the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
@@ -197,7 +199,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
         final Object[] application_deployment_params = new Object[]{callback_server_address};
         host_descriptor.applicationDeploymentParams(application_deployment_params);
-
+        if (host_descriptor.getJVMDeploymentParams() == null) {
+            host_descriptor.jvmDeploymentParams(DEFAULT_WORKER_JVM_PARAMS);
+        }
         host_descriptor.applicationURLs(application_lib_urls);
     }
 
