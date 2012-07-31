@@ -12,7 +12,7 @@
 	<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 
 	<property name="project-name" value="shabdiz" />
-	
+
 	<path id="project-classpath">
 		<pathelement location="bin" />
 		<pathelement location="src" />
@@ -75,7 +75,7 @@
 
 			<!-- Link to Java API from generated documentation. -->
 			<link href="${doc-java}" />
-			<link href="${doc-nds}" packagelistloc="/data/jenkins/jobs/nds/javadoc/package-list" />
+			<link offline="true" href="${doc-nds}" packagelistloc="/data/jenkins/jobs/nds/javadoc/package-list" />
 			<link href="${doc-mindterm}" />
 		</javadoc>
 	</target>
