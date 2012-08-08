@@ -65,7 +65,7 @@ public final class LibraryUtil {
      * @return the set of application library URLs required by Shabdiz
      * @throws IOException if one of the URLs are not reachable.
      */
-    public static synchronized Set<URL> getShabdizApplicationLibraryURLs() throws IOException {
+    public static Set<URL> getShabdizApplicationLibraryURLs() throws IOException {
 
         return shabdiz_application_lib_urls;
     }
