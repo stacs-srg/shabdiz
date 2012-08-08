@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.standrews.cs.nds.madface.URL;
+import uk.ac.standrews.cs.nds.util.ErrorHandling;
 
 /**
  * Utility class that provides application library urls used by Shabdiz.
@@ -40,7 +41,19 @@ public final class LibraryUtil {
 
     private static final String BUILD_SERVER_INDEX_URL = "https://builds.cs.st-andrews.ac.uk/";
 
-    private static Set<URL> shabdiz_application_lib_urls;
+    private static Set<URL> shabdiz_application_lib_urls = new HashSet<URL>();
+    static {
+        try {
+            shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/bin/shabdiz.jar"));
+            shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/nds/lastSuccessfulBuild/artifact/bin/nds.jar"));
+            shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
+            shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/lib/json.jar"));
+            shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
+        }
+        catch (final IOException e) {
+            ErrorHandling.hardError("cannot access required libraries : " + e.getMessage());
+        }
+    }
 
     private LibraryUtil() {
 
@@ -48,28 +61,12 @@ public final class LibraryUtil {
 
     /**
      * Gets the set of application library URLs required by Shabdiz.
-     *
+     * 
      * @return the set of application library URLs required by Shabdiz
      * @throws IOException if one of the URLs are not reachable.
      */
     public static synchronized Set<URL> getShabdizApplicationLibraryURLs() throws IOException {
 
-        if (shabdiz_application_lib_urls == null) {
-            initShabdizApplicationLibURLs();
-        }
-
         return shabdiz_application_lib_urls;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    private static synchronized void initShabdizApplicationLibURLs() throws IOException {
-
-        shabdiz_application_lib_urls = new HashSet<URL>();
-
-        shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/bin/shabdiz.jar"));
-        shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
-        shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/lib/json.jar"));
-        shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
     }
 }
