@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.standrews.cs.nds.madface.URL;
-import uk.ac.standrews.cs.nds.util.ErrorHandling;
 
 /**
  * Utility class that provides application library urls used by Shabdiz.
@@ -40,7 +39,7 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 public final class LibraryUtil {
 
     private static final String BUILD_SERVER_INDEX_URL = "https://builds.cs.st-andrews.ac.uk/";
-
+    private static IOException url_instantiation_exception;
     private static Set<URL> shabdiz_application_lib_urls = new HashSet<URL>();
     static {
         try {
@@ -49,9 +48,10 @@ public final class LibraryUtil {
             shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/hudson_tools/lastSuccessfulBuild/artifact/lib/junit-4.8.2.jar"));
             shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/shabdiz/lastSuccessfulBuild/artifact/lib/json.jar"));
             shabdiz_application_lib_urls.add(new URL(BUILD_SERVER_INDEX_URL + "job/trombone/lastSuccessfulBuild/artifact/lib/mindterm.jar"));
+            url_instantiation_exception = null;
         }
         catch (final IOException e) {
-            ErrorHandling.hardError("cannot access required libraries : " + e.getMessage());
+            url_instantiation_exception = e;
         }
     }
 
@@ -67,6 +67,7 @@ public final class LibraryUtil {
      */
     public static Set<URL> getShabdizApplicationLibraryURLs() throws IOException {
 
+        if (url_instantiation_exception != null) { throw url_instantiation_exception; }
         return shabdiz_application_lib_urls;
     }
 }
