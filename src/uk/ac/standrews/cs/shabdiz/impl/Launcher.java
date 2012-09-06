@@ -40,7 +40,6 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.URL;
-import uk.ac.standrews.cs.nds.madface.exceptions.LibrariesOverwrittenException;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -195,7 +194,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private void configureHostDescriptor(final HostDescriptor host_descriptor) throws LibrariesOverwrittenException {
+    private void configureHostDescriptor(final HostDescriptor host_descriptor) {
 
         final Object[] application_deployment_params = new Object[]{callback_server_address};
         host_descriptor.applicationDeploymentParams(application_deployment_params);
