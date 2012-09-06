@@ -66,9 +66,9 @@ public class WorkerRemoteFactory {
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
-    private static final Duration OVERALL_TIMEOUT_INTERVAL = new Duration(300, TimeUnit.SECONDS); // Overall timeout for establishing connection to node.
-    private static final Duration INDIVIDUAL_TIMEOUT_INTERVAL = new Duration(30, TimeUnit.SECONDS); // Timeout for individual connection attempt.
-    private static final Duration RETRY_INTERVAL = new Duration(6, TimeUnit.SECONDS); // Interval between retry of connecting to remote nodes.
+    private static final Duration BIND_RETRY_TOTAL_TIMEOUT = new Duration(2, TimeUnit.MINUTES); // Overall retry timeout for attempts to start up an instance and bind to it.
+    private static final Duration BIND_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS); // Delay between each attempt to bind to a deployed instance
+    private static final Duration PORT_RETRY_TOTAL_TIMEOUT = new Duration(3, TimeUnit.MINUTES).add(BIND_RETRY_TOTAL_TIMEOUT); // Overall retry timeout for attempts to find a free port, start up an instance and bind to it.
     private static final int LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
     WorkerRemoteFactory() {
@@ -181,7 +181,7 @@ public class WorkerRemoteFactory {
 
     private IWorkerRemote bindToNodeWithRetry(final HostDescriptor host_descriptor) throws UnknownHostException, TimeoutException, InterruptedException, RPCException {
 
-        return bindToNode(host_descriptor.getInetSocketAddress(), INDIVIDUAL_TIMEOUT_INTERVAL, RETRY_INTERVAL);
+        return bindToNode(host_descriptor.getInetSocketAddress(), BIND_RETRY_TOTAL_TIMEOUT, BIND_RETRY_INTERVAL);
     }
 
     private List<String> constructArgs(final HostDescriptor host_descriptor, final int port) throws DeploymentException {
@@ -245,7 +245,7 @@ public class WorkerRemoteFactory {
 
         // TODO have target node select free port and notify back to temporary server.
 
-        final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, OVERALL_TIMEOUT_INTERVAL, true, true, "P2PNodeFactory");
+        final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, PORT_RETRY_TOTAL_TIMEOUT, true, true, "P2PNodeFactory");
 
         try {
             timeout_executor.executeWithTimeout(new Callable<Void>() {
