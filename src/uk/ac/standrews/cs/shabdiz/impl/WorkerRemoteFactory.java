@@ -266,7 +266,7 @@ public class WorkerRemoteFactory {
                                 break;
                             }
                             catch (final TimeoutException e) {
-                                Diagnostic.trace("timed out trying to connect to port: " + host_descriptor.getPort());
+                                Diagnostic.trace(host_descriptor.getHost() + " timed out trying to connect to port: " + host_descriptor.getPort());
                             }
                         }
                     }
