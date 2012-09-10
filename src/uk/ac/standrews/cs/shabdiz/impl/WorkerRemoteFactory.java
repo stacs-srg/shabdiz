@@ -66,9 +66,9 @@ public class WorkerRemoteFactory {
     private static final int INITIAL_PORT = 57496; // First port to attempt when trying to find free port. Note: Chord's start port: 55496, Trombone's start port: 56496
     private static final AtomicInteger NEXT_PORT = new AtomicInteger(INITIAL_PORT); // The next port to be used; static to allow multiple concurrent networks.
 
-    private static final Duration BIND_RETRY_TOTAL_TIMEOUT = new Duration(2, TimeUnit.MINUTES); // Overall retry timeout for attempts to start up an instance and bind to it.
+    private static final Duration BIND_RETRY_TOTAL_TIMEOUT = new Duration(20, TimeUnit.SECONDS); // Overall retry timeout for attempts to start up an instance and bind to it.
     private static final Duration BIND_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS); // Delay between each attempt to bind to a deployed instance
-    private static final Duration PORT_RETRY_TOTAL_TIMEOUT = new Duration(3, TimeUnit.MINUTES).add(BIND_RETRY_TOTAL_TIMEOUT); // Overall retry timeout for attempts to find a free port, start up an instance and bind to it.
+    private static final Duration PORT_RETRY_TOTAL_TIMEOUT = new Duration(10, TimeUnit.SECONDS).add(BIND_RETRY_TOTAL_TIMEOUT); // Overall retry timeout for attempts to find a free port, start up an instance and bind to it.
     private static final int LAUNCHER_CALLBACK_ADDRESS_DEPLOYMENT_PARAM_INDEX = 0;
 
     WorkerRemoteFactory() {
@@ -226,7 +226,6 @@ public class WorkerRemoteFactory {
                 final Process process = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
 
                 host_descriptor.process(process);
-
                 // Bind to the node, establishing the application reference.
                 host_descriptor.applicationReference(bindToNodeWithRetry(host_descriptor));
             }
