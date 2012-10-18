@@ -53,22 +53,20 @@ public class ShabdizRemoteMarshaller extends Marshaller {
 
     }
 
-    @Override
-    public void serializeException(final Exception e, final JSONWriter writer) throws JSONException {
+    public static void serializeException(final Exception e, final JSONWriter writer) throws JSONException {
 
         try {
-            serializeSerializable(e, writer);
+            ShabdizRemoteMarshaller.serializeSerializable(e, writer);
         }
         catch (final IOException e1) {
             throw new JSONException(e1);
         }
     }
 
-    @Override
-    public Exception deserializeException(final JSONReader reader) {
+    public static Exception deserializeException(final JSONReader reader) {
 
         try {
-            return (Exception) deserializeSerializable(reader);
+            return (Exception) ShabdizRemoteMarshaller.deserializeSerializable(reader);
         }
         catch (final DeserializationException e) {
             return new RuntimeException("could not instantiate serialized exception ", e);
@@ -77,7 +75,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
 
     /**
      * Serialises a {@link Serializable} using {@link ObjectOutputStream}.
-     *
+     * 
      * @param object the object to serialise
      * @param writer the writer
      * @throws JSONException if JSON related error occurs
@@ -98,20 +96,20 @@ public class ShabdizRemoteMarshaller extends Marshaller {
                 object_output_stream.writeObject(object);
 
                 final byte[] object_as_bytes = bytes_output_stream.toByteArray();
-                serializeBytes(object_as_bytes, writer);
+                Marshaller.serializeBytes(object_as_bytes, writer);
             }
             catch (final Exception e) {
                 e.printStackTrace();
             }
             finally {
-                closeSilently(object_output_stream);
+                ShabdizRemoteMarshaller.closeSilently(object_output_stream);
             }
         }
     }
 
     /**
      * Deserialises a {@link Serializable}.
-     *
+     * 
      * @param reader the reader to read the serialised from
      * @return the deserialised object
      * @throws DeserializationException if unable to deserialise
@@ -123,7 +121,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
         try {
             if (reader.checkNull()) { return null; }
 
-            final byte[] serialized_object_as_bytes = deserializeBytes(reader);
+            final byte[] serialized_object_as_bytes = Marshaller.deserializeBytes(reader);
             final ByteArrayInputStream bytes_input_stream = new ByteArrayInputStream(serialized_object_as_bytes);
             object_input_stream = new ObjectInputStream(bytes_input_stream);
 
@@ -136,13 +134,13 @@ public class ShabdizRemoteMarshaller extends Marshaller {
             throw new DeserializationException(e);
         }
         finally {
-            closeSilently(object_input_stream);
+            ShabdizRemoteMarshaller.closeSilently(object_input_stream);
         }
     }
 
     /**
      * Deserialises a {@link Serializable} object and casts it to the given generic type.
-     *
+     * 
      * @param <Result> the type of result
      * @param reader the reader to read the serialised from
      * @return the deserialised object
@@ -151,7 +149,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
     @SuppressWarnings("unchecked")
     public <Result extends Serializable> Result deserializeResult(final JSONReader reader) throws DeserializationException {
 
-        final Serializable deserialized_serializable = deserializeSerializable(reader);
+        final Serializable deserialized_serializable = ShabdizRemoteMarshaller.deserializeSerializable(reader);
         try {
             return (Result) deserialized_serializable;
         }
@@ -162,7 +160,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
 
     /**
      * Serialises remote job.
-     *
+     * 
      * @param remote_job the remote job to serialise
      * @param writer the writer
      * @throws JSONException if a JSON related error occurs
@@ -170,12 +168,12 @@ public class ShabdizRemoteMarshaller extends Marshaller {
      */
     public void serializeRemoteJob(final IJobRemote<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
 
-        serializeSerializable(remote_job, writer);
+        ShabdizRemoteMarshaller.serializeSerializable(remote_job, writer);
     }
 
     /**
      * Deserialises a {@link IJobRemote}.
-     *
+     * 
      * @param reader the reader to read the serialised job from
      * @return the deserialised remote job
      * @throws DeserializationException if unable to deserialise
@@ -184,7 +182,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
     public IJobRemote<?> deserializeRemoteJob(final JSONReader reader) throws DeserializationException {
 
         try {
-            return (IJobRemote<? extends Serializable>) deserializeSerializable(reader);
+            return (IJobRemote<? extends Serializable>) ShabdizRemoteMarshaller.deserializeSerializable(reader);
         }
         catch (final Exception e) {
             throw new DeserializationException(e);
@@ -193,7 +191,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
 
     /**
      * Serialises a {@link TimeUnit} and.
-     *
+     * 
      * @param unit the unit
      * @param writer the writer
      * @throws JSONException the jSON exception
@@ -210,7 +208,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
 
     /**
      * Deserialises a {@link TimeUnit}.
-     *
+     * 
      * @param reader the reader to read the serialised from
      * @return the deserialised object
      * @throws DeserializationException if unable to deserialise
