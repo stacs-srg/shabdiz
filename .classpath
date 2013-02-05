@@ -10,5 +10,7 @@
 			<attribute name="javadoc_location" value="http://www.appgate.com/products/80_MindTerm/80_API_Documentation/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/barreleye"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar" sourcepath="/Users/masih/.m2/repository/commons-io/commons-io/2.4/commons-io-2.4-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

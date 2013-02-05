@@ -27,31 +27,32 @@ package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
 
 /**
- * Receives notifications from workers about the outcome of a submitted job.
+ * Presents a special type of worker which is deployed by {@link DefaultLauncher}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ILauncherCallback {
+public interface WorkerRemote {
 
     /**
-     * Notifies the launcher about the result of a completed job.
-     *
-     * @param job_id the globally unique id of the submitted job
-     * @param result the result of the completed job
-     * @throws RPCException if unable to contact the correspondence
+     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
+     * 
+     * @param job the job to submit
+     * @return the globally unique id of the submitted job
+     * @throws RPCException if unable to make the remote call
+     * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
+    UUID submitJob(JobRemote<? extends Serializable> job) throws RPCException;
 
     /**
-     * Notifies the launcher about the exception resulted by executing a job.
-     *
-     * @param job_id the globally unique id of the submitted job
-     * @param exception the exception which occurred when trying to execute a job
-     * @throws RPCException if unable to contact the correspondence
+     * Shuts down this worker.
+     * 
+     * @throws RPCException if unable to make the remote call
      */
-    void notifyException(UUID job_id, Exception exception) throws RPCException;
+    void shutdown() throws RPCException;
 }

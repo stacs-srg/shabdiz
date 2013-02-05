@@ -32,11 +32,11 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 import uk.ac.standrews.cs.shabdiz.util.job.wrapper.JobRemoteSequentialWrapper;
 
 /**
- * Utility to manage pending result of {@link IJobRemote}.
+ * Utility to manage pending result of {@link JobRemote}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -101,7 +101,7 @@ public final class JobRemoteUtil {
      * @param squential_jobs the jobs to execute sequentially
      * @return the single job which executes the given jobs sequentially
      */
-    public static IJobRemote<Serializable[]> wrapIntoASequentialJob(final IJobRemote<? extends Serializable>... squential_jobs) {
+    public static JobRemote<Serializable[]> wrapIntoASequentialJob(final JobRemote<? extends Serializable>... squential_jobs) {
 
         return new JobRemoteSequentialWrapper(squential_jobs);
     }

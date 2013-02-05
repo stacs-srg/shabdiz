@@ -34,7 +34,8 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
-import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
+import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
+import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
 
 /**
  * Serves the incoming callback notifications from workers.
@@ -46,15 +47,15 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
     /** The launcher callback server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
 
-    private final ILauncherCallback launcher_callback;
+    private final LauncherCallback launcher_callback;
     private final ShabdizRemoteMarshaller marshaller;
 
     /**
      * Instantiates a new launcher callback server.
-     *
+     * 
      * @param launcher_callback the launcher callback
      */
-    public LauncherCallbackRemoteServer(final ILauncherCallback launcher_callback) {
+    public LauncherCallbackRemoteServer(final LauncherCallback launcher_callback) {
 
         super();
         this.launcher_callback = launcher_callback;
@@ -101,7 +102,7 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final UUID job_id = getMarshaller().deserializeUUID(args);
+            final UUID job_id = Marshaller.deserializeUUID(args);
             final Serializable result = ShabdizRemoteMarshaller.deserializeSerializable(args);
 
             launcher_callback.notifyCompletion(job_id, result);
@@ -114,8 +115,8 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
         @Override
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
-            final UUID job_id = getMarshaller().deserializeUUID(args);
-            final Exception exception = getMarshaller().deserializeException(args);
+            final UUID job_id = Marshaller.deserializeUUID(args);
+            final Exception exception = ShabdizRemoteMarshaller.deserializeException(args);
 
             launcher_callback.notifyException(job_id, exception);
             response.value("");

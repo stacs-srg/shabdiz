@@ -33,15 +33,16 @@ import org.json.JSONWriter;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
+import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
+import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
 
 /**
  * RPC proxy to communicate with a launcher callback server.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallback {
+class LauncherCallbackRemoteProxy extends StreamProxy implements LauncherCallback {
 
     /** The remote method name for {@link #notifyCompletion(UUID, Serializable)}. */
     static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
@@ -82,7 +83,7 @@ class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallba
             final AbstractStreamConnection streams = startCall(NOTIFY_COMPLETION_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = streams.getJSONwriter();
-            marshaller.serializeUUID(job_id, writer);
+            Marshaller.serializeUUID(job_id, writer);
             ShabdizRemoteMarshaller.serializeSerializable(result, writer);
 
             makeVoidCall(streams);
@@ -101,8 +102,8 @@ class LauncherCallbackRemoteProxy extends StreamProxy implements ILauncherCallba
             final AbstractStreamConnection streams = startCall(NOTIFY_EXCEPTION_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = streams.getJSONwriter();
-            marshaller.serializeUUID(job_id, writer);
-            marshaller.serializeException(exception, writer);
+            Marshaller.serializeUUID(job_id, writer);
+            ShabdizRemoteMarshaller.serializeException(exception, writer);
 
             makeVoidCall(streams);
 

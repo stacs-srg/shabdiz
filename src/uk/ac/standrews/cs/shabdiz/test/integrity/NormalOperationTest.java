@@ -33,13 +33,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.impl.Launcher;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
-import uk.ac.standrews.cs.shabdiz.servers.WorkerNodeServer;
+import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.impl.Host;
+import uk.ac.standrews.cs.shabdiz.impl.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 import uk.ac.standrews.cs.shabdiz.test.util.TestJobRemoteFactory;
 
 /**
@@ -47,18 +47,19 @@ import uk.ac.standrews.cs.shabdiz.test.util.TestJobRemoteFactory;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
+
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
 
-    private HostDescriptor local_host_descriptor;
-    private Launcher launcher;
-    private IWorker worker;
+    private Host localhost;
+    private DefaultLauncher launcher;
+    private Worker worker;
 
     /**
      * Sets the up the test.
-     *
+     * 
      * @throws Exception if unable to set up
      */
     @Before
@@ -66,14 +67,14 @@ public class NormalOperationTest {
 
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
-        local_host_descriptor = new HostDescriptor();
-        launcher = new Launcher();
-        worker = launcher.deployWorkerOnHost(local_host_descriptor);
+        localhost = new Host("localhost", new PasswordCredentials(null));
+        launcher = new DefaultLauncher();
+        worker = launcher.deployWorkerOnHost(localhost);
     }
 
     /**
      * Test.
-     *
+     * 
      * @throws Exception the exception
      */
     @Test
@@ -81,11 +82,20 @@ public class NormalOperationTest {
 
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
         Assert.assertEquals(HELLO, future.get());
+        try {
+            Thread.sleep(5000);
+            worker.shutdown();
+        }
+        catch (final Exception e) {
+            //            e.printStackTrace();
+        }
+        Thread.sleep(5000);
+
     }
 
     /**
      * Test.
-     *
+     * 
      * @throws Exception the exception
      */
     @Test
@@ -102,12 +112,11 @@ public class NormalOperationTest {
             Assert.assertTrue(e.getCause() instanceof NullPointerException);
             Assert.assertTrue(e.getCause().getMessage().equals(TEST_EXCEPTION_MESSAGE));
         }
-
     }
 
     /**
      * Cleans up after tests.
-     *
+     * 
      * @throws Exception if unable to clean up
      */
     @After
@@ -115,13 +124,11 @@ public class NormalOperationTest {
 
         try {
             worker.shutdown();
-            launcher.shutdown();
         }
         catch (final RPCException e) {
-            //ignore;
+            //ignore; expected.
         }
-
-        local_host_descriptor.getProcessManager().killMatchingProcesses(WorkerNodeServer.class.getSimpleName()); // Kill any lingering Shabdiz Worker processes.
-        local_host_descriptor.shutdown();
+        launcher.shutdown();
+        localhost.shutdown();
     }
 }

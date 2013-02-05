@@ -27,11 +27,11 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
  * Similar to the class {@link Void}, with the difference that this class is {@link Serializable}.
- * Since {@link Void} is not {@link Serializable}, this class may be used as the return type of a <code>void</code> {@link IJobRemote}.
+ * Since {@link Void} is not {@link Serializable}, this class may be used as the return type of a <code>void</code> {@link JobRemote}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

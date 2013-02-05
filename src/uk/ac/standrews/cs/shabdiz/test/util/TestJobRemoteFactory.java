@@ -25,10 +25,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.test.util;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
- * A factory for creating test {@link IJobRemote} objects.
+ * A factory for creating test {@link JobRemote} objects.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -47,7 +47,7 @@ public final class TestJobRemoteFactory {
      * @param message_to_echo the message to echo
      * @return the job which echos the given message
      */
-    public static IJobRemote<String> makeEchoJob(final String message_to_echo) {
+    public static JobRemote<String> makeEchoJob(final String message_to_echo) {
 
         return new EchoRemoteJob(message_to_echo);
     }
@@ -58,13 +58,13 @@ public final class TestJobRemoteFactory {
      * @param exception_to_throw the exception to throw
      * @return the job which throws the given exception
      */
-    public static IJobRemote<String> makeThrowExceptionJob(final Exception exception_to_throw) {
+    public static JobRemote<String> makeThrowExceptionJob(final Exception exception_to_throw) {
 
         return new ThrowExceptionRemoteJob(exception_to_throw);
     }
 }
 
-final class EchoRemoteJob implements IJobRemote<String> {
+final class EchoRemoteJob implements JobRemote<String> {
 
     private final String message_to_echo;
 
@@ -82,7 +82,7 @@ final class EchoRemoteJob implements IJobRemote<String> {
     }
 }
 
-final class ThrowExceptionRemoteJob implements IJobRemote<String> {
+final class ThrowExceptionRemoteJob implements JobRemote<String> {
 
     private final Exception exception_to_throw;
 

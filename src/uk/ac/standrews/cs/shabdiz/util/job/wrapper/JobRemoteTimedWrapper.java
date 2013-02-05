@@ -29,20 +29,20 @@ import java.io.Serializable;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
- * Allows to set a timeout to an existing {@link IJobRemote}.
+ * Allows to set a timeout to an existing {@link JobRemote}.
  *
  * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class JobRemoteTimedWrapper<Result extends Serializable> implements IJobRemote<Result> {
+public class JobRemoteTimedWrapper<Result extends Serializable> implements JobRemote<Result> {
 
     private static final long serialVersionUID = 1478058445703561250L;
 
     private transient TimeoutExecutor timeout_executor;
-    private final IJobRemote<Result> timed_job;
+    private final JobRemote<Result> timed_job;
 
     private final Duration timeout;
 
@@ -52,7 +52,7 @@ public class JobRemoteTimedWrapper<Result extends Serializable> implements IJobR
      * @param job the job to wrap
      * @param timeout the timeout
      */
-    public JobRemoteTimedWrapper(final IJobRemote<Result> job, final Duration timeout) {
+    public JobRemoteTimedWrapper(final JobRemote<Result> job, final Duration timeout) {
 
         this.timed_job = job;
         this.timeout = timeout;

@@ -34,21 +34,22 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
+import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.WorkerRemote;
 
 /**
- * Handles communication with an {@link IWorkerRemote}.
+ * Handles communication with an {@link WorkerRemote}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class WorkerRemoteProxy extends StreamProxy implements IWorkerRemote {
+class WorkerRemoteProxy extends StreamProxy implements WorkerRemote {
 
-    /** The remote method name for {@link IWorkerRemote#submit(IJobRemote)}. */
+    /** The remote method name for {@link WorkerRemote#submit(JobRemote)}. */
     static final String SUBMIT_REMOTE_METHOD_NAME = "submitJob";
 
-    /** The remote method name for {@link IWorkerRemote#shutdown()}. */
+    /** The remote method name for {@link WorkerRemote#shutdown()}. */
     static final String SHUTDOWN_REMOTE_METHOD_NAME = "shutdown";
 
     private final ShabdizRemoteMarshaller marshaller;
@@ -71,7 +72,7 @@ class WorkerRemoteProxy extends StreamProxy implements IWorkerRemote {
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public UUID submitJob(final IJobRemote<? extends Serializable> job) throws RPCException {
+    public UUID submitJob(final JobRemote<? extends Serializable> job) throws RPCException {
 
         try {
 
@@ -81,7 +82,7 @@ class WorkerRemoteProxy extends StreamProxy implements IWorkerRemote {
             marshaller.serializeRemoteJob(job, writer);
 
             final JSONReader reader = makeCall(connection);
-            final UUID job_id = marshaller.deserializeUUID(reader);
+            final UUID job_id = Marshaller.deserializeUUID(reader);
 
             finishCall(connection);
 

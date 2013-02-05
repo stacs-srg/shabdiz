@@ -25,28 +25,42 @@
  */
 package uk.ac.standrews.cs.shabdiz.interfaces;
 
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
+import java.io.Serializable;
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Deploys worker on host.
+ * Presents the remote functionalities provided by a worker.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ILauncher {
+public interface Worker extends Comparable<Worker> {
 
     /**
-     * Deploys worker on a described host and returns the reference to the deployed worker.
-     * This method blocks until the worker is deployed.
-     *
-     * @param host_descriptor the descriptor of the host on which a worker is deployed
-     * @return the reference to the deployed worker
-     * @throws Exception if the attempt to deploy worker on host fails
+     * Gets the address on which the worker is exposed.
+     * 
+     * @return the address on which the worker is exposed
      */
-    IWorker deployWorkerOnHost(HostDescriptor host_descriptor) throws Exception;
+    InetSocketAddress getAddress();
 
     /**
-     * Shuts down this launcher. This method does <i>not</i> shot down any workers deployed by this launcher.
-     * User may shot down workers by calling {@link IWorker#shutdown()}.
+     * Submits a value-returning task for execution to this worker and returns the pending result of the task.
+     * 
+     * @param <Result> the type of pending result
+     * @param job the job to submit
+     * @return the pending result of the job
+     * @throws RPCException if unable to make the remote call
+     * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    void shutdown();
+    <Result extends Serializable> Future<Result> submit(JobRemote<Result> job) throws RPCException;
+
+    /**
+     * Shuts down this worker.
+     * 
+     * @throws RPCException if unable to make the remote call
+     */
+    void shutdown() throws RPCException;
 }

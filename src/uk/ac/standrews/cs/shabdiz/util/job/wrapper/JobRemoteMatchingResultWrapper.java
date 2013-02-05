@@ -28,7 +28,7 @@ package uk.ac.standrews.cs.shabdiz.util.job.wrapper;
 import java.io.Serializable;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
  * Retries a given job until it returns a matching result or the given timeout elapses.
@@ -48,9 +48,9 @@ public class JobRemoteMatchingResultWrapper<Result extends Serializable> extends
      * @param overall_timeout the overall timeout of retrying until the desired result is returned
      * @param loop_delay the delay between retries
      */
-    public JobRemoteMatchingResultWrapper(final IJobRemote<Result> job, final Result matching_result, final Duration overall_timeout, final Duration loop_delay) {
+    public JobRemoteMatchingResultWrapper(final JobRemote<Result> job, final Result matching_result, final Duration overall_timeout, final Duration loop_delay) {
 
-        super(new IJobRemote<Result>() {
+        super(new JobRemote<Result>() {
 
             private static final long serialVersionUID = 163279473093353752L;
 

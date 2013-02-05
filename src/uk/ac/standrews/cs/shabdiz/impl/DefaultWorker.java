@@ -27,35 +27,40 @@ package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 
 /**
- * Implements a passive mechanism by which a {@link IWorker} can be contacted.
+ * Implements a passive mechanism by which a {@link DefaultWorker} can be contacted.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class Worker implements IWorker {
+class DefaultWorker implements Worker {
 
     private final InetSocketAddress worker_address;
-    private final Launcher launcher;
+    private final DefaultLauncher launcher;
+    private final Process worker_process;
+    private final WorkerRemoteProxy worker_proxy;
 
     /**
      * Instantiates a new worker which is contacted passively.
      * 
      * @param worker_remote the worker remote to wrap
      * @param launcher the launcher by which the remote correspondence of this worker is launched
+     * @param worker_process
      */
-    Worker(final Launcher launcher, final InetSocketAddress worker_address) {
+    DefaultWorker(final DefaultLauncher launcher, final InetSocketAddress worker_address, final Process worker_process) {
 
         this.worker_address = worker_address;
         this.launcher = launcher;
+        this.worker_process = worker_process;
+        worker_proxy = WorkerRemoteProxyFactory.getProxy(worker_address);
+        //        worker_proxy.ping()
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public InetSocketAddress getAddress() {
@@ -64,18 +69,24 @@ class Worker implements IWorker {
     }
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final IJobRemote<Result> job) throws RPCException {
+    public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws RPCException {
 
-        return launcher.submitJob(job, worker_address);
+        final UUID job_id = worker_proxy.submitJob(job);
+        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
+        launcher.notifyJobSubmission(future_remote);
+        return future_remote;
     }
 
     @Override
     public void shutdown() throws RPCException {
 
-        launcher.shutdownWorker(worker_address);
+        try {
+            worker_proxy.shutdown();
+        }
+        finally {
+            worker_process.destroy();
+        }
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public int hashCode() {
@@ -94,7 +105,7 @@ class Worker implements IWorker {
         if (obj == null) { return false; }
         if (getClass() != obj.getClass()) { return false; }
 
-        final Worker other = (Worker) obj;
+        final DefaultWorker other = (DefaultWorker) obj;
 
         if (worker_address == null) {
             if (other.worker_address != null) { return false; }
@@ -110,7 +121,7 @@ class Worker implements IWorker {
     }
 
     @Override
-    public int compareTo(final IWorker other) {
+    public int compareTo(final Worker other) {
 
         return getAddress().toString().compareTo(other.getAddress().toString());
     }

@@ -5,20 +5,20 @@ import java.util.concurrent.Callable;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Timing;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 import uk.ac.standrews.cs.shabdiz.util.SerializableVoid;
 
 /**
- * Repeats a given {@link IJobRemote} until a timeout has elapsed.
+ * Repeats a given {@link JobRemote} until a timeout has elapsed.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class JobRemoteRepeatWrapper implements IJobRemote<SerializableVoid> {
+public class JobRemoteRepeatWrapper implements JobRemote<SerializableVoid> {
 
     private static final long serialVersionUID = 30120696504793434L;
 
     private transient Callable<Void> void_wrapper;
-    private final IJobRemote<SerializableVoid> job;
+    private final JobRemote<SerializableVoid> job;
     private final Duration overall_timeout;
     private final Duration loop_delay;
     private final boolean delay_is_fixed;
@@ -34,7 +34,7 @@ public class JobRemoteRepeatWrapper implements IJobRemote<SerializableVoid> {
      * @param delay_is_fixed true if the delay represents a fixed sleep period between the end of one repetition and the start of the next, false if it represents the minimum time between the start of one repetition and the start of the next
      * @see Timing#repeat(Callable, Duration, Duration, boolean, DiagnosticLevel)
      */
-    public JobRemoteRepeatWrapper(final IJobRemote<SerializableVoid> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed) {
+    public JobRemoteRepeatWrapper(final JobRemote<SerializableVoid> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed) {
 
         this(job, overall_timeout, loop_delay, delay_is_fixed, DiagnosticLevel.NONE);
     }
@@ -49,7 +49,7 @@ public class JobRemoteRepeatWrapper implements IJobRemote<SerializableVoid> {
      * @param reporting_level  the diagnostic reporting threshold
      * @see Timing#repeat(Callable, Duration, Duration, boolean, DiagnosticLevel)
      */
-    public JobRemoteRepeatWrapper(final IJobRemote<SerializableVoid> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed, final DiagnosticLevel reporting_level) {
+    public JobRemoteRepeatWrapper(final JobRemote<SerializableVoid> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed, final DiagnosticLevel reporting_level) {
 
         this.job = job;
         this.overall_timeout = overall_timeout;

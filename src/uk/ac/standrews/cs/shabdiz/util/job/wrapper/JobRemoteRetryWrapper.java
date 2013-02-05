@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Timing;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
  * Wraps a given job into a retry mechanism.
@@ -40,10 +40,10 @@ import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
  * @param <Result> the generic type
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class JobRemoteRetryWrapper<Result extends Serializable> implements IJobRemote<Result> {
+public class JobRemoteRetryWrapper<Result extends Serializable> implements JobRemote<Result> {
 
     private static final long serialVersionUID = 8452981241994840258L;
-    private final IJobRemote<Result> job;
+    private final JobRemote<Result> job;
     private final Duration overall_timeout;
     private final Duration loop_delay;
     private final boolean delay_is_fixed;
@@ -58,7 +58,7 @@ public class JobRemoteRetryWrapper<Result extends Serializable> implements IJobR
      * @param delay_is_fixed the delay_is_fixed
      * @see Timing#retry(Callable, Duration, Duration, boolean, DiagnosticLevel)
      */
-    public JobRemoteRetryWrapper(final IJobRemote<Result> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed) {
+    public JobRemoteRetryWrapper(final JobRemote<Result> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed) {
 
         this(job, overall_timeout, loop_delay, delay_is_fixed, DiagnosticLevel.NONE);
     }
@@ -73,7 +73,7 @@ public class JobRemoteRetryWrapper<Result extends Serializable> implements IJobR
      * @param reporting_level the reporting_level
      * @see Timing#retry(Callable, Duration, Duration, boolean, DiagnosticLevel)
      */
-    public JobRemoteRetryWrapper(final IJobRemote<Result> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed, final DiagnosticLevel reporting_level) {
+    public JobRemoteRetryWrapper(final JobRemote<Result> job, final Duration overall_timeout, final Duration loop_delay, final boolean delay_is_fixed, final DiagnosticLevel reporting_level) {
 
         this.job = job;
         this.overall_timeout = overall_timeout;

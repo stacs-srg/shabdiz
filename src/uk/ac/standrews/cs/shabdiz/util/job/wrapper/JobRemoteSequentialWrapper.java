@@ -27,25 +27,25 @@ package uk.ac.standrews.cs.shabdiz.util.job.wrapper;
 
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
- * Wraps an array of {@link IJobRemote}s into a single sequential {@link IJobRemote}.
+ * Wraps an array of {@link JobRemote}s into a single sequential {@link JobRemote}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public final class JobRemoteSequentialWrapper implements IJobRemote<Serializable[]> {
+public final class JobRemoteSequentialWrapper implements JobRemote<Serializable[]> {
 
     private static final long serialVersionUID = 818815948631765997L;
 
-    private final IJobRemote<? extends Serializable>[] squential_jobs;
+    private final JobRemote<? extends Serializable>[] squential_jobs;
 
     /**
      * Instantiates a new sequential job remote wrapper.
      *
      * @param squential_jobs the squential_jobs
      */
-    public JobRemoteSequentialWrapper(final IJobRemote<? extends Serializable>... squential_jobs) {
+    public JobRemoteSequentialWrapper(final JobRemote<? extends Serializable>... squential_jobs) {
 
         this.squential_jobs = squential_jobs;
     }
@@ -58,7 +58,7 @@ public final class JobRemoteSequentialWrapper implements IJobRemote<Serializable
 
         for (int i = 0; i < jobs_length; i++) {
 
-            final IJobRemote<? extends Serializable> sequential_job = squential_jobs[i];
+            final JobRemote<? extends Serializable> sequential_job = squential_jobs[i];
             results[i] = sequential_job.call();
         }
 

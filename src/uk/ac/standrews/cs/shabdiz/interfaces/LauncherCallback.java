@@ -26,41 +26,32 @@
 package uk.ac.standrews.cs.shabdiz.interfaces;
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.UUID;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
- * Presents the remote functionalities provided by a worker.
+ * Receives notifications from workers about the outcome of a submitted job.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface IWorker extends Comparable<IWorker> {
+public interface LauncherCallback {
 
     /**
-     * Gets the address on which the worker is exposed.
-     * 
-     * @return the address on which the worker is exposed
+     * Notifies the launcher about the result of a completed job.
+     *
+     * @param job_id the globally unique id of the submitted job
+     * @param result the result of the completed job
+     * @throws RPCException if unable to contact the correspondence
      */
-    InetSocketAddress getAddress();
+    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**
-     * Submits a value-returning task for execution to this worker and returns the pending result of the task.
-     * 
-     * @param <Result> the type of pending result
-     * @param job the job to submit
-     * @return the pending result of the job
-     * @throws RPCException if unable to make the remote call
-     * @see ExecutorService#submit(java.util.concurrent.Callable)
+     * Notifies the launcher about the exception resulted by executing a job.
+     *
+     * @param job_id the globally unique id of the submitted job
+     * @param exception the exception which occurred when trying to execute a job
+     * @throws RPCException if unable to contact the correspondence
      */
-    <Result extends Serializable> Future<Result> submit(IJobRemote<Result> job) throws RPCException;
-
-    /**
-     * Shuts down this worker.
-     * 
-     * @throws RPCException if unable to make the remote call
-     */
-    void shutdown() throws RPCException;
+    void notifyException(UUID job_id, Exception exception) throws RPCException;
 }

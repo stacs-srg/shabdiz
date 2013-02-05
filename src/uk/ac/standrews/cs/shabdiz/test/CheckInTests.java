@@ -28,13 +28,13 @@ package uk.ac.standrews.cs.shabdiz.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-import uk.ac.standrews.cs.shabdiz.test.integrity.NormalOperationTest;
-
 /**
  * Tests run on each build.
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({NormalOperationTest.class})
+@Suite.SuiteClasses({
+    //    NormalOperationTest.class
+})
 public class CheckInTests {
     // Empty.
 }

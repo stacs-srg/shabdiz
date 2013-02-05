@@ -25,12 +25,14 @@
  */
 package uk.ac.standrews.cs.shabdiz.impl;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.net.UnknownHostException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -38,36 +40,30 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.madface.URL;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.ILauncher;
-import uk.ac.standrews.cs.shabdiz.interfaces.ILauncherCallback;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorker;
-import uk.ac.standrews.cs.shabdiz.util.LibraryUtil;
+import uk.ac.standrews.cs.shabdiz.interfaces.Launcher;
+import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
+import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 
 /**
  * Deploys workers on hosts. Uses MADFACE to deploy workers.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class Launcher implements ILauncher, ILauncherCallback {
+public class DefaultLauncher implements Launcher, LauncherCallback {
 
     private static final int EPHEMERAL_PORT = 0;
-    private static final List<String> DEFAULT_WORKER_JVM_PARAMS = Arrays.asList(new String[]{"-Xmx128m"}); // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
-    private final InetSocketAddress callback_server_address; // The address on which the callback server is exposed
+    private static final String WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
+    private final InetSocketAddress callback_address; // The address on which the callback server is exposed
     private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
 
-    private final WorkerRemoteFactory worker_remote_factory;
-
-    private final Set<URL> application_lib_urls;
+    private final RemoteJavaProcessBuilder worker_process_builder;
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,16 +77,16 @@ public class Launcher implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Launcher() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public DefaultLauncher() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        this(new HashSet<URL>());
+        this(new HashSet<File>());
     }
 
     /**
      * Instantiates a new launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
      * 
-     * @param application_lib_urls the application library URLs
+     * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -98,9 +94,9 @@ public class Launcher implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Launcher(final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public DefaultLauncher(final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        this(EPHEMERAL_PORT, application_lib_urls);
+        this(EPHEMERAL_PORT, classpath);
     }
 
     /**
@@ -108,7 +104,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
      * 
      * @param callback_server_port the port on which the callback server is exposed
-     * @param application_lib_urls the application library URLs
+     * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -116,29 +112,39 @@ public class Launcher implements ILauncher, ILauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public Launcher(final int callback_server_port, final Set<URL> application_lib_urls) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
-
-        this.application_lib_urls = application_lib_urls;
-        this.application_lib_urls.addAll(LibraryUtil.getShabdizApplicationLibraryURLs()); // Add the libraries needed by Shabdiz itself
+    public DefaultLauncher(final int callback_server_port, final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
-
         callback_server = new LauncherCallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
-        callback_server_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
+        callback_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
+        worker_process_builder = createRemoteJavaProcessBuiler(classpath, WORKER_JVM_ARGUMENTS);
 
-        worker_remote_factory = new WorkerRemoteFactory();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public IWorker deployWorkerOnHost(final HostDescriptor host_descriptor) throws Exception {
+    public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException {
 
-        configureHostDescriptor(host_descriptor); // Prepare host for deployment
-        worker_remote_factory.createNode(host_descriptor); // Deploy.
+        final Process worker_process = worker_process_builder.start(host);
+        final InetSocketAddress worker_address = getWorerRemoteAddressFromProcessOutput(worker_process);
 
-        return new Worker(this, host_descriptor.getInetSocketAddress()); // Return the smart proxy to the worker remote.
+        return new DefaultWorker(this, worker_address, worker_process); // Return the smart proxy to the worker remote.
+    }
+
+    private InetSocketAddress getWorerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException {
+
+        // TODO add timeout
+        InetSocketAddress worker_address;
+        final InputStreamReader reader = new InputStreamReader(worker_process.getInputStream());
+        final BufferedReader br = new BufferedReader(reader); // this is not closed on purpose.  the stream belongs to Process instance.
+        do {
+            final String output_line = br.readLine();
+            worker_address = WorkerNodeServer.parseOutputLine(output_line);
+        }
+        while (worker_address == null);
+        return worker_address;
     }
 
     @Override
@@ -167,7 +173,7 @@ public class Launcher implements ILauncher, ILauncherCallback {
      * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
      * Note that any pending {@link Future} will end in exception.
      * 
-     * @see ILauncher#shutdown()
+     * @see DefaultLauncher#shutdown()
      */
     @Override
     public void shutdown() {
@@ -176,40 +182,25 @@ public class Launcher implements ILauncher, ILauncherCallback {
         releaseAllPendingFutures(); // Release the futures which are still pending for notification
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
+    <Result extends Serializable> void notifyJobSubmission(final FutureRemoteProxy<Result> future_remote) {
 
-    synchronized <Result extends Serializable> Future<Result> submitJob(final IJobRemote<Result> job, final InetSocketAddress worker_address) throws RPCException {
-
-        final UUID job_id = WorkerRemoteProxyFactory.getProxy(worker_address).submitJob(job);
-        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-        id_future_map.put(job_id, future_remote);
-
-        return future_remote;
+        id_future_map.put(future_remote.getJobID(), future_remote);
     }
 
-    void shutdownWorker(final InetSocketAddress worker_address) throws RPCException {
+    private RemoteJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final String jvm_arguments) {
 
-        WorkerRemoteProxyFactory.getProxy(worker_address).shutdown();
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    private void configureHostDescriptor(final HostDescriptor host_descriptor) {
-
-        final Object[] application_deployment_params = new Object[]{callback_server_address};
-        host_descriptor.applicationDeploymentParams(application_deployment_params);
-        if (host_descriptor.getJVMDeploymentParams() == null) {
-            host_descriptor.jvmDeploymentParams(DEFAULT_WORKER_JVM_PARAMS);
-        }
-        host_descriptor.applicationURLs(application_lib_urls);
+        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(WorkerNodeServer.class);
+        process_builder.addCommandLineArgument(WorkerNodeServer.LAUNCHER_CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
+        process_builder.addJVMArgument(jvm_arguments);
+        process_builder.addClasspath(classpath);
+        process_builder.addCurrentJVMClasspath();
+        return process_builder;
     }
 
     private void expose(final InetSocketAddress expose_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         callback_server.setLocalAddress(expose_address.getAddress());
         callback_server.setPort(expose_address.getPort());
-
-        //        callback_server.start(true);
         callback_server.startWithNoRegistry();
     }
 

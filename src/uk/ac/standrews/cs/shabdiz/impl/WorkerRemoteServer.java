@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
  * Handles incoming calls to a worker.
@@ -49,20 +49,20 @@ class WorkerRemoteServer extends ApplicationServer {
 
     private final ShabdizRemoteMarshaller marshaller;
 
-    private final WorkerRemote worker;
+    private final DefaultWorkerRemote worker;
 
     /**
      * Instantiates a new worker remote server for a given worker node.
-     *
+     * 
      * @param worker the worker
      */
-    WorkerRemoteServer(final WorkerRemote worker) {
+    WorkerRemoteServer(final DefaultWorkerRemote worker) {
 
         super();
         this.worker = worker;
         marshaller = new ShabdizRemoteMarshaller();
 
-        initHandlers();
+        initRPCHandlers();
     }
 
     @Override
@@ -79,11 +79,10 @@ class WorkerRemoteServer extends ApplicationServer {
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private void initHandlers() {
+    private void initRPCHandlers() {
 
         handler_map.put(WorkerRemoteProxy.SUBMIT_REMOTE_METHOD_NAME, new SubmitHandler());
         handler_map.put(WorkerRemoteProxy.SHUTDOWN_REMOTE_METHOD_NAME, new ShutdownHandler());
-
         handler_map.put(FutureRemoteProxy.CANCEL_REMOTE_METHOD_NAME, new CancelHandler());
     }
 
@@ -95,10 +94,10 @@ class WorkerRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             try {
-                final IJobRemote<? extends Serializable> job = marshaller.deserializeRemoteJob(args);
+                final JobRemote<? extends Serializable> job = marshaller.deserializeRemoteJob(args);
 
                 final UUID job_id = worker.submitJob(job);
-                marshaller.serializeUUID(job_id, response);
+                Marshaller.serializeUUID(job_id, response);
             }
             catch (final DeserializationException e) {
                 throw new RemoteWorkerException(e);
@@ -122,9 +121,8 @@ class WorkerRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             try {
-                final UUID job_id = marshaller.deserializeUUID(args);
+                final UUID job_id = Marshaller.deserializeUUID(args);
                 final boolean may_interrupt_if_running = args.booleanValue();
-
                 final boolean cancelled = worker.cancelJob(job_id, may_interrupt_if_running);
                 response.value(cancelled);
 

@@ -40,7 +40,7 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.DeserializationException;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 
 /**
  * The Class McJobRemoteMarshaller.
@@ -166,23 +166,23 @@ public class ShabdizRemoteMarshaller extends Marshaller {
      * @throws JSONException if a JSON related error occurs
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public void serializeRemoteJob(final IJobRemote<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
+    public void serializeRemoteJob(final JobRemote<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
 
         ShabdizRemoteMarshaller.serializeSerializable(remote_job, writer);
     }
 
     /**
-     * Deserialises a {@link IJobRemote}.
+     * Deserialises a {@link JobRemote}.
      * 
      * @param reader the reader to read the serialised job from
      * @return the deserialised remote job
      * @throws DeserializationException if unable to deserialise
      */
     @SuppressWarnings("unchecked")
-    public IJobRemote<?> deserializeRemoteJob(final JSONReader reader) throws DeserializationException {
+    public JobRemote<?> deserializeRemoteJob(final JSONReader reader) throws DeserializationException {
 
         try {
-            return (IJobRemote<? extends Serializable>) ShabdizRemoteMarshaller.deserializeSerializable(reader);
+            return (JobRemote<? extends Serializable>) ShabdizRemoteMarshaller.deserializeSerializable(reader);
         }
         catch (final Exception e) {
             throw new DeserializationException(e);

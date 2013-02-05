@@ -40,12 +40,13 @@ import org.json.JSONWriter;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
+import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 
 /**
  * Presents a proxy to the pending result of a remote computation.
  * The communications between this class and the remote worker which executes the computation are performed passively.
- *
+ * 
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -81,7 +82,7 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
 
     /**
      * Instantiates a new proxy to the pending result of a remote computation.
-     *
+     * 
      * @param job_id the id of the remote computation
      * @param worker_address the address of the worker which performs the computation
      */
@@ -170,6 +171,11 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
         return current_state != State.PENDING;
     }
 
+    UUID getJobID() {
+
+        return job_id;
+    }
+
     // -------------------------------------------------------------------------------------------------------------------------------
 
     void setException(final Exception exception) {
@@ -247,7 +253,7 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
             final AbstractStreamConnection connection = startCall(CANCEL_REMOTE_METHOD_NAME);
 
             final JSONWriter writer = connection.getJSONwriter();
-            marshaller.serializeUUID(job_id, writer);
+            Marshaller.serializeUUID(job_id, writer);
             writer.value(may_interrupt_if_running);
 
             final JSONReader reader = makeCall(connection);

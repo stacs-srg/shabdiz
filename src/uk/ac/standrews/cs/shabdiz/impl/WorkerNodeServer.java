@@ -23,7 +23,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.servers;
+package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,10 +32,13 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.CommandLineArgs;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
@@ -44,17 +47,17 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
-import uk.ac.standrews.cs.shabdiz.impl.WorkerRemoteFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
 
 /**
  * THe entry point to start up a new worker.
  * 
- * @author Alan Dearle (al@cs.st-andrews.ac.uk)
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerNodeServer {
+
+    private static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS=";
+
+    private static final Logger LOGGER = Logger.getLogger(WorkerNodeServer.class.getName());
 
     /** The parameter that specifies the diagnostic level. */
     public static final String DIAGNOSTIC_LEVEL_KEY = "-D";
@@ -85,7 +88,7 @@ public class WorkerNodeServer {
 
     /**
      * Instantiates a new worker node server.
-     *
+     * 
      * @param args the startup arguments
      * @throws UndefinedDiagnosticLevelException the undefined diagnostic level exception
      * @throws UnknownHostException the unknown host exception
@@ -95,7 +98,7 @@ public class WorkerNodeServer {
 
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
 
-        configureDiagnostics(arguments);
+        configureLogLevel(arguments);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
     }
@@ -107,14 +110,12 @@ public class WorkerNodeServer {
      * <dl>
      * <dt>-shost:port (required)</dt>
      * <dd>Specifies the local address and port at which the worker service should be made available.</dd>
-     * 
      * <dt>-chost:port (required)</dt>
      * <dd>Specifies the address and port of an existing launcher callback server.</dd>
-     * 
      * <dt>-Dlevel (optional)</dt>
      * <dd>Specifies a diagnostic level from 0 (most detailed) to 6 (least detailed).</dd>
      * </dl>
-     *
+     * 
      * @param args see above
      * @throws RPCException if an error occurs binding the node to the registry
      * @throws UndefinedDiagnosticLevelException if the specified diagnostic level is not valid
@@ -128,20 +129,32 @@ public class WorkerNodeServer {
 
         final WorkerNodeServer server = new WorkerNodeServer(args);
         try {
-
-            server.createNode();
-            Diagnostic.trace("Started Shabdiz worker at " + server.local_address);
+            final DefaultWorkerRemote worker = server.createNode();
+            printWorkerAddress(worker);
+            LOGGER.info("Started Shabdiz worker at " + worker.getAddress());
         }
         catch (final IOException e) {
-            Diagnostic.trace("Couldn't start Shabdiz worker at " + server.local_address + " : " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Couldn't start Shabdiz worker at " + server.local_address, e);
         }
     }
 
     // -------------------------------------------------------------------------------------------------------
 
+    private static void printWorkerAddress(final DefaultWorkerRemote worker) {
+
+        synchronized (System.out) {
+            System.out.println(WORKER_REMOTE_ADDRESS_KEY + worker.getAddress());
+        }
+    }
+
+    public static InetSocketAddress parseOutputLine(final String line) throws UnknownHostException {
+
+        return line.startsWith(WORKER_REMOTE_ADDRESS_KEY) ? Marshaller.getAddress(line.split("=")[1]) : null;
+    }
+
     /**
      * Creates a new worker node.
-     *
+     * 
      * @return the created worker node
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
@@ -150,9 +163,9 @@ public class WorkerNodeServer {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public IWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public DefaultWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        return WorkerRemoteFactory.createNode(local_address, launcher_callback_address);
+        return new DefaultWorkerRemote(local_address, launcher_callback_address);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -162,7 +175,7 @@ public class WorkerNodeServer {
         ErrorHandling.hardError("Usage: -shost:port -chost:port [-Dlevel]");
     }
 
-    private void configureDiagnostics(final Map<String, String> arguments) throws UndefinedDiagnosticLevelException {
+    private void configureLogLevel(final Map<String, String> arguments) throws UndefinedDiagnosticLevelException {
 
         Diagnostic.setLevel(DiagnosticLevel.getDiagnosticLevelFromCommandLineArg(arguments.get(DIAGNOSTIC_LEVEL_KEY), DEFAULT_DIAGNOSTIC_LEVEL));
         Diagnostic.setTimestampFlag(true);
@@ -174,10 +187,12 @@ public class WorkerNodeServer {
     private void configureLocalAddress(final Map<String, String> arguments) throws UnknownHostException {
 
         final String local_address_parameter = arguments.get(LOCAL_ADDRESS_KEY);
-        if (local_address_parameter == null) {
-            usage();
+        if (local_address_parameter != null) {
+            local_address = NetworkUtil.extractInetSocketAddress(local_address_parameter, 0);
         }
-        local_address = NetworkUtil.extractInetSocketAddress(local_address_parameter, 0);
+        else {
+            local_address = NetworkUtil.getLocalIPv4InetSocketAddress(0);
+        }
     }
 
     private void configureLauncherAddress(final Map<String, String> arguments) throws UnknownHostException {

@@ -33,61 +33,52 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
-import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.IJobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.IWorkerRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
+import uk.ac.standrews.cs.shabdiz.interfaces.WorkerRemote;
 
 /**
- * An implementation of {@link IWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
+ * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class WorkerRemote implements IWorkerRemote {
+class DefaultWorkerRemote implements WorkerRemote {
 
     private final InetSocketAddress local_address;
-    private final ExecutorService exexcutor_service;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> id_future_map;
+    private final ExecutorService exexcutor;
+    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final WorkerRemoteServer server;
+    private final InetSocketAddress callback_address;
 
-    private final InetSocketAddress launcher_callback_address;
+    DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException {
 
-    WorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
-
-        this.local_address = local_address;
-        this.launcher_callback_address = launcher_callback_address;
-
-        id_future_map = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor_service = Executors.newCachedThreadPool(new NamingThreadFactory("worker_on_" + local_address.getPort() + "_"));
-
+        this.callback_address = launcher_callback_address;
+        submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         server = new WorkerRemoteServer(this);
-        expose();
+        expose(local_address);
+        this.local_address = server.getAddress();
+        exexcutor = createExecutorService();
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     @Override
-    public UUID submitJob(final IJobRemote<? extends Serializable> job) {
+    public UUID submitJob(final JobRemote<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
-
-        exexcutor_service.execute(new Runnable() {
+        exexcutor.execute(new Runnable() {
 
             @Override
             public void run() {
 
-                final Future<? extends Serializable> real_future = exexcutor_service.submit(job);
-                id_future_map.put(job_id, real_future);
+                final Future<? extends Serializable> real_future = exexcutor.submit(job);
+                submitted_jobs.put(job_id, real_future);
 
                 try {
-
+                    //TODO this blocks until the job is complete; Could be written nicer so that it runs after completion.
                     handleCompletion(job_id, real_future.get());
                 }
                 catch (final Exception e) {
@@ -102,7 +93,7 @@ class WorkerRemote implements IWorkerRemote {
     @Override
     public synchronized void shutdown() {
 
-        exexcutor_service.shutdownNow();
+        exexcutor.shutdownNow();
 
         try {
             unexpose();
@@ -114,30 +105,29 @@ class WorkerRemote implements IWorkerRemote {
         StreamProxy.CONNECTION_POOL.shutdown();
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     boolean cancelJob(final UUID job_id, final boolean may_interrupt_if_running) throws RemoteWorkerException {
 
-        if (id_future_map.containsKey(job_id)) {
-            final boolean cancelled = id_future_map.get(job_id).cancel(may_interrupt_if_running);
-
+        if (submitted_jobs.containsKey(job_id)) {
+            final boolean cancelled = submitted_jobs.get(job_id).cancel(may_interrupt_if_running);
             if (cancelled) {
-                id_future_map.remove(job_id);
+                submitted_jobs.remove(job_id);
             }
-
             return cancelled;
         }
 
         throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
+    private ExecutorService createExecutorService() {
+
+        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_on_" + local_address.getPort() + "_"));
+    }
 
     private void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
-            LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyCompletion(job_id, result); // Tell launcher about the result
-            id_future_map.remove(job_id);
+            LauncherCallbackRemoteProxyFactory.getProxy(callback_address).notifyCompletion(job_id, result); // Tell launcher about the result
+            submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
@@ -148,21 +138,19 @@ class WorkerRemote implements IWorkerRemote {
     private void handleException(final UUID job_id, final Exception exception) {
 
         try {
-            LauncherCallbackRemoteProxyFactory.getProxy(launcher_callback_address).notifyException(job_id, exception); // Tell launcher about the exception
-            id_future_map.remove(job_id);
+            LauncherCallbackRemoteProxyFactory.getProxy(callback_address).notifyException(job_id, exception); // Tell launcher about the exception
+            submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
+            // TODO use some sort of error manager  which handles the launcher callback rpc exception
             e.printStackTrace();
         }
     }
 
-    private void expose() throws IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException, RPCException {
+    private void expose(final InetSocketAddress server_address) throws IOException {
 
-        server.setLocalAddress(local_address.getAddress());
-        server.setPort(local_address.getPort());
-
-        //        server.start(true);
+        server.setLocalAddress(server_address.getAddress());
+        server.setPort(server_address.getPort());
         server.startWithNoRegistry();
     }
 
@@ -174,5 +162,10 @@ class WorkerRemote implements IWorkerRemote {
     private static synchronized UUID generateJobId() {
 
         return UUID.randomUUID();
+    }
+
+    public InetSocketAddress getAddress() {
+
+        return local_address;
     }
 }

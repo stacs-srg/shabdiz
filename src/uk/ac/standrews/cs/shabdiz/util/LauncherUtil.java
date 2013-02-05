@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.shabdiz.impl.Launcher;
+import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
 
 /**
- * Provides utility methods for a {@link Launcher}.
+ * Provides utility methods for a {@link DefaultLauncher}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
