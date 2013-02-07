@@ -1,13 +1,14 @@
 package uk.ac.standrews.cs.shabdiz.impl;
 
-import com.ariabod.barreleye.SSHSession;
-import com.ariabod.barreleye.UIKeyboardInteractive;
-import com.ariabod.barreleye.UserInfo;
-import com.ariabod.barreleye.exception.SSHException;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import uk.ac.standrews.cs.barreleye.SSHSession;
+import uk.ac.standrews.cs.barreleye.UIKeyboardInteractive;
+import uk.ac.standrews.cs.barreleye.UserInfo;
+import uk.ac.standrews.cs.barreleye.exception.SSHException;
 
 public class PasswordCredentials extends Credentials {
 

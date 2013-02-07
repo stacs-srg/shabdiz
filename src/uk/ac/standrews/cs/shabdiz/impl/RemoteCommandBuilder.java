@@ -9,8 +9,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import com.ariabod.barreleye.ChannelExec;
-import com.ariabod.barreleye.ChannelType;
+import uk.ac.standrews.cs.barreleye.ChannelExec;
+import uk.ac.standrews.cs.barreleye.ChannelType;
+
 
 public class RemoteCommandBuilder implements RemoteProcessBuilder {
 

@@ -11,10 +11,11 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ariabod.barreleye.ChannelSftp;
-import com.ariabod.barreleye.ChannelSftp.LsEntry;
-import com.ariabod.barreleye.ChannelType;
-import com.ariabod.barreleye.exception.SFTPException;
+import uk.ac.standrews.cs.barreleye.ChannelSftp;
+import uk.ac.standrews.cs.barreleye.ChannelType;
+import uk.ac.standrews.cs.barreleye.ChannelSftp.LsEntry;
+import uk.ac.standrews.cs.barreleye.exception.SFTPException;
+
 
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 

@@ -8,11 +8,12 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ariabod.barreleye.Channel;
-import com.ariabod.barreleye.ChannelType;
-import com.ariabod.barreleye.SSHSession;
-import com.ariabod.barreleye.SSHSessionFactory;
-import com.ariabod.barreleye.exception.SSHException;
+import uk.ac.standrews.cs.barreleye.Channel;
+import uk.ac.standrews.cs.barreleye.ChannelType;
+import uk.ac.standrews.cs.barreleye.SSHSession;
+import uk.ac.standrews.cs.barreleye.SSHSessionFactory;
+import uk.ac.standrews.cs.barreleye.exception.SSHException;
+
 
 public class Host {
 

@@ -1,12 +1,14 @@
 package uk.ac.standrews.cs.shabdiz.impl;
 
-import com.ariabod.barreleye.SSHSession;
-import com.ariabod.barreleye.SSHSessionFactory;
-import com.ariabod.barreleye.exception.SSHException;
 
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
+
+import uk.ac.standrews.cs.barreleye.SSHSession;
+import uk.ac.standrews.cs.barreleye.SSHSessionFactory;
+import uk.ac.standrews.cs.barreleye.exception.SSHException;
+
 import java.awt.*;
 import java.io.Console;
 import java.io.File;
