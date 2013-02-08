@@ -1,0 +1,7 @@
+
+syntax: regexp
+^\.idea$
+syntax: regexp
+^shabdiz\.iml$
+syntax: regexp
+^target$
