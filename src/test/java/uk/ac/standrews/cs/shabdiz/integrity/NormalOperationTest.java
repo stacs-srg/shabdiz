@@ -23,7 +23,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.test.integrity;
+package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -40,14 +41,14 @@ import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
 import uk.ac.standrews.cs.shabdiz.impl.Host;
 import uk.ac.standrews.cs.shabdiz.impl.PasswordCredentials;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
-import uk.ac.standrews.cs.shabdiz.test.util.TestJobRemoteFactory;
+import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
 /**
  * Tests whether a deployed job returns expected result.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-
+@Ignore
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";

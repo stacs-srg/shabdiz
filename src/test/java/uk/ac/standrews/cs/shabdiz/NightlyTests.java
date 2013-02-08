@@ -23,7 +23,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.test;
+package uk.ac.standrews.cs.shabdiz;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
