@@ -6,7 +6,6 @@
 		<groupId>uk.ac.standrews.cs</groupId>
 		<artifactId>common-pom</artifactId>
 		<version>1.0</version>
-		<relativePath />
 	</parent>
 
 	<groupId>uk.ac.standrews.cs</groupId>
@@ -31,7 +30,7 @@
 		<developerConnection>scm:${repository.type}:${repository.location}</developerConnection>
 		<url>scm:${repository.type}:${repository.location}</url>
 	</scm>
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.json</groupId>
