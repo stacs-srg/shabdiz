@@ -10,7 +10,7 @@ import org.json.JSONException;
 import uk.ac.standrews.cs.nds.madface.exceptions.InvalidCredentialsException;
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONValue;
-import uk.ac.standrews.cs.nds.util.Input;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 import com.mindbright.ssh2.SSH2Exception;
 import com.mindbright.ssh2.SSH2SimpleClient;
@@ -19,39 +19,27 @@ import com.mindbright.ssh2.SSH2Transport;
 /**
  * Represents a set of authentication credentials, catering for the various permutations of current user or named user;
  * private key or password; encrypted or unencrypted private key; and default or specified private key location.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class Credentials {
 
-    /**
-     * The JSON key for the user name.
-     */
+    /** The JSON key for the user name. */
     public static final String USER_NAME_KEY = "user_name";
 
-    /**
-     * The JSON key for the password.
-     */
+    /** The JSON key for the password. */
     public static final String PASSWORD_KEY = "password";
 
-    /**
-     * The JSON key for the private key file path.
-     */
+    /** The JSON key for the private key file path. */
     public static final String KEY_FILE_KEY = "key_file";
 
-    /**
-     * The JSON key for the private key passphrase.
-     */
+    /** The JSON key for the private key passphrase. */
     public static final String KEY_PASSPHRASE_KEY = "key_passphrase";
 
-    /**
-     * The name of the private key file.
-     */
+    /** The name of the private key file. */
     public static final String PRIVATE_KEY_NAME = "id_rsa";
 
-    /**
-     * The directory containing the private key file.
-     */
+    /** The directory containing the private key file. */
     public static final String SSH_DIR = ".ssh";
 
     // -------------------------------------------------------------------------------------------------------
@@ -63,9 +51,7 @@ public class Credentials {
 
     // -------------------------------------------------------------------------------------------------------
 
-    /**
-     * Creates credentials for the current user using default private key location.
-     */
+    /** Creates credentials for the current user using default private key location. */
     public Credentials() {
 
         currentUser();
@@ -75,7 +61,7 @@ public class Credentials {
     /**
      * Creates credentials from a serialized representation as a JSON string. The representation must contain a string user name with the key {@link #USER_NAME_KEY}, plus either a string
      * password with the key {@link #PASSWORD_KEY}, or a string private key file path with the key {@link #KEY_FILE_KEY} plus a string private key passphrase with the key {@link #KEY_PASSPHRASE_KEY}.
-     *
+     * 
      * @param serialized_credentials the serialized credentials
      * @throws InvalidCredentialsException if the representation is invalid
      */
@@ -85,12 +71,12 @@ public class Credentials {
     }
 
     /**
-    * Creates credentials from a serialized representation as a JSON string. The representation must contain a string user name with the key {@link #USER_NAME_KEY}, plus either a string
-    * password with the key {@link #PASSWORD_KEY}, or a string private key file path with the key {@link #KEY_FILE_KEY} plus a string private key passphrase with the key {@link #KEY_PASSPHRASE_KEY}.
-    *
-    * @param serialized_credentials the serialized credentials
-    * @throws InvalidCredentialsException if the representation is invalid
-    */
+     * Creates credentials from a serialized representation as a JSON string. The representation must contain a string user name with the key {@link #USER_NAME_KEY}, plus either a string
+     * password with the key {@link #PASSWORD_KEY}, or a string private key file path with the key {@link #KEY_FILE_KEY} plus a string private key passphrase with the key {@link #KEY_PASSPHRASE_KEY}.
+     * 
+     * @param serialized_credentials the serialized credentials
+     * @throws InvalidCredentialsException if the representation is invalid
+     */
     public Credentials(final String serialized_credentials) throws InvalidCredentialsException {
 
         try {
@@ -129,7 +115,7 @@ public class Credentials {
 
     /**
      * Sets the user to the current user as defined by the system property "user.name".
-     *
+     * 
      * @return this object
      */
     public Credentials currentUser() {
@@ -140,7 +126,7 @@ public class Credentials {
 
     /**
      * Sets the user.
-     *
+     * 
      * @param user_name a user name
      * @return this object
      */
@@ -152,7 +138,7 @@ public class Credentials {
 
     /**
      * Sets authentication to private key using an unencrypted key file in the default location.
-     *
+     * 
      * @return this object
      */
     public Credentials privateKey() {
@@ -162,7 +148,7 @@ public class Credentials {
 
     /**
      * Sets authentication to private key using the specified unencrypted key file.
-     *
+     * 
      * @param key_file the key file
      * @return this object
      */
@@ -175,7 +161,7 @@ public class Credentials {
 
     /**
      * Sets the private key passphrase.
-     *
+     * 
      * @param key_passphrase the key file
      * @return this object
      */
@@ -187,7 +173,7 @@ public class Credentials {
 
     /**
      * Sets authentication to use the specified password.
-     *
+     * 
      * @param password the password
      * @return this object
      */
@@ -201,7 +187,7 @@ public class Credentials {
 
     /**
      * Returns the user name.
-     *
+     * 
      * @return the user name
      */
     public String getUser() {
@@ -211,7 +197,7 @@ public class Credentials {
 
     /**
      * Serializes the credentials to a JSON string.
-     *
+     * 
      * @return the serialized credentials
      */
     public JSONValue serialize() {
@@ -298,6 +284,7 @@ public class Credentials {
 
     /**
      * Create the serialized JSON string needed for {@link #Credentials(String)}.
+     * 
      * @param username
      * @param keyFileLocation
      * @param keyPassphrase

@@ -1,40 +1,64 @@
 package uk.ac.standrews.cs.shabdiz.impl;
 
-
-import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-
-import uk.ac.standrews.cs.barreleye.SSHSession;
-import uk.ac.standrews.cs.barreleye.SSHSessionFactory;
-import uk.ac.standrews.cs.barreleye.exception.SSHException;
-
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+
+import uk.ac.standrews.cs.barreleye.SSHClient;
+import uk.ac.standrews.cs.barreleye.SSHClientFactory;
+import uk.ac.standrews.cs.barreleye.exception.SSHException;
 
 public abstract class Credentials {
 
     static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
     static final File SSH_KNOWN_HOSTS = new File(PublicKeyCredentials.SSH_HOME, "known_hosts");
+
     private final String username;
 
-    public Credentials() {
+    protected Credentials() {
 
-        this(System.getProperty("user.name"));
+        this(getCurrentUser());
     }
 
-    public Credentials(final String username) {
+    protected Credentials(final String username) {
 
         this.username = username;
     }
 
     /**
-     * Gets a masked string, from the console if possible, otherwise using a Swing dialog.
-     *
-     * @param prompt the user prompt
-     * @return the string entered
+     * Gets the specified username.
+     * 
+     * @return the username
+     */
+    public String getUsername() {
+
+        return username;
+    }
+
+    /**
+     * Authenticates a given {@link SSHClient}.
+     * 
+     * @param client the SSH client to authenticate
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    abstract void authenticate(final SSHClient client) throws IOException;
+
+    /**
+     * Prompts the given message and reads a password or passphrase.
+     * If a console is available, the string is read via command-line with echoing disabled; otherwise using a GUI with masked input.
+     * 
+     * @param prompt the message to be prompted to the user
+     * @return A character array containing the password or passphrase, not including any line-termination characters, or {@code null} if an end of stream has been reached.
      */
     public static char[] readPassword(final String prompt) {
 
@@ -64,23 +88,32 @@ public abstract class Credentials {
                 @Override
                 public void ancestorMoved(final AncestorEvent e) {
 
+                    //ignore;
                 }
 
                 @Override
                 public void ancestorRemoved(final AncestorEvent e) {
 
+                    //ignore;
                 }
             });
+
             dialog.setVisible(true);
             return !option_pane.getValue().equals(JOptionPane.OK_OPTION) ? null : password_field.getPassword();
-        } finally {
+        }
+        finally {
             dialog.dispose();
         }
     }
 
-    static void setSSHKnownHosts(final SSHSessionFactory sshSessionFactory) throws SSHException {
+    static void setSSHKnownHosts(final SSHClientFactory sshSessionFactory) throws SSHException {
 
         sshSessionFactory.setKnownHosts(SSH_KNOWN_HOSTS.getAbsolutePath());
+    }
+
+    protected static String getCurrentUser() {
+
+        return System.getProperty("user.name");
     }
 
     protected static byte[] toBytes(final char[] chars) {
@@ -88,19 +121,13 @@ public abstract class Credentials {
         final byte[] bytes;
         if (chars == null) {
             bytes = null;
-        } else {
+        }
+        else {
             bytes = new byte[chars.length];
             for (int i = 0; i < bytes.length; i++) {
                 bytes[i] = (byte) chars[i];
             }
         }
         return bytes;
-    }
-
-    abstract void authenticate(final SSHSession session) throws IOException;
-
-    public String getUsername() {
-
-        return username;
     }
 }

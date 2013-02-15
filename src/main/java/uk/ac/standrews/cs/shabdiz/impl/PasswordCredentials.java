@@ -1,11 +1,9 @@
 package uk.ac.standrews.cs.shabdiz.impl;
 
-
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.barreleye.SSHSession;
+import uk.ac.standrews.cs.barreleye.SSHClient;
 import uk.ac.standrews.cs.barreleye.UIKeyboardInteractive;
 import uk.ac.standrews.cs.barreleye.UserInfo;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
@@ -33,11 +31,13 @@ public class PasswordCredentials extends Credentials {
     }
 
     @Override
-    void authenticate(final SSHSession session) throws IOException {
+    void authenticate(final SSHClient session) throws SSHException {
+
         session.setUserInfo(createUserInfo());
     }
 
     protected UserInfo createUserInfo() throws SSHException {
+
         return new PasswordUserInfo(getPasswordAsBytes());
     }
 
@@ -57,36 +57,43 @@ public class PasswordCredentials extends Credentials {
 
         @Override
         public byte[] getPassphrase() {
+
             return null;
         }
 
         @Override
         public byte[] getPassword() {
+
             return password;
         }
 
         @Override
         public boolean promptPassword(final String message) {
+
             return true;
         }
 
         @Override
         public boolean promptPassphrase(final String message) {
+
             return false;
         }
 
         @Override
         public boolean promptYesNo(final String message) {
+
             return true;
         }
 
         @Override
         public void showMessage(final String message) {
+
             LOGGER.log(Level.INFO, message);
         }
 
         @Override
         public String[] promptKeyboardInteractive(final String destination, final String name, final String instruction, final String[] prompt, final boolean[] echo) {
+
             //TODO fix this in barreleye
             return null;
         }

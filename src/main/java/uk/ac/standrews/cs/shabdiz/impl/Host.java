@@ -10,8 +10,8 @@ import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.barreleye.Channel;
 import uk.ac.standrews.cs.barreleye.ChannelType;
-import uk.ac.standrews.cs.barreleye.SSHSession;
-import uk.ac.standrews.cs.barreleye.SSHSessionFactory;
+import uk.ac.standrews.cs.barreleye.SSHClient;
+import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
 
 
@@ -22,7 +22,7 @@ public class Host {
     private final InetAddress address;
     private final boolean local;
     private final Credentials credentials;
-    private final SSHSession session;
+    private final SSHClient session;
     private volatile Platform platform;
 
     public Host(final String name, final Credentials credentials) throws UnknownHostException, SSHException {
@@ -33,10 +33,10 @@ public class Host {
         session = createSSHSession(name);
     }
 
-    private SSHSession createSSHSession(final String host_name) throws SSHException {
+    private SSHClient createSSHSession(final String host_name) throws SSHException {
 
-        final SSHSessionFactory session_factory = SSHSessionFactory.getInstance();
-        final SSHSession session = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
+        final SSHClientFactory session_factory = SSHClientFactory.getInstance();
+        final SSHClient session = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
         Credentials.setSSHKnownHosts(session_factory);
         return session;
     }

@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 import com.mindbright.ssh2.SSH2Exception;
 

@@ -25,12 +25,14 @@
 
 package uk.ac.standrews.cs.nds.madface.exceptions;
 
+import java.io.IOException;
+
 /**
  * Indicates unequal array lengths.
  *
  * @author Graham Kirby(graham.kirby@st-andrews.ac.uk)
  */
-public class InvalidCredentialsException extends Exception {
+public class InvalidCredentialsException extends IOException {
 
     /**
      * Creates an exception with a given message.
