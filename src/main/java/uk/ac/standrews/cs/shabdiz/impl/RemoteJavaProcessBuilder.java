@@ -2,20 +2,10 @@ package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import uk.ac.standrews.cs.barreleye.ChannelSftp;
-import uk.ac.standrews.cs.barreleye.ChannelType;
-import uk.ac.standrews.cs.barreleye.ChannelSftp.LsEntry;
-import uk.ac.standrews.cs.barreleye.exception.SFTPException;
-
 
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
@@ -47,77 +37,22 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host, remote_working_directory);
         LOGGER.info("prepareing to execute command: " + command);
-        final RemoteCommandBuilder command_builder = new RemoteCommandBuilder(command);
-        return command_builder.start(host);
+        return host.execute(command);
     }
 
     private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
 
-        final ChannelSftp sftp = host.openSSHChannel(ChannelType.SFTP);
-        try {
-            sftp.connect();
-            final String remote_working_directory = createRemoteWorkingDirectory(sftp);
-            LOGGER.log(Level.INFO, "created remote directory: " + remote_working_directory);
-            transferFilesRecursively(sftp, classpath);
-            return remote_working_directory;
-        }
-        finally {
-            sftp.disconnect();
-        }
+        final String remote_working_directory = getRemoteWorkingDirectory(host);
+        host.upload(classpath, remote_working_directory);
+        return remote_working_directory;
     }
 
-    private void transferFilesRecursively(final ChannelSftp sftp, final Collection<File> files) throws SFTPException {
+    private String getRemoteWorkingDirectory(final Host host) throws IOException {
 
-        for (final File file : files) {
-            if (file.isDirectory()) {
-                transferDirectory(sftp, file);
-            }
-            else {
-                transferFile(sftp, file);
-            }
-        }
+        return TEMP_DIR + host.getPlatform().getSeparator() + UUID.randomUUID().toString();
     }
 
-    private void transferFile(final ChannelSftp sftp, final File file) throws SFTPException {
-
-        final String file_name = file.getName();
-        if (!exists(file_name, sftp)) {
-            sftp.put(file.getAbsolutePath(), file_name);
-        }
-    }
-
-    private void transferDirectory(final ChannelSftp sftp, final File path) throws SFTPException {
-
-        assert path.isDirectory();
-        final String directory_name = path.getName();
-        System.out.println(path);
-        if (!exists(directory_name, sftp)) {
-            sftp.mkdir(directory_name);
-        }
-        sftp.cd(directory_name);
-        transferFilesRecursively(sftp, Arrays.asList(path.listFiles()));
-        sftp.cd("../");
-    }
-
-    private boolean exists(final String name, final ChannelSftp sftp) throws SFTPException {
-
-        final List<LsEntry> list = sftp.ls(".");
-        for (final LsEntry entry : list) {
-            if (entry.getFilename().equals(name)) { return true; }
-        }
-        return false;
-    }
-
-    private String createRemoteWorkingDirectory(final ChannelSftp sftp) throws SFTPException {
-
-        final String working_directory = UUID.randomUUID().toString();
-        sftp.cd(TEMP_DIR); //TODO check if /tmp exist
-        sftp.mkdir(working_directory);
-        sftp.cd(working_directory);
-        return sftp.pwd();
-    }
-
-    private String assembleRemoteJavaCommand(final Host host, final String remote_working_directory) throws IOException, InterruptedException {
+    private String assembleRemoteJavaCommand(final Host host, final String remote_working_directory) throws IOException {
 
         final StringBuilder command = new StringBuilder();
         final Platform platform = host.getPlatform();

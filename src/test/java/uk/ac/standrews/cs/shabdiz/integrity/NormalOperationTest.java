@@ -31,7 +31,6 @@ import java.util.concurrent.Future;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -39,7 +38,7 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
 import uk.ac.standrews.cs.shabdiz.impl.Host;
-import uk.ac.standrews.cs.shabdiz.impl.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.impl.LocalHost;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
@@ -48,7 +47,6 @@ import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-@Ignore
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
@@ -68,7 +66,7 @@ public class NormalOperationTest {
 
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
-        localhost = new Host("localhost", new PasswordCredentials(null));
+        localhost = new LocalHost();
         launcher = new DefaultLauncher();
         worker = launcher.deployWorkerOnHost(localhost);
     }
