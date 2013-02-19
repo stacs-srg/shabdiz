@@ -49,7 +49,7 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 
 /**
  * Tests MadfaceManager functionality using a dummy application.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class MadfaceManagerTests extends MadfaceManagerTestBase {
@@ -184,6 +184,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures the application using a specified (empty) set of URLs.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -199,6 +200,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures application using an incorrect URL.
+     * 
      * @throws Exception IOException expected, or other exception if the test fails
      */
     @Test
@@ -216,6 +218,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures application using an incorrect URL.
+     * 
      * @throws Exception IOException expected, or other exception if the test fails
      */
     @Test(expected = IOException.class)
@@ -230,6 +233,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures application using an incorrect URL.
+     * 
      * @throws Exception IOException expected, or other exception if the test fails
      */
     @Test(expected = IOException.class)
@@ -244,6 +248,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures the application using a specified set of URLs.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -263,6 +268,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures the application using a specified set of URLs.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -278,6 +284,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Configures the application using a specified application manager.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -293,6 +300,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Gets URLs used by configured application.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -307,6 +315,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Gets URLs used by configured application.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -321,6 +330,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Gets the name of the configured application.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -335,6 +345,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Gets the name of the unconfigured application.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -347,6 +358,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Gets the default host list, expected to be empty.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -361,6 +373,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Adds a set of hosts via a pattern, then checks that they are all present in the host descriptor list.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -382,6 +395,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Retrieves a host descriptor for a given host name.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -400,6 +414,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Drops a host, then checks that it has been removed from the host descriptor list.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -422,6 +437,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Drops all hosts, then checks that the host descriptor list is empty.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -441,6 +457,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Adds a host and waits for it to be recognized as authorized.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -457,6 +474,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys a host, waits for it to be recognized as running, then kills it and waits for that to be recognized.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -473,6 +491,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Same as {@link #deployAndKill()} but uses deployAll() and killAll() variants.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -489,6 +508,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Same as {@link #deployAndKill()} but uses autoDeploy and autoKill variants.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -505,6 +525,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Tests the ability to wait for a host to reach a state different from one specified.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -523,6 +544,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys and kills a host, then waits for appropriate status change callbacks.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -566,6 +588,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys a host, then waits for appropriate attribute value callback.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = MANAGER_TESTS_TIMEOUT)
@@ -597,6 +620,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Tests satisfactory handling of attempt to set an invalid preference.
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -611,6 +635,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     /**
      * Tests status checking and deployment when specific scanner frequencies are set.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = SCANNER_INTERVAL_TEST_TIMEOUT)
@@ -791,7 +816,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
     }
 
-    private HostDescriptor makeHostDescriptorAndAddToManager() {
+    private HostDescriptor makeHostDescriptorAndAddToManager() throws IOException {
 
         final HostDescriptor host_descriptor = new HostDescriptor();
         host_descriptor.port(TEST_APP_PORT);
@@ -800,9 +825,9 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         return host_descriptor;
     }
 
-    private void addFiveHosts() {
+    private void addFiveHosts() throws IOException {
 
-        manager.add("compute-0-1 - compute-0-3\ncompute-0-4 - compute-0-5", new Credentials());
+        manager.add("compute-0-1 - compute-0-3\ncompute-0-4 - compute-0-5", PublicKeyCredentials.getDefaultRSACredentials(null));
     }
 
     private boolean contains(final SortedSet<HostDescriptor> host_descriptors, final String host) {

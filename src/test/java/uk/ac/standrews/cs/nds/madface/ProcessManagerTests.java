@@ -28,24 +28,25 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
+
 /**
  * Various tests of local and remote process invocation, not intended to be run automatically.
  * They could be refactored to reduce code duplication, but it seems useful to keep them as self-contained examples.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class ProcessManagerTests {
 
     /**
      * Runs the 'uname' process locally.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
     public void runLocalProcess() throws Exception {
 
-        final ProcessDescriptor process_descriptor = new ProcessDescriptor().command("uname -a");
-        final Process p = new HostDescriptor().getProcessManager().runProcess(process_descriptor);
+        final Process p = new HostDescriptor().getManagedHost().execute("uname -a");
 
         p.waitFor();
         p.destroy();
@@ -53,14 +54,16 @@ public class ProcessManagerTests {
 
     /**
      * Runs a Java process locally.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
     public void runLocalJavaProcessShortLived() throws Exception {
 
-        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
-        final Process p = new HostDescriptor().getProcessManager().runProcess(java_process_descriptor);
+        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(TestClassShortLived.class);
+        process_builder.addCurrentJVMClasspath();
+
+        final Process p = process_builder.start(new HostDescriptor().getManagedHost());
 
         p.waitFor();
         p.destroy();
@@ -68,19 +71,21 @@ public class ProcessManagerTests {
 
     /**
      * Runs a long-running Java process locally. The process will be left running after the test.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
     public void runLocalJavaProcessLongLived() throws Exception {
 
-        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassLongLived.class);
-        new HostDescriptor().getProcessManager().runProcess(java_process_descriptor);
+        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(TestClassLongLived.class);
+        process_builder.addCurrentJVMClasspath();
+
+        process_builder.start(new HostDescriptor().getManagedHost());
     }
 
     /**
      * Gets the platform of a remote machine.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -93,10 +98,10 @@ public class ProcessManagerTests {
     }
 
     /**
-      * Runs the 'uname' process remotely, using username/password authentication.
-      *
-      * @throws Exception if the test fails
-      */
+     * Runs the 'uname' process remotely, using username/password authentication.
+     * 
+     * @throws Exception if the test fails
+     */
     @Test
     public void runRemoteProcessPassword() throws Exception {
 
@@ -105,7 +110,7 @@ public class ProcessManagerTests {
 
     /**
      * Runs the 'uname' process remotely, using username/public key authentication.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -116,7 +121,7 @@ public class ProcessManagerTests {
 
     /**
      * Runs a Java process remotely, using username/password authentication, assuming nds.jar is already installed remotely.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -127,7 +132,7 @@ public class ProcessManagerTests {
 
     /**
      * Runs a Java process remotely, using username/public key authentication, assuming nds.jar is already installed remotely.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -138,7 +143,7 @@ public class ProcessManagerTests {
 
     /**
      * Runs a Java process remotely, using username/password authentication, and installing libraries dynamically.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -149,7 +154,7 @@ public class ProcessManagerTests {
 
     /**
      * Runs a Java process remotely, using username/public key authentication, and installing libraries dynamically.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -161,7 +166,7 @@ public class ProcessManagerTests {
     /**
      * Runs a long-running Java process remotely, using username/password authentication, and installing libraries dynamically.
      * This test should complete and the remote process should be left running.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
@@ -171,23 +176,21 @@ public class ProcessManagerTests {
         urls.add(new URL("https://builds.cs.st-andrews.ac.uk/job/nds/lastStableBuild/artifact/bin/nds.jar"));
         final HostDescriptor host_descriptor = new HostDescriptor(true).applicationURLs(urls);
 
-        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassLongLived.class);
-        host_descriptor.getProcessManager().runProcess(java_process_descriptor);
+        //        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassLongLived.class);
+        //        host_descriptor.getProcessManager().runProcess(java_process_descriptor);
     }
 
     /**
      * Kills off a remote process using public key authentication.
-     *
+     * 
      * @throws Exception if the test fails
      */
     @Test
     public void killRemoteProcess() throws Exception {
 
         final HostDescriptor host_descriptor = new HostDescriptor(true);
-
-        final ProcessManager process_manager = host_descriptor.getProcessManager();
-        process_manager.killMatchingProcesses("TestClassLongLived");
-        process_manager.clearTempFiles();
+        host_descriptor.killMatchingProcesses("TestClassLongLived");
+        host_descriptor.clearTempFiles();
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -196,22 +199,22 @@ public class ProcessManagerTests {
 
         final HostDescriptor host_descriptor = new HostDescriptor(use_password);
         final ProcessDescriptor process_descriptor = new ProcessDescriptor().command("uname -a");
-        final Process p = host_descriptor.getProcessManager().runProcess(process_descriptor);
-
-        p.waitFor();
-        p.destroy();
+        //        final Process p = host_descriptor.getProcessManager().runProcess(process_descriptor);
+        //
+        //        p.waitFor();
+        //        p.destroy();
     }
 
     private void runRemoteJavaProcess(final boolean use_password) throws Exception {
 
         final HostDescriptor host_descriptor = new HostDescriptor(use_password);
-        final ClassPath class_path = new ClassPath("~" + host_descriptor.getCredentials().getUser() + "/nds.jar");
+        final ClassPath class_path = new ClassPath("~" + host_descriptor.getCredentials().getUsername() + "/nds.jar");
         host_descriptor.classPath(class_path);
-        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
-        final Process p = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
-
-        p.waitFor();
-        p.destroy();
+        //        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
+        //        final Process p = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
+        //
+        //        p.waitFor();
+        //        p.destroy();
     }
 
     private void runRemoteJavaProcessLibraryInstallation(final boolean use_password) throws Exception {
@@ -219,10 +222,10 @@ public class ProcessManagerTests {
         final Set<URL> urls = new HashSet<URL>();
         urls.add(new URL("https://builds.cs.st-andrews.ac.uk/job/nds/lastStableBuild/artifact/bin/nds.jar"));
         final HostDescriptor host_descriptor = new HostDescriptor(use_password).applicationURLs(urls);
-        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
-        final Process p = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
-
-        p.waitFor();
-        p.destroy();
+        //        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
+        //        final Process p = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
+        //
+        //        p.waitFor();
+        //        p.destroy();
     }
 }

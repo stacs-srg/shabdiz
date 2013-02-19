@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * A simplified version of java.net.URL that does not perform name resolution on equals or hashcode. This improves performance when
  * storing instances in collections. See http://michaelscharf.blogspot.com/2006/11/javaneturlequals-and-hashcode-make.html.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class URL {
@@ -37,7 +37,7 @@ public class URL {
 
         if (getProtocol().equalsIgnoreCase(HTTPS_PROTOCOL_NAME)) {
 
-            /* 
+            /*
              * If an HTTPS url uses a self-signed certificate, utl connection results in SSLHandshakeException.
              * To avoid this exception, either
              *     - the server certificate needs to be added to the JVM's trusted keystore using keytool, or
@@ -46,7 +46,7 @@ public class URL {
              * The first solution seems like too much trouble since this method just need s to check the liveness of a URL, and it needs to be performed once on every machine that runs this code.
              * The second solution disables the certificate verification (temporarily) for the current JVM instance. Since we don't know who may use this class and for what purpose, this solution seems like a wrong thing to do.
              * 
-             * So for the time being, i decided to just skip the liveness check for HTTPS urls. 
+             * So for the time being, i decided to just skip the liveness check for HTTPS urls.
              * 
              * For more information see http://www.nakov.com/blog/2009/07/16/disable-certificate-validation-in-java-ssl-connections/
              */
@@ -82,13 +82,18 @@ public class URL {
 
     /**
      * Gets the protocol name.
-     *
+     * 
      * @return the protocol name
      * @see java.net.URL#getProtocol()
      */
     public String getProtocol() {
 
         return real_url.getProtocol();
+    }
+
+    public java.net.URL getRealURL() {
+
+        return real_url;
     }
 
     @Override

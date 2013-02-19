@@ -117,8 +117,9 @@ public interface IMadfaceManager {
      * 
      * @param multi_line_host_patterns a newline-separated list, each entry containing a single host address or a pattern as defined by {@link Patterns#resolveHostPattern}
      * @param credentials the credentials to be used with the hosts
+     * @throws IOException
      */
-    void add(String multi_line_host_patterns, Credentials credentials);
+    void add(String multi_line_host_patterns, Credentials credentials) throws IOException;
 
     /**
      * Adds a host.

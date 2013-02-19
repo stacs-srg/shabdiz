@@ -25,6 +25,8 @@ import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
 import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
+import uk.ac.standrews.cs.nds.madface.Credentials;
+import uk.ac.standrews.cs.nds.madface.PublicKeyCredentials;
 
 public class RemoteSSHHost extends Host {
 
@@ -198,7 +200,7 @@ public class RemoteSSHHost extends Host {
 
         final SSHClientFactory session_factory = SSHClientFactory.getInstance();
         final SSHClient session = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
-        Credentials.setSSHKnownHosts(session_factory);
+        PublicKeyCredentials.setSSHKnownHosts(session_factory);
         return session;
     }
 

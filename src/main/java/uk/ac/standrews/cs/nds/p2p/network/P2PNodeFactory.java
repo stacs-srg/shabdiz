@@ -36,8 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
-import uk.ac.standrews.cs.nds.madface.JavaProcessDescriptor;
-import uk.ac.standrews.cs.nds.madface.ProcessDescriptor;
+import uk.ac.standrews.cs.nds.madface.URL;
 import uk.ac.standrews.cs.nds.madface.exceptions.DeploymentException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnsupportedPlatformException;
@@ -51,6 +50,7 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
+import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
 
 import com.mindbright.ssh2.SSH2Exception;
 
@@ -110,7 +110,7 @@ public abstract class P2PNodeFactory {
      * @throws InvalidServerClassException
      * @throws InterruptedException
      * @throws UnsupportedPlatformException
-     * @throws DeploymentException 
+     * @throws DeploymentException
      */
     public void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
 
@@ -129,7 +129,7 @@ public abstract class P2PNodeFactory {
      * @throws InvalidServerClassException
      * @throws InterruptedException
      * @throws UnsupportedPlatformException
-     * @throws DeploymentException 
+     * @throws DeploymentException
      */
     public void createNode(final HostDescriptor host_descriptor, final IKey key) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
 
@@ -219,20 +219,36 @@ public abstract class P2PNodeFactory {
             }
         }
         else {
-            ProcessDescriptor java_process_descriptor = null;
+
+            final RemoteJavaProcessBuilder java_process_builder = new RemoteJavaProcessBuilder(server_class);
+
+            java_process_builder.addCommandLineArguments(args);
+            java_process_builder.addJVMArguments(host_descriptor.getJVMDeploymentParams());
+
+            for (final URL classpath_url : host_descriptor.getApplicationURLs()) {
+                java_process_builder.addClasspath(classpath_url.getRealURL());
+            }
+
+            final Process process = java_process_builder.start(host_descriptor.getManagedHost());
+            final Object node;
             try {
-                // Create a node process.
-                java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(server_class).args(args);
-                final Process process = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
-
-                host_descriptor.process(process);
-
                 // Bind to the node, establishing the application reference.
-                host_descriptor.applicationReference(bindToNode(host_descriptor));
+                node = bindToNode(host_descriptor);
             }
-            finally {
-                java_process_descriptor.shutdown();
+            catch (final UnknownHostException e) {
+                process.destroy();
+                throw e;
             }
+            catch (final InterruptedException e) {
+                process.destroy();
+                throw e;
+            }
+            catch (final TimeoutException e) {
+                process.destroy();
+                throw e;
+            }
+            host_descriptor.applicationReference(node);
+            host_descriptor.process(process);
         }
     }
 

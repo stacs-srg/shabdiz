@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import uk.ac.standrews.cs.nds.madface.Credentials;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 
 public abstract class Host {

@@ -110,10 +110,11 @@ public class ProcessManager {
 
     public Process runProcess(final ProcessDescriptor process_descriptor) throws SSH2Exception, IOException, TimeoutException, UnknownPlatformException, UnsupportedPlatformException, InterruptedException {
 
-        if (process_descriptor instanceof JavaProcessDescriptor) {
-            return runJavaProcess((JavaProcessDescriptor) process_descriptor);
-        }
-        else if (host_descriptor.local()) {
+        //        if (process_descriptor instanceof JavaProcessDescriptor) {
+        //            return runJavaProcess((JavaProcessDescriptor) process_descriptor);
+        //        }
+        //        else
+        if (host_descriptor.local()) {
             return runProcessLocal(process_descriptor);
         }
         else {
@@ -187,49 +188,49 @@ public class ProcessManager {
      * @throws InterruptedException
      * @throws UnsupportedPlatformException
      */
-    private Process runJavaProcess(final JavaProcessDescriptor java_process_descriptor) throws IOException, SSH2Exception, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
-
-        final List<String> jvm_params = java_process_descriptor.getJVMParams();
-        final Class<?> clazz = java_process_descriptor.getClassToBeInvoked();
-        final List<String> args = java_process_descriptor.getArgs();
-
-        final ProcessDescriptor process_descriptor = new ProcessDescriptor();
-
-        try {
-            if (useApplicationUrlsForJava()) {
-
-                final PlatformDescriptor platform_descriptor = host_descriptor.getPlatform();
-                final File wget_path = new File(platform_descriptor.getWgetPath());
-
-                final File lib_install_dir = new File(getTimestampedTempPath(new File(platform_descriptor.getTempPath()), clazz.getName()));
-                final ClassPath class_path = getClassPathForTempDir(host_descriptor.getApplicationURLs(), lib_install_dir);
-
-                host_descriptor.classPath(class_path);
-                host_descriptor.javaLibraryPath(lib_install_dir);
-
-                final String install_command = getInstallLibsCommand(host_descriptor.getApplicationURLs(), lib_install_dir, wget_path);
-
-                final String java_command = getJavaCommand(jvm_params, clazz, args);
-                final String command = combineCommands(install_command, java_command);
-
-                process_descriptor.command(command);
-                process_descriptor.label(java_command);
-                process_descriptor.deleteOnExit(lib_install_dir);
-
-                return runProcess(process_descriptor);
-            }
-            else {
-
-                final String command = getJavaCommand(jvm_params, clazz, args);
-                process_descriptor.command(command);
-
-                return runProcess(process_descriptor);
-            }
-        }
-        finally {
-            process_descriptor.shutdown();
-        }
-    }
+    //    private Process runJavaProcess(final JavaProcessDescriptor java_process_descriptor) throws IOException, SSH2Exception, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
+    //
+    //        final List<String> jvm_params = java_process_descriptor.getJVMParams();
+    //        final Class<?> clazz = java_process_descriptor.getClassToBeInvoked();
+    //        final List<String> args = java_process_descriptor.getArgs();
+    //
+    //        final ProcessDescriptor process_descriptor = new ProcessDescriptor();
+    //
+    //        try {
+    //            if (useApplicationUrlsForJava()) {
+    //
+    //                final PlatformDescriptor platform_descriptor = host_descriptor.getPlatform();
+    //                final File wget_path = new File(platform_descriptor.getWgetPath());
+    //
+    //                final File lib_install_dir = new File(getTimestampedTempPath(new File(platform_descriptor.getTempPath()), clazz.getName()));
+    //                final ClassPath class_path = getClassPathForTempDir(host_descriptor.getApplicationURLs(), lib_install_dir);
+    //
+    //                host_descriptor.classPath(class_path);
+    //                host_descriptor.javaLibraryPath(lib_install_dir);
+    //
+    //                final String install_command = getInstallLibsCommand(host_descriptor.getApplicationURLs(), lib_install_dir, wget_path);
+    //
+    //                final String java_command = getJavaCommand(jvm_params, clazz, args);
+    //                final String command = combineCommands(install_command, java_command);
+    //
+    //                process_descriptor.command(command);
+    //                process_descriptor.label(java_command);
+    //                process_descriptor.deleteOnExit(lib_install_dir);
+    //
+    //                return runProcess(process_descriptor);
+    //            }
+    //            else {
+    //
+    //                final String command = getJavaCommand(jvm_params, clazz, args);
+    //                process_descriptor.command(command);
+    //
+    //                return runProcess(process_descriptor);
+    //            }
+    //        }
+    //        finally {
+    //            process_descriptor.shutdown();
+    //        }
+    //    }
 
     /**
      * Determines whether application-specific URLs should be incorporated into a Java invocation command. This is true iff it is a remote command and some URLs are set.
@@ -472,7 +473,7 @@ public class ProcessManager {
         final SecureRandomAndPad secure_random = new SecureRandomAndPad(new SecureRandom(seed));
         final SSH2Transport transport = new SSH2Transport(socket, secure_random);
 
-        return credentials.makeSSHClient(transport);
+        return null; // credentials.makeSSHClient(transport);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -481,7 +482,7 @@ public class ProcessManager {
      * Creates a path to a timestamped file or directory within the specified 'tmp' directory.
      * 
      * @param remote_temp_dir the 'tmp' directory
-     * @param identifier 
+     * @param identifier
      * @return the path
      */
     private String getTimestampedTempPath(final File remote_temp_dir, final String identifier) {
@@ -502,7 +503,7 @@ public class ProcessManager {
      * 
      * @param label
      * @return
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     private String getKillCommand(final String label, final List<File> files_to_be_deleted) throws UnknownPlatformException {
 

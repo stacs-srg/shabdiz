@@ -2,10 +2,14 @@ package uk.ac.standrews.cs.shabdiz.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FileUtils;
 
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
@@ -138,6 +142,13 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         return classpath.addAll(classpath_files);
     }
 
+    public boolean addClasspath(final URL classpath_url) throws IOException {
+
+        final File downloaded_file = File.createTempFile("downloaded_", classpath_url.getFile());
+        FileUtils.copyURLToFile(classpath_url, downloaded_file);
+        return classpath.add(downloaded_file);
+    }
+
     public String getMainClass() {
 
         return main_class;
@@ -159,6 +170,13 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         jvm_arguments.append(arg).append(SPACE);
     }
 
+    public void addJVMArguments(final Collection<String> arguments) {
+
+        for (final String argument : arguments) {
+            addJVMArgument(argument);
+        }
+    }
+
     private String tidyArgument(final String argument) {
 
         return argument.trim();
@@ -168,6 +186,13 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
         final String arg = tidyArgument(argument);
         command_line_arguments.append(arg).append(SPACE);
+    }
+
+    public void addCommandLineArguments(final Collection<String> arguments) {
+
+        for (final String argument : arguments) {
+            addCommandLineArgument(argument);
+        }
     }
 
     public void addCurrentJVMClasspath() {

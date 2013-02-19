@@ -38,10 +38,11 @@ import uk.ac.standrews.cs.nds.rpc.app.nostream.TestProxy;
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestServer;
 import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
 
 /**
  * Manager for test application.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class TestAppManager extends ApplicationManager {
@@ -220,8 +221,12 @@ public class TestAppManager extends ApplicationManager {
                 final List<String> arg_list = new ArrayList<String>();
 
                 arg_list.add("-p" + host_descriptor.getPort());
-                final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestServer.class).args(arg_list);
-                final Process java_process = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
+
+                final RemoteJavaProcessBuilder java_process_builder = new RemoteJavaProcessBuilder(TestServer.class);
+                java_process_builder.addCommandLineArguments(arg_list);
+                java_process_builder.addCurrentJVMClasspath();
+
+                final Process java_process = java_process_builder.start(host_descriptor.getManagedHost());
                 host_descriptor.process(java_process);
             }
         }

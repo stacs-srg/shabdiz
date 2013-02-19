@@ -50,9 +50,8 @@ import com.mindbright.ssh2.SSH2Exception;
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
  * The results of these tests are recorded in the corresponding host descriptors.
- * 
  * This scanner publishes a new latch after every cycle through the host list. This enables other scanners to synchronize their own operation with this one.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class StatusScanner extends Scanner implements ISingleHostScanner {
@@ -87,7 +86,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
 
     /**
      * Creates a status scanner for the given manager.
-     *
+     * 
      * @param manager the manager
      * @param min_cycle_time the minimum time between successive cycles
      * @param thread_pool_size the thread pool size for status scan checks
@@ -239,7 +238,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
         // Try to execute a 'cd /' shell command on the machine.
         // This is selected as a command that produces no output and doesn't require a functioning home directory.
 
-        host_descriptor.getProcessManager().runProcess(ssh_connection_process_descriptor);
+        host_descriptor.getManagedHost().execute(MINIMAL_COMMAND).destroy();
     }
 
     private void setHostState(final HostDescriptor host_descriptor, final HostState new_state) {

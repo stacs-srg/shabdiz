@@ -24,6 +24,7 @@
 package uk.ac.standrews.cs.nds.madface;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +34,7 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 
 /**
  * Representation of a Java class path.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public final class ClassPath implements Iterable<File>, Cloneable {
@@ -45,6 +46,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Returns the class path of the currently executing program.
+     * 
      * @return the class path of the currently executing program
      */
     public static ClassPath getCurrentClassPath() {
@@ -61,7 +63,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     // -------------------------------------------------------------------------------------------------------
 
-    private static PlatformDescriptor getLocalPlatform() {
+    private synchronized static PlatformDescriptor getLocalPlatform() throws IOException {
 
         // Race condition here but doesn't matter since it would just get initialized twice.
         // TODO load lazily with separate class.
@@ -76,7 +78,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
         try {
             return getLocalPlatform().getClassPathSeparator();
         }
-        catch (final UnknownPlatformException e) {
+        catch (final Exception e) {
             ErrorHandling.hardExceptionError(e, "couldn't get classpath separator for local platform");
             return null;
         }
@@ -87,7 +89,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
         try {
             return getLocalPlatform().getFileSeparator();
         }
-        catch (final UnknownPlatformException e) {
+        catch (final Exception e) {
             ErrorHandling.hardExceptionError(e, "couldn't get file path separator for local platform");
             return null;
         }
@@ -103,7 +105,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Creates a new class path with entries specified in standard string notation for this platform.
-     *
+     * 
      * @param classpath_string the class path entries
      */
     public ClassPath(final String classpath_string) {
@@ -113,7 +115,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Creates a new class path with specified entries.
-     *
+     * 
      * @param classpath_element_paths the class path entries
      */
     public ClassPath(final String[] classpath_element_paths) {
@@ -127,7 +129,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Creates a new class path with specified entries.
-     *
+     * 
      * @param classpath_elements the class path entries
      */
     public ClassPath(final File[] classpath_elements) {
@@ -140,7 +142,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Creates a new class path with specified entries.
-     *
+     * 
      * @param classpath_elements the class path entries
      */
     public ClassPath(final Iterable<File> classpath_elements) {
@@ -155,7 +157,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Returns a representation of the class path formatted for the current local platform.
-     *
+     * 
      * @param use_path_quote true if the resulting string should be surrounded with appropriate quote characters
      * @return a representation of the class path
      */
@@ -164,7 +166,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
         try {
             return toString(getLocalPlatform(), use_path_quote);
         }
-        catch (final UnknownPlatformException e) {
+        catch (final Exception e) {
             ErrorHandling.hardExceptionError(e, "couldn't get local platform");
             return null;
         }
@@ -172,7 +174,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Returns a representation of the class path formatted for the given platform.
-     *
+     * 
      * @param platform a platform
      * @return a representation of the class path
      */
@@ -188,11 +190,11 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Returns a representation of the class path formatted for the given platform.
-     *
+     * 
      * @param platform a platform
      * @param use_path_quote true if the resulting string should be surrounded with appropriate quote characters
      * @return a representation of the class path
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public synchronized String toString(final PlatformDescriptor platform, final boolean use_path_quote) throws UnknownPlatformException {
 
@@ -220,7 +222,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Adds an entry to the class path at the given position. Position 0 corresponds to the start of the class path.
-     *
+     * 
      * @param index the index at which the entry should be added
      * @param entry the entry to be added
      */
@@ -231,7 +233,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Adds an entry to the end of the class path.
-     *
+     * 
      * @param entry the entry to be added
      */
     public void append(final File entry) {
@@ -241,7 +243,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Adds all entries in the given class path to this class path.
-     *
+     * 
      * @param other_path the other class path
      */
     public void append(final ClassPath other_path) {
@@ -272,7 +274,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
     /**
      * Modifies all relative paths to resolve them relative to the given root.
-     *
+     * 
      * @param root a root directory
      */
     public void resolveRelativePaths(final File root) {

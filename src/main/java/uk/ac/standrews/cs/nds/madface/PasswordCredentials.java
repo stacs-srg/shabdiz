@@ -1,5 +1,6 @@
-package uk.ac.standrews.cs.shabdiz.impl;
+package uk.ac.standrews.cs.nds.madface;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -7,6 +8,8 @@ import uk.ac.standrews.cs.barreleye.SSHClient;
 import uk.ac.standrews.cs.barreleye.UIKeyboardInteractive;
 import uk.ac.standrews.cs.barreleye.UserInfo;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
+import uk.ac.standrews.cs.nds.madface.exceptions.InvalidCredentialsException;
+import uk.ac.standrews.cs.nds.util.Input;
 
 public class PasswordCredentials extends Credentials {
 
@@ -31,9 +34,14 @@ public class PasswordCredentials extends Credentials {
     }
 
     @Override
-    void authenticate(final SSHClient session) throws SSHException {
+    public void authenticate(final Object obj) throws IOException {
 
-        session.setUserInfo(createUserInfo());
+        if (SSHClient.class.isInstance(obj)) {
+            SSHClient.class.cast(obj).setUserInfo(createUserInfo());
+        }
+        else {
+            throw new InvalidCredentialsException("cannot authenticate object " + obj);
+        }
     }
 
     protected UserInfo createUserInfo() throws SSHException {
@@ -43,7 +51,7 @@ public class PasswordCredentials extends Credentials {
 
     protected byte[] getPasswordAsBytes() {
 
-        return toBytes(password);
+        return Input.toBytes(password);
     }
 
     private static class PasswordUserInfo implements UserInfo, UIKeyboardInteractive {

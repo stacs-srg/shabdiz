@@ -29,19 +29,30 @@ import java.io.IOException;
 
 /**
  * Indicates unequal array lengths.
- *
+ * 
  * @author Graham Kirby(graham.kirby@st-andrews.ac.uk)
  */
 public class InvalidCredentialsException extends IOException {
 
     /**
      * Creates an exception with a given message.
-     *
+     * 
      * @param message the message
      */
     public InvalidCredentialsException(final String message) {
 
         super(message);
+    }
+
+    /**
+     * Creates an exception with a given message and cause.
+     * 
+     * @param message the message
+     * @param cause the cause
+     */
+    public InvalidCredentialsException(final String message, final Throwable cause) {
+
+        super(message, cause);
     }
 
     private static final long serialVersionUID = 3862718860714280656L;

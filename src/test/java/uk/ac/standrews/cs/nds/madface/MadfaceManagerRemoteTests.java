@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.nds.madface.interfaces.IHostStatusCallback;
 
 /**
  * Tests requiring authentication, not intended to be run automatically.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
@@ -22,6 +22,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Initializes a host descriptor interactively.
+     * 
      * @throws IOException if an error occurs
      */
     @BeforeClass
@@ -40,12 +41,13 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Adds an invalid host and tests that the host state is eventually INVALID.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
     public void addInvalidHost() throws Exception {
 
-        final HostDescriptor host_descriptor = new HostDescriptor("abc.def.ghi");
+        final HostDescriptor host_descriptor = new HostDescriptor("abc.def.ghi", new PasswordCredentials("dummy", "dummy".toCharArray()));
         manager.add(host_descriptor);
 
         manager.waitForAllToReachState(HostState.INVALID);
@@ -53,13 +55,14 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Adds a valid host with invalid credentials and tests that the host state is eventually NO_AUTH.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
     public void addHostWithInvalidCredentials() throws Exception {
 
         final HostDescriptor host_descriptor = new HostDescriptor(true);
-        host_descriptor.credentials(new Credentials().user("dummy").password("dummy"));
+        host_descriptor.credentials(new PasswordCredentials("dummy", "dummy".toCharArray()));
         manager.add(host_descriptor);
 
         manager.waitForAllToReachState(HostState.NO_AUTH);
@@ -67,6 +70,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Adds a valid host with valid credentials and tests that the host state is eventually AUTH.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -79,6 +83,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host and tests that the host state is eventually RUNNING.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -92,6 +97,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Adds a valid host, sets auto-deploy and tests that the host state is eventually RUNNING.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -105,6 +111,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host, then kills and tests that the host state is eventually AUTH.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -121,6 +128,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host, sets auto-kill and tests that the host state is eventually AUTH.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -137,6 +145,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host, then kills and tests that the host state is eventually not RUNNING.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -153,6 +162,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host, then tests that a status callback is eventually received.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)
@@ -179,6 +189,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
     /**
      * Deploys to a valid host, then tests that an attribute callback is eventually received.
+     * 
      * @throws Exception if the test fails
      */
     @Test(timeout = TEST_TIMEOUT)

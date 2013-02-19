@@ -92,7 +92,8 @@ public class DeployScanner extends Scanner implements ISingleHostScanner {
             if (host_descriptor.getHostState() == HostState.AUTH && enabled) {
 
                 try {
-                    host_descriptor.getProcessManager().setDiscardErrors(manager.errorsAreDiscarded());
+                    //FIXME think of something for setDiscardErrors
+                    // host_descriptor.getProcessManager().setDiscardErrors(manager.errorsAreDiscarded());
                     application_manager.deployApplication(host_descriptor);
                 }
                 catch (final Exception e) {

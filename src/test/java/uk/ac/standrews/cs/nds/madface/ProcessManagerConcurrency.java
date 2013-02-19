@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.util.Input;
 
 import com.mindbright.ssh2.SSH2Exception;
 
@@ -37,11 +37,10 @@ public class ProcessManagerConcurrency {
 
                         Process p = null;
                         try {
-                            final HostDescriptor host_descriptor = new HostDescriptor("compute-0-" + count).credentials(new Credentials().user(user).password(password));
+                            final HostDescriptor host_descriptor = new HostDescriptor("compute-0-" + count, new PasswordCredentials(user, password.toCharArray()));
                             final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, timeout, true, false, "");
                             start_latch.await();
-                            final ProcessDescriptor process_descriptor = new ProcessDescriptor().command(command).executor(timeout_executor);
-                            p = host_descriptor.getProcessManager().runProcess(process_descriptor);
+                            p = host_descriptor.getManagedHost().execute(command);
 
                             p.waitFor();
                         }

@@ -4,10 +4,8 @@
  ***************************************************************************/
 package uk.ac.standrews.cs.nds.madface;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -21,21 +19,24 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.IOUtils;
+
 import uk.ac.standrews.cs.nds.madface.exceptions.UnequalArrayLengthsException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnsupportedPlatformException;
-import uk.ac.standrews.cs.nds.madface.interfaces.IStreamProcessor;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
+import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
+import uk.ac.standrews.cs.shabdiz.impl.Host;
+import uk.ac.standrews.cs.shabdiz.impl.LocalHost;
+import uk.ac.standrews.cs.shabdiz.impl.RemoteSSHHost;
 
 import com.mindbright.ssh2.SSH2Exception;
 
@@ -43,6 +44,7 @@ import com.mindbright.ssh2.SSH2Exception;
  * Describes a local or remote host and, optionally, SSH connection credentials and/or remote references to an application that is running or could run on it. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneable {
 
@@ -53,7 +55,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private static final String PROBE_REPLY_LINUX = "Linux";
     private static final String PROBE_REPLY_MAC = "Darwin";
     private static final String LOCAL_HOST = "localhost";
-
+    private static final String TEMP_FILES_ROOT = "madface";
     private static String local_host = null;
     private static InetAddress local_inet_address = null;
 
@@ -123,8 +125,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     // Authentication credentials for the host.
     private volatile Credentials credentials = null;
 
-    // Manager for executing processes on the host.
-    private volatile ProcessManager process_manager = null;
+    private volatile Host managed_host = null;
 
     // Whether the application should be deployed in the same process.
     private volatile boolean deploy_in_local_process = false;
@@ -136,19 +137,23 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     /**
      * Initialises a descriptor for the local host.
+     * 
+     * @throws IOException
      */
-    public HostDescriptor() {
+    public HostDescriptor() throws IOException {
 
-        this(null);
+        this(null, null);
     }
 
     /**
      * Initialises a descriptor with a given address.
      * 
      * @param host the remote address
+     * @throws IOException
      */
-    public HostDescriptor(final String host) {
+    public HostDescriptor(final String host, final Credentials credentials) throws IOException {
 
+        credentials(credentials);
         init(host);
     }
 
@@ -160,13 +165,10 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      */
     public HostDescriptor(final boolean use_password) throws IOException {
 
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        final String host = Input.readLine("enter machine name: ");
 
-        System.out.print("enter machine name: ");
-        final String host = reader.readLine();
-
+        credentials(CredentialsUtil.initCredentials(use_password));
         init(host);
-        credentials(new Credentials(use_password));
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -467,14 +469,23 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         return platform_descriptor;
     }
 
+    //    /**
+    //     * Returns a manager for executing processes on the host.
+    //     *
+    //     * @return a manager for executing processes on the host
+    //     */
+    //    public ProcessManager getProcessManager() {
+    //
+    //        return process_manager;
+    //    }
     /**
      * Returns a manager for executing processes on the host.
      * 
      * @return a manager for executing processes on the host
      */
-    public ProcessManager getProcessManager() {
+    public Host getManagedHost() {
 
-        return process_manager;
+        return managed_host;
     }
 
     /**
@@ -514,9 +525,31 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @throws InterruptedException if the thread is interrupted while waiting for processes to die
      * @throws UnsupportedPlatformException
      */
-    public void killProcesses(final String label) throws SSH2Exception, IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
+    public void killMatchingProcesses(final String label) throws SSH2Exception, IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
 
-        process_manager.killMatchingProcesses(label);
+        killMatchingProcesses(label, new ArrayList<File>());
+    }
+
+    public void killMatchingProcesses(final String label, final List<File> files_to_be_deleted) throws IOException, UnknownPlatformException, InterruptedException {
+
+        final String kill_command = getKillCommand(label, files_to_be_deleted);
+        final Process kill_process = managed_host.execute(kill_command);
+        kill_process.waitFor();
+        kill_process.destroy();
+    }
+
+    public void clearTempFiles() throws SSH2Exception, IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
+
+        final String clear_temp_files_command = getClearTempFilesCommand();
+        final Process clear_temp_files_process = managed_host.execute(clear_temp_files_command);
+        clear_temp_files_process.waitFor();
+        clear_temp_files_process.destroy();
+    }
+
+    private String getClearTempFilesCommand() throws UnknownPlatformException {
+
+        final PlatformDescriptor platform = getPlatform();
+        return "rm -rf " + platform.getTempPath() + platform.getFileSeparator() + TEMP_FILES_ROOT + "*";
     }
 
     /**
@@ -564,7 +597,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      */
     public void shutdown() {
 
-        process_manager.shutdown();
+        managed_host.shutdown();
     }
 
     /**
@@ -699,6 +732,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     /**
      * Create a list of host descriptors from the credentials provided (credentials must be the same for each host).
+     * 
      * @param hosts the hosts
      * @param credentials how to connect each host.
      * @return a list of hosts descriptors
@@ -745,7 +779,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         }
     }
 
-    private void init(final String host) {
+    private void init(final String host) throws IOException {
 
         id = NEXT_ID.getAndIncrement();
 
@@ -753,24 +787,24 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
             initLocal();
         }
         else {
-            initRemote(host);
+            initRemote(host, credentials);
         }
 
         checkForHardwiredJavaBinPath();
     }
 
-    private void initLocal() {
+    private void initLocal() throws IOException {
 
         host = local_host;
         inet_address = local_inet_address;
 
         scan_results = Collections.synchronizedMap(new HashMap<String, String>());
-        process_manager = new ProcessManager(this);
+        managed_host = new LocalHost();
 
         initLocalPlatform();
     }
 
-    private void initRemote(final String host) {
+    private void initRemote(final String host, final Credentials credentials) throws IOException {
 
         this.host = host;
         try {
@@ -781,7 +815,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         }
 
         scan_results = Collections.synchronizedMap(new HashMap<String, String>());
-        process_manager = new ProcessManager(this);
+        managed_host = new RemoteSSHHost(host, credentials);
 
         hostState(HostState.UNKNOWN);
     }
@@ -825,7 +859,12 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     @Override
     public HostDescriptor clone() {
 
-        return new HostDescriptor(host).credentials(credentials);
+        try {
+            return new HostDescriptor(host, credentials);
+        }
+        catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void initRemotePlatform() {
@@ -836,68 +875,32 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         // Linux
         // Darwin
 
-        final CountDownLatch latch = new CountDownLatch(1);
-        final StringBuffer remote_reply_buffer = new StringBuffer();
-
-        // Processor to read the output from the remote process and extract the platform name.
-        final IStreamProcessor extract_platform = new IStreamProcessor() {
-
-            @Override
-            public boolean processByte(final int byte_value) {
-
-                // Accumulate the output.
-                remote_reply_buffer.append((char) byte_value);
-
-                if (byte_value == '\n') {
-                    latch.countDown();
-                }
-
-                return false;
-            }
-        };
-
-        HostDescriptor cloned_host_descriptor = null;
-        ProcessDescriptor probe_platform_process_descriptor = null;
         try {
             // Default is unknown platform.
             platform_descriptor = new PlatformDescriptor();
 
             // Clone the SSH connection to avoid interference with other use of this one.
-
-            cloned_host_descriptor = clone();
-            final TimeoutExecutor probe_process_executor = TimeoutExecutor.makeTimeoutExecutor(1, new Duration(20, TimeUnit.SECONDS), true, true, "HostDescriptor remote platform probe");
-            probe_platform_process_descriptor = new ProcessDescriptor().command(PROBE_COMMAND).outputProcessor(extract_platform).executor(probe_process_executor);
-            cloned_host_descriptor.getProcessManager().runProcess(probe_platform_process_descriptor);
+            final Process probe_process = managed_host.execute(PROBE_COMMAND);
+            IOUtils.readLines(probe_process.getInputStream());
 
             // Wait for the remote process to complete.
-            latch.await();
+            probe_process.waitFor();
+            final List<String> remote_reply_lines = IOUtils.readLines(probe_process.getInputStream());
+            final String first_line_of_remote_reply = remote_reply_lines.size() > 0 ? remote_reply_lines.get(0) : "";
+            probe_process.destroy();
 
-            final String remote_reply = remote_reply_buffer.toString();
-
-            if (remote_reply.contains(PROBE_REPLY_MAC)) {
+            if (first_line_of_remote_reply.contains(PROBE_REPLY_MAC)) {
                 platform_descriptor = new PlatformDescriptor(PlatformDescriptor.NAME_MAC);
             }
-            else if (remote_reply.contains(PROBE_REPLY_LINUX)) {
+            else if (first_line_of_remote_reply.contains(PROBE_REPLY_LINUX)) {
                 platform_descriptor = new PlatformDescriptor(PlatformDescriptor.NAME_LINUX);
             }
             else {
-                Diagnostic.trace("unexpected remote platform reply: " + remote_reply);
+                Diagnostic.trace("unexpected remote platform reply: " + first_line_of_remote_reply);
             }
         }
         catch (final Exception e) {
             launderException(e);
-        }
-        finally {
-            if (cloned_host_descriptor != null) {
-                // System.out.println("shutting down cloned host descriptor");
-                cloned_host_descriptor.shutdown();
-                // System.out.println("done");
-            }
-            if (probe_platform_process_descriptor != null) {
-                // System.out.println("shutting down probe platform descriptor");
-                probe_platform_process_descriptor.shutdown();
-                // System.out.println("done");
-            }
         }
     }
 
@@ -953,23 +956,86 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     private static HostDescriptor createUsernamePasswordConnection(final String host) throws IOException {
 
-        final Credentials credentials = new Credentials(true);
-        return new HostDescriptor(host).credentials(credentials);
+        final Credentials credentials = CredentialsUtil.initCredentials(true);
+        return new HostDescriptor(host, credentials);
     }
 
     private static HostDescriptor createPublicKeyConnection(final String host) throws IOException {
 
-        final Credentials credentials = new Credentials(false);
-        return new HostDescriptor(host).credentials(credentials);
+        final Credentials credentials = CredentialsUtil.initCredentials(false);
+        return new HostDescriptor(host, credentials);
     }
 
-    private static HostDescriptor createConnection(final String host, final Credentials credentials) {
+    private static HostDescriptor createConnection(final String host, final Credentials credentials) throws IOException {
 
-        return new HostDescriptor(host).credentials(credentials);
+        return new HostDescriptor(host, credentials);
     }
 
     private static boolean local(final String host) {
 
         return host == null || host.equals("") || host.equals(LOCAL_HOST) || host.equals(local_host);
+    }
+
+    /**
+     * Creates a path to a timestamped file or directory within the specified 'tmp' directory.
+     * 
+     * @param remote_temp_dir the 'tmp' directory
+     * @param identifier
+     * @return the path
+     */
+    private String getTimestampedTempPath(final File remote_temp_dir, final String identifier) {
+
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append(TEMP_FILES_ROOT);
+        builder.append("_");
+        builder.append(identifier);
+        builder.append("_");
+        builder.append(Duration.elapsed().getLength(TimeUnit.MILLISECONDS));
+
+        return new File(remote_temp_dir, builder.toString()).getAbsolutePath();
+    }
+
+    private String getKillCommand(final String label, final List<File> files_to_be_deleted) throws UnknownPlatformException {
+
+        // Construct a shell command of this form:
+        //
+        // ps auxw | grep <match> | sed 's/^[a-z]*[ ]*\([0-9]*\).*/\1/' | tr '\n' ' ' | sed 's/^\(.*\)/kill -9 \1/' > /tmp/kill1; chmod +x /tmp/kill1; /tmp/kill1
+
+        final PlatformDescriptor platform_descriptor = getPlatform();
+        final String temp_file_path = getTimestampedTempPath(new File(platform_descriptor.getTempPath()), "kill");
+
+        final StringBuilder string_builder = new StringBuilder();
+        final PipedCommandBuilder command = new PipedCommandBuilder(string_builder);
+
+        // List all processes.
+        command.append("ps auxw");
+
+        // Find those containing the specified string.
+        command.append("grep \"" + label + "\"");
+
+        // Get the PIDS, assuming each is preceded by a username and whitespace.
+        command.append("sed 's/^[a-z]*[ ]*\\([0-9]*\\).*/\\1/'");
+
+        // Join the PIDs onto a single line.
+        command.append("tr '\\n' ' '");
+
+        // Construct a command to kill them, discarding error output.
+        command.append("sed 's/^\\(.*\\)/kill -9 \\1 2> \\/dev\\/null/' > " + temp_file_path);
+
+        string_builder.append("; chmod +x ");
+        string_builder.append(temp_file_path);
+        string_builder.append("; ");
+        string_builder.append(temp_file_path);
+
+        string_builder.append("; rm -rf ");
+        string_builder.append(temp_file_path);
+
+        for (final File file_to_be_deleted : files_to_be_deleted) {
+            string_builder.append("; rm -rf ");
+            string_builder.append(file_to_be_deleted.getAbsolutePath());
+        }
+
+        return string_builder.toString();
     }
 }

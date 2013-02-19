@@ -82,7 +82,7 @@ public abstract class ApplicationManager implements IApplicationManager {
 
             // Check for the address being null, which it will be if the descriptor represents an invalid host.
             if (host_descriptor.getInetAddress() != null) {
-                host_descriptor.killProcesses(guessFragmentOfApplicationProcessName(host_descriptor));
+                host_descriptor.killMatchingProcesses(guessFragmentOfApplicationProcessName(host_descriptor));
             }
         }
         else {

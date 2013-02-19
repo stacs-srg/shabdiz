@@ -133,8 +133,8 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private Duration state_wait_delay;
     private Duration ssh_check_timeout;
-    private final static Duration kill_check_timeout = KillScanner.DEFAULT_KILL_CHECK_TIMEOUT;
-    private final static Duration status_check_timeout = StatusScanner.DEFAULT_STATUS_CHECK_TIMEOUT;
+    private static final Duration kill_check_timeout = KillScanner.DEFAULT_KILL_CHECK_TIMEOUT;
+    private static final Duration status_check_timeout = StatusScanner.DEFAULT_STATUS_CHECK_TIMEOUT;
 
     private int ssh_check_thread_pool_size;
 
@@ -328,7 +328,7 @@ public final class MadfaceManager implements IMadfaceManager {
     }
 
     @Override
-    public void add(final String multi_line_host_patterns, final Credentials credentials) {
+    public void add(final String multi_line_host_patterns, final Credentials credentials) throws IOException {
 
         final String[] host_patterns = splitAtNewLines(multi_line_host_patterns);
 
@@ -646,14 +646,14 @@ public final class MadfaceManager implements IMadfaceManager {
         }
     }
 
-    private void add(final String[] host_patterns, final Credentials credentials) {
+    private void add(final String[] host_patterns, final Credentials credentials) throws IOException {
 
         for (final String host_pattern : host_patterns) {
 
             // Each element of the array may contain a pattern that denotes multiple hosts.
             for (final String host : Patterns.resolveHostPattern(host_pattern)) {
 
-                final HostDescriptor host_descriptor = new HostDescriptor(host).credentials(credentials);
+                final HostDescriptor host_descriptor = new HostDescriptor(host, credentials);
                 add(host_descriptor);
             }
         }
