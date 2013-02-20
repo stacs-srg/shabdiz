@@ -136,12 +136,17 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException {
 
         // TODO add timeout
-        InetSocketAddress worker_address;
+        InetSocketAddress worker_address = null;
         final InputStreamReader reader = new InputStreamReader(worker_process.getInputStream());
         final BufferedReader br = new BufferedReader(reader); // this is not closed on purpose.  the stream belongs to Process instance.
         do {
             final String output_line = br.readLine();
-            worker_address = WorkerNodeServer.parseOutputLine(output_line);
+            if (output_line != null) {
+                worker_address = WorkerNodeServer.parseOutputLine(output_line);
+            }
+            else {
+                break;
+            } //FIXME Refactor. a bad way to check for end of returned data.
         }
         while (worker_address == null);
         return worker_address;
