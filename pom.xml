@@ -30,15 +30,6 @@
 		<developerConnection>scm:${repository.type}:${repository.location}</developerConnection>
 		<url>scm:${repository.type}:${repository.location}</url>
 	</scm>
-	
-	<repositories>
-		<repository>
-			<id>uk.ac.standrews.cs.maven.repository</id>
-			<name>School of Computer Science Maven Repository</name>
-			<url>http://maven.cs.st-andrews.ac.uk/</url>
-		</repository>
-	</repositories>
-	
 
 	<repositories>
 		<repository>
@@ -77,5 +68,4 @@
 			<type>test-jar</type>
 		</dependency>
 	</dependencies>
-	
 </project>
