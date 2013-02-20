@@ -46,11 +46,11 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.URL;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.DeploymentException;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Superclass for node factory implementations.

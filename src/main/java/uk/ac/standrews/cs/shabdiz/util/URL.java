@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.active;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.IOException;
 import java.io.InputStream;

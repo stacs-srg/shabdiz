@@ -34,8 +34,8 @@ import uk.ac.standrews.cs.shabdiz.active.Configuration;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManagerFactory;
 import uk.ac.standrews.cs.shabdiz.active.ParameterValue;
-import uk.ac.standrews.cs.shabdiz.active.URL;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.IMadfaceManager;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Common to several test classes.

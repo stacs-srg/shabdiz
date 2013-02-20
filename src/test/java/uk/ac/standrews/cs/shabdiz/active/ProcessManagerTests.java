@@ -28,11 +28,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.active.ClassPath;
-import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.PlatformDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.URL;
+import uk.ac.standrews.cs.shabdiz.impl.Platform;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Various tests of local and remote process invocation, not intended to be run automatically.
@@ -96,7 +94,7 @@ public class ProcessManagerTests {
     public void getRemotePlatform() throws Exception {
 
         final HostDescriptor host_descriptor = new HostDescriptor(true);
-        final PlatformDescriptor platform = host_descriptor.getPlatform();
+        final Platform platform = host_descriptor.getPlatform();
 
         System.out.println("platform: " + platform);
     }

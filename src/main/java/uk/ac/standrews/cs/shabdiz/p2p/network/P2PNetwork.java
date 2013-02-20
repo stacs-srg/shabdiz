@@ -12,9 +12,9 @@ import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManagerFactory;
-import uk.ac.standrews.cs.shabdiz.active.URL;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.IMadfaceManager;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Network comprising P2P nodes running on a set of specified hosts running Linux or OSX.

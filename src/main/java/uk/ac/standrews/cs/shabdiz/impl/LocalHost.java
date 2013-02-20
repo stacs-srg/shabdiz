@@ -42,7 +42,7 @@ public class LocalHost extends Host {
     private List<String> prepareCommands(final String... command) {
 
         final List<String> command_list = new ArrayList<String>(Arrays.asList(command));
-        if (File.separatorChar == Platform.UNIX.getSeparator()) {
+        if (Platform.isUnixBased(getPlatform())) {
             command_list.add(0, "bash");
             command_list.add(1, "-c");
         }

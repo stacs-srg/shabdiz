@@ -9,6 +9,7 @@ import java.io.PipedOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.shabdiz.active.Credentials;
 import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
+import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
 
 public class RemoteSSHHost extends Host {
 
@@ -34,11 +36,14 @@ public class RemoteSSHHost extends Host {
 
     private static final int DEFAULT_SSH_PORT = 22;
     private final SSHClient ssh;
+    private final ReentrantLock platform_lock;
+    private volatile Platform platform;
 
     public RemoteSSHHost(final String name, final Credentials credentials) throws IOException {
 
         super(name, credentials);
         ssh = createSSHClient(name);
+        platform_lock = new ReentrantLock();
     }
 
     @Override
@@ -85,6 +90,7 @@ public class RemoteSSHHost extends Host {
     private void uploadRecursively(final ChannelSftp sftp, final Collection<File> files) throws IOException {
 
         for (final File file : files) {
+            LOGGER.info("Uploading: " + file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
             }
@@ -192,8 +198,17 @@ public class RemoteSSHHost extends Host {
     @Override
     public Platform getPlatform() throws IOException {
 
-        //FIXME implement uname -a
-        return Platform.UNIX;
+        platform_lock.lock();
+        try {
+            if (platform == null) {
+                platform = PlatformUtil.detectRemotePlatformUsingUname(this);
+            }
+
+            return platform;
+        }
+        finally {
+            platform_lock.unlock();
+        }
     }
 
     private SSHClient createSSHClient(final String host_name) throws SSHException {

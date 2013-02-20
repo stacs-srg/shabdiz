@@ -56,6 +56,7 @@ import uk.ac.standrews.cs.shabdiz.active.scanners.HostScannerThread;
 import uk.ac.standrews.cs.shabdiz.active.scanners.KillScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.SingleHostScannerThread;
 import uk.ac.standrews.cs.shabdiz.active.scanners.StatusScanner;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Madface server implementation. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.

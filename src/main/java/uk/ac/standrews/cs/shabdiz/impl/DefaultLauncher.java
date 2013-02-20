@@ -128,12 +128,12 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException {
 
         final Process worker_process = worker_process_builder.start(host);
-        final InetSocketAddress worker_address = getWorerRemoteAddressFromProcessOutput(worker_process);
+        final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
 
         return new DefaultWorker(this, worker_address, worker_process); // Return the smart proxy to the worker remote.
     }
 
-    private InetSocketAddress getWorerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException {
+    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException {
 
         // TODO add timeout
         InetSocketAddress worker_address;

@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.ac.standrews.cs.shabdiz.active.URL;
 
 /**
  * Utility class that provides application library urls used by Shabdiz.

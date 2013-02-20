@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.active.Credentials;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.Patterns;
-import uk.ac.standrews.cs.shabdiz.active.URL;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Madface remote application management interface.
