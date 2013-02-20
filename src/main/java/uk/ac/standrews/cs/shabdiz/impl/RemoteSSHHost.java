@@ -25,8 +25,8 @@ import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
 import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
-import uk.ac.standrews.cs.nds.madface.Credentials;
-import uk.ac.standrews.cs.nds.madface.PublicKeyCredentials;
+import uk.ac.standrews.cs.shabdiz.active.Credentials;
+import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
 
 public class RemoteSSHHost extends Host {
 
