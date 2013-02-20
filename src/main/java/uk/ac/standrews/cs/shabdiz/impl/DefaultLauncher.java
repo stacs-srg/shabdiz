@@ -25,19 +25,23 @@
  */
 package uk.ac.standrews.cs.shabdiz.impl;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
@@ -45,6 +49,8 @@ import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
+import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.interfaces.Launcher;
 import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
@@ -58,12 +64,16 @@ import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 public class DefaultLauncher implements Launcher, LauncherCallback {
 
     private static final int EPHEMERAL_PORT = 0;
-    private static final String WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
+    private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
+    private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
+
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
     private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
-
+    private final ExecutorService deployment_executor;
     private final RemoteJavaProcessBuilder worker_process_builder;
+    private volatile String worker_jvm_arguments = DEFAULT_WORKER_JVM_ARGUMENTS;
+    private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -118,38 +128,62 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         callback_server = new LauncherCallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         callback_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
-        worker_process_builder = createRemoteJavaProcessBuiler(classpath, WORKER_JVM_ARGUMENTS);
-
+        worker_process_builder = createRemoteJavaProcessBuiler(classpath, DEFAULT_WORKER_JVM_ARGUMENTS);
+        deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizLauncher:" + callback_address.getPort()));
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Sets the worker JVM arguments.
+     * 
+     * @param jvm_arguments the new worker JVM arguments
+     * @throws NullPointerException if the given arguments is {@code null}
+     */
+    public void setWorkerJVMArguments(final String jvm_arguments) {
+
+        worker_jvm_arguments = jvm_arguments.trim();
+    }
+
+    /**
+     * Sets the worker deployment timeout.
+     * 
+     * @param duration the new worker deployment timeout
+     * @throws NullPointerException if the given timeout is {@code null}
+     */
+    public void setWorkerDeploymentTimeout(final Duration duration) {
+
+        if (duration == null) { throw new NullPointerException(); }
+        worker_deployment_timeout = duration;
+    }
 
     @Override
-    public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException {
+    public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException, TimeoutException {
 
         final Process worker_process = worker_process_builder.start(host);
         final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
-
-        return new DefaultWorker(this, worker_address, worker_process); // Return the smart proxy to the worker remote.
+        return new DefaultWorker(this, worker_address, worker_process);
     }
 
-    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException {
+    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
 
-        // TODO add timeout
-        InetSocketAddress worker_address = null;
-        final InputStreamReader reader = new InputStreamReader(worker_process.getInputStream());
-        final BufferedReader br = new BufferedReader(reader); // this is not closed on purpose.  the stream belongs to Process instance.
-        do {
-            final String output_line = br.readLine();
-            if (output_line != null) {
-                worker_address = WorkerNodeServer.parseOutputLine(output_line);
-            }
-            else {
-                break;
-            } //FIXME Refactor. a bad way to check for end of returned data.
+        final Future<InetSocketAddress> future_address = executeScanForRemoteWorkerAddress(worker_process);
+        boolean scan_succeeded = false;
+        try {
+            final InetSocketAddress worker_address = future_address.get(worker_deployment_timeout.getLength(), worker_deployment_timeout.getTimeUnit());
+            scan_succeeded = true;
+            return worker_address;
         }
-        while (worker_address == null);
-        return worker_address;
+        catch (final ExecutionException e) {
+            final Throwable cause = e.getCause();
+            throw IOException.class.isInstance(cause) ? IOException.class.cast(cause) : new IOException(cause);
+        }
+        finally {
+            if (!future_address.isDone()) {
+                future_address.cancel(true);
+            }
+            if (!scan_succeeded) {
+                worker_process.destroy();
+            }
+        }
     }
 
     @Override
@@ -183,6 +217,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     @Override
     public void shutdown() {
 
+        deployment_executor.shutdownNow();
         unexpose();
         releaseAllPendingFutures(); // Release the futures which are still pending for notification
     }
@@ -230,5 +265,26 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
             }
         }
+    }
+
+    private Future<InetSocketAddress> executeScanForRemoteWorkerAddress(final Process worker_process) {
+
+        return deployment_executor.submit(new Callable<InetSocketAddress>() {
+
+            @Override
+            public InetSocketAddress call() throws Exception {
+
+                InetSocketAddress worker_address = null;
+                final Scanner scanner = new Scanner(worker_process.getInputStream()); // Scanner is not closed on purpose. The stream belongs to Process instance.
+                do {
+                    final String output_line = scanner.nextLine();
+                    if (output_line != null) {
+                        worker_address = WorkerNodeServer.parseOutputLine(output_line);
+                    }
+                }
+                while (worker_address == null && !Thread.currentThread().isInterrupted());
+                return worker_address;
+            }
+        });
     }
 }
