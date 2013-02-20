@@ -1,7 +1,3 @@
-/***************************************************************************
- * * nds Library * Copyright (C) 2005-2011 Distributed Systems Architecture Research Group * University of St Andrews, Scotland * http://www-systems.cs.st-andrews.ac.uk/ * * This file is part of nds, a package of utility classes. * * nds is free software: you can redistribute it and/or modify * it under the terms of the GNU General Public License as published by * the Free Software Foundation, either version 3 of the License, or * (at your option) any later version. * * nds is distributed in the
- * hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General Public License for more details. * * You should have received a copy of the GNU General Public License * along with nds. If not, see <http://www.gnu.org/licenses/>. * *
- ***************************************************************************/
 package uk.ac.standrews.cs.nds.madface;
 
 import java.util.ArrayList;
@@ -51,14 +47,12 @@ public abstract class ApplicationManager implements IApplicationManager {
     public void attemptApplicationCall(final HostDescriptor host_descriptor) throws Exception {
 
         // This assumes that the application reference implements IPingable, and uses IPingable.ping() to test for application liveness.
-
         try {
             tryApplicationCall(host_descriptor);
         }
         catch (final Exception e) {
 
             // Discard cached application reference.
-
             Diagnostic.trace(DiagnosticLevel.FULL, "discarding application reference for port ", host_descriptor.getPort(), " due to exception: ", e.getClass().getName(), " : ", e.getMessage());
             host_descriptor.applicationReference(null);
             throw e;
@@ -79,7 +73,6 @@ public abstract class ApplicationManager implements IApplicationManager {
         if (kill_all_instances) {
 
             // Try to kill all application instances by guessing the format of the process names.
-
             // Check for the address being null, which it will be if the descriptor represents an invalid host.
             if (host_descriptor.getInetAddress() != null) {
                 host_descriptor.killMatchingProcesses(guessFragmentOfApplicationProcessName(host_descriptor));

@@ -30,11 +30,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.madface.HostDescriptor;
 import uk.ac.standrews.cs.nds.madface.HostState;
 import uk.ac.standrews.cs.nds.madface.MadfaceManager;
-import uk.ac.standrews.cs.nds.madface.ProcessDescriptor;
-import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.nds.madface.interfaces.IApplicationManager;
 import uk.ac.standrews.cs.nds.madface.interfaces.IAttributesCallback;
@@ -43,9 +42,6 @@ import uk.ac.standrews.cs.nds.madface.interfaces.ISingleHostScanner;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-
-import com.mindbright.ssh2.SSH2Exception;
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
@@ -77,8 +73,6 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
     private static final boolean ENABLED_BY_DEFAULT = false;
 
     private final Set<IHostStatusCallback> host_status_callbacks;
-    private final ProcessDescriptor ssh_connection_process_descriptor;
-    private final TimeoutExecutor ssh_timeout_executor;
 
     private volatile CountDownLatch cycle_latch;
 
@@ -99,8 +93,6 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
         super(manager, min_cycle_time, thread_pool_size, status_check_timeout, "status scanner", ENABLED_BY_DEFAULT);
 
         host_status_callbacks = manager.getHostStatusCallbacks();
-        ssh_timeout_executor = TimeoutExecutor.makeTimeoutExecutor(ssh_check_thread_pool_size, ssh_check_timeout, true, false, "StatusScanner timeout executor");
-        ssh_connection_process_descriptor = new ProcessDescriptor().command(MINIMAL_COMMAND).executor(ssh_timeout_executor);
 
         // Initialize the latch for the first cycle.
         newCycleLatch();
@@ -110,7 +102,6 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
     public void shutdown() {
 
         super.shutdown();
-        ssh_timeout_executor.shutdown();
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -161,7 +152,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
 
                     setHostState(host_descriptor, HostState.AUTH);
                 }
-                catch (final SSH2Exception e1) {
+                catch (final SSHException e1) {
 
                     // Couldn't make SSH connection with specified credentials.
                     setHostState(host_descriptor, HostState.NO_AUTH);
@@ -190,12 +181,6 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
 
                     // SSH connection timed out.
                     setHostState(host_descriptor, HostState.UNREACHABLE);
-                }
-                catch (final UnknownPlatformException e1) {
-
-                    // This shouldn't happen...
-                    Diagnostic.trace("Unexpected unknown platform exception");
-                    setHostState(host_descriptor, HostState.UNKNOWN);
                 }
             }
 
@@ -233,11 +218,11 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
         cycle_latch = new CountDownLatch(1);
     }
 
-    private void attemptSSHConnection(final HostDescriptor host_descriptor) throws SSH2Exception, IOException, TimeoutException, UnknownPlatformException, InterruptedException, UnsupportedPlatformException {
+    private void attemptSSHConnection(final HostDescriptor host_descriptor) throws IOException, TimeoutException, InterruptedException, UnsupportedPlatformException {
 
         // Try to execute a 'cd /' shell command on the machine.
         // This is selected as a command that produces no output and doesn't require a functioning home directory.
-
+        //FIXME add timeout
         host_descriptor.getManagedHost().execute(MINIMAL_COMMAND).destroy();
     }
 

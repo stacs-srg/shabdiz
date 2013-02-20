@@ -103,7 +103,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         command.append(".");
         command.append(platform.getPathSeparator());
         appendClasspathDirectoryNames(command, platform);
-        command.append("*");
+        command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
         command.append(SPACE);
     }
 
@@ -113,7 +113,9 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         for (final File classpath_entry : classpath) {
             final String name = classpath_entry.getName();
             if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
-                command.append(classpath_entry.getName());
+                command.append("\"");
+                command.append(name);
+                command.append("\"");
                 command.append(platform.getPathSeparator());
                 classpath_directory_names.add(name);
             }

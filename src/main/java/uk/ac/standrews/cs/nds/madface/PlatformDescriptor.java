@@ -37,24 +37,16 @@ import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
  */
 public final class PlatformDescriptor {
 
-    /**
-     * Linux.
-     */
+    /** Linux. */
     public static final String NAME_LINUX = "Linux";
 
-    /**
-     * OS X.
-     */
+    /** OS X. */
     public static final String NAME_MAC = "Mac OS X";
 
-    /**
-     * Windows.
-     */
+    /** Windows. */
     public static final String NAME_WINDOWS = "Windows";
 
-    /**
-     * Unknown.
-     */
+    /** Unknown. */
     public static final String NAME_UNKNOWN = "Unknown";
 
     // -------------------------------------------------------------------------------------------------------
@@ -125,7 +117,7 @@ public final class PlatformDescriptor {
      * Returns the file separator character for this platform.
      * 
      * @return the file separator character for this platform
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public String getFileSeparator() throws UnknownPlatformException {
 
@@ -137,7 +129,7 @@ public final class PlatformDescriptor {
      * Returns the class path separator character for this platform.
      * 
      * @return the class path separator character for this platform
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public String getClassPathSeparator() throws UnknownPlatformException {
 
@@ -149,7 +141,7 @@ public final class PlatformDescriptor {
      * Returns the 'temp' directory path for this platform.
      * 
      * @return the 'temp' directory path for this platform
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public String getTempPath() throws UnknownPlatformException {
 
@@ -161,7 +153,7 @@ public final class PlatformDescriptor {
      * Returns the 'wget' path for this platform.
      * 
      * @return the 'wget' path for this platform
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public String getWgetPath() throws UnknownPlatformException {
 
@@ -183,14 +175,14 @@ public final class PlatformDescriptor {
 
     /**
      * Creates a shell command to invoke the Java compiler with the specified parameters.
-     *
+     * 
      * @param compilation_class_path the class path to be compiled against
      * @param output_dir_path the path of the output directory
      * @param compiler_flags the compiler flags
      * @param file_paths the paths of the files to be compiled
      * @return a shell command to invoke the compiler
      * @throws FileNotFoundException if the compiler executable cannot be found locally
-     * @throws UnknownPlatformException 
+     * @throws UnknownPlatformException
      */
     public String getJavaCompilerCommand(final ClassPath compilation_class_path, final File output_dir_path, final List<String> compiler_flags, final List<File> file_paths) throws FileNotFoundException, UnknownPlatformException {
 

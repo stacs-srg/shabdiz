@@ -24,13 +24,14 @@
 package uk.ac.standrews.cs.nds.madface;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
-import uk.ac.standrews.cs.nds.util.ErrorHandling;
 
 /**
  * Representation of a Java class path.
@@ -40,9 +41,11 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 public final class ClassPath implements Iterable<File>, Cloneable {
 
     private volatile List<String> classpath_entries;
-    private static volatile PlatformDescriptor local_platform = null;
-
-    // -------------------------------------------------------------------------------------------------------
+    public static final int NUMBER_OF_BLUB_NODES = 60;
+    public static final Map<String, String> JAVA_BIN_PATHS = new HashMap<String, String>();
+    static {
+        initJavaBinPaths();
+    }
 
     /**
      * Returns the class path of the currently executing program.
@@ -52,47 +55,13 @@ public final class ClassPath implements Iterable<File>, Cloneable {
     public static ClassPath getCurrentClassPath() {
 
         // Work around bug on Windows/Eclipse where part of the classpath contains forward slashes.
-        final String environment_class_path = System.getProperty("java.class.path").replace("/", getLocalFileSeparator());
+        final String environment_class_path = System.getProperty("java.class.path").replace("/", File.separator);
         String proper = environment_class_path.replace(";\\", ";").replace("\\;", ";");
         if (proper.charAt(proper.length() - 1) == '\\') {
             proper = proper.substring(0, proper.length() - 2);
         }
 
         return new ClassPath(proper);
-    }
-
-    // -------------------------------------------------------------------------------------------------------
-
-    private synchronized static PlatformDescriptor getLocalPlatform() throws IOException {
-
-        // Race condition here but doesn't matter since it would just get initialized twice.
-        // TODO load lazily with separate class.
-        if (local_platform == null) {
-            local_platform = new HostDescriptor().getPlatform();
-        }
-        return local_platform;
-    }
-
-    private static String getLocalPathSeparator() {
-
-        try {
-            return getLocalPlatform().getClassPathSeparator();
-        }
-        catch (final Exception e) {
-            ErrorHandling.hardExceptionError(e, "couldn't get classpath separator for local platform");
-            return null;
-        }
-    }
-
-    private static String getLocalFileSeparator() {
-
-        try {
-            return getLocalPlatform().getFileSeparator();
-        }
-        catch (final Exception e) {
-            ErrorHandling.hardExceptionError(e, "couldn't get file path separator for local platform");
-            return null;
-        }
     }
 
     /**
@@ -110,7 +79,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
      */
     public ClassPath(final String classpath_string) {
 
-        this(classpath_string.split(getLocalPathSeparator()));
+        this(classpath_string.split(File.pathSeparator));
     }
 
     /**
@@ -121,7 +90,6 @@ public final class ClassPath implements Iterable<File>, Cloneable {
     public ClassPath(final String[] classpath_element_paths) {
 
         this();
-
         for (final String classpath_element_path : classpath_element_paths) {
             classpath_entries.add(classpath_element_path);
         }
@@ -136,7 +104,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
 
         this();
         for (final File f : classpath_elements) {
-            classpath_entries.add(f.toString());
+            classpath_entries.add(f.getAbsolutePath());
         }
     }
 
@@ -153,39 +121,14 @@ public final class ClassPath implements Iterable<File>, Cloneable {
         }
     }
 
-    // -------------------------------------------------------------------------------------------------------
-
     /**
-     * Returns a representation of the class path formatted for the current local platform.
+     * Gets the number of classpath entries.
      * 
-     * @param use_path_quote true if the resulting string should be surrounded with appropriate quote characters
-     * @return a representation of the class path
+     * @return the number of classpath entries
      */
-    public synchronized String toString(final boolean use_path_quote) {
+    public int size() {
 
-        try {
-            return toString(getLocalPlatform(), use_path_quote);
-        }
-        catch (final Exception e) {
-            ErrorHandling.hardExceptionError(e, "couldn't get local platform");
-            return null;
-        }
-    }
-
-    /**
-     * Returns a representation of the class path formatted for the given platform.
-     * 
-     * @param platform a platform
-     * @return a representation of the class path
-     */
-    public synchronized String toString(final PlatformDescriptor platform) {
-
-        try {
-            return toString(platform, true);
-        }
-        catch (final UnknownPlatformException e) {
-            return "classpath for unknown platform";
-        }
+        return classpath_entries.size();
     }
 
     /**
@@ -196,11 +139,9 @@ public final class ClassPath implements Iterable<File>, Cloneable {
      * @return a representation of the class path
      * @throws UnknownPlatformException
      */
-    public synchronized String toString(final PlatformDescriptor platform, final boolean use_path_quote) throws UnknownPlatformException {
+    public synchronized String toString(final boolean use_path_quote) {
 
-        final String path_separator = platform.getClassPathSeparator();
-        final String path_quote = use_path_quote ? platform.getPathQuote() : "";
-
+        final String path_quote = ""; //use_path_quote ? platform.getPathQuote() : "";
         final StringBuilder classpath = new StringBuilder(path_quote);
 
         boolean first = true;
@@ -210,13 +151,11 @@ public final class ClassPath implements Iterable<File>, Cloneable {
                 first = false;
             }
             else {
-                classpath.append(path_separator);
+                classpath.append(File.pathSeparator);
             }
-
             classpath.append(path_element);
         }
         classpath.append(path_quote);
-
         return classpath.toString();
     }
 
@@ -251,8 +190,6 @@ public final class ClassPath implements Iterable<File>, Cloneable {
         classpath_entries.addAll(other_path.classpath_entries);
     }
 
-    // -------------------------------------------------------------------------------------------------------
-
     /**
      * Returns an iterator over the entries in the class path, each an instance of File representing either a directory or a jar file.
      * 
@@ -261,36 +198,23 @@ public final class ClassPath implements Iterable<File>, Cloneable {
     @Override
     public Iterator<File> iterator() {
 
-        final List<File> filelist = new ArrayList<File>();
-
-        for (final String s : classpath_entries) {
-            filelist.add(new File(s));
-        }
-
-        return filelist.iterator();
+        return new CopyOnWriteArrayList(classpath_entries).iterator();
     }
 
-    // -------------------------------------------------------------------------------------------------------
+    private static void initJavaBinPaths() {
 
-    /**
-     * Modifies all relative paths to resolve them relative to the given root.
-     * 
-     * @param root a root directory
-     */
-    public void resolveRelativePaths(final File root) {
+        JAVA_BIN_PATHS.put("teaching-1.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-2.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-3.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-4.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-1", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-2", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-3", "/usr/local/jdk/bin");
+        JAVA_BIN_PATHS.put("teaching-4", "/usr/local/jdk/bin");
 
-        final List<String> new_classpath_entries = new ArrayList<String>();
-
-        for (final String entry : classpath_entries) {
-            if (new File(entry).isAbsolute()) {
-                new_classpath_entries.add(entry);
-            }
-            else {
-                new_classpath_entries.add(root.getAbsolutePath() + File.separator + new File(entry).getPath());
-            }
+        for (int i = 0; i < NUMBER_OF_BLUB_NODES; i++) {
+            JAVA_BIN_PATHS.put("compute-0-" + i, "/usr/java/latest/bin");
         }
-
-        classpath_entries = new_classpath_entries;
     }
 
     @Override
@@ -310,10 +234,5 @@ public final class ClassPath implements Iterable<File>, Cloneable {
     public String toString() {
 
         return toString(true);
-    }
-
-    public int size() {
-
-        return classpath_entries.size();
     }
 }

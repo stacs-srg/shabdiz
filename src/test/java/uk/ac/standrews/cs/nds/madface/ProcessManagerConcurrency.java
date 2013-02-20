@@ -9,11 +9,9 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 
-import com.mindbright.ssh2.SSH2Exception;
-
 public class ProcessManagerConcurrency {
 
-    public static void main(final String[] args) throws IOException, SSH2Exception, TimeoutException, InterruptedException {
+    public static void main(final String[] args) throws IOException,  TimeoutException, InterruptedException {
 
         final String command = "uname -a";
 

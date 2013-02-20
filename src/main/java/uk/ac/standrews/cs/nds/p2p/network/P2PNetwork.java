@@ -14,6 +14,7 @@ import uk.ac.standrews.cs.nds.madface.URL;
 import uk.ac.standrews.cs.nds.madface.interfaces.IApplicationManager;
 import uk.ac.standrews.cs.nds.madface.interfaces.IMadfaceManager;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
+import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
 
 /**
  * Network comprising P2P nodes running on a set of specified hosts running Linux or OSX.

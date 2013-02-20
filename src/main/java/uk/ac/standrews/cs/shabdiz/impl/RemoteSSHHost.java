@@ -75,7 +75,6 @@ public class RemoteSSHHost extends Host {
         for (final String directory_name : directory_names) {
             if (directory_name.length() > 0) {
                 if (!exists(directory_name, sftp)) {
-                    System.out.println("making " + directory_name);
                     sftp.mkdir(directory_name);
                 }
                 sftp.cd(directory_name);
@@ -193,6 +192,7 @@ public class RemoteSSHHost extends Host {
     @Override
     public Platform getPlatform() throws IOException {
 
+        //FIXME implement uname -a
         return Platform.UNIX;
     }
 

@@ -52,18 +52,4 @@ public abstract class Host {
 
         LOGGER.info("shutting down host " + address);
     }
-
-    //    public synchronized Platform getPlatform() throws IOException, InterruptedException {
-    //
-    //        if (platform == null) {
-    //            initialisePlatform();
-    //        }
-    //        return platform;
-    //    }
-    //
-    //    private void initialisePlatform() throws IOException, InterruptedException {
-    //
-    //        platform = Platform.getHostPlatform(this);
-    //    }
-
 }

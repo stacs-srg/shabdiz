@@ -52,8 +52,6 @@ import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
 
-import com.mindbright.ssh2.SSH2Exception;
-
 /**
  * Superclass for node factory implementations.
  * 
@@ -112,7 +110,7 @@ public abstract class P2PNodeFactory {
      * @throws UnsupportedPlatformException
      * @throws DeploymentException
      */
-    public void createNode(final HostDescriptor host_descriptor) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
+    public void createNode(final HostDescriptor host_descriptor) throws IOException, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
 
         createNode(host_descriptor, null);
     }
@@ -131,7 +129,7 @@ public abstract class P2PNodeFactory {
      * @throws UnsupportedPlatformException
      * @throws DeploymentException
      */
-    public void createNode(final HostDescriptor host_descriptor, final IKey key) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
+    public void createNode(final HostDescriptor host_descriptor, final IKey key) throws IOException, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
 
         if (host_descriptor.getPort() == 0) { // Check whether host descriptor's port is unspecified
 
@@ -199,7 +197,7 @@ public abstract class P2PNodeFactory {
 
     // -------------------------------------------------------------------------------------------------------
 
-    private void createAndBindToNodeOnSpecifiedPort(final HostDescriptor host_descriptor, final IKey key) throws SSH2Exception, IOException, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
+    private void createAndBindToNodeOnSpecifiedPort(final HostDescriptor host_descriptor, final IKey key) throws IOException, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException, UnsupportedPlatformException, DeploymentException {
 
         final List<String> args = constructArgs(host_descriptor, key, host_descriptor.getPort());
 
@@ -257,7 +255,7 @@ public abstract class P2PNodeFactory {
         return args.toArray(new String[0]);
     }
 
-    private void createAndBindToNodeOnFreePort(final HostDescriptor host_descriptor, final IKey key) throws IOException, SSH2Exception, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException {
+    private void createAndBindToNodeOnFreePort(final HostDescriptor host_descriptor, final IKey key) throws IOException, TimeoutException, UnknownPlatformException, InvalidServerClassException, InterruptedException {
 
         // TODO have target node select free port and notify back to temporary server.
 
@@ -297,13 +295,12 @@ public abstract class P2PNodeFactory {
         }
     }
 
-    private static void launderException(final Exception e) throws SSH2Exception, IOException, TimeoutException, InvalidServerClassException, UnknownPlatformException, InterruptedException {
+    private static void launderException(final Exception e) throws IOException, TimeoutException, InvalidServerClassException, UnknownPlatformException, InterruptedException {
 
         if (e instanceof ExecutionException) {
             launderException((Exception) e.getCause());
         }
         if (e instanceof InterruptedException) { throw (InterruptedException) e; }
-        if (e instanceof SSH2Exception) { throw (SSH2Exception) e; }
         if (e instanceof IOException) { throw (IOException) e; }
         if (e instanceof TimeoutException) { throw (TimeoutException) e; }
         if (e instanceof UnknownPlatformException) { throw (UnknownPlatformException) e; }

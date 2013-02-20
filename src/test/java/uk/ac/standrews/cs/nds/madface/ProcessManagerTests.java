@@ -197,10 +197,9 @@ public class ProcessManagerTests {
 
     private void runRemoteProcess(final boolean use_password) throws Exception {
 
-        final HostDescriptor host_descriptor = new HostDescriptor(use_password);
-        final ProcessDescriptor process_descriptor = new ProcessDescriptor().command("uname -a");
+        //        final HostDescriptor host_descriptor = new HostDescriptor(use_password);
+        //        final ProcessDescriptor process_descriptor = new ProcessDescriptor().command("uname -a");
         //        final Process p = host_descriptor.getProcessManager().runProcess(process_descriptor);
-        //
         //        p.waitFor();
         //        p.destroy();
     }

@@ -72,7 +72,7 @@ public class LocalHost extends Host {
     }
 
     @Override
-    public Platform getPlatform() throws IOException {
+    public Platform getPlatform() {
 
         return Platform.LOCAL;
     }

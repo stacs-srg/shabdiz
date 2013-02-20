@@ -12,7 +12,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,6 @@ import uk.ac.standrews.cs.nds.madface.exceptions.UnequalArrayLengthsException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.nds.madface.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.Input;
@@ -37,8 +35,6 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.impl.Host;
 import uk.ac.standrews.cs.shabdiz.impl.LocalHost;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteSSHHost;
-
-import com.mindbright.ssh2.SSH2Exception;
 
 /**
  * Describes a local or remote host and, optionally, SSH connection credentials and/or remote references to an application that is running or could run on it. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
@@ -48,33 +44,12 @@ import com.mindbright.ssh2.SSH2Exception;
  */
 public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneable {
 
-    private static final int NUMBER_OF_BLUB_NODES = 60;
-
     private static final String PROBE_COMMAND = "uname";
-
     private static final String PROBE_REPLY_LINUX = "Linux";
     private static final String PROBE_REPLY_MAC = "Darwin";
-    private static final String LOCAL_HOST = "localhost";
     private static final String TEMP_FILES_ROOT = "madface";
-    private static String local_host = null;
-    private static InetAddress local_inet_address = null;
 
     private static final AtomicInteger NEXT_ID = new AtomicInteger(0);
-    private static final Map<String, String> JAVA_BIN_PATHS = new HashMap<String, String>();
-
-    // -------------------------------------------------------------------------------------------------------
-
-    static {
-        try {
-            local_inet_address = InetAddress.getLocalHost();
-            local_host = local_inet_address.getHostName();
-
-            initJavaBinPaths();
-        }
-        catch (final UnknownHostException e) {
-            Diagnostic.trace(DiagnosticLevel.FULL, "No local IP address found");
-        }
-    }
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -82,7 +57,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private volatile String host = null;
 
     // The host address.
-    private volatile InetAddress inet_address = null;
+    private volatile InetAddress address = null;
 
     // The application port.
     private volatile int port = 0;
@@ -117,7 +92,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     // A reference to the application process(es) running on the host.
     // This is a set because it's possible that multiple processes will be started, in the case that a
     // process is started but not detected before the next attempt is made.
-    private final Set<Process> processes = Collections.synchronizedSet(new HashSet<Process>());
+    private final Set<Process> processes = new ConcurrentSkipListSet<Process>();
 
     // Map storing results of various scan operations.
     private volatile Map<String, String> scan_results = null;
@@ -318,7 +293,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      */
     public boolean local() {
 
-        return local(host);
+        return NetworkUtil.isValidLocalAddress(address);
     }
 
     /**
@@ -392,7 +367,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      */
     public InetAddress getInetAddress() {
 
-        return inet_address;
+        return address;
     }
 
     /**
@@ -469,15 +444,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         return platform_descriptor;
     }
 
-    //    /**
-    //     * Returns a manager for executing processes on the host.
-    //     *
-    //     * @return a manager for executing processes on the host
-    //     */
-    //    public ProcessManager getProcessManager() {
-    //
-    //        return process_manager;
-    //    }
     /**
      * Returns a manager for executing processes on the host.
      * 
@@ -525,7 +491,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @throws InterruptedException if the thread is interrupted while waiting for processes to die
      * @throws UnsupportedPlatformException
      */
-    public void killMatchingProcesses(final String label) throws SSH2Exception, IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
+    public void killMatchingProcesses(final String label) throws IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
 
         killMatchingProcesses(label, new ArrayList<File>());
     }
@@ -538,7 +504,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         kill_process.destroy();
     }
 
-    public void clearTempFiles() throws SSH2Exception, IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
+    public void clearTempFiles() throws IOException, UnknownPlatformException, TimeoutException, InterruptedException, UnsupportedPlatformException {
 
         final String clear_temp_files_command = getClearTempFilesCommand();
         final Process clear_temp_files_process = managed_host.execute(clear_temp_files_command);
@@ -619,14 +585,14 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         builder.append("host: " + host + "\n");
         builder.append("port: " + port + "\n");
-        builder.append("inet_address: " + inet_address + "\n");
+        builder.append("inet_address: " + address + "\n");
         builder.append("platform_descriptor: " + platform_descriptor + "\n");
         builder.append("class_path: " + class_path + "\n");
         builder.append("host_state: " + getHostState() + "\n");
         builder.append("credentials: " + credentials + "\n");
         builder.append("id: " + id + "\n");
         builder.append("java_bin_path: " + java_bin_path + "\n");
-        builder.append("local: " + local(host) + "\n");
+        builder.append("local: " + local() + "\n");
         builder.append("application urls: " + setToString(application_urls) + "\n");
 
         return builder.toString();
@@ -783,7 +749,10 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         id = NEXT_ID.getAndIncrement();
 
-        if (local(host)) {
+        address = InetAddress.getLocalHost();
+        this.host = address.getHostName();
+
+        if (NetworkUtil.isValidLocalAddress(address)) {
             initLocal();
         }
         else {
@@ -795,9 +764,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     private void initLocal() throws IOException {
 
-        host = local_host;
-        inet_address = local_inet_address;
-
         scan_results = Collections.synchronizedMap(new HashMap<String, String>());
         managed_host = new LocalHost();
 
@@ -808,7 +774,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         this.host = host;
         try {
-            inet_address = InetAddress.getByName(host);
+            address = InetAddress.getByName(host);
         }
         catch (final UnknownHostException e) {
             // Ignore, and allow for host_address being potentially null.
@@ -822,7 +788,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     private void initPlatform() {
 
-        if (local(host)) {
+        if (local()) {
             initLocalPlatform();
         }
         else {
@@ -908,7 +874,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         if (e instanceof RuntimeException) { throw (RuntimeException) e; }
 
-        if (e instanceof InterruptedException || e instanceof TimeoutException || e instanceof IOException || e instanceof SSH2Exception || e instanceof UnknownPlatformException) {
+        if (e instanceof InterruptedException || e instanceof TimeoutException || e instanceof IOException || e instanceof UnknownPlatformException) {
 
             final StringBuilder builder = new StringBuilder();
             builder.append("exception determining remote platform: ");
@@ -931,26 +897,10 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private void checkForHardwiredJavaBinPath() {
 
         if (java_bin_path == null && host != null) {
-            final String path = JAVA_BIN_PATHS.get(host);
+            final String path = ClassPath.JAVA_BIN_PATHS.get(host);
             if (path != null) {
                 javaBinPath(new File(path));
             }
-        }
-    }
-
-    private static void initJavaBinPaths() {
-
-        JAVA_BIN_PATHS.put("teaching-1.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-2.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-3.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-4.cs.st-andrews.ac.uk", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-1", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-2", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-3", "/usr/local/jdk/bin");
-        JAVA_BIN_PATHS.put("teaching-4", "/usr/local/jdk/bin");
-
-        for (int i = 0; i < NUMBER_OF_BLUB_NODES; i++) {
-            JAVA_BIN_PATHS.put("compute-0-" + i, "/usr/java/latest/bin");
         }
     }
 
@@ -969,11 +919,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private static HostDescriptor createConnection(final String host, final Credentials credentials) throws IOException {
 
         return new HostDescriptor(host, credentials);
-    }
-
-    private static boolean local(final String host) {
-
-        return host == null || host.equals("") || host.equals(LOCAL_HOST) || host.equals(local_host);
     }
 
     /**

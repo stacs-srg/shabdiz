@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 
 /**
  * Holds details of a process to be executed. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public class ProcessDescriptor {

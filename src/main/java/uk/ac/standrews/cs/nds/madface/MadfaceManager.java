@@ -76,6 +76,9 @@ public final class MadfaceManager implements IMadfaceManager {
 
     public static final String STATUS_CHECK_THREAD_COUNT_KEY = "status_check_thread_count";
 
+    /** Success status message. */
+    public static final String RESULT_OK = "ok";
+
     /** Separator character for URL paths. */
     public static final String URL_PATH_SEPARATOR = ";";
 
@@ -190,6 +193,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Returns the manager's scanner map.
+     * 
      * @return the scanner map
      */
     public Map<String, IHostScanner> getScannerMap() {
@@ -199,6 +203,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Returns the application manager.
+     * 
      * @return the application manager
      */
     public IApplicationManager getApplicationManager() {
@@ -208,6 +213,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Returns the host status callbacks.
+     * 
      * @return the host status callbacks.
      */
     public Set<IHostStatusCallback> getHostStatusCallbacks() {
@@ -217,6 +223,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Returns the host attribute callbacks.
+     * 
      * @return the host attribute callbacks.
      */
     public Set<IAttributesCallback> getAttributesCallbacks() {
@@ -226,6 +233,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Sets the application manager.
+     * 
      * @param application_manager the application manager
      */
     public void setApplicationManager(final IApplicationManager application_manager) {
@@ -398,7 +406,7 @@ public final class MadfaceManager implements IMadfaceManager {
         if (pref_name.equals(DISCARD_ERRORS)) {
 
             discard_errors = enabled;
-            return Constants.RESULT_OK;
+            return RESULT_OK;
         }
 
         return setScannerEnabled(pref_name, enabled);
@@ -502,6 +510,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     /**
      * Returns true if error output should be discarded.
+     * 
      * @return true if error output should be discarded
      */
     public boolean errorsAreDiscarded() {
@@ -517,7 +526,7 @@ public final class MadfaceManager implements IMadfaceManager {
         if (scanner == null) { return NO_PREFERENCE_WITH_NAME + pref_name; }
 
         scanner.setEnabled(enabled);
-        return Constants.RESULT_OK;
+        return RESULT_OK;
     }
 
     private void configureApplicationManager() throws InstantiationException, IllegalAccessException {
@@ -693,7 +702,7 @@ public final class MadfaceManager implements IMadfaceManager {
         final Set<URL> urls = new HashSet<URL>();
 
         for (final String path : paths) {
-            urls.add(new URL(url_base, path));
+            urls.add(new URL(url_base + path));
         }
 
         return urls;
@@ -703,7 +712,7 @@ public final class MadfaceManager implements IMadfaceManager {
     private Class<? extends IApplicationManager> getApplicationManagerClass(final String application_entrypoint_name) throws ClassNotFoundException {
 
         final ClassLoader parent_loader = Thread.currentThread().getContextClassLoader();
-        final java.net.URL[] url_array = URL.realUrlsAsArray(application_urls);
+        final java.net.URL[] url_array = URL.toArrayAsRealURLs(application_urls);
         final ClassLoader url_class_loader = new URLClassLoader(url_array, parent_loader);
 
         return (Class<? extends IApplicationManager>) Class.forName(application_entrypoint_name, true, url_class_loader);
