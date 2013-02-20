@@ -85,6 +85,7 @@ public class RemoteSSHHost extends Host {
     private void uploadRecursively(final ChannelSftp sftp, final Collection<File> files) throws IOException {
 
         for (final File file : files) {
+            LOGGER.info("Uploading: " + file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
             }

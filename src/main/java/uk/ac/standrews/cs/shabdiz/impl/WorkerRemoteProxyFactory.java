@@ -28,16 +28,18 @@ final class WorkerRemoteProxyFactory {
      */
     static synchronized WorkerRemoteProxy getProxy(final InetSocketAddress proxy_address) {
 
-        final WorkerRemoteProxy proxy;
+        WorkerRemoteProxy proxy = null;
+        if (proxy_address !=null){
 
-        if (WORKER_NODE_PROXY_MAP.containsKey(proxy_address)) {
+            if (WORKER_NODE_PROXY_MAP.containsKey(proxy_address)) {
 
-            proxy = WORKER_NODE_PROXY_MAP.get(proxy_address);
-        }
-        else {
+                proxy = WORKER_NODE_PROXY_MAP.get(proxy_address);
+            }
+            else {
 
-            proxy = new WorkerRemoteProxy(proxy_address);
-            WORKER_NODE_PROXY_MAP.put(proxy_address, proxy);
+                proxy = new WorkerRemoteProxy(proxy_address);
+                WORKER_NODE_PROXY_MAP.put(proxy_address, proxy);
+            }
         }
 
         return proxy;

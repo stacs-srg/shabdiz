@@ -70,10 +70,13 @@ class DefaultWorker implements Worker {
 
     @Override
     public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws RPCException {
-
-        final UUID job_id = worker_proxy.submitJob(job);
-        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-        launcher.notifyJobSubmission(future_remote);
+        FutureRemoteProxy<Result> future_remote = null;
+        if (worker_proxy!=null)
+        {
+            final UUID job_id = worker_proxy.submitJob(job);
+            future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
+            launcher.notifyJobSubmission(future_remote);
+        }
         return future_remote;
     }
 
