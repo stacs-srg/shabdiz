@@ -72,7 +72,6 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final ExecutorService deployment_executor;
     private final RemoteJavaProcessBuilder worker_process_builder;
-    private volatile String worker_jvm_arguments = DEFAULT_WORKER_JVM_ARGUMENTS;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
 
     // -------------------------------------------------------------------------------------------------------------------------------
@@ -128,7 +127,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         callback_server = new LauncherCallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         callback_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
-        worker_process_builder = createRemoteJavaProcessBuiler(classpath, DEFAULT_WORKER_JVM_ARGUMENTS);
+        worker_process_builder = createRemoteJavaProcessBuiler(classpath);
         deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizLauncher:" + callback_address.getPort()));
     }
 
@@ -140,7 +139,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
      */
     public void setWorkerJVMArguments(final String jvm_arguments) {
 
-        worker_jvm_arguments = jvm_arguments.trim();
+        worker_process_builder.replaceJVMArguments(jvm_arguments.trim());
     }
 
     /**
@@ -227,11 +226,11 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         id_future_map.put(future_remote.getJobID(), future_remote);
     }
 
-    private RemoteJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final String jvm_arguments) {
+    private RemoteJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath) {
 
         final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(WorkerNodeServer.class);
         process_builder.addCommandLineArgument(WorkerNodeServer.LAUNCHER_CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
-        process_builder.addJVMArgument(jvm_arguments);
+        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addClasspath(classpath);
         process_builder.addCurrentJVMClasspath();
         return process_builder;
