@@ -173,13 +173,14 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         }
         catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
-            throw IOException.class.isInstance(cause) ? IOException.class.cast(cause) : new IOException(cause);
+            final Class<IOException> io_exception = IOException.class;
+            throw io_exception.isInstance(cause) ? io_exception.cast(cause) : new IOException(cause);
         }
         finally {
-            if (!future_address.isDone()) {
-                future_address.cancel(true);
-            }
             if (!scan_succeeded) {
+                if (!future_address.isDone()) {
+                    future_address.cancel(true);
+                }
                 worker_process.destroy();
             }
         }
@@ -273,13 +274,11 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
             @Override
             public InetSocketAddress call() throws Exception {
 
-                InetSocketAddress worker_address = null;
+                InetSocketAddress worker_address;
                 final Scanner scanner = new Scanner(worker_process.getInputStream()); // Scanner is not closed on purpose. The stream belongs to Process instance.
                 do {
                     final String output_line = scanner.nextLine();
-                    if (output_line != null) {
-                        worker_address = WorkerNodeServer.parseOutputLine(output_line);
-                    }
+                    worker_address = WorkerNodeServer.parseOutputLine(output_line);
                 }
                 while (worker_address == null && !Thread.currentThread().isInterrupted());
                 return worker_address;
