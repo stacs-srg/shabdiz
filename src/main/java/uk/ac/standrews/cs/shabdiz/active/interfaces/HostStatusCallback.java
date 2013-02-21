@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  * nds Library                                                             *
- * Copyright (C) 2005-2010 Distributed Systems Architecture Research Group *
+ * Copyright (C) 2005-2011 Distributed Systems Architecture Research Group *
  * University of St Andrews, Scotland                                      *
  * http://www-systems.cs.st-andrews.ac.uk/                                 *
  *                                                                         *
@@ -21,20 +21,24 @@
  * along with nds.  If not, see <http://www.gnu.org/licenses/>.            *
  *                                                                         *
  ***************************************************************************/
+
 package uk.ac.standrews.cs.shabdiz.active.interfaces;
 
+import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.active.HostState;
+
 /**
- * Interface implemented by objects processing output stream from remote process.
+ * Callback for change in machine status.
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface IStreamProcessor {
+public interface HostStatusCallback {
 
     /**
-     * Processes a byte output by the process.
+     * Handles a change in machine status.
      *
-     * @param byte_value the byte to be processed
-     * @return true if the byte should then be passed on for further processing
+     * @param host_descriptor the host descriptor
+     * @param previous_state the previous status
      */
-    boolean processByte(int byte_value);
+    void hostStatusChange(HostDescriptor host_descriptor, HostState previous_state);
 }

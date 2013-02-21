@@ -31,7 +31,7 @@ import java.util.SortedSet;
 import uk.ac.standrews.cs.shabdiz.active.Credentials;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
-import uk.ac.standrews.cs.shabdiz.active.Patterns;
+import uk.ac.standrews.cs.shabdiz.util.Patterns;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
@@ -257,14 +257,14 @@ public interface IMadfaceManager {
      * 
      * @param host_status_callback the callback
      */
-    void addHostStatusCallback(IHostStatusCallback host_status_callback);
+    void addHostStatusCallback(HostStatusCallback host_status_callback);
 
     /**
      * Adds a callback for attribute changes.
      * 
      * @param attributes_callback the callback
      */
-    void addAttributesCallback(IAttributesCallback attributes_callback);
+    void addAttributesCallback(AttributesCallback attributes_callback);
 
     /**
      * Shuts down the manager.

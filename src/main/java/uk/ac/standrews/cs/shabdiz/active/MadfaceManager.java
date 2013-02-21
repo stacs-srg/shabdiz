@@ -43,12 +43,12 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IGlobalHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostStatusCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.GlobalHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.IMadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.DeployScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.DropScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.GlobalHostScannerThread;
@@ -56,6 +56,7 @@ import uk.ac.standrews.cs.shabdiz.active.scanners.HostScannerThread;
 import uk.ac.standrews.cs.shabdiz.active.scanners.KillScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.SingleHostScannerThread;
 import uk.ac.standrews.cs.shabdiz.active.scanners.StatusScanner;
+import uk.ac.standrews.cs.shabdiz.util.Patterns;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
@@ -142,13 +143,13 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private int ssh_check_thread_pool_size;
 
-    private Set<IHostStatusCallback> host_status_callbacks;
-    private Set<IAttributesCallback> attributes_callbacks;
+    private Set<HostStatusCallback> host_status_callbacks;
+    private Set<AttributesCallback> attributes_callbacks;
 
     private final SortedSet<HostDescriptor> host_state_list;
     private final List<HostScannerThread> scanner_list;
-    private final Map<String, IHostScanner> scanner_map;
-    private final Map<String, IHostScanner> headless_scanner_map;
+    private final Map<String, HostScanner> scanner_map;
+    private final Map<String, HostScanner> headless_scanner_map;
 
     private boolean discard_errors;
 
@@ -171,8 +172,8 @@ public final class MadfaceManager implements IMadfaceManager {
 
         host_state_list = new ConcurrentSkipListSet<HostDescriptor>();
         scanner_list = Collections.synchronizedList(new ArrayList<HostScannerThread>());
-        scanner_map = Collections.synchronizedMap(new HashMap<String, IHostScanner>());
-        headless_scanner_map = Collections.synchronizedMap(new HashMap<String, IHostScanner>());
+        scanner_map = Collections.synchronizedMap(new HashMap<String, HostScanner>());
+        headless_scanner_map = Collections.synchronizedMap(new HashMap<String, HostScanner>());
 
         application_urls = Collections.synchronizedSet(new HashSet<URL>());
 
@@ -197,7 +198,7 @@ public final class MadfaceManager implements IMadfaceManager {
      * 
      * @return the scanner map
      */
-    public Map<String, IHostScanner> getScannerMap() {
+    public Map<String, HostScanner> getScannerMap() {
 
         return scanner_map;
     }
@@ -217,7 +218,7 @@ public final class MadfaceManager implements IMadfaceManager {
      * 
      * @return the host status callbacks.
      */
-    public Set<IHostStatusCallback> getHostStatusCallbacks() {
+    public Set<HostStatusCallback> getHostStatusCallbacks() {
 
         return host_status_callbacks;
     }
@@ -227,7 +228,7 @@ public final class MadfaceManager implements IMadfaceManager {
      * 
      * @return the host attribute callbacks.
      */
-    public Set<IAttributesCallback> getAttributesCallbacks() {
+    public Set<AttributesCallback> getAttributesCallbacks() {
 
         return attributes_callbacks;
     }
@@ -354,13 +355,13 @@ public final class MadfaceManager implements IMadfaceManager {
     }
 
     @Override
-    public void addHostStatusCallback(final IHostStatusCallback host_status_callback) {
+    public void addHostStatusCallback(final HostStatusCallback host_status_callback) {
 
         host_status_callbacks.add(host_status_callback);
     }
 
     @Override
-    public void addAttributesCallback(final IAttributesCallback attributes_callback) {
+    public void addAttributesCallback(final AttributesCallback attributes_callback) {
 
         attributes_callbacks.add(attributes_callback);
     }
@@ -523,7 +524,7 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private String setScannerEnabled(final String pref_name, final boolean enabled) {
 
-        final IHostScanner scanner = getScannerMap().get(pref_name);
+        final HostScanner scanner = getScannerMap().get(pref_name);
         if (scanner == null) { return NO_PREFERENCE_WITH_NAME + pref_name; }
 
         scanner.setEnabled(enabled);
@@ -557,22 +558,22 @@ public final class MadfaceManager implements IMadfaceManager {
         scanner_map.put(kill_scanner.getToggleLabel(), kill_scanner);
     }
 
-    private IHostScanner getStatusScanner() {
+    private HostScanner getStatusScanner() {
 
         return scanner_map.get(status_scanner.getToggleLabel());
     }
 
-    private IHostScanner getDeployScanner() {
+    private HostScanner getDeployScanner() {
 
         return scanner_map.get(deploy_scanner.getToggleLabel());
     }
 
-    private IHostScanner getDropScanner() {
+    private HostScanner getDropScanner() {
 
         return scanner_map.get(drop_scanner.getToggleLabel());
     }
 
-    private IHostScanner getKillScanner() {
+    private HostScanner getKillScanner() {
 
         return scanner_map.get(kill_scanner.getToggleLabel());
     }
@@ -585,11 +586,11 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private void configureSingleScanners() {
 
-        final List<ISingleHostScanner> single_host_scanners = application_manager.getSingleScanners();
+        final List<SingleHostScanner> single_host_scanners = application_manager.getSingleScanners();
 
         if (single_host_scanners != null) {
 
-            for (final ISingleHostScanner scanner : single_host_scanners) {
+            for (final SingleHostScanner scanner : single_host_scanners) {
 
                 scanner.syncWith(status_scanner);
                 final SingleHostScannerThread thread = new SingleHostScannerThread(this, scanner);
@@ -609,10 +610,10 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private void configureGlobalScanners() {
 
-        final List<IGlobalHostScanner> global_host_scanners = application_manager.getGlobalScanners();
+        final List<GlobalHostScanner> global_host_scanners = application_manager.getGlobalScanners();
 
         if (global_host_scanners != null) {
-            for (final IGlobalHostScanner scanner : global_host_scanners) {
+            for (final GlobalHostScanner scanner : global_host_scanners) {
 
                 scanner.syncWith(status_scanner);
                 final GlobalHostScannerThread thread = new GlobalHostScannerThread(this, scanner);
@@ -632,8 +633,8 @@ public final class MadfaceManager implements IMadfaceManager {
 
     private void configureCallbacks() {
 
-        host_status_callbacks = new HashSet<IHostStatusCallback>();
-        attributes_callbacks = new HashSet<IAttributesCallback>();
+        host_status_callbacks = new HashSet<HostStatusCallback>();
+        attributes_callbacks = new HashSet<AttributesCallback>();
     }
 
     private void startScanners() {
@@ -649,9 +650,9 @@ public final class MadfaceManager implements IMadfaceManager {
         shutdownScanners(headless_scanner_map);
     }
 
-    private void shutdownScanners(final Map<String, IHostScanner> map) {
+    private void shutdownScanners(final Map<String, HostScanner> map) {
 
-        for (final Entry<String, IHostScanner> entry : map.entrySet()) {
+        for (final Entry<String, HostScanner> entry : map.entrySet()) {
             entry.getValue().shutdown();
         }
     }

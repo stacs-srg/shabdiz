@@ -76,14 +76,14 @@ public interface ApplicationManager {
      * 
      * @return a list of single-host scanners, or null if none are required.
      */
-    List<ISingleHostScanner> getSingleScanners();
+    List<SingleHostScanner> getSingleScanners();
 
     /**
      * Returns a list of global scanners for the application.
      * 
      * @return a list of global scanners, or null if none are required.
      */
-    List<IGlobalHostScanner> getGlobalScanners();
+    List<GlobalHostScanner> getGlobalScanners();
 
     /**
      * Shuts down the manager.

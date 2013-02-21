@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  * nds Library                                                             *
- * Copyright (C) 2005-2011 Distributed Systems Architecture Research Group *
+ * Copyright (C) 2005-2010 Distributed Systems Architecture Research Group *
  * University of St Andrews, Scotland                                      *
  * http://www-systems.cs.st-andrews.ac.uk/                                 *
  *                                                                         *
@@ -21,23 +21,23 @@
  * along with nds.  If not, see <http://www.gnu.org/licenses/>.            *
  *                                                                         *
  ***************************************************************************/
-
 package uk.ac.standrews.cs.shabdiz.active.interfaces;
+
+import java.util.SortedSet;
 
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 
-
 /**
- * Callback for change in machine attributes.
- *
+ * Interface implemented by application-specific global scanners checking all known hosts.
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface IAttributesCallback {
+public interface GlobalHostScanner extends HostScanner {
 
     /**
-     * Handles a change in machine attribute values.
-     *
-     * @param host_descriptor the host descriptor
+     * Performs some application-specific global check of the specified hosts.
+     * 
+     * @param host_state_list the hosts to be checked
      */
-    void attributesChange(HostDescriptor host_descriptor);
+    void check(SortedSet<HostDescriptor> host_state_list);
 }

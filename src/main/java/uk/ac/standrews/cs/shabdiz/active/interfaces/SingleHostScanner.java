@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface ISingleHostScanner extends IHostScanner {
+public interface SingleHostScanner extends HostScanner {
 
     /**
      * Returns the name of the host descriptor attribute set by the scanner.
@@ -49,5 +49,5 @@ public interface ISingleHostScanner extends IHostScanner {
      * @param attribute_callbacks callbacks to be called if host attributes change
      * @throws Exception if the check fails
      */
-    void check(HostDescriptor host_descriptor, Set<IAttributesCallback> attribute_callbacks) throws Exception;
+    void check(HostDescriptor host_descriptor, Set<AttributesCallback> attribute_callbacks) throws Exception;
 }

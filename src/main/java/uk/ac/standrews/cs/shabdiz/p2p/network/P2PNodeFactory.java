@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.Key;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
@@ -85,11 +86,11 @@ public abstract class P2PNodeFactory {
 
     // -------------------------------------------------------------------------------------------------------
 
-    protected abstract Object bindToNode(final Object... args) throws RPCException;
+    protected abstract IPingable bindToNode(final Object... args) throws RPCException;
 
-    protected abstract Object bindToNode(HostDescriptor host_descriptor) throws UnknownHostException, TimeoutException, InterruptedException;
+    protected abstract IPingable bindToNode(HostDescriptor host_descriptor) throws UnknownHostException, TimeoutException, InterruptedException;
 
-    protected abstract Object createLocalReference(Object node, Object remote_reference);
+    protected abstract IPingable createLocalReference(Object node, Object remote_reference);
 
     protected abstract Class<?> getNodeServerClass();
 
@@ -228,7 +229,7 @@ public abstract class P2PNodeFactory {
             }
 
             final Process process = java_process_builder.start(host_descriptor.getManagedHost());
-            final Object node;
+            final IPingable node;
             try {
                 // Bind to the node, establishing the application reference.
                 node = bindToNode(host_descriptor);

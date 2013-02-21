@@ -24,58 +24,62 @@
 package uk.ac.standrews.cs.shabdiz.active.interfaces;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 
 /**
  * Interface implemented by application-specific scanners.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface IHostScanner {
+public interface HostScanner {
 
     /**
      * Returns the size of the thread pool used for scanner checks.
+     * 
      * @return the size of the thread pool used for scanner checks
      */
     int getThreadPoolSize();
 
     /**
      * Returns the minimum cycle time between successive scans of the host list.
+     * 
      * @return the minimum cycle time between successive scans of the host list
      */
     Duration getMinCycleTime();
 
+    Duration getCheckTimeout();
+
     /**
      * Returns the label to be used in a user interface toggle for this scanner, or null if none required.
+     * 
      * @return the label to be used in a user interface toggle
      */
     String getToggleLabel();
 
     /**
      * Returns the name of the scanner.
+     * 
      * @return the name of the scanner
      */
     String getName();
 
     /**
      * Controls whether the scanner is enabled.
+     * 
      * @param enabled true if the scanner should be enabled
      */
     void setEnabled(boolean enabled);
 
     /**
      * Tests whether the scanner is enabled.
+     * 
      * @return true if the scanner is enabled
      */
     boolean isEnabled();
 
-    /**
-     * Returns the timeout executor to be used for executing checks.
-     * @return the timeout executor to be used for executing checks
-     */
-    TimeoutExecutor getTimeoutExecutor();
+    ExecutorService getExecutorService();
 
     /**
      * Shuts down the scanner.
@@ -93,7 +97,7 @@ public interface IHostScanner {
      * 
      * @param scanner_to_sync_with the scanner to synchronize with
      */
-    void syncWith(IHostScanner scanner_to_sync_with);
+    void syncWith(HostScanner scanner_to_sync_with);
 
     /**
      * Returns the latch for the current cycle, which may be used by other scanners to synchronize with this scanner.

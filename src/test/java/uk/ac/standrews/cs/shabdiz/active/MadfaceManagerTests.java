@@ -49,9 +49,9 @@ import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.ParameterValue;
 import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostStatusCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
@@ -182,7 +182,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
         final MadfaceManager concrete_manager = (MadfaceManager) manager;
         concrete_manager.setApplicationManager(new TestAppManager());
-        final Map<String, IHostScanner> scanner_map = concrete_manager.getScannerMap();
+        final Map<String, HostScanner> scanner_map = concrete_manager.getScannerMap();
 
         assertThat(scanner_map, is(notNullValue()));
     }
@@ -563,7 +563,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         makeHostDescriptorAndAddToManager();
 
         final CountDownLatch state_running_latch = new CountDownLatch(1);
-        manager.addHostStatusCallback(new IHostStatusCallback() {
+        manager.addHostStatusCallback(new HostStatusCallback() {
 
             @Override
             public void hostStatusChange(final HostDescriptor host_descriptor, final HostState original_state) {
@@ -579,7 +579,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
         manager.setAutoDeploy(false);
         final CountDownLatch state_auth_latch = new CountDownLatch(1);
-        manager.addHostStatusCallback(new IHostStatusCallback() {
+        manager.addHostStatusCallback(new HostStatusCallback() {
 
             @Override
             public void hostStatusChange(final HostDescriptor host_descriptor, final HostState original_state) {
@@ -607,7 +607,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         final HostDescriptor host_descriptor = makeHostDescriptorAndAddToManager();
 
         final CountDownLatch latch = new CountDownLatch(1);
-        manager.addAttributesCallback(new IAttributesCallback() {
+        manager.addAttributesCallback(new AttributesCallback() {
 
             @Override
             public void attributesChange(final HostDescriptor host_descriptor) {

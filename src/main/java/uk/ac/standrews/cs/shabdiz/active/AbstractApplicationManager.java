@@ -3,16 +3,20 @@ package uk.ac.standrews.cs.shabdiz.active;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
+import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IGlobalHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.GlobalHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Superclass for application manager implementations. The application being managed must implement the {@link IPingable} interface. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
@@ -21,15 +25,18 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
-    private static final Duration APPLICATION_CALL_TIMEOUT = new Duration(60, TimeUnit.SECONDS);
+    private static final Duration APPLICATION_CALL_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    private static final int APPLICATION_CALL_THREADS = 10;
-
-    private final List<ISingleHostScanner> single_scanners = new ArrayList<ISingleHostScanner>();
-    private final List<IGlobalHostScanner> global_scanners = new ArrayList<IGlobalHostScanner>();
-    private final TimeoutExecutor executor = TimeoutExecutor.makeTimeoutExecutor(APPLICATION_CALL_THREADS, APPLICATION_CALL_TIMEOUT, true, false, "ApplicationManager");
+    private final List<SingleHostScanner> single_scanners = new ArrayList<SingleHostScanner>();
+    private final List<GlobalHostScanner> global_scanners = new ArrayList<GlobalHostScanner>();
+    private final ExecutorService executor;
 
     // -------------------------------------------------------------------------------------------------------
+
+    protected AbstractApplicationManager() {
+
+        executor = Executors.newCachedThreadPool(new NamingThreadFactory(getApplicationName() + "_manager_"));
+    }
 
     /**
      * Establishes an application-level reference for the given host descriptor, and updates the host descriptor.
@@ -84,20 +91,20 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     }
 
     @Override
-    public List<ISingleHostScanner> getSingleScanners() {
+    public List<SingleHostScanner> getSingleScanners() {
 
         return single_scanners;
     }
 
     @Override
-    public List<IGlobalHostScanner> getGlobalScanners() {
+    public List<GlobalHostScanner> getGlobalScanners() {
 
         return global_scanners;
     }
 
     // -------------------------------------------------------------------------------------------------------
 
-    private void tryApplicationCall(final HostDescriptor host_descriptor) throws Exception {
+    private void tryApplicationCall(final HostDescriptor host_descriptor) throws InterruptedException, ExecutionException, TimeoutException {
 
         // Try to connect to the application, subject to a timeout.
         // Use Callable rather than Runnable, even though there's no result, since Callable can throw exceptions.
@@ -107,20 +114,20 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             public Void call() throws Exception {
 
                 // Use cached application reference if present.
-                final Object cached_reference = host_descriptor.getApplicationReference();
+                final IPingable cached_reference = host_descriptor.getApplicationReference();
 
                 if (cached_reference != null) {
-                    ((IPingable) cached_reference).ping();
+                    cached_reference.ping();
                 }
                 else {
                     // Establish a new connection to the application.
                     establishApplicationReference(host_descriptor);
                 }
 
-                return null;
+                return null; // Void callable
             }
         };
 
-        executor.executeWithTimeout(application_call);
+        executor.submit(application_call).get(APPLICATION_CALL_TIMEOUT.getLength(), APPLICATION_CALL_TIMEOUT.getTimeUnit());
     }
 }

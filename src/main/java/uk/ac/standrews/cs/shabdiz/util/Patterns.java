@@ -23,7 +23,7 @@
  * <http://www.gnu.org/licenses/>.                                         *
  *                                                                         *
  ***************************************************************************/
-package uk.ac.standrews.cs.shabdiz.active;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +38,8 @@ public final class Patterns {
     private static final int MAX_BYTE_VALUE = 255;
 
     /**
-    * Prevent instantiation of utility class.
-    */
+     * Prevent instantiation of utility class.
+     */
     private Patterns() {
 
     }
@@ -92,8 +92,6 @@ public final class Patterns {
 
         return hosts;
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Tries to parse pattern representing an address range by the start and end addresses separated by the string " - ", adding addresses to the

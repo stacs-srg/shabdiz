@@ -57,7 +57,7 @@ import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 
 /**
- * Deploys workers on hosts. Uses MADFACE to deploy workers.
+ * Deploys workers on hosts.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -261,7 +261,6 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         for (final FutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
 
             if (!future_remote.isDone()) { // Check whether the result is pending
-
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
             }
         }

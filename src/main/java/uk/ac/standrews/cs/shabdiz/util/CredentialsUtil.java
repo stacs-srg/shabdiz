@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.active;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,9 @@ import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.nds.util.Input;
+import uk.ac.standrews.cs.shabdiz.active.Credentials;
+import uk.ac.standrews.cs.shabdiz.active.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.InvalidCredentialsException;
 
 public final class CredentialsUtil {

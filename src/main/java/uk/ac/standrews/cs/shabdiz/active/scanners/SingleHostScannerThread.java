@@ -7,6 +7,7 @@ package uk.ac.standrews.cs.shabdiz.active.scanners;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,12 +16,11 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Thread that continually monitors the status of the hosts in a given list, the contents of which may vary dynamically.
@@ -31,8 +31,8 @@ public class SingleHostScannerThread extends HostScannerThread {
 
     // -------------------------------------------------------------------------------------------------------
 
-    private final ISingleHostScanner scanner;
-    private final Set<IAttributesCallback> attributes_callbacks;
+    private final SingleHostScanner scanner;
+    private final Set<AttributesCallback> attributes_callbacks;
     private final boolean debug;
 
     // -------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ public class SingleHostScannerThread extends HostScannerThread {
      * @param manager the manager
      * @param scanner an application-specific scanner
      */
-    public SingleHostScannerThread(final MadfaceManager manager, final ISingleHostScanner scanner) {
+    public SingleHostScannerThread(final MadfaceManager manager, final SingleHostScanner scanner) {
 
         super(scanner);
         host_state_list = manager.getHostDescriptors();
@@ -57,8 +57,9 @@ public class SingleHostScannerThread extends HostScannerThread {
     @Override
     public void run() {
 
-        final TimeoutExecutor executor = scanner.getTimeoutExecutor();
+        final ExecutorService executor = scanner.getExecutorService();
         final Duration scanner_min_cycle_time = scanner.getMinCycleTime();
+        final Duration check_timeout = scanner.getCheckTimeout();
 
         // Task to perform the appropriate check of all the known hosts.
         // Checks are performed concurrently as decided by the scanner's executor.
@@ -93,7 +94,7 @@ public class SingleHostScannerThread extends HostScannerThread {
                         final Runnable check = makeCheckHostAction(host_descriptor, all_hosts_check_completed_indirection, indirection_initialized);
 
                         try {
-                            executor.executeWithTimeout(check);
+                            executor.submit(check).get(check_timeout.getLength(), check_timeout.getTimeUnit());
                         }
                         catch (final InterruptedException e) {
                             throw e;

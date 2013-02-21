@@ -28,7 +28,7 @@ public class PasswordCredentials extends Credentials {
         this.password = password;
     }
 
-    protected char[] getPassword() {
+    public char[] getPassword() {
 
         return password;
     }

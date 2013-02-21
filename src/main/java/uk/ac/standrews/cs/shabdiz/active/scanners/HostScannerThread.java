@@ -7,7 +7,7 @@ package uk.ac.standrews.cs.shabdiz.active.scanners;
 import java.util.SortedSet;
 
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
 
 /**
  * Thread that continually monitors the status of the hosts in a given list, the contents of which may vary dynamically.
@@ -19,7 +19,7 @@ public class HostScannerThread extends Thread {
     protected SortedSet<HostDescriptor> host_state_list;
     protected String name;
 
-    public HostScannerThread(final IHostScanner scanner) {
+    public HostScannerThread(final HostScanner scanner) {
 
         name = scanner.getName();
     }

@@ -24,27 +24,30 @@
 package uk.ac.standrews.cs.shabdiz.active.scanners;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
+import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
 
 /**
  * Common scanner functionality.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public abstract class Scanner implements IHostScanner {
+public abstract class Scanner implements HostScanner {
 
     private final int thread_pool_size;
     private final Duration min_cycle_time;
-    private final TimeoutExecutor timeout_executor;
+    private final ExecutorService executor;
 
     protected final MadfaceManager manager;
-    protected volatile IHostScanner scanner_to_sync_with = null;
+    protected volatile HostScanner scanner_to_sync_with = null;
 
     protected volatile boolean enabled;
+    protected final Duration check_timeout;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -64,15 +67,17 @@ public abstract class Scanner implements IHostScanner {
 
         this.thread_pool_size = thread_pool_size;
         this.min_cycle_time = min_cycle_time;
+        this.check_timeout = check_timeout;
         this.enabled = enabled;
 
-        timeout_executor = TimeoutExecutor.makeTimeoutExecutor(thread_pool_size, check_timeout, false, false, scanner_name);
+        executor = Executors.newCachedThreadPool(new NamingThreadFactory(scanner_name));
     }
 
     // -------------------------------------------------------------------------------------------------------
 
     /**
      * Returns the size of the thread pool used for scanner checks.
+     * 
      * @return the size of the thread pool used for scanner checks
      */
     @Override
@@ -88,6 +93,12 @@ public abstract class Scanner implements IHostScanner {
     }
 
     @Override
+    public Duration getCheckTimeout() {
+
+        return check_timeout;
+    }
+
+    @Override
     public boolean isEnabled() {
 
         return enabled;
@@ -100,15 +111,15 @@ public abstract class Scanner implements IHostScanner {
     }
 
     @Override
-    public TimeoutExecutor getTimeoutExecutor() {
+    public ExecutorService getExecutorService() {
 
-        return timeout_executor;
+        return executor;
     }
 
     @Override
     public void shutdown() {
 
-        timeout_executor.shutdown();
+        executor.shutdown();
     }
 
     @Override
@@ -125,7 +136,7 @@ public abstract class Scanner implements IHostScanner {
     }
 
     @Override
-    public void syncWith(final IHostScanner scanner_to_sync_with) {
+    public void syncWith(final HostScanner scanner_to_sync_with) {
 
         this.scanner_to_sync_with = scanner_to_sync_with;
     }

@@ -35,7 +35,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.active.Patterns;
+import uk.ac.standrews.cs.shabdiz.util.Patterns;
 
 /**
  * Tests for pattern resolution logic.

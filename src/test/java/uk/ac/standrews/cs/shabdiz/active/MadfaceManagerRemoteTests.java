@@ -7,11 +7,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.HostState;
-import uk.ac.standrews.cs.shabdiz.active.PasswordCredentials;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostStatusCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
 
 /**
  * Tests requiring authentication, not intended to be run automatically.
@@ -20,7 +17,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostStatusCallback;
  */
 public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
-    private static final long TEST_TIMEOUT = 30000;
+    private static final long TEST_TIMEOUT = 300000;
     private static HostDescriptor host_descriptor;
 
     /**
@@ -175,7 +172,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         final String host_name = host_descriptor.getHost();
 
         manager.add(host_descriptor);
-        manager.addHostStatusCallback(new IHostStatusCallback() {
+        manager.addHostStatusCallback(new HostStatusCallback() {
 
             @Override
             public void hostStatusChange(final HostDescriptor host_descriptor, final HostState original_state) {
@@ -202,7 +199,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         final String host_name = host_descriptor.getHost();
 
         manager.add(host_descriptor);
-        manager.addAttributesCallback(new IAttributesCallback() {
+        manager.addAttributesCallback(new AttributesCallback() {
 
             @Override
             public void attributesChange(final HostDescriptor host_descriptor) {
