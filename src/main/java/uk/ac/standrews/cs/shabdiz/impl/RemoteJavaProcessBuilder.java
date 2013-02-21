@@ -16,8 +16,8 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     private static final Logger LOGGER = Logger.getLogger(RemoteJavaProcessBuilder.class.getName());
     private static final String SPACE = " ";
     private static final String TEMP_DIR = "/tmp";
-    private final StringBuilder jvm_arguments;
-    private final StringBuilder command_line_arguments;
+    private final StringBuffer jvm_arguments;
+    private final StringBuffer command_line_arguments;
     private final String main_class;
     private final Set<File> classpath;
     private volatile String java_home;
@@ -30,8 +30,8 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     public RemoteJavaProcessBuilder(final String main_class) {
 
         this.main_class = main_class;
-        jvm_arguments = new StringBuilder();
-        command_line_arguments = new StringBuilder();
+        jvm_arguments = new StringBuffer();
+        command_line_arguments = new StringBuffer();
         classpath = new HashSet<File>();
     }
 
@@ -170,6 +170,12 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
         final String arg = tidyArgument(argument);
         jvm_arguments.append(arg).append(SPACE);
+    }
+
+    public void replaceJVMArguments(final String replacement_arguments) {
+
+        final String arg = tidyArgument(replacement_arguments);
+        jvm_arguments.replace(0, jvm_arguments.length(), arg);
     }
 
     public void addJVMArguments(final Collection<String> arguments) {

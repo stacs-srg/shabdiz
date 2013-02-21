@@ -149,7 +149,7 @@ public class WorkerNodeServer {
 
     public static InetSocketAddress parseOutputLine(final String line) throws UnknownHostException {
 
-        return line.startsWith(WORKER_REMOTE_ADDRESS_KEY) ? Marshaller.getAddress(line.split("=")[1]) : null;
+        return line != null && line.startsWith(WORKER_REMOTE_ADDRESS_KEY) ? Marshaller.getAddress(line.split("=")[1]) : null;
     }
 
     /**
