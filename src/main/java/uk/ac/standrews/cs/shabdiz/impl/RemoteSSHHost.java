@@ -9,6 +9,7 @@ import java.io.PipedOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,7 @@ import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
 import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
+import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.active.Credentials;
 import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
@@ -33,7 +35,7 @@ import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
 public class RemoteSSHHost extends Host {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteSSHHost.class.getName());
-
+    private static final int SSH_CHANNEL_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
     private static final int DEFAULT_SSH_PORT = 22;
     private final SSHClient ssh;
     private final ReentrantLock platform_lock;
@@ -43,6 +45,8 @@ public class RemoteSSHHost extends Host {
 
         super(name, credentials);
         ssh = createSSHClient(name);
+        credentials.authenticate(ssh);
+        ssh.connect(SSH_CHANNEL_CONNECTION_TIMEOUT);
         platform_lock = new ReentrantLock();
     }
 
@@ -211,6 +215,20 @@ public class RemoteSSHHost extends Host {
         }
     }
 
+    @Override
+    public void shutdown() {
+
+        try {
+            ssh.close();
+        }
+        catch (final IOException e) {
+            LOGGER.throwing(getClass().getName(), "shutdown", e);
+        }
+        finally {
+            super.shutdown();
+        }
+    }
+
     private SSHClient createSSHClient(final String host_name) throws SSHException {
 
         final SSHClientFactory session_factory = SSHClientFactory.getInstance();
@@ -262,7 +280,7 @@ public class RemoteSSHHost extends Host {
             channel.setErrStream(new PipedOutputStream(err));
             channel.setInputStream(new PipedInputStream(out));
             channel.setCommand(command);
-            channel.connect();
+            channel.connect(SSH_CHANNEL_CONNECTION_TIMEOUT);
         }
 
         @Override
