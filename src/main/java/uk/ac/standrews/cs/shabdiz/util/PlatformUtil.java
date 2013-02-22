@@ -58,15 +58,15 @@ public class PlatformUtil {
     public static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
 
         // See: http://en.wikipedia.org/wiki/Uname#Examples
-        //final Process uname_process = host.execute(UNAME_COMMAND); /* FIXME I think this kills the ssh connection and it doesnt realise that it is no longer connected in the local object.*/
-        //final Scanner scanner = new Scanner(uname_process.getInputStream());
+        final Process uname_process = host.execute(UNAME_COMMAND); /* FIXME I think this kills the ssh connection and it doesnt realise that it is no longer connected in the local object.*/
+        final Scanner scanner = new Scanner(uname_process.getInputStream());
         try {
-         //   final String uname_output = scanner.nextLine(); 
-            return Platform.fromUnameOutput("MASIH PLEASE FIX ME");//FIXME for some reason doing the unix style uname call kills the connection.
+            final String uname_output = scanner.nextLine(); 
+            return Platform.fromUnameOutput(uname_output);
         }
         finally {
-            //scanner.close();
-            //uname_process.destroy(); //FIXME does destroy close the ssh connection?
+            scanner.close();
+            uname_process.destroy(); 
         }
     }
 
