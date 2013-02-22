@@ -36,14 +36,14 @@ public class RemoteSSHHost extends Host {
     private static final Logger LOGGER = Logger.getLogger(RemoteSSHHost.class.getName());
     private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
     private static final int DEFAULT_SSH_PORT = 22;
-    private final SSHClient ssh_client;
+    private final SSHClient ssh;
     private final ReentrantLock platform_lock;
     private volatile Platform platform;
 
     public RemoteSSHHost(final String name, final Credentials credentials) throws IOException {
 
         super(name, credentials);
-        ssh_client = createSSHClient(name, credentials);
+        ssh= createSSHClient(name, credentials);
         platform_lock = new ReentrantLock();
     }
 
@@ -212,44 +212,31 @@ public class RemoteSSHHost extends Host {
         }
     }
 
-    @Override
-    public void shutdown() {
-
-        try {
-            ssh_client.close();
-        }
-        catch (final IOException e) {
-            LOGGER.throwing(getClass().getName(), "shutdown", e);
-        }
-        finally {
-            super.shutdown();
-        }
-    }
 
     private static SSHClient createSSHClient(final String host_name, final Credentials credentials) throws IOException {
 
         final SSHClientFactory session_factory = SSHClientFactory.getInstance();
-        final SSHClient ssh_client = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
+        final SSHClient session = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
         PublicKeyCredentials.setSSHKnownHosts(session_factory);
-        return ssh_client;
+        return session;
     }
 
     public <T extends SSHChannel> T openSSHChannel(final ChannelType type) throws IOException {
 
-        synchronized (ssh_client) {
-            if (!ssh_client.isConnected()) {
+        synchronized (ssh) {
+            if (!ssh.isConnected()) {
                 initialiseSession();
             }
         }
-        return ssh_client.openChannel(type);
+        return ssh.openChannel(type);
     }
 
     private void initialiseSession() throws IOException {
 
         if (credentials != null) {
-            credentials.authenticate(ssh_client);
+            credentials.authenticate(ssh);
         }
-        ssh_client.connect(SSH_CONNECTION_TIMEOUT);
+        ssh.connect(SSH_CONNECTION_TIMEOUT);
     }
 
     private class ChannelExecProcess extends Process {
@@ -356,7 +343,7 @@ public class RemoteSSHHost extends Host {
 
             final String kill_command = assembleKillCommand();
             LOGGER.info(kill_command);
-            final ChannelExec kill_channel = openSSHChannel(ChannelType.EXEC);
+            final ChannelExec kill_channel = ssh.openChannel(ChannelType.EXEC);
             try {
                 kill_channel.setCommand(kill_command);
                 kill_channel.connect();

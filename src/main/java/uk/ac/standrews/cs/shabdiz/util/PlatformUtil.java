@@ -58,15 +58,16 @@ public class PlatformUtil {
     public static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
 
         // See: http://en.wikipedia.org/wiki/Uname#Examples
-        final Process uname_process = host.execute(UNAME_COMMAND);
-        final Scanner scanner = new Scanner(uname_process.getInputStream());
+        //final Process uname_process = host.execute(UNAME_COMMAND);
+        //final Process uname_process = host.execute("ls;");
+        //final Scanner scanner = new Scanner(uname_process.getInputStream());
         try {
-            final String uname_output = scanner.nextLine();
-            return Platform.fromUnameOutput(uname_output);
+            //final String uname_output = scanner.nextLine();
+            return Platform.fromUnameOutput("hi");
         }
         finally {
-            scanner.close();
-            uname_process.destroy();
+            //scanner.close();
+            //uname_process.destroy();
         }
     }
 
