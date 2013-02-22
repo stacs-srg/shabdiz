@@ -62,11 +62,11 @@ public class PlatformUtil {
         //final Scanner scanner = new Scanner(uname_process.getInputStream());
         try {
          //   final String uname_output = scanner.nextLine(); 
-            return Platform.fromUnameOutput("MASIH PLEASE FIX ME");//TODO for some reason doing the unix style uname call kills the connection.
+            return Platform.fromUnameOutput("MASIH PLEASE FIX ME");//FIXME for some reason doing the unix style uname call kills the connection.
         }
         finally {
             //scanner.close();
-            //uname_process.destroy();
+            //uname_process.destroy(); //FIXME does destroy close the ssh connection?
         }
     }
 
