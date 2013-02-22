@@ -21,6 +21,7 @@ import uk.ac.standrews.cs.barreleye.ChannelExec;
 import uk.ac.standrews.cs.barreleye.ChannelSftp;
 import uk.ac.standrews.cs.barreleye.ChannelSftp.LsEntry;
 import uk.ac.standrews.cs.barreleye.ChannelType;
+
 import uk.ac.standrews.cs.barreleye.SSHClient;
 import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
@@ -55,7 +56,7 @@ public class RemoteSSHHost extends Host {
     @Override
     public void upload(final Collection<File> sources, final String destination) throws IOException {
 
-        final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
+    	final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
         try {
             sftp.connect(SSH_CONNECTION_TIMEOUT);
             prepareRemoteDestination(destination, sftp);
@@ -133,7 +134,7 @@ public class RemoteSSHHost extends Host {
     @Override
     public void download(final String source, final File destination) throws IOException {
 
-        final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
+    	final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
         try {
             sftp.connect();
             prepareLocalDestination(destination);
