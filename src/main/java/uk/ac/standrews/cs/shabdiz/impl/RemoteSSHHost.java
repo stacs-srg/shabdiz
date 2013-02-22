@@ -46,6 +46,13 @@ public class RemoteSSHHost extends Host {
         ssh= createSSHClient(name, credentials);
         platform_lock = new ReentrantLock();
     }
+    
+    public RemoteSSHHost(final String name, final Credentials credentials, final Platform platform) throws IOException {
+        super(name, credentials);
+        ssh= createSSHClient(name, credentials);
+        platform_lock = new ReentrantLock();
+        this.platform = platform;
+    }
 
     @Override
     public void upload(final File source, final String destination) throws IOException {

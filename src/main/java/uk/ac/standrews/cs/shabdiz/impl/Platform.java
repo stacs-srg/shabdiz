@@ -40,6 +40,7 @@ public class Platform {
         if (uname_output.contains(WINDOWS_OS_NAME)) { return new WindowsPlatform(uname_output); }
         return new UnixPlatform(uname_output);
     }
+    
 
     /**
      * Checks if a given platform presents a UNIX based platform.
