@@ -36,7 +36,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     }
 
     @Override
-    public Process start(final Host host) throws IOException, InterruptedException {
+    public Process start(final Host host) throws IOException {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host, remote_working_directory);
