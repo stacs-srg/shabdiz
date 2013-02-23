@@ -57,6 +57,22 @@ public class Platform {
     private final String temp_dir;
     private final String os_name;
 
+    /**
+     * Instantiates a new platform.
+     * 
+     * @param os_name the operating system name
+     * @param path_separator the path separator
+     * @param separator the separator
+     * @param temp_dir the temp dir
+     */
+    public Platform(final String os_name, final char path_separator, final char separator, final String temp_dir) {
+
+        this.os_name = os_name;
+        this.path_separator = path_separator;
+        this.separator = separator;
+        this.temp_dir = temp_dir;
+    }
+
     public char getPathSeparator() {
 
         return path_separator;
@@ -127,13 +143,5 @@ public class Platform {
 
             super(os_name, WINDOWS_PATH_SEPARATOR, UNIX_SEPARATOR, UNIX_TEMP_DIR);
         }
-    }
-
-    protected Platform(final String os_name, final char path_separator, final char separator, final String temp_dir) {
-
-        this.os_name = os_name;
-        this.path_separator = path_separator;
-        this.separator = separator;
-        this.temp_dir = temp_dir;
     }
 }

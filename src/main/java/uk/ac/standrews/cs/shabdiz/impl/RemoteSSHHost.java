@@ -21,7 +21,7 @@ import uk.ac.standrews.cs.barreleye.ChannelExec;
 import uk.ac.standrews.cs.barreleye.ChannelSftp;
 import uk.ac.standrews.cs.barreleye.ChannelSftp.LsEntry;
 import uk.ac.standrews.cs.barreleye.ChannelType;
-
+import uk.ac.standrews.cs.barreleye.SSHChannel;
 import uk.ac.standrews.cs.barreleye.SSHClient;
 import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
@@ -56,7 +56,7 @@ public class RemoteSSHHost extends Host {
     @Override
     public void upload(final Collection<File> sources, final String destination) throws IOException {
 
-    	final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
+        final ChannelSftp sftp = openSSHChannel(ChannelType.SFTP);
         try {
             sftp.connect(SSH_CONNECTION_TIMEOUT);
             prepareRemoteDestination(destination, sftp);
@@ -134,7 +134,7 @@ public class RemoteSSHHost extends Host {
     @Override
     public void download(final String source, final File destination) throws IOException {
 
-    	final ChannelSftp sftp = ssh_client.openChannel(ChannelType.SFTP);
+        final ChannelSftp sftp = openSSHChannel(ChannelType.SFTP);
         try {
             sftp.connect();
             prepareLocalDestination(destination);
@@ -231,11 +231,25 @@ public class RemoteSSHHost extends Host {
         final SSHClientFactory session_factory = SSHClientFactory.getInstance();
         final SSHClient ssh_client = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);
         PublicKeyCredentials.setSSHKnownHosts(session_factory);
+        return ssh_client;
+    }
+
+    public <T extends SSHChannel> T openSSHChannel(final ChannelType type) throws IOException {
+
+        synchronized (ssh_client) {
+            if (!ssh_client.isConnected()) {
+                initialiseSession();
+            }
+        }
+        return ssh_client.openChannel(type);
+    }
+
+    private void initialiseSession() throws IOException {
+
         if (credentials != null) {
             credentials.authenticate(ssh_client);
         }
         ssh_client.connect(SSH_CONNECTION_TIMEOUT);
-        return ssh_client;
     }
 
     private class ChannelExecProcess extends Process {
@@ -249,7 +263,7 @@ public class RemoteSSHHost extends Host {
         public ChannelExecProcess(final String command) throws IOException {
 
             this.command = command;
-            this.channel = ssh_client.openChannel(ChannelType.EXEC);
+            this.channel = openSSHChannel(ChannelType.EXEC);
             in = new PipedInputStream();
             err = new PipedInputStream();
             out = new PipedOutputStream();
@@ -342,7 +356,7 @@ public class RemoteSSHHost extends Host {
 
             final String kill_command = assembleKillCommand();
             LOGGER.info(kill_command);
-            final ChannelExec kill_channel = ssh_client.openChannel(ChannelType.EXEC);
+            final ChannelExec kill_channel = openSSHChannel(ChannelType.EXEC);
             try {
                 kill_channel.setCommand(kill_command);
                 kill_channel.connect();
