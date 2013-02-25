@@ -33,8 +33,8 @@ import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public class KillScanner extends Scanner implements ISingleHostScanner {
+public class KillScanner extends Scanner implements SingleHostScanner {
 
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
@@ -84,7 +84,7 @@ public class KillScanner extends Scanner implements ISingleHostScanner {
     }
 
     @Override
-    public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) throws Exception {
+    public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) throws Exception {
 
         final ApplicationManager application_manager = manager.getApplicationManager();
 

@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  * nds Library                                                             *
- * Copyright (C) 2005-2010 Distributed Systems Architecture Research Group *
+ * Copyright (C) 2005-2011 Distributed Systems Architecture Research Group *
  * University of St Andrews, Scotland                                      *
  * http://www-systems.cs.st-andrews.ac.uk/                                 *
  *                                                                         *
@@ -21,33 +21,24 @@
  * along with nds.  If not, see <http://www.gnu.org/licenses/>.            *
  *                                                                         *
  ***************************************************************************/
+
 package uk.ac.standrews.cs.shabdiz.active.interfaces;
 
-import java.util.Set;
-
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.active.HostState;
 
 /**
- * Interface implemented by application-specific scanners checking an individual host.
+ * Callback for change in machine status.
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface ISingleHostScanner extends IHostScanner {
+public interface HostStatusCallback {
 
     /**
-     * Returns the name of the host descriptor attribute set by the scanner.
-     * @return the name of the host descriptor attribute set by the scanner, or null if none
-     */
-    String getAttributeName();
-
-    /**
-     * Performs some application-specific check of the specified host. If some result is to be displayed by
-     * management software, it should be recorded in the map obtained from {@link HostDescriptor#getAttributes()}
-     * using the result of {@link #getAttributeName()} as the key.
+     * Handles a change in machine status.
      *
-     * @param host_descriptor the host to be checked
-     * @param attribute_callbacks callbacks to be called if host attributes change
-     * @throws Exception if the check fails
+     * @param host_descriptor the host descriptor
+     * @param previous_state the previous status
      */
-    void check(HostDescriptor host_descriptor, Set<IAttributesCallback> attribute_callbacks) throws Exception;
+    void hostStatusChange(HostDescriptor host_descriptor, HostState previous_state);
 }

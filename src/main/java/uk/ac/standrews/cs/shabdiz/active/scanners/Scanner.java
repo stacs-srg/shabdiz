@@ -28,21 +28,21 @@ import java.util.concurrent.CountDownLatch;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
 
 /**
  * Common scanner functionality.
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public abstract class Scanner implements IHostScanner {
+public abstract class Scanner implements HostScanner {
 
     private final int thread_pool_size;
     private final Duration min_cycle_time;
     private final TimeoutExecutor timeout_executor;
 
     protected final MadfaceManager manager;
-    protected volatile IHostScanner scanner_to_sync_with = null;
+    protected volatile HostScanner scanner_to_sync_with = null;
 
     protected volatile boolean enabled;
 
@@ -125,7 +125,7 @@ public abstract class Scanner implements IHostScanner {
     }
 
     @Override
-    public void syncWith(final IHostScanner scanner_to_sync_with) {
+    public void syncWith(final HostScanner scanner_to_sync_with) {
 
         this.scanner_to_sync_with = scanner_to_sync_with;
     }

@@ -293,7 +293,6 @@ public class RemoteSSHHost extends Host {
 
         @Override
         public int waitFor() throws InterruptedException {
-
             channel.awaitEOF();
             channel.disconnect();
             return exitValue();

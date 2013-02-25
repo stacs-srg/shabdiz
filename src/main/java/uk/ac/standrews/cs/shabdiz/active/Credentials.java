@@ -2,6 +2,8 @@ package uk.ac.standrews.cs.shabdiz.active;
 
 import java.io.IOException;
 
+import uk.ac.standrews.cs.shabdiz.util.CredentialsUtil;
+
 
 public abstract class Credentials {
 

@@ -34,15 +34,15 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public class DropScanner extends Scanner implements ISingleHostScanner {
+public class DropScanner extends Scanner implements SingleHostScanner {
 
     /** Key for the scanner toggle. */
     public static final String AUTO_DROP_KEY = "Auto-Drop Unreachable or Invalid Hosts";
@@ -81,7 +81,7 @@ public class DropScanner extends Scanner implements ISingleHostScanner {
     }
 
     @Override
-    public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) {
+    public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) {
 
         final HostState host_state = host_descriptor.getHostState();
 

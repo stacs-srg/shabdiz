@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IStreamProcessor;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.StreamProcessor;
 
 /**
  * Holds details of a process to be executed. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
@@ -22,8 +22,8 @@ public class ProcessDescriptor {
 
     private volatile OutputStream output_stream;
     private volatile OutputStream error_stream;
-    private volatile IStreamProcessor output_processor;
-    private volatile IStreamProcessor error_processor;
+    private volatile StreamProcessor output_processor;
+    private volatile StreamProcessor error_processor;
     private volatile TimeoutExecutor timeout_executor;
     private volatile String command;
     private volatile String label;
@@ -35,12 +35,12 @@ public class ProcessDescriptor {
         return output_stream == null ? System.out : output_stream;
     }
 
-    public IStreamProcessor getOutputProcessor() {
+    public StreamProcessor getOutputProcessor() {
 
         return output_processor;
     }
 
-    public IStreamProcessor getErrorProcessor() {
+    public StreamProcessor getErrorProcessor() {
 
         return error_processor;
     }
@@ -105,13 +105,13 @@ public class ProcessDescriptor {
         return label == null ? command : label;
     }
 
-    public ProcessDescriptor outputProcessor(final IStreamProcessor output_processor) {
+    public ProcessDescriptor outputProcessor(final StreamProcessor output_processor) {
 
         this.output_processor = output_processor;
         return this;
     }
 
-    public ProcessDescriptor errorProcessor(final IStreamProcessor error_processor) {
+    public ProcessDescriptor errorProcessor(final StreamProcessor error_processor) {
 
         this.error_processor = error_processor;
         return this;

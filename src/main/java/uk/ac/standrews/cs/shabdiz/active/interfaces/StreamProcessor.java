@@ -28,7 +28,7 @@ package uk.ac.standrews.cs.shabdiz.active.interfaces;
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface IStreamProcessor {
+public interface StreamProcessor {
 
     /**
      * Processes a byte output by the process.

@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public interface IHostScanner {
+public interface HostScanner {
 
     /**
      * Returns the size of the thread pool used for scanner checks.
@@ -93,7 +93,7 @@ public interface IHostScanner {
      * 
      * @param scanner_to_sync_with the scanner to synchronize with
      */
-    void syncWith(IHostScanner scanner_to_sync_with);
+    void syncWith(HostScanner scanner_to_sync_with);
 
     /**
      * Returns the latch for the current cycle, which may be used by other scanners to synchronize with this scanner.

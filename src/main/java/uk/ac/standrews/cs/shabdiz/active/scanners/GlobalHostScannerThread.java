@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IGlobalHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.GlobalHostScanner;
 
 /**
  * Thread that continually monitors the status of the hosts in a given list,
@@ -43,7 +43,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.IGlobalHostScanner;
  */
 public class GlobalHostScannerThread extends HostScannerThread {
 
-    private final IGlobalHostScanner scanner;
+    private final GlobalHostScanner scanner;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ public class GlobalHostScannerThread extends HostScannerThread {
      * @param manager the manager
      * @param scanner an application-specific scanner
      */
-    public GlobalHostScannerThread(final MadfaceManager manager, final IGlobalHostScanner scanner) {
+    public GlobalHostScannerThread(final MadfaceManager manager, final GlobalHostScanner scanner) {
 
         super(scanner);
         host_state_list = manager.getHostDescriptors();

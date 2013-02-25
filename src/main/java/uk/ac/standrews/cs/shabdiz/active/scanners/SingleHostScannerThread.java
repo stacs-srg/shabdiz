@@ -19,8 +19,8 @@ import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Thread that continually monitors the status of the hosts in a given list, the contents of which may vary dynamically.
@@ -31,8 +31,8 @@ public class SingleHostScannerThread extends HostScannerThread {
 
     // -------------------------------------------------------------------------------------------------------
 
-    private final ISingleHostScanner scanner;
-    private final Set<IAttributesCallback> attributes_callbacks;
+    private final SingleHostScanner scanner;
+    private final Set<AttributesCallback> attributes_callbacks;
     private final boolean debug;
 
     // -------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ public class SingleHostScannerThread extends HostScannerThread {
      * @param manager the manager
      * @param scanner an application-specific scanner
      */
-    public SingleHostScannerThread(final MadfaceManager manager, final ISingleHostScanner scanner) {
+    public SingleHostScannerThread(final MadfaceManager manager, final SingleHostScanner scanner) {
 
         super(scanner);
         host_state_list = manager.getHostDescriptors();

@@ -39,9 +39,9 @@ import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IHostStatusCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
@@ -50,7 +50,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public class StatusScanner extends Scanner implements ISingleHostScanner {
+public class StatusScanner extends Scanner implements SingleHostScanner {
 
     /** The default thread pool size for status scan checks. This value determined by experiment. */
     public static final int DEFAULT_SCANNER_THREAD_POOL_SIZE = 5;
@@ -72,7 +72,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
 
     private static final boolean ENABLED_BY_DEFAULT = false;
 
-    private final Set<IHostStatusCallback> host_status_callbacks;
+    private final Set<HostStatusCallback> host_status_callbacks;
 
     private volatile CountDownLatch cycle_latch;
 
@@ -125,7 +125,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
     }
 
     @Override
-    public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) {
+    public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) {
 
         final ApplicationManager application_manager = manager.getApplicationManager();
 
@@ -188,7 +188,7 @@ public class StatusScanner extends Scanner implements ISingleHostScanner {
             Diagnostic.trace(DiagnosticLevel.FULL, "state: " + new_state);
 
             if (new_state != original_state && host_status_callbacks.size() > 0) {
-                for (final IHostStatusCallback callback : host_status_callbacks) {
+                for (final HostStatusCallback callback : host_status_callbacks) {
                     callback.hostStatusChange(host_descriptor, original_state);
                 }
             }

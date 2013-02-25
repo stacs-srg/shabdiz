@@ -36,9 +36,9 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.active.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IGlobalHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.GlobalHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 import uk.ac.standrews.cs.shabdiz.active.scanners.Scanner;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
 
@@ -52,7 +52,7 @@ public class TestAppManager extends AbstractApplicationManager {
     private static final Duration TIMEOUT = new Duration(10, TimeUnit.SECONDS);
     private static final int THREADS = 1;
 
-    private static class DummySingleHostScanner extends Scanner implements ISingleHostScanner {
+    private static class DummySingleHostScanner extends Scanner implements SingleHostScanner {
 
         public DummySingleHostScanner() {
 
@@ -78,12 +78,12 @@ public class TestAppManager extends AbstractApplicationManager {
         }
 
         @Override
-        public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) throws Exception {
+        public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) throws Exception {
 
         }
     }
 
-    private static class SingleHostScanner extends Scanner implements ISingleHostScanner {
+    private static class SingleHostScanner extends Scanner implements SingleHostScanner {
 
         private int call_count = 0;
 
@@ -107,7 +107,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
 
         @Override
-        public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) {
+        public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) {
 
             // Only change attribute after a number of calls.
             call_count++;
@@ -118,7 +118,7 @@ public class TestAppManager extends AbstractApplicationManager {
 
                 attribute_map.put("test attribute", "test value");
 
-                for (final IAttributesCallback callback : attribute_callbacks) {
+                for (final AttributesCallback callback : attribute_callbacks) {
                     callback.attributesChange(host_descriptor);
                 }
             }
@@ -137,7 +137,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class DummyGlobalHostScanner extends Scanner implements IGlobalHostScanner {
+    private static class DummyGlobalHostScanner extends Scanner implements GlobalHostScanner {
 
         public DummyGlobalHostScanner() {
 
@@ -162,7 +162,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class GlobalHostScanner extends Scanner implements IGlobalHostScanner {
+    private static class GlobalHostScanner extends Scanner implements GlobalHostScanner {
 
         public GlobalHostScanner() {
 

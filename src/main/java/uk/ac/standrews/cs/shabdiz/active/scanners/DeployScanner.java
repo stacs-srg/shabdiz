@@ -33,8 +33,8 @@ import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.IAttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
+import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that
@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.ISingleHostScanner;
  *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public class DeployScanner extends Scanner implements ISingleHostScanner {
+public class DeployScanner extends Scanner implements SingleHostScanner {
 
     /** Key for the auto-deploy operation. */
     public static final String AUTO_DEPLOY_KEY = "Auto-Deploy";
@@ -82,7 +82,7 @@ public class DeployScanner extends Scanner implements ISingleHostScanner {
     }
 
     @Override
-    public void check(final HostDescriptor host_descriptor, final Set<IAttributesCallback> attribute_callbacks) {
+    public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) {
 
         final ApplicationManager application_manager = manager.getApplicationManager();
 

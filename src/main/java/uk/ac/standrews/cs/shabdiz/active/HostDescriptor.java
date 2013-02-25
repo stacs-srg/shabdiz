@@ -22,11 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.IOUtils;
-
-import uk.ac.standrews.cs.nds.util.Diagnostic;
+import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.UnequalArrayLengthsException;
@@ -34,7 +31,9 @@ import uk.ac.standrews.cs.shabdiz.active.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.active.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.shabdiz.impl.Host;
 import uk.ac.standrews.cs.shabdiz.impl.LocalHost;
+import uk.ac.standrews.cs.shabdiz.impl.Platform;
 import uk.ac.standrews.cs.shabdiz.impl.RemoteSSHHost;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Describes a local or remote host and, optionally, SSH connection credentials and/or remote references to an application that is running or could run on it. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
@@ -44,9 +43,6 @@ import uk.ac.standrews.cs.shabdiz.impl.RemoteSSHHost;
  */
 public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneable {
 
-    private static final String PROBE_COMMAND = "uname";
-    private static final String PROBE_REPLY_LINUX = "Linux";
-    private static final String PROBE_REPLY_MAC = "Darwin";
     private static final String TEMP_FILES_ROOT = "madface";
 
     private static final AtomicInteger NEXT_ID = new AtomicInteger(0);
@@ -61,9 +57,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     // The application port.
     private volatile int port = 0;
-
-    // The host's platform.
-    private volatile PlatformDescriptor platform_descriptor = null;
 
     // The classpath to be used by the application running on the host.
     private volatile ClassPath class_path = null;
@@ -87,7 +80,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private volatile HostState host_state = HostState.UNKNOWN;
 
     // A reference to the application running on the host.
-    private volatile Object application_reference = null;
+    private volatile IPingable application_reference = null;
 
     // A reference to the application process(es) running on the host.
     // This is a set because it's possible that multiple processes will be started, in the case that a
@@ -158,7 +151,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param application_reference a remote reference to the application running on the remote host
      * @return this object
      */
-    public HostDescriptor applicationReference(final Object application_reference) {
+    public HostDescriptor applicationReference(final IPingable application_reference) {
 
         this.application_reference = application_reference;
         return this;
@@ -301,7 +294,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * 
      * @return a remote reference to the application running on the remote host, or null if not set
      */
-    public Object getApplicationReference() {
+    public IPingable getApplicationReference() {
 
         return application_reference;
     }
@@ -435,13 +428,11 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * Returns the host's platform.
      * 
      * @return the host's platform
+     * @throws IOException
      */
-    public synchronized PlatformDescriptor getPlatform() {
+    public synchronized Platform getPlatform() throws IOException {
 
-        if (platform_descriptor == null) {
-            initPlatform();
-        }
-        return platform_descriptor;
+        return managed_host.getPlatform();
     }
 
     /**
@@ -512,10 +503,10 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         clear_temp_files_process.destroy();
     }
 
-    private String getClearTempFilesCommand() throws UnknownPlatformException {
+    private String getClearTempFilesCommand() throws IOException {
 
-        final PlatformDescriptor platform = getPlatform();
-        return "rm -rf " + platform.getTempPath() + platform.getFileSeparator() + TEMP_FILES_ROOT + "*";
+        final Platform platform = getPlatform();
+        return "rm -rf " + platform.getTempDirectory() + platform.getSeparator() + TEMP_FILES_ROOT + "*";
     }
 
     /**
@@ -586,7 +577,12 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         builder.append("host: " + host + "\n");
         builder.append("port: " + port + "\n");
         builder.append("inet_address: " + address + "\n");
-        builder.append("platform_descriptor: " + platform_descriptor + "\n");
+        try {
+            builder.append("platform_descriptor: " + getPlatform() + "\n");
+        }
+        catch (final IOException e) {
+            builder.append("platform_descriptor: UNDEFINED \n");
+        }
         builder.append("class_path: " + class_path + "\n");
         builder.append("host_state: " + getHostState() + "\n");
         builder.append("credentials: " + credentials + "\n");
@@ -766,8 +762,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         scan_results = Collections.synchronizedMap(new HashMap<String, String>());
         managed_host = new LocalHost();
-
-        initLocalPlatform();
     }
 
     private void initRemote(final String host, final Credentials credentials) throws IOException {
@@ -786,42 +780,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         hostState(HostState.UNKNOWN);
     }
 
-    private void initPlatform() {
-
-        if (local()) {
-            initLocalPlatform();
-        }
-        else {
-            initRemotePlatform();
-        }
-    }
-
-    private synchronized void initLocalPlatform() {
-
-        String platform_name = System.getProperty("os.name");
-
-        if (platform_name.startsWith(PlatformDescriptor.NAME_WINDOWS)) {
-            platform_name = PlatformDescriptor.NAME_WINDOWS;
-        }
-
-        if (platform_name.equals(PlatformDescriptor.NAME_MAC) || platform_name.equals(PlatformDescriptor.NAME_LINUX) || platform_name.equals(PlatformDescriptor.NAME_WINDOWS)) {
-
-            final String file_separator = System.getProperty("file.separator");
-            final String class_path_separator = System.getProperty("path.separator");
-            final String temp_path = System.getProperty("java.io.tmpdir");
-
-            try {
-                platform_descriptor = new PlatformDescriptor(platform_name, file_separator, class_path_separator, temp_path);
-            }
-            catch (final UnknownPlatformException e) {
-                ErrorHandling.hardExceptionError(e, "Unexpected unknown platform");
-            }
-        }
-        else {
-            platform_descriptor = new PlatformDescriptor();
-        }
-    }
-
     @Override
     public HostDescriptor clone() {
 
@@ -832,67 +790,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
             throw new RuntimeException(e);
         }
     }
-
-    private void initRemotePlatform() {
-
-        // Probe remote machine to discover OS.
-
-        // Examples of expected replies:
-        // Linux
-        // Darwin
-
-        try {
-            // Default is unknown platform.
-            platform_descriptor = new PlatformDescriptor();
-
-            // Clone the SSH connection to avoid interference with other use of this one.
-            final Process probe_process = managed_host.execute(PROBE_COMMAND);
-            IOUtils.readLines(probe_process.getInputStream());
-
-            // Wait for the remote process to complete.
-            probe_process.waitFor();
-            final List<String> remote_reply_lines = IOUtils.readLines(probe_process.getInputStream());
-            final String first_line_of_remote_reply = remote_reply_lines.size() > 0 ? remote_reply_lines.get(0) : "";
-            probe_process.destroy();
-
-            if (first_line_of_remote_reply.contains(PROBE_REPLY_MAC)) {
-                platform_descriptor = new PlatformDescriptor(PlatformDescriptor.NAME_MAC);
-            }
-            else if (first_line_of_remote_reply.contains(PROBE_REPLY_LINUX)) {
-                platform_descriptor = new PlatformDescriptor(PlatformDescriptor.NAME_LINUX);
-            }
-            else {
-                Diagnostic.trace("unexpected remote platform reply: " + first_line_of_remote_reply);
-            }
-        }
-        catch (final Exception e) {
-            launderException(e);
-        }
-    }
-
-    private void launderException(final Exception e) {
-
-        if (e instanceof RuntimeException) { throw (RuntimeException) e; }
-
-        if (e instanceof InterruptedException || e instanceof TimeoutException || e instanceof IOException || e instanceof UnknownPlatformException) {
-
-            final StringBuilder builder = new StringBuilder();
-            builder.append("exception determining remote platform: ");
-            builder.append(host);
-            builder.append(": ");
-            builder.append(e.getClass().getName());
-            builder.append(" : ");
-            builder.append(e.getMessage());
-
-            Diagnostic.trace(builder.toString());
-            e.printStackTrace();
-        }
-        else {
-            throw new IllegalStateException("Unexpected checked exception", e);
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------
 
     private void checkForHardwiredJavaBinPath() {
 
@@ -941,14 +838,14 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         return new File(remote_temp_dir, builder.toString()).getAbsolutePath();
     }
 
-    private String getKillCommand(final String label, final List<File> files_to_be_deleted) throws UnknownPlatformException {
+    private String getKillCommand(final String label, final List<File> files_to_be_deleted) throws IOException {
 
         // Construct a shell command of this form:
         //
         // ps auxw | grep <match> | sed 's/^[a-z]*[ ]*\([0-9]*\).*/\1/' | tr '\n' ' ' | sed 's/^\(.*\)/kill -9 \1/' > /tmp/kill1; chmod +x /tmp/kill1; /tmp/kill1
 
-        final PlatformDescriptor platform_descriptor = getPlatform();
-        final String temp_file_path = getTimestampedTempPath(new File(platform_descriptor.getTempPath()), "kill");
+        final Platform platform_descriptor = getPlatform();
+        final String temp_file_path = getTimestampedTempPath(new File(platform_descriptor.getTempDirectory()), "kill");
 
         final StringBuilder string_builder = new StringBuilder();
         final PipedCommandBuilder command = new PipedCommandBuilder(string_builder);
