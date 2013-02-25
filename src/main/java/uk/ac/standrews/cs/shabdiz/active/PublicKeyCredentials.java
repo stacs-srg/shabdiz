@@ -39,7 +39,7 @@ public class PublicKeyCredentials extends PasswordCredentials {
         ssh_client_factory.setKnownHosts(SSH_KNOWN_HOSTS.getAbsolutePath());
     }
 
-    protected File getPrivateKey() {
+    public File getPrivateKey() {
 
         return private_key;
     }
