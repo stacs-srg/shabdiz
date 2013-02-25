@@ -83,11 +83,11 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class SingleHostScanner extends Scanner implements SingleHostScanner {
+    private static class TestSingleHostScanner extends Scanner implements SingleHostScanner {
 
         private int call_count = 0;
 
-        public SingleHostScanner() {
+        public TestSingleHostScanner() {
 
             super(null, new Duration(), THREADS, TIMEOUT, "single", true);
         }
@@ -162,9 +162,9 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class GlobalHostScanner extends Scanner implements GlobalHostScanner {
+    private static class TestGlobalHostScanner extends Scanner implements GlobalHostScanner {
 
-        public GlobalHostScanner() {
+        public TestGlobalHostScanner() {
 
             super(null, new Duration(), THREADS, TIMEOUT, "global", true);
         }
@@ -204,8 +204,8 @@ public class TestAppManager extends AbstractApplicationManager {
 
     public TestAppManager(final boolean use_dummy_scanners) {
 
-        getSingleScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new SingleHostScanner());
-        getGlobalScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new GlobalHostScanner());
+        getSingleScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new TestSingleHostScanner());
+        getGlobalScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new TestGlobalHostScanner());
     }
 
     @Override

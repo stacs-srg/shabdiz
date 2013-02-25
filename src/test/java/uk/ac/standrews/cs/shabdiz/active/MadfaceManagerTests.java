@@ -49,10 +49,10 @@ import uk.ac.standrews.cs.shabdiz.active.HostState;
 import uk.ac.standrews.cs.shabdiz.active.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.active.ParameterValue;
 import uk.ac.standrews.cs.shabdiz.active.PublicKeyCredentials;
-import uk.ac.standrews.cs.shabdiz.active.URL;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.HostScanner;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
  * Tests MadfaceManager functionality using a dummy application.

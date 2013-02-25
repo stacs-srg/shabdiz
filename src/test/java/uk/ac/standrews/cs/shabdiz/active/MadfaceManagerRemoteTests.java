@@ -7,9 +7,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.HostState;
-import uk.ac.standrews.cs.shabdiz.active.PasswordCredentials;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
 import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
 
@@ -20,7 +17,7 @@ import uk.ac.standrews.cs.shabdiz.active.interfaces.HostStatusCallback;
  */
 public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
-    private static final long TEST_TIMEOUT = 30000;
+    private static final long TEST_TIMEOUT = 300000;
     private static HostDescriptor host_descriptor;
 
     /**
