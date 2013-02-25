@@ -142,8 +142,11 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
         do {
             final String output_line = br.readLine();
             if (output_line != null){
-            worker_address = WorkerNodeServer.parseOutputLine(output_line);
-            }else{break;} //FIXME Refactor. a bad way to check for end of returned data.
+                worker_address = WorkerNodeServer.parseOutputLine(output_line);
+            }else{
+                System.err.println("There is an error reading from the new processes input stream.");
+                break;
+                } //FIXME Refactor. a bad way to check for end of returned data.
         }
         while (worker_address == null);
         return worker_address;

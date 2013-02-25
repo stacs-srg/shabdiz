@@ -54,7 +54,7 @@ class DefaultWorker implements Worker {
      * @param worker_process
      */
     DefaultWorker(final DefaultLauncher launcher, final InetSocketAddress worker_address, final Process worker_process) {
-
+        assert worker_address !=null;
         this.worker_address = worker_address;
         this.launcher = launcher;
         this.worker_process = worker_process;
@@ -70,13 +70,11 @@ class DefaultWorker implements Worker {
 
     @Override
     public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws RPCException {
+        assert worker_proxy!=null;
         FutureRemoteProxy<Result> future_remote = null;
-        if (worker_proxy!=null)
-        {
-            final UUID job_id = worker_proxy.submitJob(job);
-            future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-            launcher.notifyJobSubmission(future_remote);
-        }
+        final UUID job_id = worker_proxy.submitJob(job);
+        future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
+        launcher.notifyJobSubmission(future_remote);
         return future_remote;
     }
 

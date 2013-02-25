@@ -53,7 +53,8 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private String getRemoteWorkingDirectory(final Host host) throws IOException {
 
-        return TEMP_DIR + host.getPlatform().getSeparator() + UUID.randomUUID().toString();
+        //return host.getPlatform().getTempDirectory() + host.getPlatform().getSeparator() + UUID.randomUUID().toString();
+        return host.getPlatform().getTempDirectory()  + UUID.randomUUID().toString();
     }
 
     private String assembleRemoteJavaCommand(final Host host, final String remote_working_directory) throws IOException {
@@ -65,6 +66,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         appendJVMArguments(command, platform);
         appendMainClass(command);
         appendCommandLineArguments(command);
+        command.append("\n");
 
         return command.toString();
     }
@@ -74,8 +76,9 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         command.append("cd");
         command.append(SPACE);
         command.append(remote_working_directory);
-        command.append(";");
-        command.append(SPACE);
+        //command.append(";");
+        //command.append(SPACE);
+        command.append("\n");
     }
 
     private void appendCommandLineArguments(final StringBuilder command) {
@@ -98,12 +101,14 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private void appendClasspath(final StringBuilder command, final Platform platform) {
 
-        command.append("-cp");
+        command.append("-classpath");
         command.append(SPACE);
+        command.append("\"");
         command.append(".");
         command.append(platform.getPathSeparator());
         appendClasspathDirectoryNames(command, platform);
         command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
+        command.append("\"");
         command.append(SPACE);
     }
 
@@ -113,9 +118,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         for (final File classpath_entry : classpath) {
             final String name = classpath_entry.getName();
             if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
-                command.append("\"");
                 command.append(name);
-                command.append("\"");
                 command.append(platform.getPathSeparator());
                 classpath_directory_names.add(name);
             }
