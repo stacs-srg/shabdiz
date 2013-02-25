@@ -76,9 +76,8 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         command.append("cd");
         command.append(SPACE);
         command.append(remote_working_directory);
-        //command.append(";");
-        //command.append(SPACE);
-        command.append("\n");
+        command.append(";");
+        command.append(SPACE);
     }
 
     private void appendCommandLineArguments(final StringBuilder command) {
