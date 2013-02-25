@@ -40,7 +40,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host, remote_working_directory);
-        LOGGER.info("prepareing to execute command: " + command);
+        LOGGER.info("preparing to execute command: " + command);
         return host.execute(command);
     }
 
