@@ -150,7 +150,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     }
 
     @Override
-    public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException, TimeoutException {
+    public Worker deployWorkerOnHost(final AbstractHost host) throws IOException, InterruptedException, TimeoutException {
 
         final Process worker_process = worker_process_builder.start(host);
         final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);

@@ -31,6 +31,8 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
+
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteJavaProcessBuilder.class.getName());
@@ -73,7 +75,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private String getRemoteWorkingDirectory(final Host host) throws IOException {
 
-        return host.getPlatform().getTempDirectory()   + UUID.randomUUID().toString();
+        return host.getPlatform().getTempDirectory() + UUID.randomUUID().toString();
     }
 
     private String assembleRemoteJavaCommand(final Host host, final String remote_working_directory) throws IOException {
@@ -120,12 +122,12 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
         command.append("-classpath");
         command.append(SPACE);
-                command.append("\"");
+        command.append("\"");
         command.append(".");
         command.append(platform.getPathSeparator());
         appendClasspathDirectoryNames(command, platform);
         command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
-                command.append("\"");
+        command.append("\"");
         command.append(SPACE);
     }
 

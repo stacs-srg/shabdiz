@@ -20,56 +20,48 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Collection;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 
-public abstract class Host {
+public abstract class AbstractHost implements Host {
 
-    private static final Logger LOGGER = Logger.getLogger(Host.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractHost.class.getName());
     private final InetAddress address;
     private final boolean local;
     protected final Credentials credentials;
 
-    public Host(final String name, final Credentials credentials) throws IOException {
+    public AbstractHost(final String name, final Credentials credentials) throws IOException {
 
         this(InetAddress.getByName(name), credentials);
     }
 
-    public Host(final InetAddress address, final Credentials credentials) {
+    public AbstractHost(final InetAddress address, final Credentials credentials) {
 
         this.address = address;
         this.credentials = credentials;
         local = NetworkUtil.isValidLocalAddress(address);
     }
 
-    public abstract void upload(File source, String destination) throws IOException;
-
-    public abstract void upload(Collection<File> sources, String destination) throws IOException;
-
-    public abstract void download(String source, File destination) throws IOException;
-
-    public abstract Process execute(String... command) throws IOException;
-
-    public abstract Platform getPlatform() throws IOException;
-
+    @Override
     public InetAddress getAddress() {
 
         return address;
     }
 
+    @Override
     public boolean isLocal() {
 
         return local;
     }
 
+    @Override
     public void shutdown() {
 
-        LOGGER.info("shutting down host " + address);
+        LOGGER.fine("shutting down host " + address);
     }
 }

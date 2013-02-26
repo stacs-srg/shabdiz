@@ -45,6 +45,7 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnsupportedPlatformException;
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 import uk.ac.standrews.cs.shabdiz.util.CredentialsUtil;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
@@ -104,15 +105,11 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     // Authentication credentials for the host.
     private volatile Credentials credentials = null;
-
     private volatile Host managed_host = null;
-
     // Whether the application should be deployed in the same process.
     private volatile boolean deploy_in_local_process = false;
-
     // An identifier for debugging purposes.
     private int id;
-
     private final PropertyChangeSupport property_change_support = new PropertyChangeSupport(this);
 
     // -------------------------------------------------------------------------------------------------------

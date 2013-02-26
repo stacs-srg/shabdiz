@@ -8,9 +8,10 @@ import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.Host;
+import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.RemoteSSHHost;
 import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
 import uk.ac.standrews.cs.shabdiz.interfaces.Launcher;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
@@ -57,7 +58,7 @@ public class TestRemoteMain {
 
     public static void main(final String[] args) throws Exception {
 
-        Host remoteHost = null;
+        AbstractHost remoteHost = null;
         Launcher launcher = null;
         Worker worker = null;
 

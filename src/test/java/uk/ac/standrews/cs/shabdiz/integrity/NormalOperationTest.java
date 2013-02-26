@@ -37,7 +37,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.Host;
+import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.LocalHost;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
@@ -52,7 +52,7 @@ public class NormalOperationTest {
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
 
-    private Host localhost;
+    private AbstractHost localhost;
     private DefaultLauncher launcher;
     private Worker worker;
 

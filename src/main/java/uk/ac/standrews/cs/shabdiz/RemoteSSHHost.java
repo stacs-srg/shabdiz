@@ -51,7 +51,7 @@ import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.credentials.PublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
 
-public class RemoteSSHHost extends Host {
+public class RemoteSSHHost extends AbstractHost {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteSSHHost.class.getName());
     private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);

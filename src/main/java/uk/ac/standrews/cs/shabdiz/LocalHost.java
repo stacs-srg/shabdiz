@@ -30,11 +30,10 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class LocalHost.
  */
-public class LocalHost extends Host {
+public class LocalHost extends AbstractHost {
 
     /**
      * Instantiates a new local host.
@@ -84,7 +83,7 @@ public class LocalHost extends Host {
 
     private void copy(final File source, final File destination) throws IOException {
 
-        System.out.println("copying: "+ source.getName() +"\tto: " + destination.getPath() );
+        System.out.println("copying: " + source.getName() + "\tto: " + destination.getPath());
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }

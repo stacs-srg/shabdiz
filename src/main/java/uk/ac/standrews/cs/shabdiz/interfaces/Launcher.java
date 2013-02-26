@@ -20,7 +20,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.interfaces;
 
-import uk.ac.standrews.cs.shabdiz.Host;
+import uk.ac.standrews.cs.shabdiz.AbstractHost;
 
 /**
  * Launches workers on hosts.
@@ -37,7 +37,7 @@ public interface Launcher {
      * @return the reference to the deployed worker
      * @throws Exception if the attempt to deploy worker on host fails
      */
-    Worker deployWorkerOnHost(Host host) throws Exception;
+    Worker deployWorkerOnHost(AbstractHost host) throws Exception;
 
     /**
      * Shuts down this launcher. This method does <i>not</i> shot down any workers deployed by this launcher.

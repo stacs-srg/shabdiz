@@ -22,6 +22,8 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.io.IOException;
 
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
+
 public interface RemoteProcessBuilder {
 
     Process start(Host host) throws IOException, InterruptedException;

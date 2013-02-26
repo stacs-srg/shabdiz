@@ -35,9 +35,10 @@ import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-import uk.ac.standrews.cs.shabdiz.Host;
+import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.Platform;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 
 public class PlatformUtil {
 
@@ -45,17 +46,17 @@ public class PlatformUtil {
     private static File PLATFORM_DETECTOR_CACHED_JAR;
     private static final String PLATFORM_DETECTOR_JAR_VERSION = "1.0";
 
-    public static Platform detectPlatform(final Host host) throws IOException {
+    public static Platform detectPlatform(final AbstractHost host) throws IOException {
 
         return detectPlatform(host, false);
     }
 
-    public static Platform detectPlatform(final Host host, final boolean use_java) throws IOException {
+    public static Platform detectPlatform(final AbstractHost host, final boolean use_java) throws IOException {
 
         return host.isLocal() ? Platform.LOCAL : use_java ? detectRemotePlatformUsingJava(host) : detectRemotePlatformUsingUname(host);
     }
 
-    private static Platform detectRemotePlatformUsingJava(final Host host) throws IOException {
+    private static Platform detectRemotePlatformUsingJava(final AbstractHost host) throws IOException {
 
         final File platform_detector = getPlatformDetectorJar();
         final RemoteJavaProcessBuilder java_process_builder = new RemoteJavaProcessBuilder(PlatformDetector.class);
