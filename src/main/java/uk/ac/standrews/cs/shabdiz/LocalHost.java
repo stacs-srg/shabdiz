@@ -84,6 +84,7 @@ public class LocalHost extends Host {
 
     private void copy(final File source, final File destination) throws IOException {
 
+        System.out.println("copying: "+ source.getName() +"\tto: " + destination.getPath() );
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }
