@@ -31,8 +31,8 @@ import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.WorkerRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.WorkerRemote;
 
 /**
  * Handles communication with an {@link WorkerRemote}.

@@ -18,17 +18,30 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.interfaces;
+package uk.ac.standrews.cs.shabdiz.api;
 
-import java.io.Serializable;
-import java.util.concurrent.Callable;
+import uk.ac.standrews.cs.shabdiz.AbstractHost;
 
 /**
- * Presents a computation to be performed on a remote worker.
+ * Launches workers on hosts.
  * 
- * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface JobRemote<Result extends Serializable> extends Callable<Result>, Serializable {
+public interface Launcher {
 
+    /**
+     * Deploys worker on a described host and returns the reference to the deployed worker.
+     * This method blocks until the worker is deployed.
+     * 
+     * @param host the descriptor of the host on which a worker is deployed
+     * @return the reference to the deployed worker
+     * @throws Exception if the attempt to deploy worker on host fails
+     */
+    Worker deployWorkerOnHost(AbstractHost host) throws Exception;
+
+    /**
+     * Shuts down this launcher. This method does <i>not</i> shot down any workers deployed by this launcher.
+     * User may shot down workers by calling {@link Worker#shutdown()}.
+     */
+    void shutdown();
 }

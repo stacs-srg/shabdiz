@@ -38,8 +38,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
+import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**

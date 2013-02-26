@@ -10,11 +10,11 @@ import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
 import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.RemoteSSHHost;
+import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.Launcher;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
-import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
-import uk.ac.standrews.cs.shabdiz.interfaces.Launcher;
-import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
 
 public class TestRemoteMain {

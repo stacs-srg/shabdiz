@@ -21,7 +21,7 @@
 
 package uk.ac.standrews.cs.shabdiz;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.MadfaceManager;
+import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 
 /**
  * A factory for creating {@link MadfaceManager} objects.

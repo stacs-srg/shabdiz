@@ -42,10 +42,10 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnsupportedPlatformException;
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 import uk.ac.standrews.cs.shabdiz.util.CredentialsUtil;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
@@ -60,7 +60,6 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     public static final String HOST_STATE_PROPERTY_NAME = "host_state";
 
     private static final String TEMP_FILES_ROOT = "madface";
-
     private static final AtomicInteger NEXT_ID = new AtomicInteger(0);
 
     // -------------------------------------------------------------------------------------------------------

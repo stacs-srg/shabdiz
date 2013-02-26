@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
+import uk.ac.standrews.cs.shabdiz.api.LauncherCallback;
 
 /**
  * Serves the incoming callback notifications from workers.

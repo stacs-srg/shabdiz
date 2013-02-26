@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 

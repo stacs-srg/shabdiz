@@ -25,7 +25,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * A factory for creating test {@link JobRemote} objects.

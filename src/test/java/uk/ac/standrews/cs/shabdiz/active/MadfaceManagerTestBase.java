@@ -33,7 +33,7 @@ import org.junit.Before;
 import uk.ac.standrews.cs.shabdiz.Configuration;
 import uk.ac.standrews.cs.shabdiz.MadfaceManagerFactory;
 import uk.ac.standrews.cs.shabdiz.ParameterValue;
-import uk.ac.standrews.cs.shabdiz.interfaces.MadfaceManager;
+import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**

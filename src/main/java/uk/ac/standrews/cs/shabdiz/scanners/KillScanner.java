@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.HostState;
-import uk.ac.standrews.cs.shabdiz.interfaces.ApplicationManager;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that

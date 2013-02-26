@@ -22,7 +22,7 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * Similar to the class {@link Void}, with the difference that this class is {@link Serializable}.

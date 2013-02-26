@@ -22,7 +22,7 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.io.IOException;
 
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 
 public interface RemoteProcessBuilder {
 

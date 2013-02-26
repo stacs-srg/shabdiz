@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.interfaces;
+package uk.ac.standrews.cs.shabdiz.api;
 
 import java.util.List;
 import java.util.Set;

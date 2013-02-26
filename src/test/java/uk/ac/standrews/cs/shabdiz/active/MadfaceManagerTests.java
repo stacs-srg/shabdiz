@@ -51,7 +51,7 @@ import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.HostState;
 import uk.ac.standrews.cs.shabdiz.ParameterValue;
-import uk.ac.standrews.cs.shabdiz.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**

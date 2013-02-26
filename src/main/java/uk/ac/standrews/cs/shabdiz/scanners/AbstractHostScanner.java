@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
-import uk.ac.standrews.cs.shabdiz.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 
 /**
  * Common scanner functionality.

@@ -38,7 +38,7 @@ import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.Platform;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 
 public class PlatformUtil {
 

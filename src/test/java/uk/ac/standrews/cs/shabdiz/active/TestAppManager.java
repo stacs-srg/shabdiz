@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 import uk.ac.standrews.cs.shabdiz.scanners.AbstractHostScanner;
 
 /**

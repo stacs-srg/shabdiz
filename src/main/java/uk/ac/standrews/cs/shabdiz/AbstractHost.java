@@ -25,8 +25,8 @@ import java.net.InetAddress;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
-import uk.ac.standrews.cs.shabdiz.interfaces.Host;
 
 public abstract class AbstractHost implements Host {
 

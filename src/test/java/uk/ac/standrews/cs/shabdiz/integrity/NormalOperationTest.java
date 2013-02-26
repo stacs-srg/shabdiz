@@ -39,7 +39,7 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
 import uk.ac.standrews.cs.shabdiz.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.LocalHost;
-import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
 /**

@@ -28,8 +28,8 @@ import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.HostState;
 import uk.ac.standrews.cs.shabdiz.MadfaceManagerFactory;
-import uk.ac.standrews.cs.shabdiz.interfaces.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.interfaces.MadfaceManager;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
+import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**

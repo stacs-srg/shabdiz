@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.interfaces.LauncherCallback;
+import uk.ac.standrews.cs.shabdiz.api.LauncherCallback;
 
 /**
  * RPC proxy to communicate with a launcher callback server.
