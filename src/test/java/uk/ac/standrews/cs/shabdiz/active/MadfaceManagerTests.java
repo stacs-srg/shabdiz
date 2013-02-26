@@ -49,8 +49,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.shabdiz.Configuration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.HostState;
 import uk.ac.standrews.cs.shabdiz.ParameterValue;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
@@ -483,7 +483,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         final HostDescriptor host_descriptor = new HostDescriptor();
 
         manager.add(host_descriptor);
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
     }
 
     /**
@@ -553,7 +553,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
         manager.setAutoDeploy(false);
         manager.setAutoKill(true);
-        manager.waitForHostToReachStateThatIsNot(host_descriptor, HostState.RUNNING);
+        manager.waitForHostToReachStateThatIsNot(host_descriptor, ApplicationState.RUNNING);
     }
 
     /**
@@ -577,7 +577,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
                 @Override
                 public void propertyChange(final PropertyChangeEvent evt) {
 
-                    if (evt.getNewValue().equals(HostState.RUNNING)) {
+                    if (evt.getNewValue().equals(ApplicationState.RUNNING)) {
                         state_running_latch.countDown();
                     }
 
@@ -597,7 +597,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
                 @Override
                 public void propertyChange(final PropertyChangeEvent evt) {
 
-                    if (evt.getNewValue().equals(HostState.AUTH)) {
+                    if (evt.getNewValue().equals(ApplicationState.AUTH)) {
                         state_auth_latch.countDown();
                     }
 
@@ -687,7 +687,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         final HostDescriptor host_descriptor = makeHostDescriptorAndAddToManager();
         SECONDS.sleep(10);
 
-        assertThat(host_descriptor.getHostState(), is(not(equalTo(HostState.AUTH))));
+        assertThat(host_descriptor.getHostState(), is(not(equalTo(ApplicationState.AUTH))));
     }
 
     @Test
@@ -705,7 +705,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
         SECONDS.sleep(10);
 
-        assertThat(host_descriptor.getHostState(), is(not(equalTo(HostState.AUTH))));
+        assertThat(host_descriptor.getHostState(), is(not(equalTo(ApplicationState.AUTH))));
     }
 
     @Test(expected = UnknownHostException.class)
@@ -747,7 +747,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
             public void run() {
 
                 try {
-                    manager.waitForHostToReachState(host_descriptor, HostState.RUNNING);
+                    manager.waitForHostToReachState(host_descriptor, ApplicationState.RUNNING);
                 }
                 catch (final InterruptedException e) {
 
@@ -779,7 +779,7 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
             public void run() {
 
                 try {
-                    manager.waitForAllToReachState(HostState.RUNNING);
+                    manager.waitForAllToReachState(ApplicationState.RUNNING);
                 }
                 catch (final InterruptedException e) {
 
@@ -800,42 +800,42 @@ public class MadfaceManagerTests extends MadfaceManagerTestBase {
 
     private void explicitDeployAndWait(final HostDescriptor host_descriptor) throws Exception {
 
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
         manager.deploy(host_descriptor);
-        manager.waitForHostToReachState(host_descriptor, HostState.RUNNING);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.RUNNING);
     }
 
     private void explicitDeployAllAndWait(final HostDescriptor host_descriptor) throws Exception {
 
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
 
         manager.deployAll();
-        manager.waitForHostToReachState(host_descriptor, HostState.RUNNING);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.RUNNING);
     }
 
     private void explicitKillAndWait(final HostDescriptor host_descriptor) throws Exception {
 
         manager.kill(host_descriptor, true);
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
     }
 
     private void explicitKillAllAndWait(final HostDescriptor host_descriptor) throws Exception {
 
         manager.killAll(true);
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
     }
 
     private void autoDeployAndWait(final HostDescriptor host_descriptor) throws InterruptedException {
 
         manager.setAutoDeploy(true);
-        manager.waitForHostToReachState(host_descriptor, HostState.RUNNING);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.RUNNING);
     }
 
     private void autoKillAndWait(final HostDescriptor host_descriptor) throws InterruptedException {
 
         manager.setAutoDeploy(false);
         manager.setAutoKill(true);
-        manager.waitForHostToReachState(host_descriptor, HostState.AUTH);
+        manager.waitForHostToReachState(host_descriptor, ApplicationState.AUTH);
     }
 
     private HostDescriptor makeHostDescriptorAndAddToManager() throws IOException {

@@ -26,13 +26,12 @@ import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 
+/**
+ * Provides platform-specific settings such as path separator and separator.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class Platform {
-
-    public static final char WINDOWS_PATH_SEPARATOR = ';';
-    public static final char WINDOWS_SEPARATOR = '\\';
-    public static final char UNIX_PATH_SEPARATOR = ':';
-    public static final char UNIX_SEPARATOR = '/';
-    public static final String UNIX_TEMP_DIR = "/tmp/";
 
     /** The local platform. */
     public static final Platform LOCAL = new LocalPlatform();
@@ -42,6 +41,12 @@ public class Platform {
 
     /** Default Cygwin operating system name. */
     public static final String CYGWIN_OS_NAME = "cygwin";
+
+    private static final char WINDOWS_PATH_SEPARATOR = ';';
+    private static final char WINDOWS_SEPARATOR = '\\';
+    private static final char UNIX_PATH_SEPARATOR = ':';
+    private static final char UNIX_SEPARATOR = '/';
+    private static final String UNIX_TEMP_DIR = "/tmp/";
 
     /**
      * Constructs a {@link Platform} from the output that is produced by the execution of {@code uname} command.
@@ -53,12 +58,12 @@ public class Platform {
      * @param uname_output the output produced by the execution of {@code uname} commad
      * @return an isntance of {@link Platform} that represents Windowns, Cygwin or Unix platform
      */
-    public static Platform fromUnameOutput(String uname_output) {
+    public static Platform fromUnameOutput(final String uname_output) {
 
-        uname_output = uname_output.toLowerCase();
-        if (uname_output.contains(CYGWIN_OS_NAME)) { return new CygwinPlatform(uname_output); }
-        if (uname_output.contains(WINDOWS_OS_NAME)) { return new WindowsPlatform(uname_output); }
-        return new UnixPlatform(uname_output);
+        final String output = uname_output.toLowerCase().trim();
+        if (output.contains(CYGWIN_OS_NAME)) { return new CygwinPlatform(output); }
+        if (output.contains(WINDOWS_OS_NAME)) { return new WindowsPlatform(output); }
+        return new UnixPlatform(output);
     }
 
     /**
@@ -93,26 +98,51 @@ public class Platform {
         this.temp_dir = temp_dir;
     }
 
+    /**
+     * Gets the path separator.
+     * 
+     * @return the path separator
+     */
     public char getPathSeparator() {
 
         return path_separator;
     }
 
+    /**
+     * Gets the separator.
+     * 
+     * @return the separator
+     */
     public char getSeparator() {
 
         return separator;
     }
 
+    /**
+     * Gets the temp directory.
+     * 
+     * @return the temp directory
+     */
     public String getTempDirectory() {
 
         return temp_dir;
     }
 
+    /**
+     * Gets the operating system name.
+     * 
+     * @return the operating system name
+     */
     public String getOperatingSystemName() {
 
         return os_name;
     }
 
+    /**
+     * Serialises this platform to JSON.
+     * 
+     * @return a JSON representation of this platform
+     */
     public JSONObject toJSON() {
 
         final JSONObject json = new JSONObject();
@@ -123,6 +153,14 @@ public class Platform {
         return json;
     }
 
+    /**
+     * Instantiates an instance of Platform from a JSON representation of a platform.
+     * 
+     * @param json the JSON representation of a platform
+     * @return the deserialised platform
+     * @throws JSONException if the given serialised JSON object is not deserialisable
+     * @see #toJSON()
+     */
     public static Platform fromJSON(final JSONObject json) throws JSONException {
 
         final char path_separator = (char) json.getInt("path_separator");

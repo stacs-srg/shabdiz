@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.shabdiz.HostDescriptor;
  * 
  * @author Graham Kirby(graham.kirby@st-andrews.ac.uk)
  */
-public interface INetwork {
+public interface Network {
 
     /**
      * Returns a new list containing the nodes.

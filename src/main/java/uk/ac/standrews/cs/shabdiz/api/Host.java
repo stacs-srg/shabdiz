@@ -28,12 +28,14 @@ import java.util.Collection;
 import uk.ac.standrews.cs.shabdiz.Platform;
 
 /**
- * The Interface Host.
+ * Presents a host on which a application can be deployed. Provides utility methods to deploy an application.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Host {
 
     /**
-     * Upload.
+     * Uploads a given file or directory on the local platform to this host at the given destination.
      * 
      * @param source the source
      * @param destination the destination
@@ -42,7 +44,7 @@ public interface Host {
     void upload(File source, String destination) throws IOException;
 
     /**
-     * Upload.
+     * Uploads a given collection of files or directories on the local platform to this host at the given destination.
      * 
      * @param sources the sources
      * @param destination the destination
@@ -51,7 +53,7 @@ public interface Host {
     void upload(final Collection<File> sources, final String destination) throws IOException;
 
     /**
-     * Download.
+     * Downloads a given file or directory from this host to the local platform.
      * 
      * @param source the source
      * @param destination the destination
@@ -60,11 +62,12 @@ public interface Host {
     void download(String source, File destination) throws IOException;
 
     /**
-     * Execute.
+     * Executes the given command and arguments on this host.
      * 
-     * @param command the command
-     * @return the process
+     * @param command the command and its arguments
+     * @return the process that was started as the result of executing this command
      * @throws IOException Signals that an I/O exception has occurred.
+     * @see ProcessBuilder#
      */
     Process execute(String... command) throws IOException;
 
@@ -77,22 +80,20 @@ public interface Host {
     Platform getPlatform() throws IOException;
 
     /**
-     * Gets the address.
+     * Gets the address of this host.
      * 
-     * @return the address
+     * @return the address of this host
      */
     InetAddress getAddress();
 
     /**
-     * Checks if is local.
+     * Checks if this host represents the local platform.
      * 
      * @return true, if is local
      */
     boolean isLocal();
 
-    /**
-     * Shutdown.
-     */
+    /** Shuts down this host and closes any open resources. */
     void shutdown();
 
 }

@@ -18,57 +18,39 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz;
+package uk.ac.standrews.cs.shabdiz.api;
 
 /**
- * The possible states of a remotely managed host.
+ * The possible states of a managed application.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public enum HostState {
+public enum ApplicationState {
 
-    /**
-     * The machine can be contacted but the application is not running; the machine
-     * will accept a connection with the given credentials.
-     */
+    /** The machine can be contacted but the application is not running; the machine will accept a connection with the given credentials. */
     AUTH,
 
     /** The application is deployed. */
     DEPLOYED,
 
-    /**
-     * The address is not a resolvable IP address.
-     */
+    /** The address is not a resolvable IP address. */
     INVALID,
 
-    /**
-     * The machine can be contacted, the application is running, and an attempt has been recently made to kill the application.
-     */
+    /** The machine can be contacted, the application is running, and an attempt has been recently made to kill the application. */
     KILLED,
 
-    /**
-     * The machine can be contacted and an attempt has been recently made to launch the application on it.
-     */
+    /** The machine can be contacted and an attempt has been recently made to launch the application on it. */
     LAUNCHED,
 
-    /**
-     * The machine can be contacted but the application is not running; the machine
-     * will not accept an SSH connection with the given credentials.
-     */
+    /** The machine can be contacted but the application is not running; the machine will not accept an SSH connection with the given credentials. */
     NO_AUTH,
 
-    /**
-     * The machine can be contacted and the application is running.
-     */
+    /** The machine can be contacted and the application is running. */
     RUNNING,
 
-    /**
-     * The start state.
-     */
+    /** The initial state. */
     UNKNOWN,
 
-    /**
-     * The address is resolvable as an IP address but the application cannot be contacted.
-     */
+    /** The address is resolvable as an IP address but the application cannot be contacted. */
     UNREACHABLE;
 }

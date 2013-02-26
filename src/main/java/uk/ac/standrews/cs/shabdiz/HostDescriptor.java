@@ -42,6 +42,7 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnknownPlatformException;
@@ -92,7 +93,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private volatile Object[] application_deployment_params;
 
     // The current view of the application state on the host.
-    private volatile HostState host_state = HostState.UNKNOWN;
+    private volatile ApplicationState host_state = ApplicationState.UNKNOWN;
 
     // A reference to the application running on the host.
     private volatile IPingable application_reference = null;
@@ -198,9 +199,9 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param host_state the state of the remote host and the application
      * @return this object
      */
-    public HostDescriptor hostState(final HostState host_state) {
+    public HostDescriptor hostState(final ApplicationState host_state) {
 
-        final HostState old_host_state = this.host_state;
+        final ApplicationState old_host_state = this.host_state;
         this.host_state = host_state;
         property_change_support.firePropertyChange(HOST_STATE_PROPERTY_NAME, old_host_state, host_state);
         return this;
@@ -359,7 +360,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * 
      * @return the state of the remote host and the application
      */
-    public HostState getHostState() {
+    public ApplicationState getHostState() {
 
         return host_state;
     }
@@ -759,7 +760,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
         managed_host = new RemoteSSHHost(host, credentials);
 
-        hostState(HostState.UNKNOWN);
+        hostState(ApplicationState.UNKNOWN);
     }
 
     @Override

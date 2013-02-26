@@ -26,9 +26,9 @@ import java.util.SortedSet;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.HostState;
 import uk.ac.standrews.cs.shabdiz.MadfaceManagerFactory;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
@@ -38,7 +38,7 @@ import uk.ac.standrews.cs.shabdiz.util.URL;
  * @author Alan Dearle (al@cs.st-andrews.ac.uk)
  * @author Graham Kirby(graham.kirby@st-andrews.ac.uk)
  */
-public class P2PNetwork implements INetwork {
+public class P2PNetwork implements Network {
 
     private final MadfaceManager madface_manager;
 
@@ -71,7 +71,7 @@ public class P2PNetwork implements INetwork {
         }
 
         madface_manager.deployAll();
-        madface_manager.waitForAllToReachState(HostState.RUNNING);
+        madface_manager.waitForAllToReachState(ApplicationState.RUNNING);
         madface_manager.setHostScanning(false);
     }
 

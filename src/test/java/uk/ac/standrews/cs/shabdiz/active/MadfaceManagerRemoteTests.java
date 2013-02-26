@@ -12,7 +12,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.HostState;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
 
 
@@ -76,7 +76,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         final HostDescriptor host_descriptor = new HostDescriptor("localhost", new PasswordCredentials("dummy", "dummy".toCharArray()));
         host_descriptor.port(55123);
         manager.add(host_descriptor);
-        manager.waitForAllToReachState(HostState.NO_AUTH);
+        manager.waitForAllToReachState(ApplicationState.NO_AUTH);
     }
 
     /**
@@ -89,7 +89,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
         manager.add(host_descriptor);
 
-        manager.waitForAllToReachState(HostState.AUTH);
+        manager.waitForAllToReachState(ApplicationState.AUTH);
     }
 
     /**
@@ -103,7 +103,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
         manager.deploy(host_descriptor);
 
-        manager.waitForAllToReachState(HostState.RUNNING);
+        manager.waitForAllToReachState(ApplicationState.RUNNING);
     }
 
     /**
@@ -117,7 +117,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
         manager.setAutoDeploy(true);
 
-        manager.waitForAllToReachState(HostState.RUNNING);
+        manager.waitForAllToReachState(ApplicationState.RUNNING);
     }
 
     /**
@@ -131,10 +131,10 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
 
         manager.deploy(host_descriptor);
-        manager.waitForAllToReachState(HostState.RUNNING);
+        manager.waitForAllToReachState(ApplicationState.RUNNING);
 
         manager.kill(host_descriptor, false);
-        manager.waitForAllToReachState(HostState.AUTH);
+        manager.waitForAllToReachState(ApplicationState.AUTH);
     }
 
     /**
@@ -148,10 +148,10 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
 
         manager.deploy(host_descriptor);
-        manager.waitForAllToReachState(HostState.RUNNING);
+        manager.waitForAllToReachState(ApplicationState.RUNNING);
 
         manager.setAutoKill(true);
-        manager.waitForAllToReachState(HostState.AUTH);
+        manager.waitForAllToReachState(ApplicationState.AUTH);
     }
 
     /**
@@ -165,10 +165,10 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
         manager.add(host_descriptor);
 
         manager.deploy(host_descriptor);
-        manager.waitForAllToReachState(HostState.RUNNING);
+        manager.waitForAllToReachState(ApplicationState.RUNNING);
 
         manager.kill(host_descriptor, false);
-        manager.waitForAllToReachStateThatIsNot(HostState.RUNNING);
+        manager.waitForAllToReachStateThatIsNot(ApplicationState.RUNNING);
     }
 
     /**
@@ -191,7 +191,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
                 final Object source = evt.getSource();
                 if (HostDescriptor.class.isInstance(source)) {
                     final HostDescriptor host_descriptor = HostDescriptor.class.cast(source);
-                    if (host_descriptor.getHost().equals(host_name) && host_descriptor.getHostState() == HostState.RUNNING) {
+                    if (host_descriptor.getHost().equals(host_name) && host_descriptor.getHostState() == ApplicationState.RUNNING) {
                         sync.release();
                     }
                 }
