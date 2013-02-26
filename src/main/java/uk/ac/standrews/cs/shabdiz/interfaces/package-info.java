@@ -1,5 +1,5 @@
 /**
- * Contains interfaces which describe the architecture of Shabdiz remote job execution framework.
+ * Remote application management interfaces.
  */
 package uk.ac.standrews.cs.shabdiz.interfaces;
 

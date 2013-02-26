@@ -36,9 +36,9 @@ import org.junit.Test;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.impl.Host;
-import uk.ac.standrews.cs.shabdiz.impl.LocalHost;
+import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.Host;
+import uk.ac.standrews.cs.shabdiz.LocalHost;
 import uk.ac.standrews.cs.shabdiz.interfaces.Worker;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
@@ -66,6 +66,7 @@ public class NormalOperationTest {
 
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
+        //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
         localhost = new LocalHost();
         launcher = new DefaultLauncher();
         worker = launcher.deployWorkerOnHost(localhost);

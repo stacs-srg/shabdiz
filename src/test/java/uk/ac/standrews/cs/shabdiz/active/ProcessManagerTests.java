@@ -28,8 +28,10 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.impl.Platform;
-import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.ClassPath;
+import uk.ac.standrews.cs.shabdiz.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.Platform;
+import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
@@ -210,7 +212,7 @@ public class ProcessManagerTests {
 
         final HostDescriptor host_descriptor = new HostDescriptor(use_password);
         final ClassPath class_path = new ClassPath("~" + host_descriptor.getCredentials().getUsername() + "/nds.jar");
-        host_descriptor.classPath(class_path);
+        //        host_descriptor.classPath(class_path);
         //        final ProcessDescriptor java_process_descriptor = new JavaProcessDescriptor().classToBeInvoked(TestClassShortLived.class);
         //        final Process p = host_descriptor.getProcessManager().runProcess(java_process_descriptor);
         //

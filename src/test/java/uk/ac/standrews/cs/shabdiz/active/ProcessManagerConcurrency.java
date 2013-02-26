@@ -8,8 +8,8 @@ import java.util.concurrent.TimeoutException;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
 
 public class ProcessManagerConcurrency {
 

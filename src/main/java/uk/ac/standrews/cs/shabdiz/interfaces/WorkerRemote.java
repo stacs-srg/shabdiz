@@ -1,12 +1,7 @@
 /*
  * shabdiz Library
- * Copyright (C) 2011 Distributed Systems Architecture Research Group
- * <http://www-systems.cs.st-andrews.ac.uk/>
- *
- * This file is part of shabdiz, a variation of the Chord protocol
- * <http://pdos.csail.mit.edu/chord/>, where each node strives to maintain
- * a list of all the nodes in the overlay in order to provide one-hop
- * routing.
+ * Copyright (C) 2013 Networks and Distributed Systems Research Group
+ * <http://www.cs.st-andrews.ac.uk/research/nds>
  *
  * shabdiz is a free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.shabdiz.impl.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
 
 /**
  * Presents a special type of worker which is deployed by {@link DefaultLauncher}.

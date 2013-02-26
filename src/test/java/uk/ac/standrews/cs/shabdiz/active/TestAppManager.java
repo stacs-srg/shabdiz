@@ -25,22 +25,18 @@ package uk.ac.standrews.cs.shabdiz.active;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestProxy;
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestServer;
 import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.active.AbstractApplicationManager;
-import uk.ac.standrews.cs.shabdiz.active.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.AttributesCallback;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.GlobalHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.interfaces.SingleHostScanner;
-import uk.ac.standrews.cs.shabdiz.active.scanners.Scanner;
-import uk.ac.standrews.cs.shabdiz.impl.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
+import uk.ac.standrews.cs.shabdiz.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.interfaces.HostScanner;
+import uk.ac.standrews.cs.shabdiz.scanners.AbstractHostScanner;
 
 /**
  * Manager for test application.
@@ -52,11 +48,11 @@ public class TestAppManager extends AbstractApplicationManager {
     private static final Duration TIMEOUT = new Duration(10, TimeUnit.SECONDS);
     private static final int THREADS = 1;
 
-    private static class DummySingleHostScanner extends Scanner implements SingleHostScanner {
+    private static class DummySingleHostScanner extends AbstractHostScanner implements HostScanner {
 
         public DummySingleHostScanner() {
 
-            super(null, new Duration(), THREADS, TIMEOUT, "dummy single", true);
+            super(null, new Duration(), TIMEOUT, "dummy single", true);
         }
 
         @Override
@@ -66,30 +62,27 @@ public class TestAppManager extends AbstractApplicationManager {
         }
 
         @Override
-        public String getAttributeName() {
-
-            return "test attribute";
-        }
-
-        @Override
         public String getToggleLabel() {
 
             return null;
         }
 
         @Override
-        public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) throws Exception {
+        public void scan(final Set<HostDescriptor> host_state_list) {
+
+            // TODO Auto-generated method stub
 
         }
+
     }
 
-    private static class TestSingleHostScanner extends Scanner implements SingleHostScanner {
+    private static class TestSingleHostScanner extends AbstractHostScanner implements HostScanner {
 
         private int call_count = 0;
 
         public TestSingleHostScanner() {
 
-            super(null, new Duration(), THREADS, TIMEOUT, "single", true);
+            super(null, new Duration(), TIMEOUT, "single", true);
         }
 
         // -------------------------------------------------------------------------------------------------------
@@ -98,30 +91,6 @@ public class TestAppManager extends AbstractApplicationManager {
         public String getName() {
 
             return "single";
-        }
-
-        @Override
-        public String getAttributeName() {
-
-            return "test attribute";
-        }
-
-        @Override
-        public void check(final HostDescriptor host_descriptor, final Set<AttributesCallback> attribute_callbacks) {
-
-            // Only change attribute after a number of calls.
-            call_count++;
-
-            if (call_count > 2) {
-
-                final Map<String, String> attribute_map = host_descriptor.getAttributes();
-
-                attribute_map.put("test attribute", "test value");
-
-                for (final AttributesCallback callback : attribute_callbacks) {
-                    callback.attributesChange(host_descriptor);
-                }
-            }
         }
 
         @Override
@@ -135,13 +104,29 @@ public class TestAppManager extends AbstractApplicationManager {
 
             return "TestScanner";
         }
+
+        @Override
+        public void scan(final Set<HostDescriptor> host_descriptors) {
+
+            for (final HostDescriptor host_descriptor : host_descriptors) {
+                // Only change attribute after a number of calls.
+                call_count++;
+
+                if (call_count > 2) {
+
+                    //                    final Map<String, String> attribute_map = host_descriptor.getAttributes();
+
+                    //                    attribute_map.put("test attribute", "test value");
+                }
+            }
+        }
     }
 
-    private static class DummyGlobalHostScanner extends Scanner implements GlobalHostScanner {
+    private static class DummyGlobalHostScanner extends AbstractHostScanner implements HostScanner {
 
         public DummyGlobalHostScanner() {
 
-            super(null, new Duration(), THREADS, TIMEOUT, "dummy global", true);
+            super(null, new Duration(), TIMEOUT, "dummy global", true);
         }
 
         @Override
@@ -157,16 +142,16 @@ public class TestAppManager extends AbstractApplicationManager {
         }
 
         @Override
-        public void check(final SortedSet<HostDescriptor> host_descriptors) {
+        public void scan(final Set<HostDescriptor> host_descriptors) {
 
         }
     }
 
-    private static class TestGlobalHostScanner extends Scanner implements GlobalHostScanner {
+    private static class TestGlobalHostScanner extends AbstractHostScanner implements HostScanner {
 
         public TestGlobalHostScanner() {
 
-            super(null, new Duration(), THREADS, TIMEOUT, "global", true);
+            super(null, new Duration(), TIMEOUT, "global", true);
         }
 
         @Override
@@ -182,7 +167,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
 
         @Override
-        public void check(final SortedSet<HostDescriptor> host_descriptors) {
+        public void scan(final Set<HostDescriptor> host_descriptors) {
 
         }
     }
@@ -204,8 +189,8 @@ public class TestAppManager extends AbstractApplicationManager {
 
     public TestAppManager(final boolean use_dummy_scanners) {
 
-        getSingleScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new TestSingleHostScanner());
-        getGlobalScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new TestGlobalHostScanner());
+        getHostScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new TestSingleHostScanner());
+        getHostScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new TestGlobalHostScanner());
     }
 
     @Override
@@ -230,6 +215,7 @@ public class TestAppManager extends AbstractApplicationManager {
 
                 final Process java_process = java_process_builder.start(host_descriptor.getManagedHost());
                 host_descriptor.process(java_process);
+                //                TestServer.main(arg_list.toArray(new String[0]));
             }
         }
     }
@@ -248,6 +234,6 @@ public class TestAppManager extends AbstractApplicationManager {
     @Override
     protected String guessFragmentOfApplicationProcessName(final HostDescriptor host_descriptor) {
 
-        return null;
+        return TestServer.class.getName();
     }
 }
