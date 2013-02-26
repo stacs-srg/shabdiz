@@ -51,7 +51,7 @@ public final class ClassPath implements Iterable<File>, Cloneable {
      */
     public static ClassPath getCurrentClassPath() {
 
-        // Work around bug on Windows/Eclipse where part of the classpath contains forward slashes.
+        //  Work around bug on Windows/Eclipse where part of the classpath contains forward slashes.
         final String environment_class_path = System.getProperty("java.class.path").replace("/", File.separator);
         String proper = environment_class_path.replace(";\\", ";").replace("\\;", ";");
         if (proper.charAt(proper.length() - 1) == '\\') {
