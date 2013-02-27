@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
@@ -43,7 +43,7 @@ import uk.ac.standrews.cs.shabdiz.api.HostScanner;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
- * Superclass for application manager implementations. The application being managed must implement the {@link IPingable} interface. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
+ * Superclass for application manager implementations. The application being managed must implement the {@link Pingable} interface. The method {@link #shutdown()} should be called before disposing of an instance, to avoid thread leakage.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -153,7 +153,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             public Void call() throws Exception {
 
                 // Use cached application reference if present.
-                final IPingable cached_reference = host_descriptor.getApplicationReference();
+                final Pingable cached_reference = host_descriptor.getApplicationReference();
 
                 if (cached_reference != null) {
                     cached_reference.ping();

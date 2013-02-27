@@ -1,8 +1,8 @@
 package uk.ac.standrews.cs.shabdiz.api;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
-public interface ApplicationNetwork<ApplicationReference extends IPingable> extends Iterable<ApplicationReference> {
+public interface ApplicationNetwork<ApplicationReference extends Pingable> extends Iterable<ApplicationReference> {
 
     void awaitState(ApplicationState state);
 

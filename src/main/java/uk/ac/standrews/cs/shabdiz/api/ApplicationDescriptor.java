@@ -2,9 +2,9 @@ package uk.ac.standrews.cs.shabdiz.api;
 
 import java.util.Collection;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
-public interface ApplicationDescriptor<ApplicationReference extends IPingable> {
+public interface ApplicationDescriptor<ApplicationReference extends Pingable> {
 
     Host getHost();
 

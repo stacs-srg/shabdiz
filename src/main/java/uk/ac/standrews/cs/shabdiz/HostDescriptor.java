@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
@@ -96,7 +96,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private volatile ApplicationState host_state = ApplicationState.UNKNOWN;
 
     // A reference to the application running on the host.
-    private volatile IPingable application_reference = null;
+    private volatile Pingable application_reference = null;
 
     // A reference to the application process(es) running on the host.
     // This is a set because it's possible that multiple processes will be started, in the case that a
@@ -163,7 +163,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param application_reference a remote reference to the application running on the remote host
      * @return this object
      */
-    public HostDescriptor applicationReference(final IPingable application_reference) {
+    public HostDescriptor applicationReference(final Pingable application_reference) {
 
         this.application_reference = application_reference;
         return this;
@@ -306,7 +306,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * 
      * @return a remote reference to the application running on the remote host, or null if not set
      */
-    public IPingable getApplicationReference() {
+    public Pingable getApplicationReference() {
 
         return application_reference;
     }

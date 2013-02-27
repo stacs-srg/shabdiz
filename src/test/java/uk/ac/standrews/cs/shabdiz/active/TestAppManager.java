@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestProxy;
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestServer;
-import uk.ac.standrews.cs.nds.rpc.interfaces.IPingable;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
@@ -223,7 +223,7 @@ public class TestAppManager extends AbstractApplicationManager {
     @Override
     public void establishApplicationReference(final HostDescriptor host_descriptor) throws Exception {
 
-        final IPingable remote_reference = new TestProxy(host_descriptor.getInetSocketAddress());
+        final Pingable remote_reference = new TestProxy(host_descriptor.getInetSocketAddress());
 
         // Check that the remote application can be contacted.
         remote_reference.ping();
