@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that
@@ -83,6 +83,6 @@ public class DeployScanner extends ConcurrentHostScanner {
 
     private boolean isDeployable(final HostDescriptor host_descriptor) {
 
-        return host_descriptor.getHostState().equals(ApplicationState.AUTH);
+        return host_descriptor.getHostState().equals(State.AUTH);
     }
 }

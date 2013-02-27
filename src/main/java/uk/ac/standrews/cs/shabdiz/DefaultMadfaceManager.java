@@ -40,8 +40,8 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.Scanner;
 import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.scanners.DeployScanner;
 import uk.ac.standrews.cs.shabdiz.scanners.DropScanner;
@@ -82,8 +82,8 @@ public final class DefaultMadfaceManager implements MadfaceManager {
     private Duration ssh_check_timeout;
 
     private final SortedSet<HostDescriptor> host_descriptors;
-    private final Map<String, HostScanner> scanner_map;
-    private final Map<String, HostScanner> headless_scanner_map;
+    private final Map<String, Scanner> scanner_map;
+    private final Map<String, Scanner> headless_scanner_map;
     private final ScheduledExecutorService scheduled_executor;
     private final ExecutorService concurrent_scanner_executor;
     private final List<ScheduledFuture<?>> scheduled_scanners;
@@ -100,8 +100,8 @@ public final class DefaultMadfaceManager implements MadfaceManager {
         scheduled_executor = Executors.newScheduledThreadPool(SCANNER_SCHEDULER_TRHEAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
         host_descriptors = new ConcurrentSkipListSet<HostDescriptor>();
-        scanner_map = Collections.synchronizedMap(new HashMap<String, HostScanner>());
-        headless_scanner_map = Collections.synchronizedMap(new HashMap<String, HostScanner>());
+        scanner_map = Collections.synchronizedMap(new HashMap<String, Scanner>());
+        headless_scanner_map = Collections.synchronizedMap(new HashMap<String, Scanner>());
 
         configureGenericScanners();
         startScanners();
@@ -123,7 +123,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
      * 
      * @return the scanner map
      */
-    public Map<String, HostScanner> getScannerMap() {
+    public Map<String, Scanner> getScannerMap() {
 
         return scanner_map;
     }
@@ -228,25 +228,25 @@ public final class DefaultMadfaceManager implements MadfaceManager {
     }
 
     @Override
-    public void waitForHostToReachState(final HostDescriptor host_descriptor, final ApplicationState state_to_reach) throws InterruptedException {
+    public void waitForHostToReachState(final HostDescriptor host_descriptor, final State state_to_reach) throws InterruptedException {
 
         waitForHost(host_descriptor, state_to_reach, true);
     }
 
     @Override
-    public void waitForHostToReachStateThatIsNot(final HostDescriptor host_descriptor, final ApplicationState state_to_not_reach) throws InterruptedException {
+    public void waitForHostToReachStateThatIsNot(final HostDescriptor host_descriptor, final State state_to_not_reach) throws InterruptedException {
 
         waitForHost(host_descriptor, state_to_not_reach, false);
     }
 
     @Override
-    public void waitForAllToReachState(final ApplicationState state_to_reach) throws InterruptedException {
+    public void waitForAllToReachState(final State state_to_reach) throws InterruptedException {
 
         waitForAll(state_to_reach, true);
     }
 
     @Override
-    public void waitForAllToReachStateThatIsNot(final ApplicationState state_to_not_reach) throws InterruptedException {
+    public void waitForAllToReachStateThatIsNot(final State state_to_not_reach) throws InterruptedException {
 
         waitForAll(state_to_not_reach, false);
     }
@@ -291,7 +291,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
 
     private String setScannerEnabled(final String pref_name, final boolean enabled) {
 
-        final HostScanner scanner = getScannerMap().get(pref_name);
+        final Scanner scanner = getScannerMap().get(pref_name);
         if (scanner == null) { return NO_PREFERENCE_WITH_NAME + pref_name; }
 
         scanner.setEnabled(enabled);
@@ -317,10 +317,10 @@ public final class DefaultMadfaceManager implements MadfaceManager {
 
     private void configureApplicationSpecificScanners() {
 
-        final List<HostScanner> global_host_scanners = application_manager.getHostScanners();
+        final List<Scanner> global_host_scanners = application_manager.getScanners();
 
         if (global_host_scanners != null) {
-            for (final HostScanner scanner : global_host_scanners) {
+            for (final Scanner scanner : global_host_scanners) {
                 scanner.syncWith(status_scanner);
                 final String toggle_label = scanner.getToggleLabel();
                 if (toggle_label != null) {
@@ -335,7 +335,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
 
     private void startScanners() {
 
-        for (final HostScanner scanner : scanner_map.values()) {
+        for (final Scanner scanner : scanner_map.values()) {
 
             final Duration cycle_delay = scanner.getCycleDelay();
             final long cycle_delay_length = cycle_delay.getLength();
@@ -361,14 +361,14 @@ public final class DefaultMadfaceManager implements MadfaceManager {
         scheduled_executor.shutdownNow();
     }
 
-    private void shutdownScanners(final Map<String, HostScanner> map) {
+    private void shutdownScanners(final Map<String, Scanner> map) {
 
         for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners) {
             scheduled_scanner.cancel(true);
         }
     }
 
-    private void waitForHost(final HostDescriptor host_descriptor, final ApplicationState state, final boolean match) throws InterruptedException {
+    private void waitForHost(final HostDescriptor host_descriptor, final State state, final boolean match) throws InterruptedException {
 
         while (!Thread.currentThread().isInterrupted()) {
 
@@ -378,7 +378,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
         if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
     }
 
-    private void waitForAll(final ApplicationState state, final boolean match) throws InterruptedException {
+    private void waitForAll(final State state, final boolean match) throws InterruptedException {
 
         while (!Thread.currentThread().isInterrupted()) {
             boolean all_at_termination_condition = true;

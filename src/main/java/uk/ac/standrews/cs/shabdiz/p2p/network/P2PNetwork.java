@@ -28,7 +28,7 @@ import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.MadfaceManagerFactory;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.State;
 import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
@@ -71,7 +71,7 @@ public class P2PNetwork implements Network {
         }
 
         madface_manager.deployAll();
-        madface_manager.waitForAllToReachState(ApplicationState.RUNNING);
+        madface_manager.waitForAllToReachState(State.RUNNING);
         madface_manager.setHostScanning(false);
     }
 

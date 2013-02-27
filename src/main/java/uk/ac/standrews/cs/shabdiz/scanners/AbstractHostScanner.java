@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
-import uk.ac.standrews.cs.shabdiz.api.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
 /**
  * Common scanner functionality.
@@ -35,12 +35,12 @@ import uk.ac.standrews.cs.shabdiz.api.HostScanner;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractHostScanner implements HostScanner {
+public abstract class AbstractHostScanner implements Scanner {
 
     private final Duration min_cycle_time;
 
     protected final DefaultMadfaceManager manager;
-    protected volatile HostScanner scanner_to_sync_with = null;
+    protected volatile Scanner scanner_to_sync_with = null;
 
     private final AtomicBoolean enabled;
     protected final Duration check_timeout;
@@ -95,7 +95,7 @@ public abstract class AbstractHostScanner implements HostScanner {
     }
 
     @Override
-    public void syncWith(final HostScanner scanner_to_sync_with) {
+    public void syncWith(final Scanner scanner_to_sync_with) {
 
         this.scanner_to_sync_with = scanner_to_sync_with;
     }

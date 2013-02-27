@@ -115,7 +115,7 @@ public interface MadfaceManager {
      * @param state_to_reach the state
      * @throws InterruptedException if the thread is interrupted while waiting
      */
-    void waitForHostToReachState(HostDescriptor host_descriptor, ApplicationState state_to_reach) throws InterruptedException;
+    void waitForHostToReachState(HostDescriptor host_descriptor, State state_to_reach) throws InterruptedException;
 
     /**
      * Blocks until a given host is not in a specified state.
@@ -124,7 +124,7 @@ public interface MadfaceManager {
      * @param state_to_not_reach the state
      * @throws InterruptedException if the thread is interrupted while waiting
      */
-    void waitForHostToReachStateThatIsNot(HostDescriptor host_descriptor, ApplicationState state_to_not_reach) throws InterruptedException;
+    void waitForHostToReachStateThatIsNot(HostDescriptor host_descriptor, State state_to_not_reach) throws InterruptedException;
 
     /**
      * Blocks until all hosts are in a specified state.
@@ -132,7 +132,7 @@ public interface MadfaceManager {
      * @param state_to_reach the state
      * @throws InterruptedException if the thread is interrupted while waiting
      */
-    void waitForAllToReachState(ApplicationState state_to_reach) throws InterruptedException;
+    void waitForAllToReachState(State state_to_reach) throws InterruptedException;
 
     /**
      * Blocks until all hosts are not in a specified state.
@@ -140,7 +140,7 @@ public interface MadfaceManager {
      * @param state_to_not_reach the state
      * @throws InterruptedException if the thread is interrupted while waiting
      */
-    void waitForAllToReachStateThatIsNot(ApplicationState state_to_not_reach) throws InterruptedException;
+    void waitForAllToReachStateThatIsNot(State state_to_not_reach) throws InterruptedException;
 
     /**
      * Sets whether auto-deployment should be performed. If enabled, an attempt is made to start the application on any host on which the application is not detected.

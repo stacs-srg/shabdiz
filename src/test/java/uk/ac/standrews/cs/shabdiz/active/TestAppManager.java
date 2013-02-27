@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.api.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.Scanner;
 import uk.ac.standrews.cs.shabdiz.scanners.AbstractHostScanner;
 
 /**
@@ -48,7 +48,7 @@ public class TestAppManager extends AbstractApplicationManager {
     private static final Duration TIMEOUT = new Duration(10, TimeUnit.SECONDS);
     private static final int THREADS = 1;
 
-    private static class DummySingleHostScanner extends AbstractHostScanner implements HostScanner {
+    private static class DummySingleHostScanner extends AbstractHostScanner implements Scanner {
 
         public DummySingleHostScanner() {
 
@@ -76,7 +76,7 @@ public class TestAppManager extends AbstractApplicationManager {
 
     }
 
-    private static class TestSingleHostScanner extends AbstractHostScanner implements HostScanner {
+    private static class TestSingleHostScanner extends AbstractHostScanner implements Scanner {
 
         private int call_count = 0;
 
@@ -122,7 +122,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class DummyGlobalHostScanner extends AbstractHostScanner implements HostScanner {
+    private static class DummyGlobalHostScanner extends AbstractHostScanner implements Scanner {
 
         public DummyGlobalHostScanner() {
 
@@ -147,7 +147,7 @@ public class TestAppManager extends AbstractApplicationManager {
         }
     }
 
-    private static class TestGlobalHostScanner extends AbstractHostScanner implements HostScanner {
+    private static class TestGlobalHostScanner extends AbstractHostScanner implements Scanner {
 
         public TestGlobalHostScanner() {
 
@@ -189,8 +189,8 @@ public class TestAppManager extends AbstractApplicationManager {
 
     public TestAppManager(final boolean use_dummy_scanners) {
 
-        getHostScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new TestSingleHostScanner());
-        getHostScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new TestGlobalHostScanner());
+        getScanners().add(use_dummy_scanners ? new DummySingleHostScanner() : new TestSingleHostScanner());
+        getScanners().add(use_dummy_scanners ? new DummyGlobalHostScanner() : new TestGlobalHostScanner());
     }
 
     @Override

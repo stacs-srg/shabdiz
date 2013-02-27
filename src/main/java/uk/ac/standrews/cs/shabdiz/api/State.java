@@ -25,7 +25,7 @@ package uk.ac.standrews.cs.shabdiz.api;
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public enum ApplicationState {
+public enum State {
 
     /** The machine can be contacted but the application is not running; the machine will accept a connection with the given credentials. */
     AUTH,

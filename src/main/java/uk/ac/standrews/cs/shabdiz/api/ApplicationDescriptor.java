@@ -1,16 +1,21 @@
 package uk.ac.standrews.cs.shabdiz.api;
 
+import java.beans.PropertyChangeListener;
 import java.util.Collection;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
-public interface ApplicationDescriptor<ApplicationReference extends Pingable> {
+public interface ApplicationDescriptor {
+
+    void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
+
+    void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     Host getHost();
 
-    ApplicationReference getApplicationReference();
+    Pingable getApplicationReference();
 
     Collection<Process> getProcesses();
 
-    ApplicationState getState();
+    State getState();
 }

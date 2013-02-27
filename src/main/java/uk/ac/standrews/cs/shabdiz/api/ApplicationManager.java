@@ -76,7 +76,7 @@ public interface ApplicationManager {
      * 
      * @return a list of scanners, or {@code null} if none are required.
      */
-    List<HostScanner> getHostScanners();
+    List<Scanner> getScanners();
 
     /**
      * Gets the application library URLs.

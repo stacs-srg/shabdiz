@@ -39,7 +39,7 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.HostScanner;
+import uk.ac.standrews.cs.shabdiz.api.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**
@@ -52,7 +52,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private static final Duration APPLICATION_CALL_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
 
-    private final List<HostScanner> multiple_host_scanners = new ArrayList<HostScanner>();
+    private final List<Scanner> multiple_host_scanners = new ArrayList<Scanner>();
     private final ExecutorService executor;
 
     private Set<URL> application_urls;
@@ -114,7 +114,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     }
 
     @Override
-    public List<HostScanner> getHostScanners() {
+    public List<Scanner> getScanners() {
 
         return multiple_host_scanners;
     }

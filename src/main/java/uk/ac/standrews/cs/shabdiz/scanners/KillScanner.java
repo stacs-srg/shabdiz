@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
@@ -83,6 +83,6 @@ public class KillScanner extends ConcurrentHostScanner {
 
     private boolean isKillable(final HostDescriptor host_descriptor) {
 
-        return host_descriptor.getHostState() == ApplicationState.RUNNING;
+        return host_descriptor.getHostState() == State.RUNNING;
     }
 }

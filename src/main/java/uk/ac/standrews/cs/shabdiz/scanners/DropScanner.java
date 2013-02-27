@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
@@ -76,7 +76,7 @@ public class DropScanner extends ConcurrentHostScanner {
 
     private boolean isDroppable(final HostDescriptor host_descriptor) {
 
-        final ApplicationState host_state = host_descriptor.getHostState();
-        return host_state == ApplicationState.UNREACHABLE || host_state == ApplicationState.INVALID;
+        final State host_state = host_descriptor.getHostState();
+        return host_state == State.UNREACHABLE || host_state == State.INVALID;
     }
 }

@@ -1,16 +1,18 @@
 package uk.ac.standrews.cs.shabdiz.api;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
+public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Network<T> {
 
-public interface ApplicationNetwork<ApplicationReference extends Pingable> extends Iterable<ApplicationReference> {
+    String getApplicationName();
 
-    void awaitState(ApplicationState state);
+    void awaitAnyState(State... states) throws InterruptedException;
 
-    ApplicationReference deploy(Host host);
+    boolean addScanner(Scanner scanner);
 
-    void Kill(ApplicationReference application);
+    boolean removeScanner(Scanner scanner);
 
-    void drop(ApplicationReference application);
+    void setScanEnabled(boolean enabled);
 
-    void shutdown();
+    //    boolean isScanEnabled();
+
+    //FIXME auto deploy and auto kill
 }
