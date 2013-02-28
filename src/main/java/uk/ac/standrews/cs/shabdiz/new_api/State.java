@@ -21,17 +21,19 @@
 package uk.ac.standrews.cs.shabdiz.new_api;
 
 /**
- * The possible states of a managed application.
+ * The possible states of an {@link ApplicationDescriptor application}.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @see ApplicationDescriptor
+ * @see StatusScanner
  */
 public enum State {
 
-    /** The machine can be contacted but the application is not running; the machine will accept a connection with the given credentials. */
-    AUTH,
-
     /** The application is deployed. */
     DEPLOYED,
+
+    /** The machine can be contacted but the application is not running; the machine will accept a connection with the given credentials. */
+    AUTH,
 
     /** The address is not a resolvable IP address. */
     INVALID,
@@ -48,9 +50,9 @@ public enum State {
     /** The machine can be contacted and the application is running. */
     RUNNING,
 
-    /** The initial state. */
-    UNKNOWN,
-
     /** The address is resolvable as an IP address but the application cannot be contacted. */
-    UNREACHABLE;
+    UNREACHABLE,
+
+    /** The initial state. */
+    UNKNOWN;
 }

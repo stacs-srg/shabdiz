@@ -20,18 +20,15 @@
  */
 package uk.ac.standrews.cs.shabdiz.new_api;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Collection;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
-import uk.ac.standrews.cs.shabdiz.api.Host;
 
 /**
- * Describes a managed application instance on a target host.
- * This class provides references to the processes that are deployed on a host, a {@link Pingable} reference to the application and a state as described in {@link State}.
- * Further, upon change in any of its properties it fires a {@link PropertyChangeEvent} to any registerd {@link PropertyChangeListener}s.
+ * Describes a managed application instance on a {@link Host host}.
+ * This class provides references to the processes that are deployed on a host, a {@link Pingable reference} to the application and its {@link State state}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

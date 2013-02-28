@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -32,13 +33,18 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-import uk.ac.standrews.cs.shabdiz.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.Platform;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.new_api.Host;
+import uk.ac.standrews.cs.shabdiz.new_api.Platform;
+import uk.ac.standrews.cs.shabdiz.platform.CygwinPlatform;
+import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
+import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
+import uk.ac.standrews.cs.shabdiz.platform.UnixPlatform;
+import uk.ac.standrews.cs.shabdiz.platform.WindowsPlatform;
 
 public class PlatformUtil {
 
@@ -46,49 +52,101 @@ public class PlatformUtil {
     private static File PLATFORM_DETECTOR_CACHED_JAR;
     private static final String PLATFORM_DETECTOR_JAR_VERSION = "1.0";
 
-    public static Platform detectPlatform(final AbstractHost host) throws IOException {
+    public static Platform detectPlatform(final Host host) throws IOException {
 
         return detectPlatform(host, false);
     }
 
-    public static Platform detectPlatform(final AbstractHost host, final boolean use_java) throws IOException {
+    public static Platform detectPlatform(final Host host, final boolean use_java) throws IOException {
 
-        return host.isLocal() ? Platform.LOCAL : use_java ? detectRemotePlatformUsingJava(host) : detectRemotePlatformUsingUname(host);
+        return host.isLocal() ? LocalPlatform.getInstance() : use_java ? detectRemotePlatformUsingJava(host) : detectRemotePlatformUsingUname(host);
     }
 
-    private static Platform detectRemotePlatformUsingJava(final AbstractHost host) throws IOException {
+    private static Platform detectRemotePlatformUsingJava(final Host host) throws IOException {
 
         final File platform_detector = getPlatformDetectorJar();
         final RemoteJavaProcessBuilder java_process_builder = new RemoteJavaProcessBuilder(PlatformDetector.class);
         java_process_builder.addClasspath(platform_detector);
         final Process platform_detector_process = java_process_builder.start(host);
-        final Scanner scenner = new Scanner(platform_detector_process.getInputStream());
         try {
-            final JSONObject platform_as_json = new JSONObject(scenner.nextLine());
-            return Platform.fromJSON(platform_as_json);
-        }
-        catch (final JSONException e) {
-            throw new IOException(e);
+            final List<String> output_lines = IOUtils.readLines(platform_detector_process.getInputStream());
+            return parseOutputLines(output_lines);
         }
         finally {
-            scenner.close();
             platform_detector_process.destroy();
         }
     }
 
-    public static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
+    private static Platform parseOutputLines(final List<String> output_lines) throws IOException {
+
+        PlatformDetector.validate(output_lines);
+        final String os_name = output_lines.get(0);
+        final char path_separator = output_lines.get(1).charAt(0);
+        final char separator = output_lines.get(2).charAt(0);
+        final String temp_dir = output_lines.get(3);
+        return new SimplePlatform(os_name, path_separator, separator, temp_dir);
+    }
+
+    private static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
 
         // See: http://en.wikipedia.org/wiki/Uname#Examples
         final Process uname_process = host.execute(UNAME_COMMAND);
         final Scanner scanner = new Scanner(uname_process.getInputStream());
         try {
             final String uname_output = scanner.nextLine();
-            return Platform.fromUnameOutput(uname_output);
+            return fromUnameOutput(uname_output);
         }
         finally {
             scanner.close();
             uname_process.destroy();
         }
+    }
+
+    /**
+     * Constructs a {@link SimplePlatform} from the output that is produced by the execution of {@code uname} command.
+     * Sets the platform operating system name to the given output.
+     * If the given output contains {@link #WINDOWS_OS_NAME} it is assumed the platform is Windows.
+     * If the given output contains {@link #CYGWIN_OS_NAME} it is assumed the platform is Cygwin.
+     * Otherwise the platform is assumed to be Unix-based.
+     * 
+     * @param uname_output the output produced by the execution of {@code uname} commad
+     * @return an isntance of {@link SimplePlatform} that represents Windowns, Cygwin or Unix platform
+     */
+    public static SimplePlatform fromUnameOutput(final String uname_output) {
+
+        final String output = uname_output.toLowerCase().trim();
+        if (output.contains(CygwinPlatform.CYGWIN_OS_NAME)) { return new CygwinPlatform(output); }
+        if (output.contains(WindowsPlatform.WINDOWS_OS_NAME)) { return new WindowsPlatform(output); }
+        return new UnixPlatform(output);
+    }
+
+    /**
+     * Checks if a given platform presents a UNIX based platform.
+     * 
+     * @param target the target platform
+     * @return true, if the path separator and separator of the target platform are equal to UNIX platform
+     */
+    public static boolean isUnixBased(final Platform target) {
+
+        return target.getPathSeparator() == Platform.UNIX_PATH_SEPARATOR && target.getSeparator() == Platform.UNIX_SEPARATOR;
+    }
+
+    /**
+     * Instantiates an instance of Platform from a JSON representation of a platform.
+     * 
+     * @param json the JSON representation of a platform
+     * @return the deserialised platform
+     * @throws JSONException if the given serialised JSON object is not deserialisable
+     * @see #toJSON()
+     */
+    public static Platform fromJSON(final JSONObject json) throws JSONException {
+
+        final char path_separator = (char) json.getInt("path_separator");
+        final char separator = (char) json.getInt("separator");
+        final String temp_dir = json.getString("temp_dir");
+        final String os_name = json.getString("os_name");
+        json.put("os_name", os_name);
+        return new SimplePlatform(os_name, path_separator, separator, temp_dir);
     }
 
     private synchronized static File getPlatformDetectorJar() throws IOException {
@@ -110,12 +168,11 @@ public class PlatformUtil {
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, PLATFORM_DETECTOR_JAR_VERSION);
         manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, PlatformDetector.class.getName());
         manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, ".");
-        final File platform_detector_jar = File.createTempFile(null, "platform_detector.jar");
+        final File platform_detector_jar = File.createTempFile("platform_detector", ".jar");
         final JarOutputStream target = new JarOutputStream(new FileOutputStream(platform_detector_jar), manifest);
 
         try {
             addClassToJar(PlatformDetector.class, target);
-            addClassToJar(LibraryUtil.class, target);
             return platform_detector_jar;
         }
         catch (final URISyntaxException e) {
@@ -143,11 +200,29 @@ public class PlatformUtil {
         return type.getName().replace(type.getPackage().getName() + ".", "") + ".class";
     }
 
-    public static class PlatformDetector {
+}
 
-        public static void main(final String[] args) {
+class PlatformDetector {
 
-            System.out.println(Platform.LOCAL.toJSON());
-        }
+    private static final int NUMBER_OF_EXPECTED_OUTPUT_LINES = 4;
+
+    protected PlatformDetector() {
+
+        //override default constructor
+    }
+
+    public static void main(final String[] args) {
+
+        System.out.println(System.getProperty("os.name"));
+        System.out.println(File.pathSeparatorChar);
+        System.out.println(File.separatorChar);
+        System.out.println(System.getProperty("java.io.tmpdir"));
+    }
+
+    public static void validate(final List<String> output_lines) throws IOException {
+
+        System.out.println(output_lines);
+        if (output_lines == null) { throw new IOException("cannot instantiate platform, no output was produced by platform detector"); }
+        if (output_lines.size() != NUMBER_OF_EXPECTED_OUTPUT_LINES) { throw new IOException("cannot instantiate platform, unparsable was produced by platform detector"); }
     }
 }

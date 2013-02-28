@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 
@@ -31,7 +30,6 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
         scheduled_scanners = new HashMap<Scanner<T>, ScheduledFuture<?>>();
         scanner_executor = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
-        addScanner(new StatusScanner(new Duration(1, TimeUnit.SECONDS)));
     }
 
     @Override
@@ -51,7 +49,7 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
     }
 
     @Override
-    public void awaitUniformState(final State... states) throws InterruptedException {
+    public void awaitAnyOfStates(final State... states) throws InterruptedException {
 
         //TODO tidy this up
 

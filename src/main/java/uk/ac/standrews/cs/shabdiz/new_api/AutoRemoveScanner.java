@@ -30,27 +30,17 @@ import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class AutoRemoveScanner extends AbstractConcurrentScanner<ApplicationDescriptor> {
 
     private static final Logger LOGGER = Logger.getLogger(AutoRemoveScanner.class.getName());
-
     private static final Duration DROP_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    // -------------------------------------------------------------------------------------------------------
+    protected AutoRemoveScanner(final DefaultMadfaceManager manager, final Duration cycle_delay) {
 
-    /**
-     * Initializes a drop scanner for the given manager.
-     * 
-     * @param manager the manager
-     * @param application_network
-     */
-    public AutoRemoveScanner(final DefaultMadfaceManager manager, final Duration min_cycle_time) {
-
-        super(  min_cycle_time, DROP_CHECK_TIMEOUT, false);
+        super(cycle_delay, DROP_CHECK_TIMEOUT, false);
     }
-
-    // -------------------------------------------------------------------------------------------------------
 
     private boolean isDroppable(final ApplicationDescriptor application_descriptor) {
 

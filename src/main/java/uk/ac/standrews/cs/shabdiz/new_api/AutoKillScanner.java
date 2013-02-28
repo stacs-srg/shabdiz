@@ -31,6 +31,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
  * are in state RUNNING. For such machines an attempt is made to kill the application.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class AutoKillScanner extends AbstractConcurrentScanner<ApplicationDescriptor> {
 
@@ -39,9 +40,9 @@ public class AutoKillScanner extends AbstractConcurrentScanner<ApplicationDescri
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
 
-    public AutoKillScanner(final Duration min_cycle_time, final Duration kill_check_timeout) {
+    protected AutoKillScanner(final Duration min_cycle_time, final Duration kill_check_timeout) {
 
-        super( min_cycle_time, DEFAULT_KILL_CHECK_TIMEOUT, false);
+        super(min_cycle_time, DEFAULT_KILL_CHECK_TIMEOUT, false);
     }
 
     private boolean isKillable(final ApplicationDescriptor application_descriptor) {

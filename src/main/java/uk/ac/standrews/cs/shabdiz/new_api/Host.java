@@ -18,14 +18,13 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.api;
+package uk.ac.standrews.cs.shabdiz.new_api;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 
-import uk.ac.standrews.cs.shabdiz.Platform;
 
 /**
  * Presents a host on which a application can be deployed. Provides utility methods to deploy an application.

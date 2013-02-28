@@ -30,8 +30,8 @@ import org.junit.Test;
 
 import uk.ac.standrews.cs.shabdiz.ClassPath;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.Platform;
 import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.new_api.Platform;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 
 /**

@@ -39,9 +39,9 @@ public class AutoDeployScanner extends AbstractConcurrentScanner<ApplicationDesc
     private static final Logger LOGGER = Logger.getLogger(AutoDeployScanner.class.getName());
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    public AutoDeployScanner( final DefaultMadfaceManager manager, final Duration min_cycle_time) {
+    protected AutoDeployScanner(final DefaultMadfaceManager manager, final Duration cycle_delay) {
 
-        super( min_cycle_time, DEPLOY_CHECK_TIMEOUT, false);
+        super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
     }
 
     private boolean isDeployable(final ApplicationDescriptor application_descriptor) {

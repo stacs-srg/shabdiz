@@ -49,6 +49,7 @@ import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.credentials.PublicKeyCredentials;
+import uk.ac.standrews.cs.shabdiz.new_api.Platform;
 import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
 
 public class RemoteSSHHost extends AbstractHost {
@@ -222,7 +223,7 @@ public class RemoteSSHHost extends AbstractHost {
         platform_lock.lock();
         try {
             if (platform == null) {
-                platform = PlatformUtil.detectRemotePlatformUsingUname(this);
+                platform = PlatformUtil.detectPlatform(this);
             }
 
             return platform;

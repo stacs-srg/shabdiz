@@ -31,14 +31,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
-import uk.ac.standrews.cs.shabdiz.Platform;
-import uk.ac.standrews.cs.shabdiz.api.Host;
 
 public class SimpleApplicationDescriptor implements ApplicationDescriptor, Comparable<SimpleApplicationDescriptor> {
 
     public static final String STATE_PROPERTY_NAME = "state";
     private static AtomicLong NEXT_ID = new AtomicLong();
-    private final Long id;
+    private final Long id; // used to resolve ties when comparing
     private final Host host;
     private final ConcurrentSkipListSet<Process> processes;
     private final AtomicReference<State> state;
@@ -183,7 +181,7 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
         return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
     }
 
-    private static long generateId() {
+    private static Long generateId() {
 
         return NEXT_ID.getAndIncrement();
     }

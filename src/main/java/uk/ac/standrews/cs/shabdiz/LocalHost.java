@@ -30,6 +30,10 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import uk.ac.standrews.cs.shabdiz.new_api.Platform;
+import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
+import uk.ac.standrews.cs.shabdiz.util.PlatformUtil;
+
 /**
  * The Class LocalHost.
  */
@@ -70,7 +74,7 @@ public class LocalHost extends AbstractHost {
     private List<String> prepareCommands(final String... command) {
 
         final List<String> command_list = new ArrayList<String>(Arrays.asList(command));
-        if (Platform.isUnixBased(getPlatform())) {
+        if (PlatformUtil.isUnixBased(getPlatform())) {
             command_list.add(0, "bash");
             command_list.add(1, "-c");
         }
@@ -103,6 +107,6 @@ public class LocalHost extends AbstractHost {
     @Override
     public Platform getPlatform() {
 
-        return Platform.LOCAL;
+        return LocalPlatform.getInstance();
     }
 }

@@ -47,10 +47,10 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Launcher;
 import uk.ac.standrews.cs.shabdiz.api.LauncherCallback;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.new_api.Host;
 
 /**
  * Deploys workers on hosts.

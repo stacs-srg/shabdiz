@@ -18,14 +18,26 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz;
+package uk.ac.standrews.cs.shabdiz.platform;
 
-import java.io.IOException;
+import java.io.File;
 
-import uk.ac.standrews.cs.shabdiz.new_api.Host;
+public final class LocalPlatform extends SimplePlatform {
 
-public interface RemoteProcessBuilder {
+    private static final LocalPlatform LOCAL_PLATFORM_INSTANCE = new LocalPlatform();
 
-    Process start(Host host) throws IOException, InterruptedException;
+    /**
+     * Gets the single instance of the {@link LocalPlatform local platform}.
+     * 
+     * @return single instance of the {@link LocalPlatform local platform}
+     */
+    public static LocalPlatform getInstance() {
 
+        return LOCAL_PLATFORM_INSTANCE;
+    }
+
+    private LocalPlatform() {
+
+        super(System.getProperty("os.name"), File.pathSeparatorChar, File.separatorChar, System.getProperty("java.io.tmpdir"));
+    }
 }

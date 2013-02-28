@@ -20,26 +20,54 @@
  */
 package uk.ac.standrews.cs.shabdiz.new_api;
 
-import uk.ac.standrews.cs.shabdiz.api.Host;
 
 /**
- * Maintains a set of {@link ApplicationDescriptor}s.
- * This class provides methods for managing a set of managed application instances across multiple {@link Host}s.
+ * Maintains a set of {@link ApplicationDescriptor instances} across multiple {@link Host hosts}.
  * 
- * @param <T> the type of {@link ApplicationDescriptor}s that are maintained by this network
+ * @param <T> the type of {@link ApplicationDescriptor instances} that are maintained by this network
  * @see Network
  */
 public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Network<T> {
 
+    /**
+     * Gets the application name.
+     * 
+     * @return the application name
+     */
     String getApplicationName();
 
-    void awaitUniformState(State... states) throws InterruptedException;
+    /**
+     * Causes the current thread to wait until the {@link ApplicationDescriptor#getState() state} of all the {@link ApplicationDescriptor instances} managed by this network matches one of the given {@code states}, unless the thread is {@link Thread#interrupt() interrupted}.
+     * 
+     * @param states the states to match any of
+     * @throws InterruptedException if the current thread is interrupted while waiting
+     */
+    void awaitAnyOfStates(State... states) throws InterruptedException;
 
+    /**
+     * Adds the given {@code scanner} to the collection of this network's scanners.
+     * This method has no effect if the given {@code scanner} has already been added.
+     * 
+     * @param scanner the scanner to add
+     * @return true, if successfully added
+     */
     boolean addScanner(Scanner<T> scanner);
 
+    /**
+     * Removes the given {@code scanner} from the collection of this network's scanners.
+     * This method has no effect if the given {@code scanner} does not exist in the collection of this network's scanners.
+     * 
+     * @param scanner the scanner to remove
+     * @return true, if successfully removed
+     */
     boolean removeScanner(Scanner<T> scanner);
 
+    /**
+     * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
+     * 
+     * @param enabled if {@code true} all the scanners are this network are enabled, all the scanners are disabled otherwise
+     */
     void setScanEnabled(boolean enabled);
 
-    //FIXME add auto deploy and auto kill
+    //TODO discuss whether auto deploy and auto kill enable/disable methods should be here.
 }

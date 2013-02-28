@@ -18,14 +18,24 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz;
+package uk.ac.standrews.cs.shabdiz.platform;
 
-import java.io.IOException;
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CygwinPlatform.
+ */
+public class CygwinPlatform extends SimplePlatform {
 
-import uk.ac.standrews.cs.shabdiz.new_api.Host;
+    /** Default Cygwin operating system name. */
+    public static final String CYGWIN_OS_NAME = "cygwin";
 
-public interface RemoteProcessBuilder {
+    /**
+     * Instantiates a new cygwin platform.
+     * 
+     * @param os_name the os_name
+     */
+    public CygwinPlatform(final String os_name) {
 
-    Process start(Host host) throws IOException, InterruptedException;
-
+        super(os_name, WINDOWS_PATH_SEPARATOR, UNIX_SEPARATOR, UnixPlatform.TEMP_DIR);
+    }
 }

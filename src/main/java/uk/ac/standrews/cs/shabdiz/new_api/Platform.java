@@ -20,40 +20,51 @@
  */
 package uk.ac.standrews.cs.shabdiz.new_api;
 
-import java.util.Set;
-
-
 /**
- * Maintains a collection of objects on multiple {@link Host hosts}.
+ * The Interface Platform.
  * 
- * @param <Member> the type of objects that are maintained by this network
- * @see Set
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Network<Member> extends Set<Member> {
+public interface Platform {
 
-    //TODO discuss whether we need these here?
-    //    void add(Host host);
-    //    void killAny(Host host);
-    //    void deployAll();
-    //    void killAll();
+    /** The windows path separator. */
+    char WINDOWS_PATH_SEPARATOR = ';';
 
-    /**
-     * Deploys a member on the given {@code host}, and adds it to this network.
-     * 
-     * @param host the host on which to deploy a member
-     * @return the deployed member
-     * @see add(Object)
-     */
-    Member deploy(Host host);
+    /** The windows separator. */
+    char WINDOWS_SEPARATOR = '\\';
+
+    /** The UNIX path separator. */
+    char UNIX_PATH_SEPARATOR = ':';
+
+    /** The UNIX separator. */
+    char UNIX_SEPARATOR = '/';
 
     /**
-     * Terminates and removes the the given {@code member} from this network.
+     * Gets the path separator.
      * 
-     * @param member the member to terminate and remove
-     * @see #remove(Object)
+     * @return the path separator
      */
-    void kill(Member member);
+    char getPathSeparator();
 
-    /** Shuts down this network and closes any open resources. */
-    void shutdown();
+    /**
+     * Gets the separator.
+     * 
+     * @return the separator
+     */
+    char getSeparator();
+
+    /**
+     * Gets the temporary directory.
+     * 
+     * @return the temporary directory
+     */
+    String getTempDirectory();
+
+    /**
+     * Gets the operating system name.
+     * 
+     * @return the operating system name
+     */
+    String getOperatingSystemName();
+
 }

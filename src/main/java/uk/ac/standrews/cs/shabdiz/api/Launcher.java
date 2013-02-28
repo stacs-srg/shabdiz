@@ -20,6 +20,8 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
+import uk.ac.standrews.cs.shabdiz.new_api.Host;
+
 
 /**
  * Launches workers on hosts.

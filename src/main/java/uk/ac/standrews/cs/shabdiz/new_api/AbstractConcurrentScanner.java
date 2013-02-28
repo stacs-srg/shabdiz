@@ -62,6 +62,24 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
         this.executor = executor;
     }
 
+    /**
+     * Method invoked prior to scanning the given network.
+     * This implementation does nothing, but may be customised in subclasses.
+     * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
+     */
+    protected void beforeScan() {
+
+    }
+
+    /**
+     * Method invoked upon successful completion of scanning the given network.
+     * This implementation does nothing, but may be customised in subclasses.
+     * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
+     */
+    protected void afterScan() {
+
+    }
+
     @Override
     public final void scan() {
 

@@ -92,16 +92,6 @@ public abstract class AbstractScanner<T extends ApplicationDescriptor> implement
     }
 
     @Override
-    public void afterScan() {
-
-    }
-
-    @Override
-    public void beforeScan() {
-
-    }
-
-    @Override
     public final ApplicationNetwork<T> getApplicationNetwork() {
 
         return application_network;

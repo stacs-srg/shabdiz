@@ -21,26 +21,46 @@
 package uk.ac.standrews.cs.shabdiz.new_api;
 
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
- * Scans a given {@link ApplicationNetwork} for a application-specific change.
+ * Scans a given {@link ApplicationNetwork network} for an application-specific change.
  * 
- * @param <T> the type of {@link ApplicationDescriptor}s that are maintained by the given {@link ApplicationNetwork}
+ * @param <T> the type of {@link ApplicationDescriptor applications} that are maintained by the given {@link ApplicationNetwork network}
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Scanner<T extends ApplicationDescriptor> {
 
+    /**
+     * Add a PropertyChangeListener for a specific property.
+     * The same listener object may be added more than once.
+     * For each property, the listener will be invoked the number of times it was added for that property.
+     * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
+     * 
+     * @param property_name The name of the property to listen on
+     * @param listener the listener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
+     */
     void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
 
+    /**
+     * Remove a PropertyChangeListener for a specific property.
+     * If listener was added more than once to the same event source for the specified property, it will be notified one less time after being removed.
+     * If {@code property_name} is null, no exception is thrown and no action is taken.
+     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
+     * 
+     * @param property_name The name of the property that was listened on
+     * @param listener the listener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
+     */
     void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
 
-    void beforeScan();
-
+    /**
+     * Scans the given {@link ApplicationNetwork network} for an application-specific change.
+     */
     void scan();
-
-    void afterScan();
 
     /**
      * Gets the application network to be scanned by this scanner.
@@ -49,12 +69,34 @@ public interface Scanner<T extends ApplicationDescriptor> {
      */
     ApplicationNetwork<T> getApplicationNetwork();
 
+    /**
+     * Gets the delay between the termination of one scan and the commencement of the next.
+     * 
+     * @return the delay between the termination of one scan and the commencement of the next.
+     */
     Duration getCycleDelay();
 
+    /**
+     * Gets the timeout of a scan cycle.
+     * 
+     * @return the timeout of a scan cycle
+     * @see Duration
+     */
     Duration getScanTimeout();
 
+    /**
+     * Sets the policy on whether the future scans should be performed.
+     * This method has no effect on an executing scan cycle.
+     * 
+     * @param enabled whether to perform scans.
+     */
     void setEnabled(boolean enabled);
 
+    /**
+     * Checks if this scanner is enabled.
+     * 
+     * @return {@code true} if this scanner is enabled
+     */
     boolean isEnabled();
 
 }
