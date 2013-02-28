@@ -20,8 +20,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.platform;
 
-import org.apache.commons.io.FilenameUtils;
-
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
 
@@ -50,7 +48,7 @@ public class SimplePlatform implements Platform {
         this.os_name = os_name;
         this.path_separator = path_separator;
         this.separator = separator;
-        this.temp_dir = FilenameUtils.getFullPath(temp_dir);
+        this.temp_dir = addTailingSeparator(separator, temp_dir);
     }
 
     @Override
@@ -90,5 +88,10 @@ public class SimplePlatform implements Platform {
         json.put("temp_dir", temp_dir);
         json.put("os_name", os_name);
         return json;
+    }
+
+    protected static String addTailingSeparator(final char separator, final String temp_dir) {
+
+        return temp_dir.endsWith(Character.toString(separator)) ? temp_dir : temp_dir + separator;
     }
 }
