@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
@@ -38,6 +39,8 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  * The Class LocalHost.
  */
 public class LocalHost extends AbstractHost {
+
+    private static final Logger LOGGER = Logger.getLogger(LocalHost.class.getName());
 
     /**
      * Instantiates a new local host.
@@ -87,7 +90,7 @@ public class LocalHost extends AbstractHost {
 
     private void copy(final File source, final File destination) throws IOException {
 
-        System.out.println("copying: " + source.getName() + "\tto: " + destination.getPath());
+        LOGGER.info("copying: " + source.getName() + "\tto: " + destination.getPath());
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }

@@ -38,7 +38,6 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteJavaProcessBuilder.class.getName());
     private static final String SPACE = " ";
-    private static final String TEMP_DIR = "/tmp";
     private final StringBuffer jvm_arguments;
     private final StringBuffer command_line_arguments;
     private final String main_class;
