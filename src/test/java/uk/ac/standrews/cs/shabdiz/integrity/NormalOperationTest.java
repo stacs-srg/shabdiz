@@ -36,11 +36,11 @@ import org.junit.Test;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.LocalHost;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
+import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
+import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
 
 /**
  * Tests whether a deployed job returns expected result.

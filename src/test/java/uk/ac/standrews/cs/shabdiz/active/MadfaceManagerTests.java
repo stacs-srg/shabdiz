@@ -46,13 +46,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.shabdiz.Configuration;
-import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
-import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.ParameterValue;
-import uk.ac.standrews.cs.shabdiz.api.Scanner;
-import uk.ac.standrews.cs.shabdiz.new_api.State;
-import uk.ac.standrews.cs.shabdiz.util.URL;
+import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.zold.Configuration;
+import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
+import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.zold.ParameterValue;
+import uk.ac.standrews.cs.shabdiz.zold.api.Scanner;
+import uk.ac.standrews.cs.shabdiz.zold.util.URL;
 
 /**
  * Tests MadfaceManager functionality using a dummy application.

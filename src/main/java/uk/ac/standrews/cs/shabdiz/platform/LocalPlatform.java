@@ -22,6 +22,12 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 import java.io.File;
 
+/**
+ * A singleton presentation of the local platform.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ * @see #getInstance()
+ */
 public final class LocalPlatform extends SimplePlatform {
 
     private static final LocalPlatform LOCAL_PLATFORM_INSTANCE = new LocalPlatform();

@@ -21,102 +21,82 @@
 package uk.ac.standrews.cs.shabdiz.api;
 
 import java.beans.PropertyChangeListener;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.beans.PropertyChangeSupport;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.HostDescriptor;
 
 /**
- * Interface implemented by application-specific scanners.
+ * Scans a given {@link ApplicationNetwork network} for an application-specific change.
  * 
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @param <T> the type of {@link ApplicationDescriptor applications} that are maintained by the given {@link ApplicationNetwork network}
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Scanner {
+public interface Scanner<T extends ApplicationDescriptor> {
 
     /**
-     * Adds the property change listener.
+     * Add a PropertyChangeListener for a specific property.
+     * The same listener object may be added more than once.
+     * For each property, the listener will be invoked the number of times it was added for that property.
+     * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
      * 
-     * @param property_name the property name to listen for
-     * @param listener the listener
+     * @param property_name The name of the property to listen on
+     * @param listener the listener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
      */
     void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Removes the property change listener.
+     * Remove a PropertyChangeListener for a specific property.
+     * If listener was added more than once to the same event source for the specified property, it will be notified one less time after being removed.
+     * If {@code property_name} is null, no exception is thrown and no action is taken.
+     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
-     * @param property_name the property name to listen for
-     * @param listener the listener
+     * @param property_name The name of the property that was listened on
+     * @param listener the listener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
      */
     void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Performs some application-specific global check of the specified hosts.
-     * 
-     * @param host_state_list the hosts to be checked
+     * Scans the given {@link ApplicationNetwork network} for an application-specific change.
      */
-    void scan(Set<HostDescriptor> host_state_list);
+    void scan();
 
     /**
-     * Returns the minimum cycle time between successive scans of the host list.
+     * Gets the application network to be scanned by this scanner.
      * 
-     * @return the minimum cycle time between successive scans of the host list
+     * @return the application network to be scanned by this scanner
+     */
+    ApplicationNetwork<T> getApplicationNetwork();
+
+    /**
+     * Gets the delay between the termination of one scan and the commencement of the next.
+     * 
+     * @return the delay between the termination of one scan and the commencement of the next.
      */
     Duration getCycleDelay();
 
     /**
-     * Gets the check timeout.
+     * Gets the timeout of a scan cycle.
      * 
-     * @return the check timeout
+     * @return the timeout of a scan cycle
+     * @see Duration
      */
     Duration getScanTimeout();
 
     /**
-     * Returns the label to be used in a user interface toggle for this scanner, or null if none required.
+     * Sets the policy on whether the future scans should be performed.
+     * This method has no effect on an executing scan cycle.
      * 
-     * @return the label to be used in a user interface toggle
-     */
-    String getToggleLabel();
-
-    /**
-     * Returns the name of the scanner.
-     * 
-     * @return the name of the scanner
-     */
-    String getName();
-
-    /**
-     * Controls whether the scanner is enabled.
-     * 
-     * @param enabled true if the scanner should be enabled
+     * @param enabled whether to perform scans.
      */
     void setEnabled(boolean enabled);
 
     /**
-     * Tests whether the scanner is enabled.
+     * Checks if this scanner is enabled.
      * 
-     * @return true if the scanner is enabled
+     * @return {@code true} if this scanner is enabled
      */
     boolean isEnabled();
 
-    /**
-     * Called at the end of each cycle through the host list.
-     */
-    void cycleFinished();
-
-    /**
-     * Tells this scanner to synchronize its operation with the other specified scanner. At the end of each cycle this scanner
-     * will wait for the other scanner to reach the end of its current cycle.
-     * 
-     * @param scanner_to_sync_with the scanner to synchronize with
-     */
-    void syncWith(Scanner scanner_to_sync_with);
-
-    /**
-     * Returns the latch for the current cycle, which may be used by other scanners to synchronize with this scanner.
-     * 
-     * @return the latch for the current cycle, or null if this scanner does not allow other scanners to synchronize with it
-     */
-    CountDownLatch getCycleLatch();
 }

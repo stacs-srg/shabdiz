@@ -11,9 +11,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
-import uk.ac.standrews.cs.shabdiz.new_api.State;
+import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
+import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 
 
 /**
@@ -56,7 +56,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
 
         HostDescriptor host_descriptor = null;
         try {
-            host_descriptor = new HostDescriptor("abc.def.ghi", new PasswordCredentials("dummy", "dummy".toCharArray()));
+            host_descriptor = new HostDescriptor("abc.def.ghi", new SSHPasswordCredential("dummy", "dummy".toCharArray()));
         }
         finally {
             if (host_descriptor != null) {
@@ -73,7 +73,7 @@ public class MadfaceManagerRemoteTests extends MadfaceManagerTestBase {
     @Test(timeout = TEST_TIMEOUT)
     public void addHostWithInvalidCredentials() throws Exception {
 
-        final HostDescriptor host_descriptor = new HostDescriptor("localhost", new PasswordCredentials("dummy", "dummy".toCharArray()));
+        final HostDescriptor host_descriptor = new HostDescriptor("localhost", new SSHPasswordCredential("dummy", "dummy".toCharArray()));
         host_descriptor.port(55123);
         manager.add(host_descriptor);
         manager.waitForAllToReachState(State.NO_AUTH);

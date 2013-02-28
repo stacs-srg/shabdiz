@@ -7,15 +7,15 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Input;
-import uk.ac.standrews.cs.shabdiz.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.RemoteSSHHost;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.api.Launcher;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
-import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
-import uk.ac.standrews.cs.shabdiz.new_api.Host;
-import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
+import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
+import uk.ac.standrews.cs.shabdiz.host.RemoteSSHHost;
+import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.zold.api.Launcher;
+import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
+import uk.ac.standrews.cs.shabdiz.zold.util.ObjectStore;
 
 public class TestRemoteMain {
 
@@ -63,7 +63,7 @@ public class TestRemoteMain {
         Worker worker = null;
 
         try {
-            remoteHost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter Password")));
+            remoteHost = new RemoteSSHHost("localhost", new SSHPasswordCredential(Input.readPassword("Enter Password")));
             //            remoteHost = new LocalHost();
             launcher = new DefaultLauncher();
             worker = launcher.deployWorkerOnHost(remoteHost);

@@ -32,11 +32,11 @@ import uk.ac.standrews.cs.nds.rpc.app.nostream.TestProxy;
 import uk.ac.standrews.cs.nds.rpc.app.nostream.TestServer;
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
-import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.api.Scanner;
-import uk.ac.standrews.cs.shabdiz.scanners.AbstractHostScanner;
+import uk.ac.standrews.cs.shabdiz.zold.AbstractApplicationManager;
+import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.zold.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.zold.api.Scanner;
+import uk.ac.standrews.cs.shabdiz.zold.scanners.AbstractHostScanner;
 
 /**
  * Manager for test application.

@@ -20,7 +20,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.platform;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CygwinPlatform.
  */
