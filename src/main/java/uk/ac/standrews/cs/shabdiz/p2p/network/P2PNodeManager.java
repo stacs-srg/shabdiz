@@ -25,8 +25,8 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.State;
 import uk.ac.standrews.cs.shabdiz.exceptions.DeploymentException;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 
 /**
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)

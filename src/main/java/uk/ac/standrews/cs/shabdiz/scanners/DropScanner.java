@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.

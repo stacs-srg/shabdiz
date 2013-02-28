@@ -18,12 +18,14 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.api;
+package uk.ac.standrews.cs.shabdiz.new_api;
 
 import java.util.Set;
 
+import uk.ac.standrews.cs.shabdiz.api.Host;
+
 /**
- * Presents a network of memebers and provides methods to manage each member on multiple hosts.
+ * Presents a network of members and provides methods to manage each member on multiple hosts.
  * 
  * @param <Member> the type of members
  * @see Set

@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.DefaultMadfaceManager;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that

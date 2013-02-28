@@ -21,8 +21,6 @@
 package uk.ac.standrews.cs.shabdiz.new_api;
 
 import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.Network;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Maintains a set of {@link ApplicationDescriptor}s.

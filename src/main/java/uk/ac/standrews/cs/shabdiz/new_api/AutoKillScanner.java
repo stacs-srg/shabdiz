@@ -25,7 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that

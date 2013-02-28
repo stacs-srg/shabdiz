@@ -42,11 +42,11 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.api.State;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.exceptions.UnsupportedPlatformException;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 import uk.ac.standrews.cs.shabdiz.util.CredentialsUtil;
 import uk.ac.standrews.cs.shabdiz.util.URL;
 

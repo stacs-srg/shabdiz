@@ -27,7 +27,6 @@ import java.util.Collection;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Describes a managed application instance on a target host.

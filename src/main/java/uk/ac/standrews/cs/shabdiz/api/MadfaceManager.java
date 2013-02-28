@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 import java.util.SortedSet;
 
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 
 /**
  * Madface remote application management interface.

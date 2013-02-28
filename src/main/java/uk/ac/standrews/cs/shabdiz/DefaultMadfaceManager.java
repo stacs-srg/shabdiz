@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 import uk.ac.standrews.cs.shabdiz.scanners.DeployScanner;
 import uk.ac.standrews.cs.shabdiz.scanners.DropScanner;
 import uk.ac.standrews.cs.shabdiz.scanners.KillScanner;

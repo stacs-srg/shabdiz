@@ -12,8 +12,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.shabdiz.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.State;
 import uk.ac.standrews.cs.shabdiz.credentials.PasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.new_api.State;
 
 
 /**

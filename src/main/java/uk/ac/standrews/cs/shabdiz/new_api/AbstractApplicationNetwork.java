@@ -16,7 +16,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
 
