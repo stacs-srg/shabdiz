@@ -33,23 +33,19 @@ import uk.ac.standrews.cs.nds.util.Input;
 public class SSHPasswordCredential extends SSHCredential {
 
     private static final Logger LOGGER = Logger.getLogger(SSHPasswordCredential.class.getName());
-    private transient final char[] password;
+    private final char[] password;
 
     public SSHPasswordCredential(final char[] password) {
 
-        super();
-        this.password = password;
+        this.password = new char[password.length];
+        copyPassword(password);
     }
 
     public SSHPasswordCredential(final String username, final char[] password) {
 
         super(username);
-        this.password = password;
-    }
-
-    char[] getPassword() {
-
-        return password;
+        this.password = new char[password.length];
+        copyPassword(password);
     }
 
     @Override
@@ -66,6 +62,16 @@ public class SSHPasswordCredential extends SSHCredential {
     protected byte[] getPasswordAsBytes() {
 
         return Input.toBytes(password);
+    }
+
+    protected char[] getPassword() {
+
+        return password;
+    }
+
+    private void copyPassword(final char[] password) {
+
+        System.arraycopy(password, 0, this.password, 0, password.length);
     }
 
     private static class PasswordUserInfo implements UserInfo, UIKeyboardInteractive {
