@@ -18,27 +18,30 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.api;
+package uk.ac.standrews.cs.shabdiz.new_api;
 
-import java.util.Set;
+import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.api.Network;
+import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
- * Presents a network of memebers and provides methods to manage each member on multiple hosts.
+ * Maintains a set of {@link ApplicationDescriptor}s.
+ * This class provides methods for managing a set of managed application instances across multiple {@link Host}s.
  * 
- * @param <Member> the type of members
- * @see Set
+ * @param <T> the type of {@link ApplicationDescriptor}s that are maintained by this network
+ * @see Network
  */
-public interface Network<Member> extends Set<Member> {
+public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Network<T> {
 
-    Member deploy(Host host);
+    String getApplicationName();
 
-    void kill(Member member);
+    void awaitUniformState(State... states) throws InterruptedException;
 
-    void shutdown();
+    boolean addScanner(Scanner<T> scanner);
 
-    //TODO this about whether we really need these here?
-    //    void add(Host host);
-    //    void killAny(Host host);
-    //    void deployAll();
-    //    void killAll();
+    boolean removeScanner(Scanner<T> scanner);
+
+    void setScanEnabled(boolean enabled);
+
+    //FIXME add auto deploy and auto kill
 }

@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.api;
+package uk.ac.standrews.cs.shabdiz.new_api;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -27,22 +27,28 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.shabdiz.Platform;
+import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.api.State;
 
-public class SimpleApplicationDescriptor implements ApplicationDescriptor {
+public class SimpleApplicationDescriptor implements ApplicationDescriptor, Comparable<SimpleApplicationDescriptor> {
 
     public static final String STATE_PROPERTY_NAME = "state";
+    private static AtomicLong NEXT_ID = new AtomicLong();
+    private final Long id;
     private final Host host;
     private final ConcurrentSkipListSet<Process> processes;
     private final AtomicReference<State> state;
     private final Pingable application_reference;
     protected final PropertyChangeSupport property_change_support;
 
-    protected SimpleApplicationDescriptor(final Host host, final Pingable application_reference) {
+    public SimpleApplicationDescriptor(final Host host, final Pingable application_reference) {
 
+        id = generateId();
         this.host = new ApplicationDescriptorHostWrapper(host);
         this.application_reference = application_reference;
         processes = new ConcurrentSkipListSet<Process>();
@@ -94,9 +100,9 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor {
      */
     public boolean isInState(final State... states) {
 
-        final State current_state = getState();
+        final State cached_state = getState();
         for (final State state : states) {
-            if (current_state.equals(state)) { return true; }
+            if (cached_state.equals(state)) { return true; }
         }
         return false;
     }
@@ -171,4 +177,15 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor {
         }
     }
 
+    @Override
+    public int compareTo(final SimpleApplicationDescriptor other) {
+
+        final int host_name_comparison = host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
+        return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
+    }
+
+    private static long generateId() {
+
+        return NEXT_ID.getAndIncrement();
+    }
 }
