@@ -20,6 +20,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.platform;
 
+import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
@@ -49,7 +50,7 @@ public class SimplePlatform implements Platform {
         this.os_name = os_name;
         this.path_separator = path_separator;
         this.separator = separator;
-        this.temp_dir = temp_dir;
+        this.temp_dir = FilenameUtils.getFullPath(temp_dir);
     }
 
     @Override

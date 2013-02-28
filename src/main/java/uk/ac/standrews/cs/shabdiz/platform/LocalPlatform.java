@@ -22,6 +22,8 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 import java.io.File;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * A singleton presentation of the local platform.
  * 
@@ -44,6 +46,6 @@ public final class LocalPlatform extends SimplePlatform {
 
     private LocalPlatform() {
 
-        super(System.getProperty("os.name"), File.pathSeparatorChar, File.separatorChar, System.getProperty("java.io.tmpdir"));
+        super(System.getProperty("os.name"), File.pathSeparatorChar, File.separatorChar, FilenameUtils.getFullPath(System.getProperty("java.io.tmpdir")));
     }
 }
