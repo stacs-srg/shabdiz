@@ -90,8 +90,8 @@ public class SimplePlatform implements Platform {
         return json;
     }
 
-    protected static String addTailingSeparator(final char separator, final String temp_dir) {
+    protected static String addTailingSeparator(final char separator, final String path) {
 
-        return temp_dir.endsWith(Character.toString(separator)) ? temp_dir : temp_dir + separator;
+        return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }
 }

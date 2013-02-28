@@ -48,6 +48,7 @@ import uk.ac.standrews.cs.shabdiz.zold.RemoteJavaProcessBuilder;
  */
 public final class Platforms {
 
+    private static final String PLATFORM_DETECTOR_OUTPUT_CHARSET = "UTF-8";
     private static final String UNAME_COMMAND = "uname";
     private static final String PLATFORM_DETECTOR_JAR_VERSION = "1.0";
     private static File cached_platform_detector_jar;
@@ -116,7 +117,7 @@ public final class Platforms {
 
         // See: http://en.wikipedia.org/wiki/Uname#Examples
         final Process uname_process = host.execute(UNAME_COMMAND);
-        final Scanner scanner = new Scanner(uname_process.getInputStream());
+        final Scanner scanner = new Scanner(uname_process.getInputStream(), PLATFORM_DETECTOR_OUTPUT_CHARSET);
         try {
             final String uname_output = scanner.nextLine();
             return fromUnameOutput(uname_output);
