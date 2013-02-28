@@ -15,9 +15,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
 
@@ -27,16 +29,67 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
     private final ScheduledThreadPoolExecutor scanner_executor;
     private final ExecutorService concurrent_scanner_executor;
 
+    private final AutoKillScanner<T> auto_kill_scanner;
+    private final AutoDeployScanner<T> auto_deploy_scanner;
+    private final AutoRemoveScanner<T> auto_remove_scanner;
+    private final StatusScanner<T> status_scanner;
+
     public AbstractApplicationNetwork(final String application_name) {
 
         this.application_name = application_name;
         scheduled_scanners = new HashMap<Scanner<T>, ScheduledFuture<?>>();
         scanner_executor = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
+
+        auto_kill_scanner = new AutoKillScanner<T>(null, null);
+        auto_deploy_scanner = new AutoDeployScanner<T>(null, null);
+        auto_remove_scanner = new AutoRemoveScanner<T>(null);
+        status_scanner = new StatusScanner<T>(null);
+
+        addScanner(auto_kill_scanner);
+        addScanner(auto_deploy_scanner);
+        addScanner(auto_remove_scanner);
+        addScanner(status_scanner);
+    }
+
+    protected abstract T newApplicationDescriptorFromHost(Host host);
+
+    @Override
+    public boolean add(final Host host) {
+
+        final T application_descriptor = newApplicationDescriptorFromHost(host);
+        return add(application_descriptor);
     }
 
     @Override
-    public void kill(final SimpleApplicationDescriptor member) {
+    public void deployAll() {
+
+        for (final T applciation_descriptor : this) {
+
+            kill(applciation_descriptor);
+        }
+    }
+
+    @Override
+    public void killAllOnHost(final Host host) {
+
+        for (final T applciation_descriptor : this) {
+            if (applciation_descriptor.getHost().equals(host)) {
+                kill(applciation_descriptor);
+            }
+        }
+    }
+
+    @Override
+    public void killAll() {
+
+        for (final T applciation_descriptor : this) {
+            kill(applciation_descriptor);
+        }
+    }
+
+    @Override
+    public void kill(final T member) {
 
         final Iterator<Process> process_iterator = member.getProcesses().iterator();
         while (process_iterator.hasNext()) {
@@ -52,7 +105,7 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
     }
 
     @Override
-    public void awaitAnyOfStates(final State... states) throws InterruptedException {
+    public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
         //TODO tidy this up
 
@@ -127,7 +180,7 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
         return scheduled_scanners.put(scanner, scheduled_scanner) == null;
     }
 
-    private boolean isAddable(final Scanner<T> scanner) {
+    private boolean isAddable(final Scanner<? extends ApplicationDescriptor> scanner) {
 
         return !scheduled_scanners.containsKey(scanner);
     }
@@ -152,7 +205,25 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
         }
     }
 
-    private ScheduledFuture<?> scheduleScanner(final Scanner<T> scanner) {
+    @Override
+    public void setAutoKillEnabled(final boolean enabled) {
+
+        auto_kill_scanner.setEnabled(enabled);
+    }
+
+    @Override
+    public void setAutoDeployEnabled(final boolean enabled) {
+
+        auto_deploy_scanner.setEnabled(enabled);
+    }
+
+    @Override
+    public void setAutoRemoveEnabled(final boolean enabled) {
+
+        auto_remove_scanner.setEnabled(enabled);
+    }
+
+    private ScheduledFuture<?> scheduleScanner(final Scanner<? extends ApplicationDescriptor> scanner) {
 
         final Duration cycle_delay = scanner.getCycleDelay();
         final long cycle_delay_length = cycle_delay.getLength();

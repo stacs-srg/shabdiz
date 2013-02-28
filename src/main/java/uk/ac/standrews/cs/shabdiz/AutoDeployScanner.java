@@ -21,12 +21,10 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
 
 /**
@@ -36,9 +34,8 @@ import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoDeployScanner extends AbstractConcurrentScanner<ApplicationDescriptor> {
+public class AutoDeployScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
-    private static final Logger LOGGER = Logger.getLogger(AutoDeployScanner.class.getName());
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     protected AutoDeployScanner(final DefaultMadfaceManager manager, final Duration cycle_delay) {
@@ -46,23 +43,16 @@ public class AutoDeployScanner extends AbstractConcurrentScanner<ApplicationDesc
         super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
     }
 
-    private boolean isDeployable(final ApplicationDescriptor application_descriptor) {
+    protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
 
-        return State.AUTH.equals(application_descriptor.getState());
+        return ApplicationState.AUTH.equals(application_descriptor.getState());
     }
 
     @Override
-    protected void check(final ApplicationDescriptor application_descriptor) {
+    protected void scan(final T application_descriptor) {
 
-        //TODO tidy up
         if (isEnabled() && isDeployable(application_descriptor)) {
-            try {
-                getApplicationNetwork().deploy(application_descriptor.getHost());
-                getApplicationNetwork().remove(application_descriptor);
-            }
-            catch (final Exception e) {
-                LOGGER.log(Level.WARNING, "error deploying application to: " + application_descriptor.getHost().getAddress(), e);
-            }
+            getApplicationNetwork().deploy(application_descriptor);
         }
     }
 }

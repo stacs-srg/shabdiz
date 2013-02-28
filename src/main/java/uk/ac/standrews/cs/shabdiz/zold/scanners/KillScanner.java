@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.zold.api.ApplicationManager;
@@ -83,6 +83,6 @@ public class KillScanner extends ConcurrentHostScanner {
 
     private boolean isKillable(final HostDescriptor host_descriptor) {
 
-        return host_descriptor.getHostState() == State.RUNNING;
+        return host_descriptor.getHostState() == ApplicationState.RUNNING;
     }
 }

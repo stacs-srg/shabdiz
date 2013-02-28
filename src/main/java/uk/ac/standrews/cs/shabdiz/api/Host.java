@@ -94,5 +94,4 @@ public interface Host {
 
     /** Shuts down this host and closes any open resources. */
     void shutdown();
-
 }

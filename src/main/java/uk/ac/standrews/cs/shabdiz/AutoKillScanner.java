@@ -21,12 +21,10 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
@@ -35,9 +33,7 @@ import uk.ac.standrews.cs.shabdiz.api.State;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScanner extends AbstractConcurrentScanner<ApplicationDescriptor> {
-
-    private static final Logger LOGGER = Logger.getLogger(AutoKillScanner.class.getName());
+public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
@@ -47,24 +43,17 @@ public class AutoKillScanner extends AbstractConcurrentScanner<ApplicationDescri
         super(min_cycle_time, DEFAULT_KILL_CHECK_TIMEOUT, false);
     }
 
-    private boolean isKillable(final ApplicationDescriptor application_descriptor) {
+    private boolean isKillable(final T application_descriptor) {
 
-        return application_descriptor.getState() == State.RUNNING;
+        return application_descriptor.getState() == ApplicationState.RUNNING;
     }
 
     @Override
-    protected void check(final ApplicationDescriptor application_descriptor) {
+    protected void scan(final T application_descriptor) {
 
         if (isEnabled() && isKillable(application_descriptor)) {
 
-            // If auto-kill is set, try to kill the application on the machine.
-            LOGGER.info("killing application on: " + application_descriptor.getHost());
-            try {
-                getApplicationNetwork().kill(application_descriptor);
-            }
-            catch (final Exception e) {
-                LOGGER.log(Level.WARNING, "failed to kill application on: " + application_descriptor.getHost(), e);
-            }
+            getApplicationNetwork().kill(application_descriptor);
         }
 
     }

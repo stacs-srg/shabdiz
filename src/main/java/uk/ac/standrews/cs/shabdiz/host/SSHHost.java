@@ -47,23 +47,25 @@ import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
 import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.Credential;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
+import uk.ac.standrews.cs.shabdiz.credentials.SSHCredential;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
-public class RemoteSSHHost extends AbstractHost {
+public class SSHHost extends AbstractHost {
 
-    private static final Logger LOGGER = Logger.getLogger(RemoteSSHHost.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SSHHost.class.getName());
     private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
     private static final int DEFAULT_SSH_PORT = 22;
     private final SSHClient ssh_client;
     private final ReentrantLock platform_lock;
     private volatile Platform platform;
+    private final SSHCredential credentials;
 
-    public RemoteSSHHost(final String name, final Credential credentials) throws IOException {
+    public SSHHost(final String name, final SSHCredential credentials) throws IOException {
 
-        super(name, credentials);
+        super(name);
+        this.credentials = credentials;
         ssh_client = createSSHClient(name, credentials);
         platform_lock = new ReentrantLock();
     }
@@ -247,7 +249,7 @@ public class RemoteSSHHost extends AbstractHost {
         }
     }
 
-    private static SSHClient createSSHClient(final String host_name, final Credential credentials) throws IOException {
+    private static SSHClient createSSHClient(final String host_name, final SSHCredential credentials) throws IOException {
 
         final SSHClientFactory session_factory = SSHClientFactory.getInstance();
         final SSHClient ssh_client = session_factory.createSession(credentials.getUsername(), host_name, DEFAULT_SSH_PORT);

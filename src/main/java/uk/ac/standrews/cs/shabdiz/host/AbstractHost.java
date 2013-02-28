@@ -25,7 +25,6 @@ import java.net.InetAddress;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.api.Credential;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 
 public abstract class AbstractHost implements Host {
@@ -33,17 +32,15 @@ public abstract class AbstractHost implements Host {
     private static final Logger LOGGER = Logger.getLogger(AbstractHost.class.getName());
     private final InetAddress address;
     private final boolean local;
-    protected final Credential credentials;
 
-    public AbstractHost(final String name, final Credential credentials) throws IOException {
+    public AbstractHost(final String name) throws IOException {
 
-        this(InetAddress.getByName(name), credentials);
+        this(InetAddress.getByName(name));
     }
 
-    public AbstractHost(final InetAddress address, final Credential credentials) {
+    public AbstractHost(final InetAddress address) {
 
         this.address = address;
-        this.credentials = credentials;
         local = NetworkUtil.isValidLocalAddress(address);
     }
 

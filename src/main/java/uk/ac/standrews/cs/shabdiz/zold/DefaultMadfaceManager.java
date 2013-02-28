@@ -39,7 +39,7 @@ import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.api.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.zold.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.zold.api.Scanner;
@@ -228,25 +228,25 @@ public final class DefaultMadfaceManager implements MadfaceManager {
     }
 
     @Override
-    public void waitForHostToReachState(final HostDescriptor host_descriptor, final State state_to_reach) throws InterruptedException {
+    public void waitForHostToReachState(final HostDescriptor host_descriptor, final ApplicationState state_to_reach) throws InterruptedException {
 
         waitForHost(host_descriptor, state_to_reach, true);
     }
 
     @Override
-    public void waitForHostToReachStateThatIsNot(final HostDescriptor host_descriptor, final State state_to_not_reach) throws InterruptedException {
+    public void waitForHostToReachStateThatIsNot(final HostDescriptor host_descriptor, final ApplicationState state_to_not_reach) throws InterruptedException {
 
         waitForHost(host_descriptor, state_to_not_reach, false);
     }
 
     @Override
-    public void waitForAllToReachState(final State state_to_reach) throws InterruptedException {
+    public void waitForAllToReachState(final ApplicationState state_to_reach) throws InterruptedException {
 
         waitForAll(state_to_reach, true);
     }
 
     @Override
-    public void waitForAllToReachStateThatIsNot(final State state_to_not_reach) throws InterruptedException {
+    public void waitForAllToReachStateThatIsNot(final ApplicationState state_to_not_reach) throws InterruptedException {
 
         waitForAll(state_to_not_reach, false);
     }
@@ -368,7 +368,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
         }
     }
 
-    private void waitForHost(final HostDescriptor host_descriptor, final State state, final boolean match) throws InterruptedException {
+    private void waitForHost(final HostDescriptor host_descriptor, final ApplicationState state, final boolean match) throws InterruptedException {
 
         while (!Thread.currentThread().isInterrupted()) {
 
@@ -378,7 +378,7 @@ public final class DefaultMadfaceManager implements MadfaceManager {
         if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
     }
 
-    private void waitForAll(final State state, final boolean match) throws InterruptedException {
+    private void waitForAll(final ApplicationState state, final boolean match) throws InterruptedException {
 
         while (!Thread.currentThread().isInterrupted()) {
             boolean all_at_termination_condition = true;

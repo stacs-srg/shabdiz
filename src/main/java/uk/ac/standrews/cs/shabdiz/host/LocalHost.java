@@ -46,7 +46,7 @@ public class LocalHost extends AbstractHost {
      */
     public LocalHost() throws IOException {
 
-        super(InetAddress.getLocalHost(), null);
+        super(InetAddress.getLocalHost());
     }
 
     @Override

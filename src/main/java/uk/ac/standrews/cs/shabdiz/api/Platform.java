@@ -69,5 +69,4 @@ public interface Platform {
      * @return the operating system name
      */
     String getOperatingSystemName();
-
 }

@@ -56,7 +56,7 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
         scheduled_checks = new ArrayList<Future<?>>();
     }
 
-    protected abstract void check(T application_descriptor);
+    protected abstract void scan(T application_descriptor);
 
     void injectExecutorService(final ExecutorService executor) {
 
@@ -121,7 +121,7 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
             @Override
             public void run() {
 
-                check(application_descriptor);
+                scan(application_descriptor);
             }
         });
     }

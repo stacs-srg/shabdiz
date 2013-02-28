@@ -20,10 +20,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.credentials;
 
-import uk.ac.standrews.cs.barreleye.SSHClient;
-import uk.ac.standrews.cs.shabdiz.api.Credential;
+import java.io.IOException;
 
-public abstract class SSHCredential implements Credential<SSHClient> {
+import uk.ac.standrews.cs.barreleye.SSHClient;
+
+public abstract class SSHCredential {
 
     private final String username;
 
@@ -37,7 +38,19 @@ public abstract class SSHCredential implements Credential<SSHClient> {
         this.username = username;
     }
 
-    @Override
+    /**
+     * Authenticates a given {@link SSHClient}.
+     * 
+     * @param ssh_client the SSH client to authenticate
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    public abstract void authenticate(SSHClient ssh_client) throws IOException;
+
+    /**
+     * Gets the username.
+     * 
+     * @return the username
+     */
     public String getUsername() {
 
         return username;

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.zold.api.ApplicationManager;
@@ -98,43 +98,43 @@ public class StatusScanner extends ConcurrentHostScanner {
 
             try {
                 application_manager.attemptApplicationCall(host_descriptor);
-                setHostState(host_descriptor, State.RUNNING);
+                setHostState(host_descriptor, ApplicationState.RUNNING);
             }
             catch (final UnknownHostException e) {
                 // Machine address couldn't be resolved.
-                setHostState(host_descriptor, State.INVALID);
+                setHostState(host_descriptor, ApplicationState.INVALID);
             }
             catch (final Exception e) {
                 e.printStackTrace();
                 try {
                     // Application call failed, so try SSH connection.
                     attemptSSHConnection(host_descriptor);
-                    setHostState(host_descriptor, State.AUTH);
+                    setHostState(host_descriptor, ApplicationState.AUTH);
                 }
                 catch (final SSHException e1) {
 
                     // Couldn't make SSH connection with specified credentials.
-                    setHostState(host_descriptor, State.NO_AUTH);
+                    setHostState(host_descriptor, ApplicationState.NO_AUTH);
                 }
                 catch (final UnknownHostException e1) {
 
                     // Machine address couldn't be resolved.
-                    setHostState(host_descriptor, State.INVALID);
+                    setHostState(host_descriptor, ApplicationState.INVALID);
                 }
                 catch (final IOException e1) {
 
                     // Network error trying to make SSH connection.
-                    setHostState(host_descriptor, State.UNREACHABLE);
+                    setHostState(host_descriptor, ApplicationState.UNREACHABLE);
                 }
                 catch (final TimeoutException e1) {
 
                     // SSH connection timed out.
-                    setHostState(host_descriptor, State.UNREACHABLE);
+                    setHostState(host_descriptor, ApplicationState.UNREACHABLE);
                 }
                 catch (final InterruptedException e1) {
 
                     // SSH connection timed out.
-                    setHostState(host_descriptor, State.UNREACHABLE);
+                    setHostState(host_descriptor, ApplicationState.UNREACHABLE);
                 }
             }
         }
@@ -173,7 +173,7 @@ public class StatusScanner extends ConcurrentHostScanner {
         ssh_test_process.destroy();
     }
 
-    private void setHostState(final HostDescriptor host_descriptor, final State new_state) {
+    private void setHostState(final HostDescriptor host_descriptor, final ApplicationState new_state) {
 
         host_descriptor.hostState(new_state);
     }

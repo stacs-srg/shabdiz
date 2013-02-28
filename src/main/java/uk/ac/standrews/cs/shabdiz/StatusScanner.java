@@ -30,8 +30,9 @@ import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
@@ -40,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.api.State;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class StatusScanner<T extends SimpleApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
     /** The default timeout for attempted SSH connections. This value determined by experiment. */
     public static final Duration DEFAULT_SSH_CHECK_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
@@ -67,15 +68,15 @@ public class StatusScanner<T extends SimpleApplicationDescriptor> extends Abstra
     }
 
     @Override
-    protected void check(final T application_descriptor) {
+    protected void scan(final T application_descriptor) {
 
         if (isEnabled()) {
-            State state;
+            ApplicationState state;
             try {
                 final Pingable application_reference = application_descriptor.getApplicationReference();
                 state = getStateFromApplicationReference(application_reference);
             }
-            catch (final RPCException e) {
+            catch (final Exception e) { //Catch Exception to cover NPE since application reference may be null
                 final Host host = application_descriptor.getHost();
                 state = getStateFromHost(host);
             }
@@ -83,39 +84,39 @@ public class StatusScanner<T extends SimpleApplicationDescriptor> extends Abstra
         }
     }
 
-    private State getStateFromHost(final Host host) {
+    private ApplicationState getStateFromHost(final Host host) {
 
         //TODO tidy up
         try {
             attemptAddressResolution(host.getAddress().getHostName());
             // Application call failed, so try SSH connection.
             attemptCommandExecution(host);
-            return State.AUTH;
+            return ApplicationState.AUTH;
         }
         catch (final UnknownHostException e) {
 
             // Machine address couldn't be resolved.
-            return State.INVALID;
+            return ApplicationState.INVALID;
         }
         catch (final SSHException e) {
 
             // Couldn't make SSH connection with specified credentials.
-            return State.NO_AUTH;
+            return ApplicationState.NO_AUTH;
         }
         catch (final IOException e) {
 
             // Network error trying to make SSH connection.
-            return State.UNREACHABLE;
+            return ApplicationState.UNREACHABLE;
         }
         catch (final TimeoutException e) {
 
             // SSH connection timed out.
-            return State.UNREACHABLE;
+            return ApplicationState.UNREACHABLE;
         }
         catch (final InterruptedException e) {
 
             // SSH connection timed out.
-            return State.UNREACHABLE;
+            return ApplicationState.UNREACHABLE;
         }
     }
 
@@ -124,10 +125,10 @@ public class StatusScanner<T extends SimpleApplicationDescriptor> extends Abstra
         InetAddress.getByName(host_name);
     }
 
-    private State getStateFromApplicationReference(final Pingable application_reference) throws RPCException {
+    private ApplicationState getStateFromApplicationReference(final Pingable application_reference) throws RPCException {
 
         application_reference.ping();
-        return State.RUNNING;
+        return ApplicationState.RUNNING;
     }
 
     private void attemptCommandExecution(final Host host) throws IOException, TimeoutException, InterruptedException {

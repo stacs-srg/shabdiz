@@ -42,13 +42,13 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.api.Credential;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
+import uk.ac.standrews.cs.shabdiz.credentials.SSHCredential;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
-import uk.ac.standrews.cs.shabdiz.host.RemoteSSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.UnsupportedPlatformException;
 import uk.ac.standrews.cs.shabdiz.zold.util.URL;
@@ -96,7 +96,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private volatile Object[] application_deployment_params;
 
     // The current view of the application state on the host.
-    private volatile State host_state = State.UNKNOWN;
+    private volatile ApplicationState host_state = ApplicationState.UNKNOWN;
 
     // A reference to the application running on the host.
     private volatile Pingable application_reference = null;
@@ -107,7 +107,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
     private final Set<Process> processes = new HashSet<Process>();
 
     // Authentication credentials for the host.
-    private volatile Credential credentials = null;
+    private volatile SSHCredential credentials = null;
     private volatile Host managed_host = null;
     // Whether the application should be deployed in the same process.
     private volatile boolean deploy_in_local_process = false;
@@ -134,7 +134,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param credentials the credentials
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public HostDescriptor(final String host, final Credential credentials) throws IOException {
+    public HostDescriptor(final String host, final SSHCredential credentials) throws IOException {
 
         credentials(credentials);
         init(host);
@@ -190,7 +190,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param credentials the authentication credentials for the host
      * @return this object
      */
-    public HostDescriptor credentials(final Credential credentials) {
+    public HostDescriptor credentials(final SSHCredential credentials) {
 
         this.credentials = credentials;
         return this;
@@ -202,9 +202,9 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @param host_state the state of the remote host and the application
      * @return this object
      */
-    public HostDescriptor hostState(final State host_state) {
+    public HostDescriptor hostState(final ApplicationState host_state) {
 
-        final State old_host_state = this.host_state;
+        final ApplicationState old_host_state = this.host_state;
         this.host_state = host_state;
         property_change_support.firePropertyChange(HOST_STATE_PROPERTY_NAME, old_host_state, host_state);
         return this;
@@ -343,7 +343,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * 
      * @return the authentication credentials
      */
-    public Credential getCredentials() {
+    public SSHCredential getCredentials() {
 
         return credentials;
     }
@@ -363,7 +363,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * 
      * @return the state of the remote host and the application
      */
-    public State getHostState() {
+    public ApplicationState getHostState() {
 
         return host_state;
     }
@@ -705,7 +705,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      * @return a list of hosts descriptors
      * @throws IOException if an error occurs when trying to read in a username or key passphrase
      */
-    public static SortedSet<HostDescriptor> createDescriptorsUsingPublicKey(final List<String> hosts, final Credential credentials) throws IOException {
+    public static SortedSet<HostDescriptor> createDescriptorsUsingPublicKey(final List<String> hosts, final SSHCredential credentials) throws IOException {
 
         final SortedSet<HostDescriptor> connections = new ConcurrentSkipListSet<HostDescriptor>();
 
@@ -751,7 +751,7 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
         managed_host = new LocalHost();
     }
 
-    private void initRemote(final String host, final Credential credentials) throws IOException {
+    private void initRemote(final String host, final SSHCredential credentials) throws IOException {
 
         this.host = host;
         try {
@@ -761,9 +761,9 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
             // Ignore, and allow for host_address being potentially null.
         }
 
-        managed_host = new RemoteSSHHost(host, credentials);
+        managed_host = new SSHHost(host, credentials);
 
-        hostState(State.UNKNOWN);
+        hostState(ApplicationState.UNKNOWN);
     }
 
     @Override
@@ -789,17 +789,17 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
 
     private static HostDescriptor createUsernamePasswordConnection(final String host) throws IOException {
 
-        final Credential credentials = Credentials.newSSHCredential(true);
+        final SSHCredential credentials = Credentials.newSSHCredential(true);
         return new HostDescriptor(host, credentials);
     }
 
     private static HostDescriptor createPublicKeyConnection(final String host) throws IOException {
 
-        final Credential credentials = Credentials.newSSHCredential(false);
+        final SSHCredential credentials = Credentials.newSSHCredential(false);
         return new HostDescriptor(host, credentials);
     }
 
-    private static HostDescriptor createConnection(final String host, final Credential credentials) throws IOException {
+    private static HostDescriptor createConnection(final String host, final SSHCredential credentials) throws IOException {
 
         return new HostDescriptor(host, credentials);
     }

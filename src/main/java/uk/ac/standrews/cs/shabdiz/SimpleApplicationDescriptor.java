@@ -32,9 +32,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
-import uk.ac.standrews.cs.shabdiz.api.State;
 
 public class SimpleApplicationDescriptor implements ApplicationDescriptor, Comparable<SimpleApplicationDescriptor> {
 
@@ -43,7 +43,7 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
     private final Long id; // used to resolve ties when comparing
     private final Host host;
     private final ConcurrentSkipListSet<Process> processes;
-    private final AtomicReference<State> state;
+    private final AtomicReference<ApplicationState> state;
     private final Pingable application_reference;
     protected final PropertyChangeSupport property_change_support;
 
@@ -53,7 +53,7 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
         this.host = new ApplicationDescriptorHostWrapper(host);
         this.application_reference = application_reference;
         processes = new ConcurrentSkipListSet<Process>();
-        state = new AtomicReference<State>(State.UNKNOWN);
+        state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         property_change_support = new PropertyChangeSupport(this);
     }
 
@@ -76,9 +76,16 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
     }
 
     @Override
-    public State getState() {
+    public ApplicationState getState() {
 
         return state.get();
+    }
+
+    @Override
+    public void setState(final ApplicationState new_state) {
+
+        final ApplicationState old_state = state.getAndSet(new_state);
+        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
     @Override
@@ -99,19 +106,13 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
      * @param states the states to check for
      * @return true, if the given {@link ApplicationDescriptor} is in on of the given states
      */
-    public boolean isInState(final State... states) {
+    public boolean isInState(final ApplicationState... states) {
 
-        final State cached_state = getState();
-        for (final State state : states) {
+        final ApplicationState cached_state = getState();
+        for (final ApplicationState state : states) {
             if (cached_state.equals(state)) { return true; }
         }
         return false;
-    }
-
-    protected void setState(final State new_state) {
-
-        final State old_state = state.getAndSet(new_state);
-        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
     private final class ApplicationDescriptorHostWrapper implements Host {

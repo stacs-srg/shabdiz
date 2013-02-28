@@ -20,6 +20,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
+import java.util.Set;
+
+import uk.ac.standrews.cs.shabdiz.zold.p2p.network.Network;
+
+// TODO: Auto-generated Javadoc
 /**
  * Maintains a set of {@link ApplicationDescriptor instances} across multiple {@link Host hosts}.
  * 
@@ -28,7 +33,7 @@ package uk.ac.standrews.cs.shabdiz.api;
  * @see ApplicationDescriptor
  * @see Host
  */
-public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Network<T> {
+public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set<T> {
 
     /**
      * Gets the application name.
@@ -43,7 +48,7 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Net
      * @param states the states to match any of
      * @throws InterruptedException if the current thread is interrupted while waiting
      */
-    void awaitAnyOfStates(State... states) throws InterruptedException;
+    void awaitAnyOfStates(ApplicationState... states) throws InterruptedException;
 
     /**
      * Adds the given {@code scanner} to the collection of this network's scanners.
@@ -66,9 +71,70 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Net
     /**
      * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
      * 
-     * @param enabled if {@code true} all the scanners are this network are enabled, all the scanners are disabled otherwise
+     * @param enabled if {@code true} enables all the scanners of this network, disables all the scanners otherwise
      */
     void setScanEnabled(boolean enabled);
 
-    //TODO discuss whether auto deploy and auto kill enable/disable methods should be here.
+    /**
+     * Sets the auto kill enabled.
+     * 
+     * @param enabled the new auto kill enabled
+     */
+    void setAutoKillEnabled(boolean enabled);
+
+    /**
+     * Sets the auto deploy enabled.
+     * 
+     * @param enabled the new auto deploy enabled
+     */
+    void setAutoDeployEnabled(boolean enabled);
+
+    /**
+     * Sets the auto remove enabled.
+     * 
+     * @param enabled the new auto remove enabled
+     */
+    void setAutoRemoveEnabled(boolean enabled);
+
+    /**
+     * Adds a host to this network.
+     * 
+     * @param host the host
+     * @return true, if successful
+     */
+    boolean add(Host host);
+
+    /**
+     * Deploy.
+     * 
+     * @param application_descriptor the application_descriptor
+     */
+    void deploy(T application_descriptor);
+
+    /**
+     * Deploy all.
+     */
+    void deployAll();
+
+    /**
+     * Kill.
+     * 
+     * @param application_descriptor the application_descriptor
+     */
+    void kill(T application_descriptor);
+
+    /**
+     * Kill all on host.
+     * 
+     * @param host the host
+     */
+    void killAllOnHost(Host host);
+
+    /**
+     * Kill all.
+     */
+    void killAll();
+
+    /** Shuts down this network and closes any open resources. */
+    void shutdown();
 }

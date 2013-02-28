@@ -25,7 +25,7 @@ import java.util.SortedSet;
 
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.KeyDistribution;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.zold.MadfaceManagerFactory;
 import uk.ac.standrews.cs.shabdiz.zold.api.ApplicationManager;
@@ -71,7 +71,7 @@ public class P2PNetwork implements Network {
         }
 
         madface_manager.deployAll();
-        madface_manager.waitForAllToReachState(State.RUNNING);
+        madface_manager.waitForAllToReachState(ApplicationState.RUNNING);
         madface_manager.setHostScanning(false);
     }
 

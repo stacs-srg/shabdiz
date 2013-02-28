@@ -23,7 +23,6 @@ package uk.ac.standrews.cs.shabdiz;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
@@ -38,10 +37,9 @@ import uk.ac.standrews.cs.shabdiz.api.Scanner;
  */
 public abstract class AbstractScanner<T extends ApplicationDescriptor> implements Scanner<T> {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractScanner.class.getName());
     private final Duration delay;
     private final AtomicBoolean enabled;
-    protected final Duration timeout;
+    private final Duration timeout;
     protected final PropertyChangeSupport property_change_support;
     private volatile ApplicationNetwork<T> application_network;
 

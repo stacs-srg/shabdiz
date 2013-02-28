@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 
@@ -76,7 +76,7 @@ public class DropScanner extends ConcurrentHostScanner {
 
     private boolean isDroppable(final HostDescriptor host_descriptor) {
 
-        final State host_state = host_descriptor.getHostState();
-        return host_state == State.UNREACHABLE || host_state == State.INVALID;
+        final ApplicationState host_state = host_descriptor.getHostState();
+        return host_state == ApplicationState.UNREACHABLE || host_state == ApplicationState.INVALID;
     }
 }

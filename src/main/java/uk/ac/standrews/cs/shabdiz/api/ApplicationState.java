@@ -26,10 +26,11 @@ import uk.ac.standrews.cs.shabdiz.StatusScanner;
  * The possible states of an {@link ApplicationDescriptor application}.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see ApplicationDescriptor
  * @see StatusScanner
  */
-public enum State {
+public enum ApplicationState {
 
     /** The application is deployed. */
     DEPLOYED,

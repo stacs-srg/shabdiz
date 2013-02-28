@@ -23,7 +23,7 @@ package uk.ac.standrews.cs.shabdiz.zold.p2p.network;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.api.State;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.zold.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.DeploymentException;
@@ -60,7 +60,7 @@ public abstract class P2PNodeManager extends AbstractApplicationManager {
 
         // If locally deployed, assume deployment was successful and set the host descriptor state directly to speed things up.
         if (local_deployment_only) {
-            host_descriptor.hostState(State.RUNNING);
+            host_descriptor.hostState(ApplicationState.RUNNING);
         }
     }
 

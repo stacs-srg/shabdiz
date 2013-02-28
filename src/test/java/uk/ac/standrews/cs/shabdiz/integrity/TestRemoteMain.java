@@ -10,7 +10,7 @@ import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.RemoteSSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
 import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
 import uk.ac.standrews.cs.shabdiz.zold.api.Launcher;
@@ -63,7 +63,7 @@ public class TestRemoteMain {
         Worker worker = null;
 
         try {
-            remoteHost = new RemoteSSHHost("localhost", new SSHPasswordCredential(Input.readPassword("Enter Password")));
+            remoteHost = new SSHHost("localhost", new SSHPasswordCredential(Input.readPassword("Enter Password")));
             //            remoteHost = new LocalHost();
             launcher = new DefaultLauncher();
             worker = launcher.deployWorkerOnHost(remoteHost);

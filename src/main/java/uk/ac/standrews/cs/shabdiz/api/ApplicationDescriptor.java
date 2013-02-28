@@ -28,7 +28,7 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
 /**
  * Describes a managed application instance on a {@link Host host}.
- * Provides references to the processes that belong to this application, a {@link Pingable reference} to the application and its {@link State state}.
+ * Provides references to the processes that belong to this application, a {@link Pingable reference} to the application and its {@link ApplicationState state}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see ApplicationNetwork
@@ -37,8 +37,6 @@ public interface ApplicationDescriptor {
 
     /**
      * Add a PropertyChangeListener for a specific property.
-     * The same listener object may be added more than once.
-     * For each property, the listener will be invoked the number of times it was added for that property.
      * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
      * 
      * @param property_name The name of the property to listen on
@@ -49,7 +47,6 @@ public interface ApplicationDescriptor {
 
     /**
      * Remove a PropertyChangeListener for a specific property.
-     * If listener was added more than once to the same event source for the specified property, it will be notified one less time after being removed.
      * If {@code property_name} is null, no exception is thrown and no action is taken.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
@@ -81,9 +78,16 @@ public interface ApplicationDescriptor {
     Collection<Process> getProcesses();
 
     /**
-     * Gets the state of the managed application.
+     * Gets the state of this application.
      * 
-     * @return the state of the managed application.
+     * @return the state of this application.
      */
-    State getState();
+    ApplicationState getState();
+
+    /**
+     * Sets the state of this application.
+     * 
+     * @param state the new applciation state
+     */
+    void setState(ApplicationState state);
 }

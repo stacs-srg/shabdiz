@@ -23,8 +23,6 @@ package uk.ac.standrews.cs.shabdiz.zold.exceptions;
 
 import java.io.IOException;
 
-import uk.ac.standrews.cs.shabdiz.api.Credential;
-
 /**
  * Indicates invalid {@link Credential credential}.
  * 
