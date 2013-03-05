@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -30,14 +30,13 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.zold.api.LauncherCallback;
 
 /**
  * RPC proxy to communicate with a launcher callback server.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class LauncherCallbackRemoteProxy extends StreamProxy implements LauncherCallback {
+class CallbackRemoteProxy extends StreamProxy implements WorkerCallback {
 
     /** The remote method name for {@link #notifyCompletion(UUID, Serializable)}. */
     static final String NOTIFY_COMPLETION_REMOTE_METHOD_NAME = "notifyCompletion";
@@ -51,11 +50,10 @@ class LauncherCallbackRemoteProxy extends StreamProxy implements LauncherCallbac
 
     /**
      * Package protected constructor of a new launcher callback proxy.
-     *
+     * 
      * @param launcher_callback_address the address of a launcher call back server
-     * @see LauncherCallbackRemoteProxyFactory#getProxy(InetSocketAddress)
      */
-    LauncherCallbackRemoteProxy(final InetSocketAddress launcher_callback_address) {
+    CallbackRemoteProxy(final InetSocketAddress launcher_callback_address) {
 
         super(launcher_callback_address);
         marshaller = new ShabdizRemoteMarshaller();

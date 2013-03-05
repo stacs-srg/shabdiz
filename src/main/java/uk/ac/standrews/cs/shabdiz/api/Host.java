@@ -20,39 +20,49 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 
-
 /**
- * Presents a host with hooks to download, upload and execute commands on the host.
+ * Provides hooks to download, upload and execute commands on a host.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Host {
+public interface Host extends Closeable {
 
     /**
-     * Uploads a given file or directory on the local platform to this host at the given destination.
+     * Uploads a given file or directory on the local platform to this host into the given destination.
+     * If the given {@code source} is a directory, the files are uploaded recursively.
+     * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
+     * If the given {@code destination} already exists, the files are overridden.
      * 
-     * @param source the source
-     * @param destination the destination
+     * @param source the source to be uploaded
+     * @param destination the path on this host to copy the file(s) into
      * @throws IOException Signals that an I/O exception has occurred.
      */
     void upload(File source, String destination) throws IOException;
 
     /**
-     * Uploads a given collection of files or directories on the local platform to this host at the given destination.
+     * Uploads a given collection of files or directories on the local platform to this host into the given destination.
+     * If the given {@code source} is a directory, the files are uploaded recursively.
+     * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
+     * If the given {@code destination} already exists, the files are overridden.
      * 
-     * @param sources the sources
-     * @param destination the destination
+     * @param sources the sources to be uploaded
+     * @param destination the path on this host to copy the file(s) into
      * @throws IOException Signals that an I/O exception has occurred.
+     * @see #upload(File, String)
      */
     void upload(final Collection<File> sources, final String destination) throws IOException;
 
     /**
-     * Downloads a given file or directory from this host to the local platform.
+     * Downloads a given file or directory from this host to the local platform at the given {@code destination}.
+     * If the given {@code source} is a directory, the files are downloaded recursively.
+     * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
+     * If the given {@code destination} already exists, the files are overridden.
      * 
      * @param source the source
      * @param destination the destination
@@ -63,17 +73,17 @@ public interface Host {
     /**
      * Executes the given command and arguments on this host.
      * 
-     * @param command the command and its arguments
+     * @param commands the command and its arguments
      * @return the process that was started as the result of executing this command
      * @throws IOException Signals that an I/O exception has occurred.
-     * @see ProcessBuilder#
+     * @see ProcessBuilder#ProcessBuilder(String...)
      */
-    Process execute(String... command) throws IOException;
+    Process execute(String... commands) throws IOException;
 
     /**
-     * Gets the platform of this host.
+     * Gets the platform-specific settings of this host.
      * 
-     * @return the platform
+     * @return the platform-specific settings of this host
      * @throws IOException Signals that an I/O exception has occurred.
      */
     Platform getPlatform() throws IOException;
@@ -88,10 +98,16 @@ public interface Host {
     /**
      * Checks if this host represents the local platform.
      * 
-     * @return true, if is local
+     * @return true, if this host represents the local platform
      */
     boolean isLocal();
 
-    /** Shuts down this host and closes any open resources. */
-    void shutdown();
+    /**
+     * Closes the streams that are used to manage this host and releases any system resources associated with them.
+     * If this host is already closed then invoking this method has no effect.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    @Override
+    void close() throws IOException;
 }

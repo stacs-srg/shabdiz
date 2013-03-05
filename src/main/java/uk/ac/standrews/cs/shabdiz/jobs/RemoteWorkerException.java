@@ -18,14 +18,36 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
-import java.io.IOException;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 
-import uk.ac.standrews.cs.shabdiz.api.Host;
+/**
+ * Presents a remote exception on a worker.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+class RemoteWorkerException extends RPCException {
 
-public interface RemoteProcessBuilder {
+    private static final long serialVersionUID = 4506906155644771341L;
 
-    Process start(Host host) throws IOException, InterruptedException;
+    /**
+     * Instantiates a new remote worker exception.
+     *
+     * @param message the message
+     */
+    RemoteWorkerException(final String message) {
 
+        super(message);
+    }
+
+    /**
+     * Instantiates a new remote worker exception from a given cause.
+     *
+     * @param cause the cause
+     */
+    RemoteWorkerException(final Throwable cause) {
+
+        super(cause);
+    }
 }

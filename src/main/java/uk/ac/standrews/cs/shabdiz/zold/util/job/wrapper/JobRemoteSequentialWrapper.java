@@ -22,7 +22,7 @@ package uk.ac.standrews.cs.shabdiz.zold.util.job.wrapper;
 
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * Wraps an array of {@link JobRemote}s into a single sequential {@link JobRemote}.

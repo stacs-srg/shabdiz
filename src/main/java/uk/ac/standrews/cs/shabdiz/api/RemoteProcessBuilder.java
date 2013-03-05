@@ -18,17 +18,23 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold.api;
+package uk.ac.standrews.cs.shabdiz.api;
 
-import java.io.Serializable;
-import java.util.concurrent.Callable;
+import java.io.IOException;
 
 /**
- * Presents a computation to be performed on a remote worker.
+ * Starts a {@link Process process} on a given {@link Host host}.
  * 
- * @param <Result> the type of result returned by this job
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface JobRemote<Result extends Serializable> extends Callable<Result>, Serializable {
+public interface RemoteProcessBuilder {
 
+    /**
+     * Starts a {@link Process process} on a given {@code host}.
+     * 
+     * @param host the host on which to start a process
+     * @return the process running on the host
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    Process start(Host host) throws IOException;
 }

@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold.api;
+package uk.ac.standrews.cs.shabdiz.api;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -26,34 +26,36 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
 /**
- * Presents the remote functionalities provided by a worker.
+ * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Worker extends Comparable<Worker> {
+public interface Worker extends Pingable, Comparable<Worker> {
 
     /**
-     * Gets the address on which the worker is exposed.
+     * Gets the address on which this worker is exposed.
      * 
-     * @return the address on which the worker is exposed
+     * @return the address on which this worker is exposed
      */
     InetSocketAddress getAddress();
 
     /**
-     * Submits a value-returning task for execution to this worker and returns the pending result of the task.
+     * Submits a value-returning task for execution to this worker and returns the pending result of the job.
      * 
      * @param <Result> the type of pending result
      * @param job the job to submit
      * @return the pending result of the job
      * @throws RPCException if unable to make the remote call
+     * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
     <Result extends Serializable> Future<Result> submit(JobRemote<Result> job) throws RPCException;
 
     /**
-     * Shuts down this worker.
+     * Attempts to {@link Thread#interrupt() interrupt} any executing jobs. After this method is called any future job submission with be rejected.
      * 
      * @throws RPCException if unable to make the remote call
      */

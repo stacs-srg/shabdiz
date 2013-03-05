@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.process;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,13 @@ import org.apache.commons.io.FileUtils;
 
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
+import uk.ac.standrews.cs.shabdiz.api.RemoteProcessBuilder;
 
+/**
+ * The Class RemoteJavaProcessBuilder.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteJavaProcessBuilder.class.getName());
@@ -214,6 +220,7 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
     public void addCommandLineArgument(final String argument) {
 
+        //FIXME quote the argument based on platform, in case the argument has special characters
         final String arg = tidyArgument(argument);
         command_line_arguments.append(arg).append(SPACE);
     }

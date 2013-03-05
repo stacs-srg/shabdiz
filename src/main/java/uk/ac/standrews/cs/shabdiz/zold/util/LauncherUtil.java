@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
+import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 
 /**
- * Provides utility methods for a {@link DefaultLauncher}.
+ * Provides utility methods for a {@link WorkerNetwork}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

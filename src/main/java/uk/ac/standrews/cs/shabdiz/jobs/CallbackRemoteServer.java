@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -30,19 +30,18 @@ import uk.ac.standrews.cs.nds.rpc.stream.ApplicationServer;
 import uk.ac.standrews.cs.nds.rpc.stream.IHandler;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.shabdiz.zold.api.LauncherCallback;
 
 /**
  * Serves the incoming callback notifications from workers.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class LauncherCallbackRemoteServer extends ApplicationServer {
+class CallbackRemoteServer extends ApplicationServer {
 
     /** The launcher callback server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
 
-    private final LauncherCallback launcher_callback;
+    private final WorkerCallback launcher_callback;
     private final ShabdizRemoteMarshaller marshaller;
 
     /**
@@ -50,7 +49,7 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
      * 
      * @param launcher_callback the launcher callback
      */
-    public LauncherCallbackRemoteServer(final LauncherCallback launcher_callback) {
+    public CallbackRemoteServer(final WorkerCallback launcher_callback) {
 
         super();
         this.launcher_callback = launcher_callback;
@@ -85,8 +84,8 @@ class LauncherCallbackRemoteServer extends ApplicationServer {
 
     private void initHandlers() {
 
-        handler_map.put(LauncherCallbackRemoteProxy.NOTIFY_COMPLETION_REMOTE_METHOD_NAME, new NotifyCompletionHandler());
-        handler_map.put(LauncherCallbackRemoteProxy.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
+        handler_map.put(CallbackRemoteProxy.NOTIFY_COMPLETION_REMOTE_METHOD_NAME, new NotifyCompletionHandler());
+        handler_map.put(CallbackRemoteProxy.NOTIFY_EXCEPTION_REMOTE_METHOD_NAME, new NotifyExceptionHandler());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------

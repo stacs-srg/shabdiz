@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -28,14 +28,15 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.zold.api.WorkerRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
@@ -49,10 +50,14 @@ class DefaultWorkerRemote implements WorkerRemote {
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final WorkerRemoteServer server;
     private final InetSocketAddress callback_address;
+    private final CallbackRemoteProxy callback_proxy;
+
+    private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
 
     DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException {
 
         this.callback_address = launcher_callback_address;
+        callback_proxy = new CallbackRemoteProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         server = new WorkerRemoteServer(this);
         expose(local_address);
@@ -73,7 +78,7 @@ class DefaultWorkerRemote implements WorkerRemote {
                 submitted_jobs.put(job_id, real_future);
 
                 try {
-                    //TODO this blocks until the job is complete; Could be written nicer so that it runs after completion.
+                    //FIXME this blocks until the job is complete; Could be written nicer so that it runs after completion.
                     handleCompletion(job_id, real_future.get());
                 }
                 catch (final Exception e) {
@@ -121,24 +126,24 @@ class DefaultWorkerRemote implements WorkerRemote {
     private void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
-            LauncherCallbackRemoteProxyFactory.getProxy(callback_address).notifyCompletion(job_id, result); // Tell launcher about the result
+            callback_proxy.notifyCompletion(job_id, result);
             submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "failed to notify job completion with the ID " + job_id, e);
         }
     }
 
     private void handleException(final UUID job_id, final Exception exception) {
 
         try {
-            LauncherCallbackRemoteProxyFactory.getProxy(callback_address).notifyException(job_id, exception); // Tell launcher about the exception
+            callback_proxy.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
             // TODO use some sort of error manager  which handles the launcher callback rpc exception
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "failed to notify job exception with the ID " + job_id, e);
         }
     }
 

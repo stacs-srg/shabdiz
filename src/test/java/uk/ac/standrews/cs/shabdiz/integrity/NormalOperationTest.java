@@ -36,11 +36,12 @@ import org.junit.Test;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
-import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
 
 /**
  * Tests whether a deployed job returns expected result.
@@ -53,7 +54,7 @@ public class NormalOperationTest {
     private static final String HELLO = "hello";
 
     private AbstractHost localhost;
-    private DefaultLauncher launcher;
+    private WorkerNetwork launcher;
     private Worker worker;
 
     /**
@@ -68,8 +69,11 @@ public class NormalOperationTest {
 
         //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
         localhost = new LocalHost();
-        launcher = new DefaultLauncher();
-        worker = launcher.deployWorkerOnHost(localhost);
+        launcher = new WorkerNetwork();
+        launcher.add(localhost);
+        launcher.deployAll();
+        launcher.awaitAnyOfStates(ApplicationState.RUNNING);
+        worker = launcher.first().getApplicationReference();
     }
 
     /**
@@ -83,14 +87,11 @@ public class NormalOperationTest {
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
         Assert.assertEquals(HELLO, future.get());
         try {
-            Thread.sleep(5000);
             worker.shutdown();
         }
         catch (final Exception e) {
             //            e.printStackTrace();
         }
-        Thread.sleep(5000);
-
     }
 
     /**
@@ -129,6 +130,6 @@ public class NormalOperationTest {
             //ignore; expected.
         }
         launcher.shutdown();
-        localhost.shutdown();
+        localhost.close();
     }
 }

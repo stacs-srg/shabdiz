@@ -122,7 +122,6 @@ public class SSHPasswordCredential extends SSHCredential {
         @Override
         public String[] promptKeyboardInteractive(final String destination, final String name, final String instruction, final String[] prompt, final boolean[] echo) {
 
-            //TODO fix this in barreleye
             return null;
         }
     }

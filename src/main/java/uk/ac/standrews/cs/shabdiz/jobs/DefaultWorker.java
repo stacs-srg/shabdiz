@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -26,8 +26,8 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorker} can be contacted.
@@ -37,7 +37,7 @@ import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
 class DefaultWorker implements Worker {
 
     private final InetSocketAddress worker_address;
-    private final DefaultLauncher launcher;
+    private final WorkerNetwork launcher;
     private final Process worker_process;
     private final WorkerRemoteProxy worker_proxy;
 
@@ -48,13 +48,12 @@ class DefaultWorker implements Worker {
      * @param launcher the launcher by which the remote correspondence of this worker is launched
      * @param worker_process
      */
-    DefaultWorker(final DefaultLauncher launcher, final InetSocketAddress worker_address, final Process worker_process) {
+    DefaultWorker(final WorkerNetwork launcher, final InetSocketAddress worker_address, final Process worker_process) {
 
         this.worker_address = worker_address;
         this.launcher = launcher;
         this.worker_process = worker_process;
         worker_proxy = WorkerRemoteProxyFactory.getProxy(worker_address);
-        //        worker_proxy.ping()
     }
 
     @Override
@@ -119,5 +118,11 @@ class DefaultWorker implements Worker {
     public int compareTo(final Worker other) {
 
         return getAddress().toString().compareTo(other.getAddress().toString());
+    }
+
+    @Override
+    public void ping() throws RPCException {
+
+        worker_proxy.ping();
     }
 }

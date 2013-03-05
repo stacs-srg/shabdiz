@@ -18,31 +18,36 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold.api;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import java.io.Serializable;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
+import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
- * Launches workers on hosts.
+ * Presents a special type of worker which is deployed by {@link WorkerNetwork}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Launcher {
+interface WorkerRemote {
 
     /**
-     * Deploys worker on a described host and returns the reference to the deployed worker.
-     * This method blocks until the worker is deployed.
+     * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
      * 
-     * @param host the descriptor of the host on which a worker is deployed
-     * @return the reference to the deployed worker
-     * @throws Exception if the attempt to deploy worker on host fails
+     * @param job the job to submit
+     * @return the globally unique id of the submitted job
+     * @throws RPCException if unable to make the remote call
+     * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    Worker deployWorkerOnHost(Host host) throws Exception;
+    UUID submitJob(JobRemote<? extends Serializable> job) throws RPCException;
 
     /**
-     * Shuts down this launcher. This method does <i>not</i> shot down any workers deployed by this launcher.
-     * User may shot down workers by calling {@link Worker#shutdown()}.
+     * Shuts down this worker.
+     * 
+     * @throws RPCException if unable to make the remote call
      */
-    void shutdown();
+    void shutdown() throws RPCException;
 }

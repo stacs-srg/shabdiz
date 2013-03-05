@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,6 +14,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
@@ -21,7 +26,9 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
-public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
+public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
+
+    private static final Logger LOGGER = Logger.getLogger(AbstractApplicationNetwork.class.getName());
 
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private final String application_name;
@@ -44,7 +51,7 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
         auto_kill_scanner = new AutoKillScanner<T>(null, null);
         auto_deploy_scanner = new AutoDeployScanner<T>(null, null);
         auto_remove_scanner = new AutoRemoveScanner<T>(null);
-        status_scanner = new StatusScanner<T>(null);
+        status_scanner = new StatusScanner<T>(new Duration(1, TimeUnit.SECONDS));
 
         addScanner(auto_kill_scanner);
         addScanner(auto_deploy_scanner);
@@ -66,7 +73,21 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
 
         for (final T applciation_descriptor : this) {
 
-            kill(applciation_descriptor);
+            try {
+                deploy(applciation_descriptor);
+            }
+            catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            catch (final InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            catch (final TimeoutException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 
@@ -112,7 +133,7 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
         final Iterator<T> application_descriptors = iterator();
         final List<CountDownLatch> latches = new ArrayList<CountDownLatch>();
         while (application_descriptors.hasNext()) {
-            final SimpleApplicationDescriptor application_descriptor = application_descriptors.next();
+            final AbstractApplicationDescriptor application_descriptor = application_descriptors.next();
             //Create a latch per listener since we cannot know the number of application descriptors
             final CountDownLatch latch = new CountDownLatch(1);
 
@@ -122,15 +143,15 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
                     @Override
                     public void propertyChange(final PropertyChangeEvent evt) {
 
-                        if (evt.getPropertyName().equals(SimpleApplicationDescriptor.STATE_PROPERTY_NAME)) {
+                        if (evt.getPropertyName().equals(AbstractApplicationDescriptor.STATE_PROPERTY_NAME)) {
                             if (application_descriptor.isInState(states)) {
                                 latch.countDown();
-                                application_descriptor.removePropertyChangeListener(SimpleApplicationDescriptor.STATE_PROPERTY_NAME, this);
+                                application_descriptor.removePropertyChangeListener(AbstractApplicationDescriptor.STATE_PROPERTY_NAME, this);
                             }
                         }
                     }
                 };
-                application_descriptor.addPropertyChangeListener(SimpleApplicationDescriptor.STATE_PROPERTY_NAME, state_change);
+                application_descriptor.addPropertyChangeListener(AbstractApplicationDescriptor.STATE_PROPERTY_NAME, state_change);
                 latches.add(latch);
             }
         }
@@ -253,7 +274,12 @@ public abstract class AbstractApplicationNetwork<T extends SimpleApplicationDesc
             for (final Process p : application_descriptor.getProcesses()) {
                 p.destroy();
             }
-            application_descriptor.getHost().shutdown();
+            try {
+                application_descriptor.getHost().close();
+            }
+            catch (final IOException e) {
+                LOGGER.log(Level.WARNING, "failed to close host", e);
+            }
         }
 
     }

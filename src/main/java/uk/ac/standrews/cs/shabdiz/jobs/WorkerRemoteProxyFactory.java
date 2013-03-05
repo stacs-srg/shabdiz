@@ -18,23 +18,23 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.net.InetSocketAddress;
 import java.util.Hashtable;
 import java.util.Map;
 
 /**
- * A factory for creating {@link LauncherCallbackRemoteProxy} objects.
- * This implementation caches a proxy instance for a given address.
+ * A factory for retrieving {@link WorkerRemoteProxy} objects.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-final class LauncherCallbackRemoteProxyFactory {
+final class WorkerRemoteProxyFactory {
 
-    private static final Map<InetSocketAddress, LauncherCallbackRemoteProxy> LAUNCHER_CALLBACK_PROXY_MAP = new Hashtable<InetSocketAddress, LauncherCallbackRemoteProxy>(); // Hashtable is used because it does not permit null key/values
+    /** The Constant WORKER_NODE_PROXY_MAP. */
+    private static final Map<InetSocketAddress, WorkerRemoteProxy> WORKER_NODE_PROXY_MAP = new Hashtable<InetSocketAddress, WorkerRemoteProxy>(); // Hashtable is used because it does not permit null key/values
 
-    private LauncherCallbackRemoteProxyFactory() {
+    private WorkerRemoteProxyFactory() {
 
     }
 
@@ -46,18 +46,18 @@ final class LauncherCallbackRemoteProxyFactory {
      * @param proxy_address the proxy address
      * @return the proxy associated to the given address
      */
-    static synchronized LauncherCallbackRemoteProxy getProxy(final InetSocketAddress proxy_address) {
+    static synchronized WorkerRemoteProxy getProxy(final InetSocketAddress proxy_address) {
 
-        final LauncherCallbackRemoteProxy proxy;
+        final WorkerRemoteProxy proxy;
 
-        if (LAUNCHER_CALLBACK_PROXY_MAP.containsKey(proxy_address)) {
+        if (WORKER_NODE_PROXY_MAP.containsKey(proxy_address)) {
 
-            proxy = LAUNCHER_CALLBACK_PROXY_MAP.get(proxy_address);
+            proxy = WORKER_NODE_PROXY_MAP.get(proxy_address);
         }
         else {
 
-            proxy = new LauncherCallbackRemoteProxy(proxy_address);
-            LAUNCHER_CALLBACK_PROXY_MAP.put(proxy_address, proxy);
+            proxy = new WorkerRemoteProxy(proxy_address);
+            WORKER_NODE_PROXY_MAP.put(proxy_address, proxy);
         }
 
         return proxy;

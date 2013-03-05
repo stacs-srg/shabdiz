@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -31,8 +31,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.AbstractStreamConnection;
 import uk.ac.standrews.cs.nds.rpc.stream.JSONReader;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.zold.api.WorkerRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * Handles communication with an {@link WorkerRemote}.
@@ -52,11 +51,8 @@ class WorkerRemoteProxy extends StreamProxy implements WorkerRemote {
     WorkerRemoteProxy(final InetSocketAddress worker_address) {
 
         super(worker_address);
-
         marshaller = new ShabdizRemoteMarshaller();
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public ShabdizRemoteMarshaller getMarshaller() {
@@ -64,23 +60,17 @@ class WorkerRemoteProxy extends StreamProxy implements WorkerRemote {
         return marshaller;
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     @Override
     public UUID submitJob(final JobRemote<? extends Serializable> job) throws RPCException {
 
         try {
 
             final AbstractStreamConnection connection = startCall(SUBMIT_REMOTE_METHOD_NAME);
-
             final JSONWriter writer = connection.getJSONwriter();
             marshaller.serializeRemoteJob(job, writer);
-
             final JSONReader reader = makeCall(connection);
             final UUID job_id = Marshaller.deserializeUUID(reader);
-
             finishCall(connection);
-
             return job_id;
         }
         catch (final Exception e) {
@@ -96,9 +86,7 @@ class WorkerRemoteProxy extends StreamProxy implements WorkerRemote {
         try {
 
             final AbstractStreamConnection streams = startCall(SHUTDOWN_REMOTE_METHOD_NAME);
-
             makeVoidCall(streams);
-
             finishCall(streams);
         }
         catch (final Exception e) {

@@ -39,7 +39,7 @@ import org.json.JSONException;
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
-import uk.ac.standrews.cs.shabdiz.zold.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
 /**
  * Factory for {@link Platform} and {@link SimplePlatform}, and utility methods to detect {@link Platform platform} from {@link Host host} by executing {@code uname} command or a Java-based platform detector.

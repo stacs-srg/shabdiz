@@ -20,7 +20,9 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
@@ -45,14 +47,28 @@ public class AutoDeployScanner<T extends ApplicationDescriptor> extends Abstract
 
     protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
 
-        return ApplicationState.AUTH.equals(application_descriptor.getState());
+        return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
     }
 
     @Override
     protected void scan(final T application_descriptor) {
 
         if (isEnabled() && isDeployable(application_descriptor)) {
-            getApplicationNetwork().deploy(application_descriptor);
+            try {
+                getApplicationNetwork().deploy(application_descriptor);
+            }
+            catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            catch (final InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            catch (final TimeoutException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 }

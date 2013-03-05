@@ -38,7 +38,7 @@ public enum ApplicationState {
     /** The machine can be contacted but the application is not running; the machine will accept a connection with the given credentials. */
     AUTH,
 
-    /** The address is not a resolvable IP address. */
+    /** The {@link Host host} address is not a resolvable IP address. */
     INVALID,
 
     /** The machine can be contacted, the application is running, and an attempt has been recently made to kill the application. */

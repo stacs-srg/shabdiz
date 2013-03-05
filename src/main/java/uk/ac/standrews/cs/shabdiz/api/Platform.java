@@ -26,6 +26,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  * Stores the platform-specific settings of a {@link Host host}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ * @see Host#getPlatform()
  * @see Platforms
  */
 public interface Platform {
@@ -57,7 +58,7 @@ public interface Platform {
     char getSeparator();
 
     /**
-     * Gets the temporary directory.
+     * Gets the path to this platform's {@code temp} directory.
      * 
      * @return the temporary directory
      */

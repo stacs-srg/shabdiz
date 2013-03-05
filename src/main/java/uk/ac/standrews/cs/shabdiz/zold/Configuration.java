@@ -136,11 +136,6 @@ public final class Configuration implements Cloneable {
         return parameter_values;
     }
 
-    /**
-     * Serializes the configuration.
-     * 
-     * @return the serialized configuration
-     */
     public JSONValue serialize() {
 
         final JSONArray array = new JSONArray();

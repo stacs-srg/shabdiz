@@ -50,9 +50,9 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     // A minimal shell command that will be attempted in order to check ssh connectivity. Chosen to have minimal dependency on execution environment, so doesn't rely on anything specific to a user.
-    private static final String MINIMAL_COMMAND = "cd /"; //TODO is this platform dependent?
+    private static final String MINIMAL_COMMAND = "cd /"; //FIXME is this platform dependent?
 
-    private static final boolean ENABLED_BY_DEFAULT = false;
+    private static final boolean ENABLED_BY_DEFAULT = true;
 
     private final Duration ssh_check_timeout;
 

@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 import uk.ac.standrews.cs.shabdiz.zold.util.job.wrapper.JobRemoteSequentialWrapper;
 
 /**

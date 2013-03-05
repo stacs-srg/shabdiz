@@ -27,8 +27,7 @@ import java.util.Collection;
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
 /**
- * Describes a managed application instance on a {@link Host host}.
- * Provides references to the processes that belong to this application, a {@link Pingable reference} to the application and its {@link ApplicationState state}.
+ * Provides references to the {@link Process processes} that belong to this application instance running on a {@link Host host}, a {@link Pingable reference} to this application instance and its {@link ApplicationState state}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see ApplicationNetwork
@@ -36,7 +35,7 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 public interface ApplicationDescriptor {
 
     /**
-     * Add a PropertyChangeListener for a specific property.
+     * Adds a {@link PropertyChangeListener} for a specific property.
      * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
      * 
      * @param property_name The name of the property to listen on
@@ -46,7 +45,7 @@ public interface ApplicationDescriptor {
     void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Remove a PropertyChangeListener for a specific property.
+     * Removes a {@link PropertyChangeListener} for a specific property.
      * If {@code property_name} is null, no exception is thrown and no action is taken.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
@@ -57,37 +56,38 @@ public interface ApplicationDescriptor {
     void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Gets the host on which the application instance is to be deployed.
+     * Gets the host on which this application instance is to run or running.
      * 
      * @return the host on which the application instance is to be deployed.
      */
     Host getHost();
 
     /**
-     * Gets the application reference.
+     * Gets the {@link Pingable pingable} instance of this application, which is used to probe whether this application is {@link ApplicationState#RUNNING running}.
      * 
-     * @return the application reference
+     * @return the reference to this application instance
+     * @see Pingable#ping()
      */
     Pingable getApplicationReference();
 
     /**
-     * Gets the processes that are started on this descriptor's {@link Host}.
+     * Gets the processes that are started on this instance's {@link #getHost() host}.
      * 
-     * @return the processes that are started on this descriptor's {@link Host}.
+     * @return the processes that are started on this instance's {@link #getHost() host}
      */
     Collection<Process> getProcesses();
 
     /**
-     * Gets the state of this application.
+     * Gets the last cached {@link ApplicationState state} of this application instance.
      * 
-     * @return the state of this application.
+     * @return the last cached {@link ApplicationState state} of this application instance
      */
-    ApplicationState getState();
+    ApplicationState getApplicationState();
 
     /**
-     * Sets the state of this application.
+     * Sets the {@link ApplicationState state} of this application instance.
      * 
-     * @param state the new applciation state
+     * @param state the new {@link ApplicationState state} of this application instance
      */
     void setState(ApplicationState state);
 }

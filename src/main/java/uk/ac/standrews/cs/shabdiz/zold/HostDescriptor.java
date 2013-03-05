@@ -42,9 +42,9 @@ import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.Credentials;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHCredential;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -559,7 +559,13 @@ public final class HostDescriptor implements Comparable<HostDescriptor>, Cloneab
      */
     public void shutdown() {
 
-        managed_host.shutdown();
+        try {
+            managed_host.close();
+        }
+        catch (final IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**

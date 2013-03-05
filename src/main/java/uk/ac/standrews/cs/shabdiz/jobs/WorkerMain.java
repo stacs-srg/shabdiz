@@ -18,14 +18,14 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,8 +36,6 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.CommandLineArgs;
-import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
@@ -48,36 +46,18 @@ import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerNodeServer {
+public class WorkerMain {
 
+    private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     private static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS=";
-
-    private static final Logger LOGGER = Logger.getLogger(WorkerNodeServer.class.getName());
-
-    /** The parameter that specifies the diagnostic level. */
-    public static final String DIAGNOSTIC_LEVEL_KEY = "-D";
-
-    /** The parameter that specifies the local address. */
-    public static final String LOCAL_ADDRESS_KEY = "-s";
-
-    /** The parameter that specifies the launcher callback address. */
-    public static final String LAUNCHER_CALLBACK_ADDRESS_KEY = "-c";
-
-    /** The parameter that specifies the thread pool size of local executor. */
-    public static final String THREAD_POOL_SIZE_KEY = "-t";
-
-    private static final String DIAGNOSTIC_DATE_FORMAT = "HH:mm:ss:SSS ";
-    private static final DiagnosticLevel DEFAULT_DIAGNOSTIC_LEVEL = DiagnosticLevel.NONE;
-    private static final Duration WORKER_SOCKET_READ_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
+    private static final String LOCAL_ADDRESS_KEY = "-s";
+    private static final String CALLBACK_ADDRESS_KEY = "-c";
+    private static final String THREAD_POOL_SIZE_KEY = "-t";
+    private static final String SOCKET_READ_TIMEOUT = "-p";
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
-
-    // -------------------------------------------------------------------------------------------------------
-
-    static {
-        StreamProxy.CONNECTION_POOL.setSocketReadTimeout(WORKER_SOCKET_READ_TIMEOUT);
-    }
+    private int thread_pool_size;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -89,11 +69,9 @@ public class WorkerNodeServer {
      * @throws UnknownHostException the unknown host exception
      * @throws NumberFormatException if the given thread pool size cannot be converted to an integer value
      */
-    public WorkerNodeServer(final String[] args) throws UndefinedDiagnosticLevelException, UnknownHostException {
+    public WorkerMain(final String[] args) throws UndefinedDiagnosticLevelException, UnknownHostException {
 
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
-
-        configureLogLevel(arguments);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
     }
@@ -122,7 +100,7 @@ public class WorkerNodeServer {
      */
     public static void main(final String[] args) throws RPCException, UndefinedDiagnosticLevelException, IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
-        final WorkerNodeServer server = new WorkerNodeServer(args);
+        final WorkerMain server = new WorkerMain(args);
         try {
             final DefaultWorkerRemote worker = server.createNode();
             printWorkerAddress(worker);
@@ -140,6 +118,23 @@ public class WorkerNodeServer {
         synchronized (System.out) {
             System.out.println(WORKER_REMOTE_ADDRESS_KEY + worker.getAddress());
         }
+    }
+
+    public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port, final Integer thread_pool_size, final Duration socket_read_timeout) {
+
+        final List<String> arguments = new ArrayList<String>();
+        arguments.add(CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
+
+        if (port != null) {
+            arguments.add(LOCAL_ADDRESS_KEY + NetworkUtil.formatHostAddress("", port));
+        }
+        if (thread_pool_size != null) {
+            arguments.add(THREAD_POOL_SIZE_KEY + thread_pool_size);
+        }
+        if (socket_read_timeout != null) {
+            arguments.add(SOCKET_READ_TIMEOUT + socket_read_timeout);
+        }
+        return arguments;
     }
 
     public static InetSocketAddress parseOutputLine(final String line) throws UnknownHostException {
@@ -167,16 +162,7 @@ public class WorkerNodeServer {
 
     private void usage() {
 
-        ErrorHandling.hardError("Usage: -shost:port -chost:port [-Dlevel]");
-    }
-
-    private void configureLogLevel(final Map<String, String> arguments) throws UndefinedDiagnosticLevelException {
-
-        Diagnostic.setLevel(DiagnosticLevel.getDiagnosticLevelFromCommandLineArg(arguments.get(DIAGNOSTIC_LEVEL_KEY), DEFAULT_DIAGNOSTIC_LEVEL));
-        Diagnostic.setTimestampFlag(true);
-        Diagnostic.setTimestampFormat(new SimpleDateFormat(DIAGNOSTIC_DATE_FORMAT));
-        Diagnostic.setTimestampDelimiterFlag(false);
-        ErrorHandling.setTimestampFlag(false);
+        ErrorHandling.hardError("Usage: -Chost:port [-Shost:port -Tthread_pool_size]");
     }
 
     private void configureLocalAddress(final Map<String, String> arguments) throws UnknownHostException {
@@ -192,11 +178,27 @@ public class WorkerNodeServer {
 
     private void configureLauncherAddress(final Map<String, String> arguments) throws UnknownHostException {
 
-        final String known_address_parameter = arguments.get(LAUNCHER_CALLBACK_ADDRESS_KEY);
+        final String known_address_parameter = arguments.get(CALLBACK_ADDRESS_KEY);
         if (known_address_parameter == null) {
             usage();
         }
         launcher_callback_address = NetworkUtil.extractInetSocketAddress(known_address_parameter, 0);
 
+    }
+
+    private void configureThreadPoolSize(final Map<String, String> arguments) throws UnknownHostException {
+
+        final String size_as_string = arguments.get(THREAD_POOL_SIZE_KEY);
+        if (size_as_string != null) {
+            thread_pool_size = Integer.parseInt(size_as_string);
+        }
+    }
+
+    private void configureSocketReadTimeout(final Map<String, String> arguments) throws UnknownHostException {
+
+        final String socket_read_timeout = arguments.get(CALLBACK_ADDRESS_KEY);
+        if (socket_read_timeout != null) {
+            StreamProxy.CONNECTION_POOL.setSocketReadTimeout(Duration.valueOf(socket_read_timeout));
+        }
     }
 }

@@ -20,32 +20,29 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
+import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.shabdiz.zold.p2p.network.Network;
-
-// TODO: Auto-generated Javadoc
 /**
  * Maintains a set of {@link ApplicationDescriptor instances} across multiple {@link Host hosts}.
  * 
  * @param <T> the type of {@link ApplicationDescriptor instances} that are maintained by this network
- * @see Network
- * @see ApplicationDescriptor
- * @see Host
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set<T> {
 
     /**
-     * Gets the application name.
+     * Gets the name of this application.
      * 
-     * @return the application name
+     * @return the name of this application
      */
     String getApplicationName();
 
     /**
      * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
      * 
-     * @param states the states to match any of
+     * @param states the states which application instances must reach at least once
      * @throws InterruptedException if the current thread is interrupted while waiting
      */
     void awaitAnyOfStates(ApplicationState... states) throws InterruptedException;
@@ -105,36 +102,47 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     boolean add(Host host);
 
     /**
-     * Deploy.
+     * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
      * 
      * @param application_descriptor the application_descriptor
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws InterruptedException if interrupted while waiting for deployment to complete
+     * @throws TimeoutException if the deployment times out
      */
-    void deploy(T application_descriptor);
+    void deploy(T application_descriptor) throws IOException, InterruptedException, TimeoutException;
 
     /**
-     * Deploy all.
-     */
-    void deployAll();
-
-    /**
-     * Kill.
+     * Attempts to {@link #deploy(ApplicationDescriptor) deploy} the application instances that are maintained by this network.
      * 
-     * @param application_descriptor the application_descriptor
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws InterruptedException if interrupted while waiting for deployment to complete
+     * @throws TimeoutException if the deployment times out
+     */
+    void deployAll() throws IOException, InterruptedException, TimeoutException;
+
+    /**
+     * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given the given {@code application_descriptor}.
+     * 
+     * @param application_descriptor the application instance to terminate
      */
     void kill(T application_descriptor);
 
     /**
-     * Kill all on host.
+     * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost()} is equal to the given {@code host}.
      * 
-     * @param host the host
+     * @param host the host on which to terminate the application instances
      */
     void killAllOnHost(Host host);
 
     /**
-     * Kill all.
+     * Attempts to terminate all the application instances that are managed by this network.
      */
     void killAll();
 
-    /** Shuts down this network and closes any open resources. */
+    /**
+     * Terminates and removes all the instances that are managed by this network.
+     * Attempts to {@link Host#close() close} the hosts of application instances.
+     * After this method is called, this network is no longer usable.
+     */
     void shutdown();
 }

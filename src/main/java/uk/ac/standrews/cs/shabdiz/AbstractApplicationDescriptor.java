@@ -26,33 +26,31 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
 
-public class SimpleApplicationDescriptor implements ApplicationDescriptor, Comparable<SimpleApplicationDescriptor> {
+public abstract class AbstractApplicationDescriptor implements ApplicationDescriptor, Comparable<AbstractApplicationDescriptor> {
 
     public static final String STATE_PROPERTY_NAME = "state";
-    private static AtomicLong NEXT_ID = new AtomicLong();
+    private static final AtomicLong NEXT_ID = new AtomicLong();
     private final Long id; // used to resolve ties when comparing
     private final Host host;
     private final ConcurrentSkipListSet<Process> processes;
     private final AtomicReference<ApplicationState> state;
-    private final Pingable application_reference;
     protected final PropertyChangeSupport property_change_support;
 
-    public SimpleApplicationDescriptor(final Host host, final Pingable application_reference) {
+    public AbstractApplicationDescriptor(final Host host) {
 
         id = generateId();
         this.host = new ApplicationDescriptorHostWrapper(host);
-        this.application_reference = application_reference;
-        processes = new ConcurrentSkipListSet<Process>();
+        processes = new ConcurrentSkipListSet<Process>(new ProcessHashcodeComparator());
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         property_change_support = new PropertyChangeSupport(this);
     }
@@ -64,19 +62,18 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
     }
 
     @Override
-    public Pingable getApplicationReference() {
-
-        return application_reference;
-    }
-
-    @Override
     public ConcurrentSkipListSet<Process> getProcesses() {
 
         return processes;
     }
 
+    protected boolean addProcess(final Process process) {
+
+        return processes.add(process);
+    }
+
     @Override
-    public ApplicationState getState() {
+    public ApplicationState getApplicationState() {
 
         return state.get();
     }
@@ -108,11 +105,32 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
      */
     public boolean isInState(final ApplicationState... states) {
 
-        final ApplicationState cached_state = getState();
+        final ApplicationState cached_state = getApplicationState();
         for (final ApplicationState state : states) {
             if (cached_state.equals(state)) { return true; }
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(final AbstractApplicationDescriptor other) {
+
+        final int host_name_comparison = host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
+        return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
+    }
+
+    private static Long generateId() {
+
+        return NEXT_ID.getAndIncrement();
+    }
+
+    private static final class ProcessHashcodeComparator implements Comparator<Process> {
+
+        @Override
+        public int compare(final Process o1, final Process o2) {
+
+            return Integer.valueOf(o1.hashCode()).compareTo(o2.hashCode());
+        }
     }
 
     private final class ApplicationDescriptorHostWrapper implements Host {
@@ -137,9 +155,9 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
         }
 
         @Override
-        public void shutdown() {
+        public void close() throws IOException {
 
-            host.shutdown();
+            host.close();
         }
 
         @Override
@@ -177,17 +195,5 @@ public class SimpleApplicationDescriptor implements ApplicationDescriptor, Compa
 
             host.download(source, destination);
         }
-    }
-
-    @Override
-    public int compareTo(final SimpleApplicationDescriptor other) {
-
-        final int host_name_comparison = host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
-        return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
-    }
-
-    private static Long generateId() {
-
-        return NEXT_ID.getAndIncrement();
     }
 }

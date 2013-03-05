@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -40,7 +40,6 @@ import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 
 /**
  * Presents a proxy to the pending result of a remote computation.
- * The communications between this class and the remote worker which executes the computation are performed passively.
  * 
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -92,15 +91,11 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
         marshaller = new ShabdizRemoteMarshaller();
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     @Override
     public ShabdizRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public boolean cancel(final boolean may_interrupt_if_running) {
@@ -171,8 +166,6 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
         return job_id;
     }
 
-    // -------------------------------------------------------------------------------------------------------------------------------
-
     void setException(final Exception exception) {
 
         this.exception = exception;
@@ -191,8 +184,6 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
             setException(new ExecutionException("Unable to cast the notified result to the appropriate type", e));
         }
     }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
     public int hashCode() {

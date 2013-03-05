@@ -26,16 +26,15 @@ import java.beans.PropertyChangeSupport;
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
- * Scans a given {@link ApplicationNetwork network} for an application-specific change.
+ * Scans a {@link ApplicationNetwork network} for an application-specific change.
  * 
- * @param <T> the type of {@link ApplicationDescriptor applications} that are maintained by the given {@link ApplicationNetwork network}
+ * @param <T> the type of {@link ApplicationDescriptor applications} to scan
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Scanner<T extends ApplicationDescriptor> {
 
     /**
-     * Add a PropertyChangeListener for a specific property.
-     * The same listener object may be added more than once.
+     * Add a {@link PropertyChangeListener} for a specific property.
      * For each property, the listener will be invoked the number of times it was added for that property.
      * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
      * 
@@ -46,8 +45,7 @@ public interface Scanner<T extends ApplicationDescriptor> {
     void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Remove a PropertyChangeListener for a specific property.
-     * If listener was added more than once to the same event source for the specified property, it will be notified one less time after being removed.
+     * Remove a {@link PropertyChangeListener} for a specific property.
      * If {@code property_name} is null, no exception is thrown and no action is taken.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
@@ -58,7 +56,7 @@ public interface Scanner<T extends ApplicationDescriptor> {
     void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
 
     /**
-     * Scans the given {@link ApplicationNetwork network} for an application-specific change.
+     * Scans the {@link ApplicationNetwork network} for an application-specific change.
      */
     void scan();
 

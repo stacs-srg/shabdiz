@@ -45,7 +45,7 @@ public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractCo
 
     private boolean isKillable(final T application_descriptor) {
 
-        return application_descriptor.getState() == ApplicationState.RUNNING;
+        return application_descriptor.getApplicationState() == ApplicationState.RUNNING;
     }
 
     @Override

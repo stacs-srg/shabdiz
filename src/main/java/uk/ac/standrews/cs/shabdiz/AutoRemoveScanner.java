@@ -43,7 +43,7 @@ public class AutoRemoveScanner<T extends ApplicationDescriptor> extends Abstract
 
     protected boolean isRemovable(final T application_descriptor) {
 
-        final ApplicationState state = application_descriptor.getState();
+        final ApplicationState state = application_descriptor.getApplicationState();
         return state == ApplicationState.UNREACHABLE || state == ApplicationState.INVALID;
     }
 

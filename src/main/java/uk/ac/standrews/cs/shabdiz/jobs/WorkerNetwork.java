@@ -18,7 +18,7 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.zold;
+package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -47,24 +48,27 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.zold.api.Launcher;
-import uk.ac.standrews.cs.shabdiz.zold.api.LauncherCallback;
-import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
+import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
 /**
  * Deploys workers on hosts.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DefaultLauncher implements Launcher, LauncherCallback {
+public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescriptor> implements WorkerCallback {
 
+    private static final long serialVersionUID = -8888064138251583848L;
     private static final int EPHEMERAL_PORT = 0;
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
+    private static final Integer DEFAULT_WORKER_PORT = 0;
+    private static final Integer DEFAULT_THREAD_POOL_SIZE = 5;
+    private static final Duration DEFAULT_WORKER_SOCKET_READ_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final LauncherCallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
+    private final CallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final ExecutorService deployment_executor;
     private final RemoteJavaProcessBuilder worker_process_builder;
@@ -82,7 +86,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public DefaultLauncher() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         this(new HashSet<File>());
     }
@@ -99,7 +103,7 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public DefaultLauncher(final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork(final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         this(EPHEMERAL_PORT, classpath);
     }
@@ -117,12 +121,14 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public DefaultLauncher(final int callback_server_port, final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
+        super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
-        callback_server = new LauncherCallbackRemoteServer(this);
+        callback_server = new CallbackRemoteServer(this);
         expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         callback_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
+
         worker_process_builder = createRemoteJavaProcessBuiler(classpath);
         deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizLauncher:" + callback_address.getPort()));
     }
@@ -151,11 +157,12 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
     }
 
     @Override
-    public Worker deployWorkerOnHost(final Host host) throws IOException, InterruptedException, TimeoutException {
+    public void deploy(final RemoteWorkerDescriptor worker_descriptor) throws IOException, InterruptedException, TimeoutException {
 
-        final Process worker_process = worker_process_builder.start(host);
+        final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
         final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
-        return new DefaultWorker(this, worker_address, worker_process);
+        final DefaultWorker worker = new DefaultWorker(this, worker_address, worker_process);
+        worker_descriptor.setApplicationReference(worker);
     }
 
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
@@ -208,14 +215,19 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
      * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
      * Note that any pending {@link Future} will end in exception.
      * 
-     * @see DefaultLauncher#shutdown()
+     * @see WorkerNetwork#shutdown()
      */
     @Override
     public void shutdown() {
 
-        deployment_executor.shutdownNow();
-        unexpose();
-        releaseAllPendingFutures(); // Release the futures which are still pending for notification
+        try {
+            deployment_executor.shutdownNow();
+            unexpose();
+            releaseAllPendingFutures(); // Release the futures which are still pending for notification
+        }
+        finally {
+            super.shutdown();
+        }
     }
 
     <Result extends Serializable> void notifyJobSubmission(final FutureRemoteProxy<Result> future_remote) {
@@ -225,8 +237,9 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
 
     private RemoteJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath) {
 
-        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(WorkerNodeServer.class);
-        process_builder.addCommandLineArgument(WorkerNodeServer.LAUNCHER_CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
+        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(WorkerMain.class);
+        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT, DEFAULT_THREAD_POOL_SIZE, DEFAULT_WORKER_SOCKET_READ_TIMEOUT);
+        process_builder.addCommandLineArguments(arguments);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addClasspath(classpath);
         process_builder.addCurrentJVMClasspath();
@@ -273,11 +286,17 @@ public class DefaultLauncher implements Launcher, LauncherCallback {
                 final Scanner scanner = new Scanner(worker_process.getInputStream()); // Scanner is not closed on purpose. The stream belongs to Process instance.
                 do {
                     final String output_line = scanner.nextLine();
-                    worker_address = WorkerNodeServer.parseOutputLine(output_line);
+                    worker_address = WorkerMain.parseOutputLine(output_line);
                 }
                 while (worker_address == null && !Thread.currentThread().isInterrupted());
                 return worker_address;
             }
         });
+    }
+
+    @Override
+    protected RemoteWorkerDescriptor newApplicationDescriptorFromHost(final Host host) {
+
+        return new RemoteWorkerDescriptor(host);
     }
 }

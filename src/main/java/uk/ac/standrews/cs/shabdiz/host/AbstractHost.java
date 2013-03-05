@@ -57,8 +57,8 @@ public abstract class AbstractHost implements Host {
     }
 
     @Override
-    public void shutdown() {
+    public void close() throws IOException {
 
-        LOGGER.fine("shutting down host " + address);
+        LOGGER.fine("closing host " + address);
     }
 }

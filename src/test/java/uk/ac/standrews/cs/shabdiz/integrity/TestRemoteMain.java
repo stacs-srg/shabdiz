@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -8,13 +9,12 @@ import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
-import uk.ac.standrews.cs.shabdiz.zold.DefaultLauncher;
-import uk.ac.standrews.cs.shabdiz.zold.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.zold.api.Launcher;
-import uk.ac.standrews.cs.shabdiz.zold.api.Worker;
+import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.zold.util.ObjectStore;
 
 public class TestRemoteMain {
@@ -59,14 +59,16 @@ public class TestRemoteMain {
     public static void main(final String[] args) throws Exception {
 
         AbstractHost remoteHost = null;
-        Launcher launcher = null;
+        WorkerNetwork launcher = null;
         Worker worker = null;
 
         try {
             remoteHost = new SSHHost("localhost", new SSHPasswordCredential(Input.readPassword("Enter Password")));
             //            remoteHost = new LocalHost();
-            launcher = new DefaultLauncher();
-            worker = launcher.deployWorkerOnHost(remoteHost);
+            launcher = new WorkerNetwork();
+            launcher.add(remoteHost);
+            launcher.deployAll();
+            worker = launcher.iterator().next().getApplicationReference();
 
             System.out.println("submitting job to the remote worker");
             final Future<UUID> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());
@@ -86,7 +88,7 @@ public class TestRemoteMain {
         }
     }
 
-    private static void cleanUp(final Host remoteHost, final Launcher launcher, final Worker worker) {
+    private static void cleanUp(final Host remoteHost, final WorkerNetwork launcher, final Worker worker) {
 
         if (worker != null) {
             try {
@@ -100,7 +102,12 @@ public class TestRemoteMain {
             launcher.shutdown();
         }
         if (remoteHost != null) {
-            remoteHost.shutdown();
+            try {
+                remoteHost.close();
+            }
+            catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

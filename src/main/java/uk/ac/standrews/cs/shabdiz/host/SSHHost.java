@@ -236,16 +236,13 @@ public class SSHHost extends AbstractHost {
     }
 
     @Override
-    public void shutdown() {
+    public void close() throws IOException {
 
         try {
             ssh_client.close();
         }
-        catch (final IOException e) {
-            LOGGER.throwing(getClass().getName(), "shutdown", e);
-        }
         finally {
-            super.shutdown();
+            super.close();
         }
     }
 
