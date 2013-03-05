@@ -46,16 +46,16 @@ class WorkerRemoteProxy extends StreamProxy implements WorkerRemote {
     /** The remote method name for {@link WorkerRemote#shutdown()}. */
     static final String SHUTDOWN_REMOTE_METHOD_NAME = "shutdown";
 
-    private final ShabdizRemoteMarshaller marshaller;
+    private final WorkerRemoteMarshaller marshaller;
 
     WorkerRemoteProxy(final InetSocketAddress worker_address) {
 
         super(worker_address);
-        marshaller = new ShabdizRemoteMarshaller();
+        marshaller = new WorkerRemoteMarshaller();
     }
 
     @Override
-    public ShabdizRemoteMarshaller getMarshaller() {
+    public WorkerRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }

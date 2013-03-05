@@ -42,16 +42,16 @@ import uk.ac.standrews.cs.shabdiz.api.JobRemote;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ShabdizRemoteMarshaller extends Marshaller {
+public class WorkerRemoteMarshaller extends Marshaller {
 
-    ShabdizRemoteMarshaller() {
+    WorkerRemoteMarshaller() {
 
     }
 
     public static void serializeException(final Exception e, final JSONWriter writer) throws JSONException {
 
         try {
-            ShabdizRemoteMarshaller.serializeSerializable(e, writer);
+            WorkerRemoteMarshaller.serializeSerializable(e, writer);
         }
         catch (final IOException e1) {
             throw new JSONException(e1);
@@ -61,7 +61,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
     public static Exception deserializeException(final JSONReader reader) {
 
         try {
-            return (Exception) ShabdizRemoteMarshaller.deserializeSerializable(reader);
+            return (Exception) WorkerRemoteMarshaller.deserializeSerializable(reader);
         }
         catch (final DeserializationException e) {
             return new RuntimeException("could not instantiate serialized exception ", e);
@@ -97,7 +97,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
                 e.printStackTrace();
             }
             finally {
-                ShabdizRemoteMarshaller.closeSilently(object_output_stream);
+                WorkerRemoteMarshaller.closeSilently(object_output_stream);
             }
         }
     }
@@ -129,7 +129,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
             throw new DeserializationException(e);
         }
         finally {
-            ShabdizRemoteMarshaller.closeSilently(object_input_stream);
+            WorkerRemoteMarshaller.closeSilently(object_input_stream);
         }
     }
 
@@ -144,7 +144,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
     @SuppressWarnings("unchecked")
     public <Result extends Serializable> Result deserializeResult(final JSONReader reader) throws DeserializationException {
 
-        final Serializable deserialized_serializable = ShabdizRemoteMarshaller.deserializeSerializable(reader);
+        final Serializable deserialized_serializable = WorkerRemoteMarshaller.deserializeSerializable(reader);
         try {
             return (Result) deserialized_serializable;
         }
@@ -163,7 +163,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
      */
     public void serializeRemoteJob(final JobRemote<?> remote_job, final JSONWriter writer) throws JSONException, IOException {
 
-        ShabdizRemoteMarshaller.serializeSerializable(remote_job, writer);
+        WorkerRemoteMarshaller.serializeSerializable(remote_job, writer);
     }
 
     /**
@@ -177,7 +177,7 @@ public class ShabdizRemoteMarshaller extends Marshaller {
     public JobRemote<?> deserializeRemoteJob(final JSONReader reader) throws DeserializationException {
 
         try {
-            return (JobRemote<? extends Serializable>) ShabdizRemoteMarshaller.deserializeSerializable(reader);
+            return (JobRemote<? extends Serializable>) WorkerRemoteMarshaller.deserializeSerializable(reader);
         }
         catch (final Exception e) {
             throw new DeserializationException(e);

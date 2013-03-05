@@ -42,7 +42,7 @@ class CallbackRemoteServer extends ApplicationServer {
     public static final String APPLICATION_REGISTRY_KEY = "Launcher Callback Server";
 
     private final WorkerCallback launcher_callback;
-    private final ShabdizRemoteMarshaller marshaller;
+    private final WorkerRemoteMarshaller marshaller;
 
     /**
      * Instantiates a new launcher callback server.
@@ -54,14 +54,14 @@ class CallbackRemoteServer extends ApplicationServer {
         super();
         this.launcher_callback = launcher_callback;
 
-        marshaller = new ShabdizRemoteMarshaller();
+        marshaller = new WorkerRemoteMarshaller();
         initHandlers();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public ShabdizRemoteMarshaller getMarshaller() {
+    public WorkerRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
@@ -97,7 +97,7 @@ class CallbackRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             final UUID job_id = Marshaller.deserializeUUID(args);
-            final Serializable result = ShabdizRemoteMarshaller.deserializeSerializable(args);
+            final Serializable result = WorkerRemoteMarshaller.deserializeSerializable(args);
 
             launcher_callback.notifyCompletion(job_id, result);
             response.value("");
@@ -110,7 +110,7 @@ class CallbackRemoteServer extends ApplicationServer {
         public void execute(final JSONReader args, final JSONWriter response) throws Exception {
 
             final UUID job_id = Marshaller.deserializeUUID(args);
-            final Exception exception = ShabdizRemoteMarshaller.deserializeException(args);
+            final Exception exception = WorkerRemoteMarshaller.deserializeException(args);
 
             launcher_callback.notifyException(job_id, exception);
             response.value("");

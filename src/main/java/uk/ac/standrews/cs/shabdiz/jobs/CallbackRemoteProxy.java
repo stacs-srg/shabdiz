@@ -44,7 +44,7 @@ class CallbackRemoteProxy extends StreamProxy implements WorkerCallback {
     /** The remote method name for {@link #notifyException(UUID, Exception)}. */
     static final String NOTIFY_EXCEPTION_REMOTE_METHOD_NAME = "notifyException";
 
-    private final ShabdizRemoteMarshaller marshaller;
+    private final WorkerRemoteMarshaller marshaller;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -56,13 +56,13 @@ class CallbackRemoteProxy extends StreamProxy implements WorkerCallback {
     CallbackRemoteProxy(final InetSocketAddress launcher_callback_address) {
 
         super(launcher_callback_address);
-        marshaller = new ShabdizRemoteMarshaller();
+        marshaller = new WorkerRemoteMarshaller();
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public ShabdizRemoteMarshaller getMarshaller() {
+    public WorkerRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }
@@ -77,7 +77,7 @@ class CallbackRemoteProxy extends StreamProxy implements WorkerCallback {
 
             final JSONWriter writer = streams.getJSONwriter();
             Marshaller.serializeUUID(job_id, writer);
-            ShabdizRemoteMarshaller.serializeSerializable(result, writer);
+            WorkerRemoteMarshaller.serializeSerializable(result, writer);
 
             makeVoidCall(streams);
 
@@ -96,7 +96,7 @@ class CallbackRemoteProxy extends StreamProxy implements WorkerCallback {
 
             final JSONWriter writer = streams.getJSONwriter();
             Marshaller.serializeUUID(job_id, writer);
-            ShabdizRemoteMarshaller.serializeException(exception, writer);
+            WorkerRemoteMarshaller.serializeException(exception, writer);
 
             makeVoidCall(streams);
 

@@ -67,7 +67,7 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
     }
 
     private final UUID job_id; // The globally unique ID of the job
-    private final ShabdizRemoteMarshaller marshaller; // Serialises/deserialises the exchanged communication messages
+    private final WorkerRemoteMarshaller marshaller; // Serialises/deserialises the exchanged communication messages
     private final CountDownLatch job_done_latch; // Allows this thread to wait until the remote computation is complete
 
     private Exception exception; // Placeholder of the exception which is produced as the outcome of the remote job execution
@@ -88,11 +88,11 @@ class FutureRemoteProxy<Result extends Serializable> extends StreamProxy impleme
 
         current_state = State.PENDING;
         job_done_latch = new CountDownLatch(LATCH_COUNT);
-        marshaller = new ShabdizRemoteMarshaller();
+        marshaller = new WorkerRemoteMarshaller();
     }
 
     @Override
-    public ShabdizRemoteMarshaller getMarshaller() {
+    public WorkerRemoteMarshaller getMarshaller() {
 
         return marshaller;
     }

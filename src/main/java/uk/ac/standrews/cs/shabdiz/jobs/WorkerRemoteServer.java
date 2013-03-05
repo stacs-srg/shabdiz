@@ -42,7 +42,7 @@ class WorkerRemoteServer extends ApplicationServer {
     /** The worker server registry key. */
     public static final String APPLICATION_REGISTRY_KEY = "Shabdiz Worker Server";
 
-    private final ShabdizRemoteMarshaller marshaller;
+    private final WorkerRemoteMarshaller marshaller;
 
     private final DefaultWorkerRemote worker;
 
@@ -55,7 +55,7 @@ class WorkerRemoteServer extends ApplicationServer {
 
         super();
         this.worker = worker;
-        marshaller = new ShabdizRemoteMarshaller();
+        marshaller = new WorkerRemoteMarshaller();
 
         initRPCHandlers();
     }
