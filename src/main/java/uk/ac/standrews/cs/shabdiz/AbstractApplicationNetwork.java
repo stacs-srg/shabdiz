@@ -31,10 +31,13 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     private static final Logger LOGGER = Logger.getLogger(AbstractApplicationNetwork.class.getName());
 
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
+    private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final String application_name;
     private final Map<Scanner<T>, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledThreadPoolExecutor scanner_executor;
     private final ExecutorService concurrent_scanner_executor;
+
 
     private final AutoKillScanner<T> auto_kill_scanner;
     private final AutoDeployScanner<T> auto_deploy_scanner;
@@ -48,10 +51,10 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
         scanner_executor = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
 
-        auto_kill_scanner = new AutoKillScanner<T>(null, null);
-        auto_deploy_scanner = new AutoDeployScanner<T>(null, null);
-        auto_remove_scanner = new AutoRemoveScanner<T>(null);
-        status_scanner = new StatusScanner<T>(new Duration(1, TimeUnit.SECONDS));
+        auto_kill_scanner = new AutoKillScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
+        auto_deploy_scanner = new AutoDeployScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
+        auto_remove_scanner = new AutoRemoveScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
+        status_scanner = new StatusScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
 
         addScanner(auto_kill_scanner);
         addScanner(auto_deploy_scanner);

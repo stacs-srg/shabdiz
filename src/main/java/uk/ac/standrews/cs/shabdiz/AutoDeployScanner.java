@@ -27,7 +27,6 @@ import java.util.concurrent.TimeoutException;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.zold.DefaultMadfaceManager;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that
@@ -40,7 +39,7 @@ public class AutoDeployScanner<T extends ApplicationDescriptor> extends Abstract
 
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    protected AutoDeployScanner(final DefaultMadfaceManager manager, final Duration cycle_delay) {
+    protected AutoDeployScanner(final Duration cycle_delay) {
 
         super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
     }
