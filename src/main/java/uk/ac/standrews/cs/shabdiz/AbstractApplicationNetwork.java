@@ -38,7 +38,6 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     private final ScheduledThreadPoolExecutor scanner_executor;
     private final ExecutorService concurrent_scanner_executor;
 
-
     private final AutoKillScanner<T> auto_kill_scanner;
     private final AutoDeployScanner<T> auto_deploy_scanner;
     private final AutoRemoveScanner<T> auto_remove_scanner;
