@@ -121,14 +121,14 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     void deployAll() throws IOException, InterruptedException, TimeoutException;
 
     /**
-     * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given the given {@code application_descriptor}.
+     * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.
      * 
      * @param application_descriptor the application instance to terminate
      */
     void kill(T application_descriptor);
 
     /**
-     * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost()} is equal to the given {@code host}.
+     * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
      * 
      * @param host the host on which to terminate the application instances
      */
@@ -141,7 +141,7 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
 
     /**
      * Terminates and removes all the instances that are managed by this network.
-     * Attempts to {@link Host#close() close} the hosts of application instances.
+     * Attempts to kill all application processes and {@link Host#close() close} the hosts of application instances.
      * After this method is called, this network is no longer usable.
      */
     void shutdown();

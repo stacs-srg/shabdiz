@@ -27,7 +27,7 @@ import java.util.Collection;
 import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
 /**
- * Provides references to the {@link Process processes} that belong to this application instance running on a {@link Host host}, a {@link Pingable reference} to this application instance and its {@link ApplicationState state}.
+ * Provides references to the {@link Process processes} that belong to an application instance running on a {@link Host host}, a {@link Pingable reference} to the application instance and its {@link ApplicationState state}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see ApplicationNetwork
