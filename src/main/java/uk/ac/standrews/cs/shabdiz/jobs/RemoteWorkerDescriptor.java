@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
@@ -17,6 +18,11 @@ public class RemoteWorkerDescriptor extends AbstractApplicationDescriptor {
     }
 
     @Override
+    public void ping() throws RPCException {
+
+        getApplicationReference().ping();
+    }
+
     public Worker getApplicationReference() {
 
         return worker_proxy.get();

@@ -63,12 +63,12 @@ public interface ApplicationDescriptor {
     Host getHost();
 
     /**
-     * Gets the {@link Pingable pingable} instance of this application, which is used to probe whether this application is {@link ApplicationState#RUNNING running}.
+     * Attempts to probe whether this application is {@link ApplicationState#RUNNING running}.
      * 
-     * @return the reference to this application instance
+     * @throws Exception if the application is not {@link ApplicationState#RUNNING running}
      * @see Pingable#ping()
      */
-    Pingable getApplicationReference();
+    void ping() throws Exception;
 
     /**
      * Gets the processes that are started on this instance's {@link #getHost() host}.

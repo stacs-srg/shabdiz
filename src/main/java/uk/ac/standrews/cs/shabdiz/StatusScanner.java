@@ -27,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
@@ -73,8 +71,7 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
         if (isEnabled()) {
             ApplicationState state;
             try {
-                final Pingable application_reference = application_descriptor.getApplicationReference();
-                state = getStateFromApplicationReference(application_reference);
+                state = getStateFromApplicationReference(application_descriptor);
             }
             catch (final Exception e) { //Catch Exception to cover NPE since application reference may be null
                 final Host host = application_descriptor.getHost();
@@ -125,9 +122,9 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
         InetAddress.getByName(host_name);
     }
 
-    private ApplicationState getStateFromApplicationReference(final Pingable application_reference) throws RPCException {
+    private ApplicationState getStateFromApplicationReference(final T application_descriptor) throws Exception {
 
-        application_reference.ping();
+        application_descriptor.ping();
         return ApplicationState.RUNNING;
     }
 
