@@ -31,16 +31,12 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
 import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
@@ -53,21 +49,16 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private final ExecutorService exexcutor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final JsonRpcServer server;
-    private final InetSocketAddress callback_address;
-    private final WorkerCallback callback_proxy;
+    private final WorkerCallback callback;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
 
-    DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException {
+    DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
-        this.callback_address = launcher_callback_address;
-        final ObjectMapper oc = new ObjectMapper();
-        oc.registerModule(new WorkerModule());
-        final JsonFactory json_factory = new JsonFactory(oc);
-        callback_proxy = new JsonRpcProxyFactory().get(callback_address, WorkerCallback.class, json_factory);
+        callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor = createExecutorService();
-        server = new JsonRpcServer(local_address, WorkerRemote.class, this, json_factory, exexcutor);
+        server = new JsonRpcServer(local_address, WorkerRemote.class, this, WorkerJsonFactory.getInstance(), exexcutor);
         expose();
         this.local_address = server.getLocalSocketAddress();
     }
@@ -100,7 +91,6 @@ public class DefaultWorkerRemote implements WorkerRemote {
     @Override
     public synchronized void shutdown() {
 
-
         exexcutor.shutdownNow();
         try {
             unexpose();
@@ -132,7 +122,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private void handleCompletion(final UUID job_id, final Serializable result) {
 
         try {
-            callback_proxy.notifyCompletion(job_id, result);
+            callback.notifyCompletion(job_id, result);
             submitted_jobs.remove(job_id);
         }
         catch (final JsonRpcException e) {
@@ -145,7 +135,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private void handleException(final UUID job_id, final Exception exception) {
 
         try {
-            callback_proxy.notifyException(job_id, exception);
+            callback.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
         }
         catch (final JsonRpcException e) {

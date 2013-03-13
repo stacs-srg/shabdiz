@@ -67,8 +67,6 @@
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
-
-
 		<dependency>
 			<groupId>uk.ac.standrews.cs</groupId>
 			<artifactId>jetson</artifactId>

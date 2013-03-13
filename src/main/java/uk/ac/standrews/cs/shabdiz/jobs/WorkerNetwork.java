@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
 import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
@@ -176,7 +175,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
 
         final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
         final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
-        final WorkerRemote worker_remote = new JsonRpcProxyFactory().get(worker_address, WorkerRemote.class, json_factory);
+        final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
         final DefaultWorkerWrapper worker = new DefaultWorkerWrapper(this, worker_remote, worker_process, worker_address);
 
         worker_descriptor.setApplicationReference(worker);
