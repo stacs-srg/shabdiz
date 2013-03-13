@@ -25,15 +25,15 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
 
 /**
  * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Worker extends Pingable, Comparable<Worker> {
+public interface Worker extends Comparable<Worker> {
 
     /**
      * Gets the address on which this worker is exposed.
@@ -52,12 +52,12 @@ public interface Worker extends Pingable, Comparable<Worker> {
      * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    <Result extends Serializable> Future<Result> submit(JobRemote<Result> job) throws RPCException;
+    <Result extends Serializable> Future<Result> submit(JobRemote<Result> job) throws JsonRpcException;
 
     /**
      * Attempts to {@link Thread#interrupt() interrupt} any executing jobs. After this method is called any future job submission with be rejected.
      * 
      * @throws RPCException if unable to make the remote call
      */
-    void shutdown() throws RPCException;
+    void shutdown() throws JsonRpcException;
 }

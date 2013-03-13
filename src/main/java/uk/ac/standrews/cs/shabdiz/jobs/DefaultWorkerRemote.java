@@ -31,42 +31,49 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
+import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
+import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class DefaultWorkerRemote implements WorkerRemote {
+public class DefaultWorkerRemote implements WorkerRemote {
 
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
-    private final WorkerRemoteServer server;
+    private final JsonRpcServer server;
     private final InetSocketAddress callback_address;
-    private final CallbackRemoteProxy callback_proxy;
+    private final WorkerCallback callback_proxy;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
 
     DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress launcher_callback_address) throws IOException {
 
         this.callback_address = launcher_callback_address;
-        callback_proxy = new CallbackRemoteProxy(callback_address);
+        final ObjectMapper oc = new ObjectMapper();
+        oc.registerModule(new WorkerModule());
+        final JsonFactory json_factory = new JsonFactory(oc);
+        callback_proxy = new JsonRpcProxyFactory().get(callback_address, WorkerCallback.class, json_factory);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        server = new WorkerRemoteServer(this);
-        expose(local_address);
-        this.local_address = server.getAddress();
         exexcutor = createExecutorService();
+        server = new JsonRpcServer(local_address, WorkerRemote.class, this, json_factory, exexcutor);
+        expose();
+        this.local_address = server.getLocalSocketAddress();
     }
 
     @Override
-    public UUID submitJob(final JobRemote<? extends Serializable> job) {
+    public UUID submitJob(final JobRemote job) {
 
         final UUID job_id = generateJobId();
         exexcutor.execute(new Runnable() {
@@ -93,34 +100,33 @@ class DefaultWorkerRemote implements WorkerRemote {
     @Override
     public synchronized void shutdown() {
 
-        exexcutor.shutdownNow();
 
+        exexcutor.shutdownNow();
         try {
             unexpose();
+            server.shutdown();
         }
         catch (final IOException e) {
             Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
         }
-
-        StreamProxy.CONNECTION_POOL.shutdown();
     }
 
-    boolean cancelJob(final UUID job_id, final boolean may_interrupt_if_running) throws RemoteWorkerException {
+    @Override
+    public boolean cancel(final UUID job_id, final boolean may_interrupt) throws JsonRpcException {
 
         if (submitted_jobs.containsKey(job_id)) {
-            final boolean cancelled = submitted_jobs.get(job_id).cancel(may_interrupt_if_running);
+            final boolean cancelled = submitted_jobs.get(job_id).cancel(may_interrupt);
             if (cancelled) {
                 submitted_jobs.remove(job_id);
             }
             return cancelled;
         }
-
         throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
     }
 
     private ExecutorService createExecutorService() {
 
-        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_on_" + local_address.getPort() + "_"));
+        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_"));
     }
 
     private void handleCompletion(final UUID job_id, final Serializable result) {
@@ -129,7 +135,8 @@ class DefaultWorkerRemote implements WorkerRemote {
             callback_proxy.notifyCompletion(job_id, result);
             submitted_jobs.remove(job_id);
         }
-        catch (final RPCException e) {
+        catch (final JsonRpcException e) {
+            e.printStackTrace();
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.log(Level.SEVERE, "failed to notify job completion with the ID " + job_id, e);
         }
@@ -141,22 +148,20 @@ class DefaultWorkerRemote implements WorkerRemote {
             callback_proxy.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
         }
-        catch (final RPCException e) {
+        catch (final JsonRpcException e) {
             // TODO use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.log(Level.SEVERE, "failed to notify job exception with the ID " + job_id, e);
         }
     }
 
-    private void expose(final InetSocketAddress server_address) throws IOException {
+    private void expose() throws IOException {
 
-        server.setLocalAddress(server_address.getAddress());
-        server.setPort(server_address.getPort());
-        server.startWithNoRegistry();
+        server.expose();
     }
 
     private void unexpose() throws IOException {
 
-        server.stop();
+        server.unexpose();
     }
 
     private static synchronized UUID generateJobId() {
@@ -168,4 +173,5 @@ class DefaultWorkerRemote implements WorkerRemote {
 
         return local_address;
     }
+
 }

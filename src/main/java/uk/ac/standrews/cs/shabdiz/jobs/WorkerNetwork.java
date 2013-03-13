@@ -39,7 +39,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
+import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
+import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -52,6 +55,10 @@ import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 /**
  * Deploys workers on hosts.
  * 
@@ -60,6 +67,8 @@ import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescriptor> implements WorkerCallback {
 
     private static final long serialVersionUID = -8888064138251583848L;
+
+    private static final Logger LOGGER = Logger.getLogger(WorkerNetwork.class.getName());
     private static final int EPHEMERAL_PORT = 0;
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
@@ -68,11 +77,12 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
     private static final Duration DEFAULT_WORKER_SOCKET_READ_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final CallbackRemoteServer callback_server; // The server which listens to the callbacks  from workers
-    private final Map<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
+    private final JsonRpcServer callback_server; // The server which listens to the callbacks  from workers
+    private final Map<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final ExecutorService deployment_executor;
     private final RemoteJavaProcessBuilder worker_process_builder;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
+    private final JsonFactory json_factory;
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -124,13 +134,18 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
     public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
 
         super("Shabdiz Worker Network");
-        id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
-        callback_server = new CallbackRemoteServer(this);
-        expose(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
-        callback_address = callback_server.getAddress(); // Since the initial server port may be zero, get the actual address of the callback server
+        id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
+        //        callback_server = new CallbackRemoteServer(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port), this);
+        deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizNetwork_"));
+        final ObjectMapper om = new ObjectMapper();
+        om.registerModule(new WorkerModule());
+        om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        json_factory = new JsonFactory(om);
+        callback_server = new JsonRpcServer(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port), WorkerCallback.class, this, json_factory, deployment_executor);
+        expose();
 
+        callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
         worker_process_builder = createRemoteJavaProcessBuiler(classpath);
-        deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizLauncher:" + callback_address.getPort()));
     }
 
     /**
@@ -161,7 +176,9 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
 
         final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
         final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
-        final DefaultWorker worker = new DefaultWorker(this, worker_address, worker_process);
+        final WorkerRemote worker_remote = new JsonRpcProxyFactory().get(worker_address, WorkerRemote.class, json_factory);
+        final DefaultWorkerWrapper worker = new DefaultWorkerWrapper(this, worker_remote, worker_process, worker_address);
+
         worker_descriptor.setApplicationReference(worker);
     }
 
@@ -190,18 +207,18 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
     }
 
     @Override
-    public synchronized void notifyCompletion(final UUID job_id, final Serializable result) throws RPCException {
+    public synchronized void notifyCompletion(final UUID job_id, final Serializable result) {
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setResult(result);
         }
         else {
-            Diagnostic.trace(DiagnosticLevel.NONE, "Launcher was notified about an unknown job completion ", job_id);
+            LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
         }
     }
 
     @Override
-    public synchronized void notifyException(final UUID job_id, final Exception exception) throws RPCException {
+    public synchronized void notifyException(final UUID job_id, final Exception exception) {
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setException(exception);
@@ -230,7 +247,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
         }
     }
 
-    <Result extends Serializable> void notifyJobSubmission(final FutureRemoteProxy<Result> future_remote) {
+    <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {
 
         id_future_map.put(future_remote.getJobID(), future_remote);
     }
@@ -246,28 +263,21 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
         return process_builder;
     }
 
-    private void expose(final InetSocketAddress expose_address) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    private void expose() throws IOException {
 
-        callback_server.setLocalAddress(expose_address.getAddress());
-        callback_server.setPort(expose_address.getPort());
-        callback_server.startWithNoRegistry();
+        callback_server.expose();
     }
 
     private void unexpose() {
 
-        try {
-            callback_server.stop();
-        }
-        catch (final IOException e) {
-            Diagnostic.trace(DiagnosticLevel.RUN, "Unable to stop launcher callback server, because: ", e.getMessage(), e);
-        }
+        callback_server.unexpose();
     }
 
     private void releaseAllPendingFutures() {
 
         final RPCException unexposed_launcher_exception = new RPCException("Launcher is been shut down, no longer can receive notifications from workers");
 
-        for (final FutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
+        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
 
             if (!future_remote.isDone()) { // Check whether the result is pending
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received

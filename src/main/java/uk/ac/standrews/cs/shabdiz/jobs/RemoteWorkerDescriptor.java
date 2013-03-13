@@ -20,7 +20,7 @@ public class RemoteWorkerDescriptor extends AbstractApplicationDescriptor {
     @Override
     public void ping() throws RPCException {
 
-        getApplicationReference().ping();
+        getApplicationReference().getAddress();
     }
 
     public Worker getApplicationReference() {

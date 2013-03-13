@@ -20,10 +20,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.jobs;
 
-import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.api.JobRemote;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-interface WorkerRemote {
+public interface WorkerRemote {
 
     /**
      * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
@@ -42,12 +42,22 @@ interface WorkerRemote {
      * @throws RPCException if unable to make the remote call
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    UUID submitJob(JobRemote<? extends Serializable> job) throws RPCException;
+    UUID submitJob(JobRemote job) throws JsonRpcException;
+
+    /**
+     * Cancels a given job exexuting on this worker.
+     * 
+     * @param job_id the job_id
+     * @param may_interrupt the may_interrupt
+     * @return true, if successful
+     * @throws JsonRpcException the json rpc exception
+     */
+    boolean cancel(UUID job_id, final boolean may_interrupt) throws JsonRpcException;
 
     /**
      * Shuts down this worker.
      * 
      * @throws RPCException if unable to make the remote call
      */
-    void shutdown() throws RPCException;
+    void shutdown() throws JsonRpcException;
 }

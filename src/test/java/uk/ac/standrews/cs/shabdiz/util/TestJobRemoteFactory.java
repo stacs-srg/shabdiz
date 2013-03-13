@@ -43,7 +43,7 @@ public final class TestJobRemoteFactory {
 
     /**
      * Makes a remote job which echos the given message.
-     *
+     * 
      * @param message_to_echo the message to echo
      * @return the job which echos the given message
      */
@@ -54,7 +54,7 @@ public final class TestJobRemoteFactory {
 
     /**
      * Makes a remote job which throws the given exception.
-     *
+     * 
      * @param exception_to_throw the exception to throw
      * @return the job which throws the given exception
      */
@@ -62,29 +62,34 @@ public final class TestJobRemoteFactory {
 
         return new ThrowExceptionRemoteJob(exception_to_throw);
     }
-}
 
-final class EchoRemoteJob implements JobRemote<String> {
+    public static final class EchoRemoteJob implements JobRemote<String> {
 
-    private final String message_to_echo;
+        private final String message_to_echo;
 
-    EchoRemoteJob(final String message_to_echo) {
+        public EchoRemoteJob(final String message_to_echo) {
 
-        this.message_to_echo = message_to_echo;
-    }
+            this.message_to_echo = message_to_echo;
+        }
 
-    private static final transient long serialVersionUID = -8715065957655698996L;
+        private static final transient long serialVersionUID = -8715065957655698996L;
 
-    @Override
-    public String call() throws Exception {
+        @Override
+        public String call() throws Exception {
 
-        return message_to_echo;
+            return message_to_echo;
+        }
     }
 }
 
 final class ThrowExceptionRemoteJob implements JobRemote<String> {
 
-    private final Exception exception_to_throw;
+    public Exception exception_to_throw;
+
+
+    public ThrowExceptionRemoteJob() {
+
+    }
 
     ThrowExceptionRemoteJob(final Exception exception_to_throw) {
 

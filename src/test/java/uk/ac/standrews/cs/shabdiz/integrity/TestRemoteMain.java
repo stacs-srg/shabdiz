@@ -6,7 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
@@ -94,7 +94,7 @@ public class TestRemoteMain {
             try {
                 worker.shutdown();
             }
-            catch (final RPCException e) {
+            catch (final JsonRpcException e) {
                 //ignore; expected
             }
         }

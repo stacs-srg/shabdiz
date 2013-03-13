@@ -33,7 +33,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
@@ -109,9 +109,10 @@ public class NormalOperationTest {
             future.get(); // Expect the execution exception to be thrown
         }
         catch (final ExecutionException e) {
-            Assert.assertTrue(e.getCause() != null);
-            Assert.assertTrue(e.getCause() instanceof NullPointerException);
-            Assert.assertTrue(e.getCause().getMessage().equals(TEST_EXCEPTION_MESSAGE));
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause != null);
+            Assert.assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
+            Assert.assertEquals(NullPointerException.class, cause.getClass());
         }
     }
 
@@ -126,7 +127,7 @@ public class NormalOperationTest {
         try {
             worker.shutdown();
         }
-        catch (final RPCException e) {
+        catch (final JsonRpcException e) {
             //ignore; expected.
         }
         launcher.shutdown();

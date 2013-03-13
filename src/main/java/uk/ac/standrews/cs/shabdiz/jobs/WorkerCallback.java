@@ -23,6 +23,7 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 import java.io.Serializable;
 import java.util.UUID;
 
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
@@ -30,7 +31,7 @@ import uk.ac.standrews.cs.nds.rpc.RPCException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-interface WorkerCallback {
+public interface WorkerCallback {
 
     /**
      * Notifies the launcher about the result of a completed job.
@@ -39,7 +40,8 @@ interface WorkerCallback {
      * @param result the result of the completed job
      * @throws RPCException if unable to contact the correspondence
      */
-    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
+
+    void notifyCompletion(UUID job_id, Serializable result) throws JsonRpcException;
 
     /**
      * Notifies the launcher about the exception resulted by executing a job.
@@ -48,5 +50,5 @@ interface WorkerCallback {
      * @param exception the exception which occurred when trying to execute a job
      * @throws RPCException if unable to contact the correspondence
      */
-    void notifyException(UUID job_id, Exception exception) throws RPCException;
+    void notifyException(UUID job_id, Exception exception) throws JsonRpcException;
 }

@@ -25,35 +25,35 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
 
 /**
- * Implements a passive mechanism by which a {@link DefaultWorker} can be contacted.
+ * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class DefaultWorker implements Worker {
+class DefaultWorkerWrapper implements Worker {
 
-    private final InetSocketAddress worker_address;
-    private final WorkerNetwork launcher;
+    private final WorkerNetwork network;
     private final Process worker_process;
-    private final WorkerRemoteProxy worker_proxy;
+    private final WorkerRemote proxy;
+    private final InetSocketAddress worker_address;
 
     /**
      * Instantiates a new worker which is contacted passively.
      * 
      * @param worker_remote the worker remote to wrap
-     * @param launcher the launcher by which the remote correspondence of this worker is launched
+     * @param network the launcher by which the remote correspondence of this worker is launched
      * @param worker_process
      */
-    DefaultWorker(final WorkerNetwork launcher, final InetSocketAddress worker_address, final Process worker_process) {
+    DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
 
-        this.worker_address = worker_address;
-        this.launcher = launcher;
+        this.network = network;
+        this.proxy = proxy;
         this.worker_process = worker_process;
-        worker_proxy = WorkerRemoteProxyFactory.getProxy(worker_address);
+        this.worker_address = worker_address;
     }
 
     @Override
@@ -63,19 +63,21 @@ class DefaultWorker implements Worker {
     }
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws RPCException {
+    public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws JsonRpcException {
 
-        final UUID job_id = worker_proxy.submitJob(job);
-        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, worker_address);
-        launcher.notifyJobSubmission(future_remote);
-        return future_remote;
+        synchronized (network) {
+            final UUID job_id = proxy.submitJob(job);
+            final PassiveFutureRemoteProxy<Result> future_remote = new PassiveFutureRemoteProxy<Result>(job_id, proxy);
+            network.notifyJobSubmission(future_remote);
+            return future_remote;
+        }
     }
 
     @Override
-    public void shutdown() throws RPCException {
+    public void shutdown() throws JsonRpcException {
 
         try {
-            worker_proxy.shutdown();
+            proxy.shutdown();
         }
         finally {
             worker_process.destroy();
@@ -87,7 +89,7 @@ class DefaultWorker implements Worker {
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + (launcher == null ? 0 : launcher.hashCode());
+        result = prime * result + (network == null ? 0 : network.hashCode());
         result = prime * result + (worker_address == null ? 0 : worker_address.hashCode());
         return result;
     }
@@ -99,17 +101,17 @@ class DefaultWorker implements Worker {
         if (obj == null) { return false; }
         if (getClass() != obj.getClass()) { return false; }
 
-        final DefaultWorker other = (DefaultWorker) obj;
+        final DefaultWorkerWrapper other = (DefaultWorkerWrapper) obj;
 
         if (worker_address == null) {
             if (other.worker_address != null) { return false; }
         }
         else if (!worker_address.equals(other.worker_address)) { return false; }
 
-        if (launcher == null) {
-            if (other.launcher != null) { return false; }
+        if (network == null) {
+            if (other.network != null) { return false; }
         }
-        else if (!launcher.equals(other.launcher)) { return false; }
+        else if (!network.equals(other.network)) { return false; }
 
         return true;
     }
@@ -118,11 +120,5 @@ class DefaultWorker implements Worker {
     public int compareTo(final Worker other) {
 
         return getAddress().toString().compareTo(other.getAddress().toString());
-    }
-
-    @Override
-    public void ping() throws RPCException {
-
-        worker_proxy.ping();
     }
 }
