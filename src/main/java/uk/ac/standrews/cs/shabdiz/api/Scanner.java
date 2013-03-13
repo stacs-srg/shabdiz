@@ -20,9 +20,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
@@ -34,29 +31,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 public interface Scanner<T extends ApplicationDescriptor> {
 
     /**
-     * Add a {@link PropertyChangeListener} for a specific property.
-     * For each property, the listener will be invoked the number of times it was added for that property.
-     * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
-     * 
-     * @param property_name The name of the property to listen on
-     * @param listener the listener to be added
-     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
-     */
-    void addPropertyChangeListener(String property_name, PropertyChangeListener listener);
-
-    /**
-     * Remove a {@link PropertyChangeListener} for a specific property.
-     * If {@code property_name} is null, no exception is thrown and no action is taken.
-     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
-     * 
-     * @param property_name The name of the property that was listened on
-     * @param listener the listener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
-     */
-    void removePropertyChangeListener(String property_name, PropertyChangeListener listener);
-
-    /**
-     * Scans the {@link ApplicationNetwork network} for an application-specific change.
+     * Scans the {@link ApplicationNetwork network} for a change.
      */
     void scan();
 

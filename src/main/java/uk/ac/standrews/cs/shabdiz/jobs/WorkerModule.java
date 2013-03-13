@@ -116,17 +116,10 @@ class WorkerModule extends SimpleModule {
             final ClassKey key = new ClassKey(cls);
 
             if (cls.isInterface()) {
-                if (_interfaceMappings != null) {
-                    System.out.println(key);
-                    return _interfaceMappings.get(key);
-                }
+                if (_interfaceMappings != null) { return _interfaceMappings.get(key); }
             }
             else {
-                if (_classMappings != null) {
-                    System.out.println(key);
-
-                    return _classMappings.get(key);
-                }
+                if (_classMappings != null) { return _classMappings.get(key); }
             }
             return null;
         }

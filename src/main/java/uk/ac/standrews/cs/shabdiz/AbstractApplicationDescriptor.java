@@ -85,13 +85,28 @@ public abstract class AbstractApplicationDescriptor implements ApplicationDescri
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
-    @Override
+    /**
+     * Adds a {@link PropertyChangeListener} for a specific property.
+     * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
+     * 
+     * @param property_name The name of the property to listen on
+     * @param listener the listener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
+     */
     public void addPropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
 
         property_change_support.addPropertyChangeListener(property_name, listener);
     }
 
-    @Override
+    /**
+     * Removes a {@link PropertyChangeListener} for a specific property.
+     * If {@code property_name} is null, no exception is thrown and no action is taken.
+     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
+     * 
+     * @param property_name The name of the property that was listened on
+     * @param listener the listener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
+     */
     public void removePropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
 
         property_change_support.removePropertyChangeListener(property_name, listener);

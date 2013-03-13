@@ -126,7 +126,6 @@ public class DefaultWorkerRemote implements WorkerRemote {
             submitted_jobs.remove(job_id);
         }
         catch (final JsonRpcException e) {
-            e.printStackTrace();
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.log(Level.SEVERE, "failed to notify job completion with the ID " + job_id, e);
         }

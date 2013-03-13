@@ -106,7 +106,7 @@ public interface Host extends Closeable {
      * Closes the streams that are used to manage this host and releases any system resources associated with them.
      * If this host is already closed then invoking this method has no effect.
      * 
-     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws IOException {@inheritDoc}
      */
     @Override
     void close() throws IOException;
