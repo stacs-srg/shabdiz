@@ -18,34 +18,33 @@
  *
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
-package uk.ac.standrews.cs.shabdiz.api;
+package uk.ac.standrews.cs.shabdiz.credentials;
+
+import java.io.IOException;
+
 
 /**
- * Presents a probe hook that is capable of deploying an application instance on a {@link Host host}.
+ * Stores the credentials and authenticates a given object.
  * 
+ * @param <Authenticatee> the type of the object that can by authenticated by {@link #authenticate(Object)}
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * @see DeployableNetwork
+ * @see Credentials
  */
-public interface DeployHook extends ProbeHook {
+public interface Credential<Authenticatee> {
 
     /**
-     * Deploys the instance of some application that is presented by this hook.
+     * Authenticates a given object.
      * 
-     * @throws Exception if deployment fails
+     * @param authenticatee the object to authenticate
+     * @throws IOException Signals that an I/O exception has occurred.
      */
-    void deploy() throws Exception;
+    void authenticate(Authenticatee authenticatee) throws IOException;
 
     /**
-     * Terminates the application instance that is presented by this hook.
+     * Gets the username.
      * 
-     * @throws Exception if termination fails
+     * @return the username
      */
-    void kill() throws Exception;
+    String getUsername();
 
-    /**
-     * Gets the host on which the application instance is to run or running.
-     * 
-     * @return the host on which the application instance is to run or running
-     */
-    Host getHost();
 }

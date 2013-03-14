@@ -51,7 +51,6 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.AbstractDeployableNetwork;
-import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -301,11 +300,5 @@ public class WorkerNetwork extends AbstractDeployableNetwork<RemoteWorkerDescrip
                 return worker_address;
             }
         });
-    }
-
-    @Override
-    protected RemoteWorkerDescriptor newApplicationDescriptorFromHost(final Host host) {
-
-        return new RemoteWorkerDescriptor(host);
     }
 }

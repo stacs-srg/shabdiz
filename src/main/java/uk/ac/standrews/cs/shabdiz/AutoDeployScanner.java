@@ -23,9 +23,8 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.DeployHook;
-import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that
@@ -34,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoDeployScanner<T extends DeployHook> extends AbstractConcurrentScanner<T> {
+public class AutoDeployScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
@@ -43,9 +42,9 @@ public class AutoDeployScanner<T extends DeployHook> extends AbstractConcurrentS
         super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
     }
 
-    protected boolean isDeployable(final ProbeHook application_descriptor) {
+    protected boolean isDeployable(final T application_descriptor) {
 
-        return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
+        return ApplicationState.AUTH.equals(application_descriptor.getCachedApplicationState());
     }
 
     @Override
@@ -53,7 +52,8 @@ public class AutoDeployScanner<T extends DeployHook> extends AbstractConcurrentS
 
         if (isEnabled() && isDeployable(application_descriptor)) {
             try {
-                application_descriptor.deploy();
+                final Object deploy = application_descriptor.getApplicationManager().deploy(application_descriptor.getHost());
+                application_descriptor.setApplicationReference(deploy);
             }
             catch (final Exception e) {
                 // TODO Auto-generated catch block

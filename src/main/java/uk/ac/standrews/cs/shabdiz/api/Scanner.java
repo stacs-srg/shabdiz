@@ -25,10 +25,10 @@ import uk.ac.standrews.cs.nds.util.Duration;
 /**
  * Scans a {@link DeployableNetwork network} for an application-specific change.
  * 
- * @param <T> the type of {@link ProbeHook applications} to scan
+ * @param <T> the type of {@link ApplicationDescriptor applications} to scan
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Scanner<T extends ProbeHook> {
+public interface Scanner<T extends ApplicationDescriptor<?>> {
 
     /**
      * Scans the {@link DeployableNetwork network} for a change.

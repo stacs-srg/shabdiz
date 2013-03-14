@@ -27,7 +27,7 @@ import uk.ac.standrews.cs.shabdiz.StatusScanner;
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * @see ProbeHook
+ * @see ApplicationDescriptor
  * @see StatusScanner
  */
 public enum ApplicationState {

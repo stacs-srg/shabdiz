@@ -32,14 +32,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 
 /**
  * A host scanner that concurrently scans a given collection of hosts.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractConcurrentScanner<T extends ProbeHook> extends AbstractScanner<T> {
+public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor<?>> extends AbstractScanner<T> {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractConcurrentScanner.class.getName());
 

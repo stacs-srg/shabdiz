@@ -20,28 +20,20 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 /**
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see DeployableNetwork
  */
-public interface ProbeHook extends Closeable {
+public interface ApplicationDescriptor<ApplicationReference> {
 
-    /**
-     * Attempts to probe whether this application is {@link ApplicationState#RUNNING running}.
-     * 
-     * @throws Exception if the application is not {@link ApplicationState#RUNNING running}
-     */
-    void ping() throws Exception;
+    ApplicationManager<ApplicationReference> getApplicationManager();
 
     /**
      * Gets the last cached {@link ApplicationState state} of this application instance.
      * 
      * @return the last cached {@link ApplicationState state} of this application instance
      */
-    ApplicationState getApplicationState();
+    ApplicationState getCachedApplicationState();
 
     /**
      * Sets the {@link ApplicationState state} of this application instance.
@@ -51,9 +43,13 @@ public interface ProbeHook extends Closeable {
     void setApplicationState(ApplicationState state);
 
     /**
-     * Closes this hook and any streams that are used by this hook.
-     * If the hook is already closed then invoking this method has no effect.
+     * Gets the host on which the application instance is to run or running.
+     * 
+     * @return the host on which the application instance is to run or running
      */
-    @Override
-    void close() throws IOException;
+    Host getHost();
+
+    void setApplicationReference(ApplicationReference reference);
+
+    ApplicationReference getApplicationReference();
 }

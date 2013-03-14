@@ -20,13 +20,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.DeployableNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
-public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDescriptor> extends ConcurrentSkipListSet<T> implements DeployableNetwork<T> {
+public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractDeployableNetwork.class.getName());
 
@@ -59,15 +59,6 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
         addScanner(auto_deploy_scanner);
         addScanner(auto_remove_scanner);
         addScanner(status_scanner);
-    }
-
-    protected abstract T newApplicationDescriptorFromHost(Host host);
-
-    @Override
-    public boolean add(final Host host) {
-
-        final T application_descriptor = newApplicationDescriptorFromHost(host);
-        return add(application_descriptor);
     }
 
     @Override
@@ -135,7 +126,7 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
         final Iterator<T> application_descriptors = iterator();
         final List<CountDownLatch> latches = new ArrayList<CountDownLatch>();
         while (application_descriptors.hasNext()) {
-            final AbstractApplicationDescriptor application_descriptor = application_descriptors.next();
+            final DefaultApplicationDescriptor application_descriptor = application_descriptors.next();
             //Create a latch per listener since we cannot know the number of application descriptors
             final CountDownLatch latch = new CountDownLatch(1);
 
@@ -145,15 +136,15 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
                     @Override
                     public void propertyChange(final PropertyChangeEvent evt) {
 
-                        if (evt.getPropertyName().equals(AbstractProbeHook.STATE_PROPERTY_NAME)) {
+                        if (evt.getPropertyName().equals(DefaultApplicationDescriptor.STATE_PROPERTY_NAME)) {
                             if (application_descriptor.isInState(states)) {
                                 latch.countDown();
-                                application_descriptor.removePropertyChangeListener(AbstractProbeHook.STATE_PROPERTY_NAME, this);
+                                application_descriptor.removePropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, this);
                             }
                         }
                     }
                 };
-                application_descriptor.addPropertyChangeListener(AbstractProbeHook.STATE_PROPERTY_NAME, state_change);
+                application_descriptor.addPropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, state_change);
                 latches.add(latch);
             }
         }
@@ -203,7 +194,7 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
         return scheduled_scanners.put(scanner, scheduled_scanner) == null;
     }
 
-    private boolean isAddable(final Scanner<? extends ProbeHook> scanner) {
+    private boolean isAddable(final Scanner<? extends ApplicationDescriptor> scanner) {
 
         return !scheduled_scanners.containsKey(scanner);
     }
@@ -274,9 +265,7 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
         }
 
         for (final T application_descriptor : this) {
-            for (final Process p : application_descriptor.getProcesses()) {
-                p.destroy();
-            }
+            application_descriptor.kill();
             try {
                 application_descriptor.getHost().close();
             }
@@ -284,6 +273,5 @@ public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDes
                 LOGGER.log(Level.WARNING, "failed to close host", e);
             }
         }
-
     }
 }
