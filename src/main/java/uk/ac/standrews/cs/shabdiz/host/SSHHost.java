@@ -114,7 +114,7 @@ public class SSHHost extends AbstractHost {
     private void uploadRecursively(final ChannelSftp sftp, final Collection<File> files) throws IOException {
 
         for (final File file : files) {
-            LOGGER.info("Uploading: " + file.getAbsolutePath());
+            LOGGER.fine("Uploading: " + file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
             }
@@ -375,7 +375,7 @@ public class SSHHost extends AbstractHost {
         private void kill() throws IOException, InterruptedException {
 
             final String kill_command = assembleKillCommand();
-            LOGGER.info(kill_command);
+            LOGGER.fine(kill_command);
             final ChannelExec kill_channel = openSSHChannel(ChannelType.EXEC);
             try {
                 kill_channel.setCommand(kill_command);

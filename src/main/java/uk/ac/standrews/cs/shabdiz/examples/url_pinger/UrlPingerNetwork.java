@@ -1,25 +1,15 @@
 package uk.ac.standrews.cs.shabdiz.examples.url_pinger;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.DefaultApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
 
 public class UrlPingerNetwork extends AbstractApplicationNetwork<DefaultApplicationDescriptor> {
 
-    private static final class PrintNewAndOldStateListener implements PropertyChangeListener {
-
-        @Override
-        public void propertyChange(final PropertyChangeEvent evt) {
-
-            System.out.println("State of " + evt.getSource() + " changed from " + evt.getOldValue() + " to " + evt.getNewValue());
-        }
-    }
-
-    private static final PrintNewAndOldStateListener PRINT_LISTENER = new PrintNewAndOldStateListener();
+    private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
 
     public UrlPingerNetwork() {
 

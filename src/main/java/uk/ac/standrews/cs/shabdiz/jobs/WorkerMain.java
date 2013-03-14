@@ -33,13 +33,13 @@ import java.util.logging.Logger;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
 import uk.ac.standrews.cs.nds.util.CommandLineArgs;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.ErrorHandling;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
+import uk.ac.standrews.cs.shabdiz.zold.util.ProcessUtil;
 
 /**
  * THe entry point to start up a new worker.
@@ -48,8 +48,8 @@ import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
  */
 public class WorkerMain {
 
+    public static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
     private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
-    private static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS=";
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
     private static final String THREAD_POOL_SIZE_KEY = "-t";
@@ -115,9 +115,7 @@ public class WorkerMain {
 
     private static void printWorkerAddress(final DefaultWorkerRemote worker) {
 
-        synchronized (System.out) {
-            System.out.println(WORKER_REMOTE_ADDRESS_KEY + worker.getAddress());
-        }
+        ProcessUtil.printValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
     }
 
     public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port, final Integer thread_pool_size, final Duration socket_read_timeout) {
@@ -135,11 +133,6 @@ public class WorkerMain {
             arguments.add(SOCKET_READ_TIMEOUT + socket_read_timeout);
         }
         return arguments;
-    }
-
-    public static InetSocketAddress parseOutputLine(final String line) throws UnknownHostException {
-
-        return line != null && line.startsWith(WORKER_REMOTE_ADDRESS_KEY) ? Marshaller.getAddress(line.split("=")[1]) : null;
     }
 
     /**

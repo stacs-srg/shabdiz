@@ -97,6 +97,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         while (process_iterator.hasNext()) {
             final Process process = process_iterator.next();
             process.destroy();
+            process_iterator.remove();
         }
     }
 }

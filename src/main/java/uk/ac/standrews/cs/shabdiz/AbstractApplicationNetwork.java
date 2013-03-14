@@ -97,6 +97,13 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     @Override
     public void kill(final T member) {
 
+        try {
+            member.getApplicationManager().kill(member);
+        }
+        catch (final Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
     }
 

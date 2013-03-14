@@ -90,7 +90,7 @@ public class LocalHost extends AbstractHost {
 
     private void copy(final File source, final File destination) throws IOException {
 
-        LOGGER.info("copying: " + source.getName() + "\tto: " + destination.getPath());
+        LOGGER.fine("copying: " + source.getName() + "\tto: " + destination.getPath());
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }
