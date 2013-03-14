@@ -17,7 +17,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.zold.util.ObjectStore;
 
-public class TestRemoteMain {
+public class SupervisedRemoteTest {
 
     private static final class VerifyStoredTestDirJob implements JobRemote<Boolean> {
 

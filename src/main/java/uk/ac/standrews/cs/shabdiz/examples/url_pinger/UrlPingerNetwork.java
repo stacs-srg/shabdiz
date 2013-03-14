@@ -1,85 +1,51 @@
 package uk.ac.standrews.cs.shabdiz.examples.url_pinger;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.shabdiz.AbstractDeployableNetwork;
+import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.DefaultApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Host;
 
-public class UrlPingerNetwork extends AbstractDeployableNetwork<DefaultApplicationDescriptor> {
+public class UrlPingerNetwork extends AbstractApplicationNetwork<DefaultApplicationDescriptor> {
+
+    private static final class PrintNewAndOldStateListener implements PropertyChangeListener {
+
+        @Override
+        public void propertyChange(final PropertyChangeEvent evt) {
+
+            System.out.println("State of " + evt.getSource() + " changed from " + evt.getOldValue() + " to " + evt.getNewValue());
+        }
+    }
+
+    private static final PrintNewAndOldStateListener PRINT_LISTENER = new PrintNewAndOldStateListener();
 
     public UrlPingerNetwork() {
 
         super("URL Pinger Network");
     }
 
-    @Override
-    public void deploy(final DefaultApplicationDescriptor application_descriptor) throws IOException, InterruptedException, TimeoutException {
+    public static void main(final String[] args) throws MalformedURLException {
 
-        //ignore;
+        final UrlPingerNetwork network = new UrlPingerNetwork();
+        final URL[] targets = {new URL("http://www.google.co.uk"), new URL("http://www.cs.st-andrews.ac.uk"), new URL("http://maven.cs.st-andrews.ac.uk"), new URL("http://www.bbc.co.uk/news/"), new URL("http://quicksilver.hg.cs.st-andrews.ac.uk")};
 
-    }
-}
-
-class UrlPingerApplicationManager implements ApplicationManager<Void> {
-
-    private final URL target;
-
-    public UrlPingerApplicationManager(final URL target) {
-
-        validateTarget(target);
-        this.target = target;
+        configureUrlPingerNetwork(network, targets);
     }
 
-    private void validateTarget(final URL target) {
+    private static void configureUrlPingerNetwork(final UrlPingerNetwork network, final URL[] targets) throws MalformedURLException {
 
-        if (!target.getProtocol().toLowerCase().equals("http")) { throw new IllegalArgumentException("HTTP urls only"); }
-    }
-
-    @Override
-    public ApplicationState getApplicationState(final ApplicationDescriptor descriptor) {
-
-        HttpURLConnection connection = null;
-        try {
-            connection = (HttpURLConnection) target.openConnection();
-            connection.setRequestMethod("GET");
-
-            connection.connect();
-            final int response_code = connection.getResponseCode();
-            switch (response_code) {
-                case HttpURLConnection.HTTP_OK:
-                    return ApplicationState.RUNNING;
-                default:
-                    return ApplicationState.UNKNOWN;
-            }
-        }
-        catch (final Exception e) {
-            return ApplicationState.UNREACHABLE;
-        }
-        finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
+        for (final URL url : targets) {
+            final UrlPingerDescriptor descriptor = createUrlPingerDescriptor(url);
+            network.add(descriptor);
         }
     }
 
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+    private static UrlPingerDescriptor createUrlPingerDescriptor(final URL url) throws MalformedURLException {
 
-        throw new UnsupportedOperationException();
-
+        final UrlPingerDescriptor descriptor = new UrlPingerDescriptor(url);
+        descriptor.addPropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, PRINT_LISTENER);
+        return descriptor;
     }
-
-    @Override
-    public Void deploy(final Host host) throws Exception {
-
-        throw new UnsupportedOperationException();
-    }
-
 }

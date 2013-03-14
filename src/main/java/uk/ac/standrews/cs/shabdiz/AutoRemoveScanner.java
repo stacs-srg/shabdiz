@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoRemoveScanner<T extends ApplicationDescriptor<?>> extends AbstractConcurrentScanner<T> {
+public class AutoRemoveScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
     private static final Duration DROP_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 

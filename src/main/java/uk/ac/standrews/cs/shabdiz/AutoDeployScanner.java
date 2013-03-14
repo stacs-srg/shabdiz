@@ -52,8 +52,7 @@ public class AutoDeployScanner<T extends ApplicationDescriptor> extends Abstract
 
         if (isEnabled() && isDeployable(application_descriptor)) {
             try {
-                final Object deploy = application_descriptor.getApplicationManager().deploy(application_descriptor.getHost());
-                application_descriptor.setApplicationReference(deploy);
+                application_descriptor.getApplicationManager().deploy(application_descriptor);
             }
             catch (final Exception e) {
                 // TODO Auto-generated catch block

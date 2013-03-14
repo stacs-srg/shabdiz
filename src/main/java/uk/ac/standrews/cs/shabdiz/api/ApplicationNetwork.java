@@ -30,7 +30,7 @@ import java.util.concurrent.TimeoutException;
  * @param <Descriptor> the type of {@link ApplicationDescriptor hooks} that are maintained by this network
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor<?>> extends Set<Descriptor> {
+public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> extends Set<Descriptor> {
 
     /**
      * Gets the name of this application.
@@ -46,8 +46,9 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor<?>>
      * @throws IOException Signals that an I/O exception has occurred
      * @throws InterruptedException if interrupted while waiting for deployment to complete
      * @throws TimeoutException if the deployment times out
+     * @throws Exception
      */
-    void deploy(Descriptor application_descriptor) throws IOException, InterruptedException, TimeoutException;
+    void deploy(Descriptor application_descriptor) throws IOException, InterruptedException, TimeoutException, Exception;
 
     /**
      * Attempts to {@link #deploy(ApplicationDescriptor) deploy} the application instances that are maintained by this network.

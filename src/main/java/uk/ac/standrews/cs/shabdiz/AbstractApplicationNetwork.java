@@ -26,9 +26,9 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
-public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
+public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractDeployableNetwork.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractApplicationNetwork.class.getName());
 
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
@@ -43,7 +43,7 @@ public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDesc
     private final AutoRemoveScanner<T> auto_remove_scanner;
     private final StatusScanner<T> status_scanner;
 
-    public AbstractDeployableNetwork(final String application_name) {
+    public AbstractApplicationNetwork(final String application_name) {
 
         this.application_name = application_name;
         scheduled_scanners = new HashMap<Scanner<? extends T>, ScheduledFuture<?>>();
@@ -69,15 +69,7 @@ public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDesc
             try {
                 deploy(applciation_descriptor);
             }
-            catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            catch (final InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            catch (final TimeoutException e) {
+            catch (final Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -105,11 +97,7 @@ public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDesc
     @Override
     public void kill(final T member) {
 
-        final Iterator<Process> process_iterator = member.getProcesses().iterator();
-        while (process_iterator.hasNext()) {
-            final Process process = process_iterator.next();
-            process.destroy();
-        }
+
     }
 
     @Override
@@ -273,5 +261,12 @@ public abstract class AbstractDeployableNetwork<T extends DefaultApplicationDesc
                 LOGGER.log(Level.WARNING, "failed to close host", e);
             }
         }
+    }
+
+    @Override
+    public void deploy(final T application_descriptor) throws IOException, InterruptedException, TimeoutException, Exception {
+
+        application_descriptor.getApplicationManager().deploy(application_descriptor);
+
     }
 }

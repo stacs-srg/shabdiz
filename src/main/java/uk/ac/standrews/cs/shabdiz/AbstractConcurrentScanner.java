@@ -39,7 +39,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor<?>> extends AbstractScanner<T> {
+public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor> extends AbstractScanner<T> {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractConcurrentScanner.class.getName());
 

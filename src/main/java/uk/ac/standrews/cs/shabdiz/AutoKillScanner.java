@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScanner<T extends ApplicationDescriptor<?>> extends AbstractConcurrentScanner<T> {
+public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
 
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);

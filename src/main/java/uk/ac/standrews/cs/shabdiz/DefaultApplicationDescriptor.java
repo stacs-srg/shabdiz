@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
 
-public class DefaultApplicationDescriptor<ApplicationReference> implements ApplicationDescriptor<ApplicationReference>, Comparable<DefaultApplicationDescriptor<ApplicationReference>> {
+public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comparable<DefaultApplicationDescriptor> {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private final Long id; // used to resolve ties when comparing
@@ -44,14 +44,12 @@ public class DefaultApplicationDescriptor<ApplicationReference> implements Appli
     protected final PropertyChangeSupport property_change_support;
     public static final String STATE_PROPERTY_NAME = "state";
     private final ConcurrentSkipListSet<Process> processes;
-    private final ApplicationManager<ApplicationReference> application_manager;
-    private final AtomicReference<ApplicationReference> application_reference;
+    private final ApplicationManager application_manager;
 
-    public DefaultApplicationDescriptor(final Host host, final ApplicationManager<ApplicationReference> application_manager) {
+    public DefaultApplicationDescriptor(final Host host, final ApplicationManager application_manager) {
 
         this.application_manager = application_manager;
         id = generateId();
-        application_reference = new AtomicReference<ApplicationReference>();
         processes = new ConcurrentSkipListSet<Process>(new ProcessHashcodeComparator());
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         property_change_support = new PropertyChangeSupport(this);
@@ -71,19 +69,6 @@ public class DefaultApplicationDescriptor<ApplicationReference> implements Appli
     public ApplicationManager getApplicationManager() {
 
         return application_manager;
-    }
-
-    @Override
-    public void setApplicationReference(final ApplicationReference reference) {
-
-        application_reference.set(reference);
-
-    }
-
-    @Override
-    public ApplicationReference getApplicationReference() {
-
-        return application_reference.get();
     }
 
     @Override
@@ -109,7 +94,7 @@ public class DefaultApplicationDescriptor<ApplicationReference> implements Appli
     }
 
     @Override
-    public void setApplicationState(final ApplicationState new_state) {
+    public void setCachedApplicationState(final ApplicationState new_state) {
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);

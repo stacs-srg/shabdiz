@@ -24,15 +24,10 @@ package uk.ac.standrews.cs.shabdiz.api;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see DeployableNetwork
  */
-public interface ApplicationDescriptor {
+public interface ImplicitApplicationDescriptor {
 
-    ApplicationManager getApplicationManager();
+    ApplicationState getApplicationState();
 
-    /**
-     * Gets the last cached {@link ApplicationState state} of this application instance.
-     * 
-     * @return the last cached {@link ApplicationState state} of this application instance
-     */
     ApplicationState getCachedApplicationState();
 
     /**
@@ -40,7 +35,7 @@ public interface ApplicationDescriptor {
      * 
      * @param state the new {@link ApplicationState state} of this application instance
      */
-    void setCachedApplicationState(ApplicationState state);
+    void setApplicationState(ApplicationState state);
 
     /**
      * Gets the host on which the application instance is to run or running.
@@ -48,4 +43,9 @@ public interface ApplicationDescriptor {
      * @return the host on which the application instance is to run or running
      */
     Host getHost();
+
+    void deploy() throws Exception;
+
+    void kill() throws Exception;
+
 }
