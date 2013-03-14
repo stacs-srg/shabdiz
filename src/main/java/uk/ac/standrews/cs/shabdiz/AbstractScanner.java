@@ -25,8 +25,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
+import uk.ac.standrews.cs.shabdiz.api.ProbeNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
 /**
@@ -35,13 +35,13 @@ import uk.ac.standrews.cs.shabdiz.api.Scanner;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractScanner<T extends ApplicationDescriptor> implements Scanner<T> {
+public abstract class AbstractScanner<T extends ProbeHook> implements Scanner<T> {
 
     private final Duration delay;
     private final AtomicBoolean enabled;
     private final Duration timeout;
     protected final PropertyChangeSupport property_change_support;
-    private volatile ApplicationNetwork<T> application_network;
+    private volatile ProbeNetwork<T> application_network;
 
     protected AbstractScanner(final Duration delay, final Duration timeout, final boolean enabled) {
 
@@ -51,9 +51,14 @@ public abstract class AbstractScanner<T extends ApplicationDescriptor> implement
         property_change_support = new PropertyChangeSupport(this);
     }
 
-    void injectApplicationNetwork(final ApplicationNetwork<T> application_network) {
+    void setNetwork(final ProbeNetwork<T> application_network) {
 
         this.application_network = application_network;
+    }
+
+    ProbeNetwork<T> getNetwork() {
+
+        return application_network;
     }
 
     @Override
@@ -106,11 +111,5 @@ public abstract class AbstractScanner<T extends ApplicationDescriptor> implement
     public void removePropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
 
         property_change_support.removePropertyChangeListener(property_name, listener);
-    }
-
-    @Override
-    public final ApplicationNetwork<T> getApplicationNetwork() {
-
-        return application_network;
     }
 }

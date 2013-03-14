@@ -32,4 +32,11 @@ public class RemoteWorkerDescriptor extends AbstractApplicationDescriptor {
 
         worker_proxy.set(worker);
     }
+
+    @Override
+    public void deploy() {
+
+        // TODO Auto-generated method stub
+
+    }
 }

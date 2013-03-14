@@ -28,8 +28,8 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.DeployHook;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 
 /**
@@ -39,7 +39,7 @@ import uk.ac.standrews.cs.shabdiz.api.Host;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class StatusScanner<T extends DeployHook> extends AbstractConcurrentScanner<T> {
 
     /** The default timeout for attempted SSH connections. This value determined by experiment. */
     public static final Duration DEFAULT_SSH_CHECK_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
@@ -77,7 +77,7 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
                 final Host host = application_descriptor.getHost();
                 state = getStateFromHost(host);
             }
-            application_descriptor.setState(state);
+            application_descriptor.setApplicationState(state);
         }
     }
 

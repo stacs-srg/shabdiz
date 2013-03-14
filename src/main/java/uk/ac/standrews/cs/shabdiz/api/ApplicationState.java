@@ -23,11 +23,11 @@ package uk.ac.standrews.cs.shabdiz.api;
 import uk.ac.standrews.cs.shabdiz.StatusScanner;
 
 /**
- * The possible states of an {@link ApplicationDescriptor application}.
+ * The possible states of an application.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * @see ApplicationDescriptor
+ * @see ProbeHook
  * @see StatusScanner
  */
 public enum ApplicationState {

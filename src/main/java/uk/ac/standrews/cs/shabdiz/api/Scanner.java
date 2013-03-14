@@ -23,24 +23,17 @@ package uk.ac.standrews.cs.shabdiz.api;
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
- * Scans a {@link ApplicationNetwork network} for an application-specific change.
+ * Scans a {@link DeployableNetwork network} for an application-specific change.
  * 
- * @param <T> the type of {@link ApplicationDescriptor applications} to scan
+ * @param <T> the type of {@link ProbeHook applications} to scan
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Scanner<T extends ApplicationDescriptor> {
+public interface Scanner<T extends ProbeHook> {
 
     /**
-     * Scans the {@link ApplicationNetwork network} for a change.
+     * Scans the {@link DeployableNetwork network} for a change.
      */
     void scan();
-
-    /**
-     * Gets the application network to be scanned by this scanner.
-     * 
-     * @return the application network to be scanned by this scanner
-     */
-    ApplicationNetwork<T> getApplicationNetwork();
 
     /**
      * Gets the delay between the termination of one scan and the commencement of the next.

@@ -23,8 +23,8 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
 
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoRemoveScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class AutoRemoveScanner<T extends ProbeHook> extends AbstractConcurrentScanner<T> {
 
     private static final Duration DROP_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
@@ -51,7 +51,7 @@ public class AutoRemoveScanner<T extends ApplicationDescriptor> extends Abstract
     protected void scan(final T application_descriptor) {
 
         if (isEnabled() && isRemovable(application_descriptor)) {
-            getApplicationNetwork().remove(application_descriptor);
+            getNetwork().remove(application_descriptor);
         }
     }
 }

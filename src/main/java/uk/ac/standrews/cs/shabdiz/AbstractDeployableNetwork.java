@@ -20,21 +20,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.DeployableNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.api.ProbeHook;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
-public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
+public abstract class AbstractDeployableNetwork<T extends AbstractApplicationDescriptor> extends ConcurrentSkipListSet<T> implements DeployableNetwork<T> {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractApplicationNetwork.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractDeployableNetwork.class.getName());
 
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final String application_name;
-    private final Map<Scanner<T>, ScheduledFuture<?>> scheduled_scanners;
+    private final Map<Scanner<? extends T>, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledThreadPoolExecutor scanner_executor;
     private final ExecutorService concurrent_scanner_executor;
 
@@ -43,10 +43,10 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     private final AutoRemoveScanner<T> auto_remove_scanner;
     private final StatusScanner<T> status_scanner;
 
-    public AbstractApplicationNetwork(final String application_name) {
+    public AbstractDeployableNetwork(final String application_name) {
 
         this.application_name = application_name;
-        scheduled_scanners = new HashMap<Scanner<T>, ScheduledFuture<?>>();
+        scheduled_scanners = new HashMap<Scanner<? extends T>, ScheduledFuture<?>>();
         scanner_executor = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
 
@@ -122,7 +122,7 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     }
 
     @Override
-    public String getApplicationName() {
+    public String getName() {
 
         return application_name;
     }
@@ -145,15 +145,15 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
                     @Override
                     public void propertyChange(final PropertyChangeEvent evt) {
 
-                        if (evt.getPropertyName().equals(AbstractApplicationDescriptor.STATE_PROPERTY_NAME)) {
+                        if (evt.getPropertyName().equals(AbstractProbeHook.STATE_PROPERTY_NAME)) {
                             if (application_descriptor.isInState(states)) {
                                 latch.countDown();
-                                application_descriptor.removePropertyChangeListener(AbstractApplicationDescriptor.STATE_PROPERTY_NAME, this);
+                                application_descriptor.removePropertyChangeListener(AbstractProbeHook.STATE_PROPERTY_NAME, this);
                             }
                         }
                     }
                 };
-                application_descriptor.addPropertyChangeListener(AbstractApplicationDescriptor.STATE_PROPERTY_NAME, state_change);
+                application_descriptor.addPropertyChangeListener(AbstractProbeHook.STATE_PROPERTY_NAME, state_change);
                 latches.add(latch);
             }
         }
@@ -178,7 +178,7 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     }
 
     @Override
-    public boolean addScanner(final Scanner<T> scanner) {
+    public boolean addScanner(final Scanner<? extends T> scanner) {
 
         synchronized (scheduled_scanners) {
             return isAddable(scanner) ? add(scanner) : false;
@@ -193,23 +193,23 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
 
     private boolean injectSelfThenAdd(final AbstractScanner<T> scanner) {
 
-        scanner.injectApplicationNetwork(this);
+        scanner.setNetwork(this);
         return add(scanner);
     }
 
-    private boolean add(final Scanner<T> scanner) {
+    private boolean add(final Scanner<? extends T> scanner) {
 
         final ScheduledFuture<?> scheduled_scanner = scheduleScanner(scanner);
         return scheduled_scanners.put(scanner, scheduled_scanner) == null;
     }
 
-    private boolean isAddable(final Scanner<? extends ApplicationDescriptor> scanner) {
+    private boolean isAddable(final Scanner<? extends ProbeHook> scanner) {
 
         return !scheduled_scanners.containsKey(scanner);
     }
 
     @Override
-    public boolean removeScanner(final Scanner<T> scanner) {
+    public boolean removeScanner(final Scanner<? extends T> scanner) {
 
         final ScheduledFuture<?> scheduled_scanner;
         synchronized (scheduled_scanners) {
@@ -222,7 +222,7 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
     public void setScanEnabled(final boolean enabled) {
 
         synchronized (scheduled_scanners) {
-            for (final Scanner<T> scanner : scheduled_scanners.keySet()) {
+            for (final Scanner<? extends T> scanner : scheduled_scanners.keySet()) {
                 scanner.setEnabled(enabled);
             }
         }
@@ -246,12 +246,13 @@ public abstract class AbstractApplicationNetwork<T extends AbstractApplicationDe
         auto_remove_scanner.setEnabled(enabled);
     }
 
-    private ScheduledFuture<?> scheduleScanner(final Scanner<? extends ApplicationDescriptor> scanner) {
+    private ScheduledFuture<?> scheduleScanner(@SuppressWarnings("rawtypes") final Scanner scanner) {
 
         final Duration cycle_delay = scanner.getCycleDelay();
         final long cycle_delay_length = cycle_delay.getLength();
         return scanner_executor.scheduleWithFixedDelay(new Runnable() {
 
+            @SuppressWarnings("unchecked")
             @Override
             public void run() {
 

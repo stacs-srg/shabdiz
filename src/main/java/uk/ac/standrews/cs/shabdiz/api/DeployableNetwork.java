@@ -21,56 +21,22 @@
 package uk.ac.standrews.cs.shabdiz.api;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Maintains a set of {@link ApplicationDescriptor instances} across multiple {@link Host hosts}.
+ * Maintains a set of {@link DeployHook hooks} across multiple {@link Host hosts} which are capable of deploying an application instance.
  * 
- * @param <T> the type of {@link ApplicationDescriptor instances} that are maintained by this network
+ * @param <T> the type of {@link ProbeHook instances} that are maintained by this network
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set<T> {
+public interface DeployableNetwork<T extends DeployHook> extends ProbeNetwork<T> {
 
     /**
      * Gets the name of this application.
      * 
      * @return the name of this application
      */
-    String getApplicationName();
-
-    /**
-     * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
-     * 
-     * @param states the states which application instances must reach at least once
-     * @throws InterruptedException if the current thread is interrupted while waiting
-     */
-    void awaitAnyOfStates(ApplicationState... states) throws InterruptedException;
-
-    /**
-     * Adds the given {@code scanner} to the collection of this network's scanners.
-     * This method has no effect if the given {@code scanner} has already been added.
-     * 
-     * @param scanner the scanner to add
-     * @return true, if successfully added
-     */
-    boolean addScanner(Scanner<T> scanner);
-
-    /**
-     * Removes the given {@code scanner} from the collection of this network's scanners.
-     * This method has no effect if the given {@code scanner} does not exist in the collection of this network's scanners.
-     * 
-     * @param scanner the scanner to remove
-     * @return true, if successfully removed
-     */
-    boolean removeScanner(Scanner<T> scanner);
-
-    /**
-     * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
-     * 
-     * @param enabled if {@code true} enables all the scanners of this network, disables all the scanners otherwise
-     */
-    void setScanEnabled(boolean enabled);
+    String getName();
 
     /**
      * Sets the auto kill enabled.
@@ -102,7 +68,7 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     boolean add(Host host);
 
     /**
-     * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
+     * Attempts to deploy an application instance and sets the {@link ProbeHook#getApplicationReference() application reference} of the given application descriptor.
      * 
      * @param application_descriptor the application_descriptor
      * @throws IOException Signals that an I/O exception has occurred.
@@ -112,7 +78,7 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     void deploy(T application_descriptor) throws IOException, InterruptedException, TimeoutException;
 
     /**
-     * Attempts to {@link #deploy(ApplicationDescriptor) deploy} the application instances that are maintained by this network.
+     * Attempts to {@link #deploy(ProbeHook) deploy} the application instances that are maintained by this network.
      * 
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws InterruptedException if interrupted while waiting for deployment to complete
@@ -121,14 +87,14 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     void deployAll() throws IOException, InterruptedException, TimeoutException;
 
     /**
-     * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.
+     * Attempts to {@link Process#destroy() terminate} the {@link ProbeHook#getProcesses() processes} of the given {@code application_descriptor}.
      * 
      * @param application_descriptor the application instance to terminate
      */
     void kill(T application_descriptor);
 
     /**
-     * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
+     * Attempts to {@link #kill(ProbeHook) terminate} all the application instances that their {@link ProbeHook#getHost() host} is equal to the given {@code host}.
      * 
      * @param host the host on which to terminate the application instances
      */
@@ -140,9 +106,10 @@ public interface ApplicationNetwork<T extends ApplicationDescriptor> extends Set
     void killAll();
 
     /**
-     * Terminates and removes all the instances that are managed by this network.
+     * {@inheritDoc}
      * Attempts to kill all application processes and {@link Host#close() close} the hosts of application instances.
-     * After this method is called, this network is no longer usable.
+     * 
      */
+    @Override
     void shutdown();
 }

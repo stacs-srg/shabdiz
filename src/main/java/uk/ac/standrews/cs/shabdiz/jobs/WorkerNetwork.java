@@ -50,7 +50,7 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.AbstractDeployableNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
@@ -63,7 +63,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescriptor> implements WorkerCallback {
+public class WorkerNetwork extends AbstractDeployableNetwork<RemoteWorkerDescriptor> implements WorkerCallback {
 
     private static final long serialVersionUID = -8888064138251583848L;
 

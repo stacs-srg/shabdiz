@@ -20,39 +20,21 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
-import java.util.Collection;
-
-import uk.ac.standrews.cs.nds.rpc.interfaces.Pingable;
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
- * Provides references to the {@link Process processes} that belong to an application instance running on a {@link Host host}, a {@link Pingable reference} to the application instance and its {@link ApplicationState state}.
- * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * @see ApplicationNetwork
+ * @see DeployableNetwork
  */
-public interface ApplicationDescriptor {
-
-    /**
-     * Gets the host on which this application instance is to run or running.
-     * 
-     * @return the host on which the application instance is to be deployed.
-     */
-    Host getHost();
+public interface ProbeHook extends Closeable {
 
     /**
      * Attempts to probe whether this application is {@link ApplicationState#RUNNING running}.
      * 
      * @throws Exception if the application is not {@link ApplicationState#RUNNING running}
-     * @see Pingable#ping()
      */
     void ping() throws Exception;
-
-    /**
-     * Gets the processes that are started on this instance's {@link #getHost() host}.
-     * 
-     * @return the processes that are started on this instance's {@link #getHost() host}
-     */
-    Collection<Process> getProcesses();
 
     /**
      * Gets the last cached {@link ApplicationState state} of this application instance.
@@ -66,5 +48,12 @@ public interface ApplicationDescriptor {
      * 
      * @param state the new {@link ApplicationState state} of this application instance
      */
-    void setState(ApplicationState state);
+    void setApplicationState(ApplicationState state);
+
+    /**
+     * Closes this hook and any streams that are used by this hook.
+     * If the hook is already closed then invoking this method has no effect.
+     */
+    @Override
+    void close() throws IOException;
 }

@@ -23,8 +23,8 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.api.DeployHook;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class AutoKillScanner<T extends DeployHook> extends AbstractConcurrentScanner<T> {
 
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
@@ -52,9 +52,13 @@ public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractCo
     protected void scan(final T application_descriptor) {
 
         if (isEnabled() && isKillable(application_descriptor)) {
-
-            getApplicationNetwork().kill(application_descriptor);
+            try {
+                application_descriptor.kill();
+            }
+            catch (final Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
-
     }
 }
