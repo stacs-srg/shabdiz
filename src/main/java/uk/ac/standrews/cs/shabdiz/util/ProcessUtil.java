@@ -31,6 +31,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 
 public final class ProcessUtil {
 
+    private static final String UTF_8 = "UTF-8";
     private static final String DELIMITER = "=";
     private static final int NORMAL_TERMINATION = 0;
 
@@ -82,7 +83,7 @@ public final class ProcessUtil {
             public String call() throws Exception {
 
                 String worker_address;
-                final Scanner scanner = new Scanner(worker_process.getInputStream());
+                final Scanner scanner = new Scanner(worker_process.getInputStream(), UTF_8);
                 do {
                     final String output_line = scanner.nextLine();
                     worker_address = findValueInLine(output_line, key);
