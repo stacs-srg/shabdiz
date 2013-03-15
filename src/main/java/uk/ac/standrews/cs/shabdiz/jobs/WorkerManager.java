@@ -14,7 +14,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
-import uk.ac.standrews.cs.shabdiz.zold.util.ProcessUtil;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 class WorkerManager extends AbstractApplicationManager {
 
@@ -55,7 +55,7 @@ class WorkerManager extends AbstractApplicationManager {
 
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
 
-        final String address_as_string = ProcessUtil.getValueFromProcessOutput(worker_process, network.getExecutor(), WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
+        final String address_as_string = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
         return Marshaller.getAddress(address_as_string);
     }
 

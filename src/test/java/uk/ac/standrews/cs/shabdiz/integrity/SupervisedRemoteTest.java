@@ -15,7 +15,7 @@ import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.zold.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
 
 public class SupervisedRemoteTest {
 

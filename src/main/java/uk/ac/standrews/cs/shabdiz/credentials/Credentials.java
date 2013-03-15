@@ -70,7 +70,7 @@ public final class Credentials {
 
     private static SSHCredential newSSHPublicKeyCredential(final String username) throws IOException {
 
-        final File private_key = new File(Input.readLine("enter path to private key"));
+        final File private_key = new File(Input.readLine("enter full path to the private key"));
         final char[] passphrase = Input.readPassword("enter private key passphrase:");
         return new SSHPublicKeyCredential(username, private_key, passphrase);
     }

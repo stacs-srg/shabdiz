@@ -19,7 +19,7 @@
  * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
  */
 
-package uk.ac.standrews.cs.shabdiz.zold.util;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -27,8 +27,6 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.IOUtils;
@@ -60,47 +58,44 @@ public final class ProcessUtil {
         }
     }
 
-    public static String getValueFromProcessOutput(final Process process, final ExecutorService executor, final String key, final Duration timeout) throws InterruptedException, TimeoutException, IOException  {
+    public static String getValueFromProcessOutput(final Process process, final String key, final Duration timeout) throws InterruptedException, TimeoutException, IOException {
 
-        final Future<String> future_value = executeValueScan(process, executor, key);
         boolean scan_succeeded = false;
+        final Callable<String> scan_task = createProcessOutputScanTask(process, key);
         try {
-            final String value = future_value.get(timeout.getLength(), timeout.getTimeUnit());
+            final String value = TimeoutExecutorService.awaitCompletion(scan_task, timeout);
             scan_succeeded = true;
             return value;
         }
         catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
-            final Class<IOException> io_exception = IOException.class;
-            throw io_exception.isInstance(cause) ? io_exception.cast(cause) : new IOException(cause);
+            throw IOException.class.isInstance(cause) ? IOException.class.cast(cause) : new IOException(cause);
         }
         finally {
             if (!scan_succeeded) {
-                if (!future_value.isDone()) {
-                    future_value.cancel(true);
-                }
                 process.destroy();
             }
         }
     }
 
-    private static Future<String> executeValueScan(final Process worker_process, final ExecutorService executor, final String key) {
+    private static Callable<String> createProcessOutputScanTask(final Process worker_process, final String key) {
 
-        return executor.submit(new Callable<String>() {
+        return new Callable<String>() {
 
             @Override
             public String call() throws Exception {
 
                 String worker_address;
-                final Scanner scanner = new Scanner(worker_process.getInputStream()); // Scanner is not closed on purpose. The stream belongs to Process instance.
+                final Scanner scanner = new Scanner(worker_process.getInputStream());
                 do {
                     final String output_line = scanner.nextLine();
                     worker_address = findValueInLine(output_line, key);
                 }
                 while (worker_address == null && !Thread.currentThread().isInterrupted());
+                // Scanner is not closed on purpose. The stream belongs to Process instance.
                 return worker_address;
             }
-        });
+        };
     }
 
     public static void printValue(final PrintStream out, final String key, final Object value) {
@@ -111,6 +106,7 @@ public final class ProcessUtil {
     }
 
     private static String findValueInLine(final String line, final String key) throws UnknownHostException {
+
         return line != null && line.startsWith(key + DELIMITER) ? line.split(DELIMITER)[1] : null;
     }
 }

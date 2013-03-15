@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.zold.util.ProcessUtil;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;

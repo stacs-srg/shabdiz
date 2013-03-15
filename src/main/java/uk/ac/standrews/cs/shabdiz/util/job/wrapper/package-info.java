@@ -1,5 +1,5 @@
 /**
  * Provides wrappers for {@link uk.ac.standrews.cs.shabdiz.api.JobRemote}.
  */
-package uk.ac.standrews.cs.shabdiz.zold.util.job.wrapper;
+package uk.ac.standrews.cs.shabdiz.util.job.wrapper;
 

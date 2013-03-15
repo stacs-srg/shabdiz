@@ -23,8 +23,8 @@ package uk.ac.standrews.cs.shabdiz.zold.api;
 import java.util.List;
 import java.util.Set;
 
+import uk.ac.standrews.cs.shabdiz.util.URL;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
-import uk.ac.standrews.cs.shabdiz.zold.util.URL;
 
 /**
  * Provides remote management hooks for some application.

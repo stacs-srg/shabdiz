@@ -1,22 +1,18 @@
 /*
- * shabdiz Library
- * Copyright (C) 2013 Networks and Distributed Systems Research Group
- * <http://www.cs.st-andrews.ac.uk/research/nds>
- *
- * shabdiz is a free software: you can redistribute it and/or modify
+ * This file is part of Shabdiz.
+ * 
+ * Shabdiz is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * shabdiz is distributed in the hope that it will be useful,
+ * 
+ * Shabdiz is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
- * along with shabdiz.  If not, see <http://www.gnu.org/licenses/>.
- *
- * For more information, see <https://builds.cs.st-andrews.ac.uk/job/shabdiz/>.
+ * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
 package uk.ac.standrews.cs.shabdiz.zold.p2p.network;
 
@@ -44,11 +40,11 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.nds.util.Timing;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.URL;
 import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.DeploymentException;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.UnknownPlatformException;
 import uk.ac.standrews.cs.shabdiz.zold.exceptions.UnsupportedPlatformException;
-import uk.ac.standrews.cs.shabdiz.zold.util.URL;
 
 /**
  * Superclass for node factory implementations.
