@@ -30,7 +30,6 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
 
     /** The default timeout for attempted status checks. */
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
-
     private static final boolean ENABLED_BY_DEFAULT = true;
 
     protected StatusScanner(final Duration cycle_delay) {

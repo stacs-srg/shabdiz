@@ -28,7 +28,6 @@ import uk.ac.standrews.cs.shabdiz.api.Scanner;
 /**
  * Common scanner functionality.
  * 
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractScanner<T extends ApplicationDescriptor> implements Scanner<T> {

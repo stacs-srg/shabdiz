@@ -147,15 +147,13 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
                     @Override
                     public void propertyChange(final PropertyChangeEvent evt) {
 
-                        if (evt.getPropertyName().equals(DefaultApplicationDescriptor.STATE_PROPERTY_NAME)) {
-                            if (application_descriptor.isInState(states)) {
-                                latch.countDown();
-                                application_descriptor.removePropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, this);
-                            }
+                        if (application_descriptor.isInState(states)) {
+                            latch.countDown();
+                            application_descriptor.removeStateChangeListener(this);
                         }
                     }
                 };
-                application_descriptor.addPropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, state_change);
+                application_descriptor.addStateChangeListener(state_change);
                 latches.add(latch);
             }
         }

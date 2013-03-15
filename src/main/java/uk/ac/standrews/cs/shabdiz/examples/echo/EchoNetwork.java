@@ -19,7 +19,6 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 import java.io.IOException;
 
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
@@ -67,7 +66,7 @@ public class EchoNetwork extends AbstractApplicationNetwork<EchoApplicationDescr
     private static void addEchoServiceDescriptor(final EchoNetwork network, final Host host, final EchoApplicationManager application_manager) {
 
         final EchoApplicationDescriptor descriptor = new EchoApplicationDescriptor(host, application_manager);
-        descriptor.addPropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, PRINT_LISTENER);
+        descriptor.addStateChangeListener(PRINT_LISTENER);
         network.add(descriptor);
     }
 

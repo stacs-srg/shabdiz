@@ -5,3 +5,5 @@ syntax: regexp
 ^shabdiz\.iml$
 syntax: regexp
 ^target$
+syntax: regexp
+\.DS_Store$

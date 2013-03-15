@@ -51,7 +51,7 @@ public class UrlPingerNetwork extends AbstractApplicationNetwork<DefaultApplicat
     private static UrlPingerDescriptor createUrlPingerDescriptor(final URL url) throws MalformedURLException {
 
         final UrlPingerDescriptor descriptor = new UrlPingerDescriptor(url);
-        descriptor.addPropertyChangeListener(DefaultApplicationDescriptor.STATE_PROPERTY_NAME, PRINT_LISTENER);
+        descriptor.addStateChangeListener( PRINT_LISTENER);
         return descriptor;
     }
 }

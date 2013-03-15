@@ -38,7 +38,7 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     protected final PropertyChangeSupport property_change_support;
-    public static final String STATE_PROPERTY_NAME = "state";
+    private static final String STATE_PROPERTY_NAME = "state";
     private final ConcurrentSkipListSet<Process> processes;
     private final ApplicationManager application_manager;
 
@@ -97,30 +97,27 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
     }
 
     /**
-     * Adds a {@link PropertyChangeListener} for a specific property.
-     * If {@code property_name} or listener is {@code null} no exception is thrown and no action is taken.
+     * Adds a {@link PropertyChangeListener} for the {@link #getCachedApplicationState() cached state} property.
+     * If listener is {@code null} no exception is thrown and no action is taken.
      * 
-     * @param property_name The name of the property to listen on
      * @param listener the listener to be added
      * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
      */
-    public void addPropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
+    public void addStateChangeListener(final PropertyChangeListener listener) {
 
-        property_change_support.addPropertyChangeListener(property_name, listener);
+        property_change_support.addPropertyChangeListener(STATE_PROPERTY_NAME, listener);
     }
 
     /**
-     * Removes a {@link PropertyChangeListener} for a specific property.
-     * If {@code property_name} is null, no exception is thrown and no action is taken.
+     * Removes a {@link PropertyChangeListener} for the {@link #getCachedApplicationState() cached state} property.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
-     * @param property_name The name of the property that was listened on
      * @param listener the listener to be removed
      * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
      */
-    public void removePropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
+    public void removeStateChangeListener(final PropertyChangeListener listener) {
 
-        property_change_support.removePropertyChangeListener(property_name, listener);
+        property_change_support.removePropertyChangeListener(STATE_PROPERTY_NAME, listener);
     }
 
     /**
@@ -150,7 +147,7 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
     @Override
     public int compareTo(final DefaultApplicationDescriptor other) {
 
-        final int host_name_comparison = host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
+        final int host_name_comparison = host == null || other.host == null ? 0 : host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
         return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
     }
 
