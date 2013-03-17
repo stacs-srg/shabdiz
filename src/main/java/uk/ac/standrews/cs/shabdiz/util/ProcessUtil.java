@@ -95,7 +95,7 @@ public final class ProcessUtil {
         };
     }
 
-    public static void printValue(final PrintStream out, final String key, final Object value) {
+    public static void printKeyValue(final PrintStream out, final String key, final Object value) {
 
         synchronized (out) {
             out.println(key + DELIMITER + value);

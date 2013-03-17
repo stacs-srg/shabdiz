@@ -67,6 +67,7 @@ public class LocalHost extends AbstractHost {
 
         final List<String> command_list = prepareCommands(commands);
         final ProcessBuilder process_builder = new ProcessBuilder(command_list);
+        System.out.println(Arrays.toString(commands));
         return process_builder.start();
     }
 

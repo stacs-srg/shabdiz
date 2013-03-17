@@ -30,6 +30,7 @@ import org.apache.commons.io.FileUtils;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Platform;
 import uk.ac.standrews.cs.shabdiz.api.RemoteProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
 
 /**
  * The Class RemoteJavaProcessBuilder.
@@ -71,7 +72,19 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
 
         final String remote_working_directory = getRemoteWorkingDirectory(host);
-        host.upload(classpath, remote_working_directory);
+        LOGGER.info(remote_working_directory);
+        final File compressed_classpath = File.createTempFile("compressed_classpath", ".zip");
+        LOGGER.info(compressed_classpath.toString());
+        CompressionUtil.compress(classpath, compressed_classpath);
+        host.upload(compressed_classpath, remote_working_directory);
+        final Process unzip = host.execute("cd "+ remote_working_directory+ "; "+ "unzip -q -o "+ compressed_classpath.getName()+ ";");
+        try {
+            unzip.waitFor();
+        }
+        catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+        unzip.destroy();
         return remote_working_directory;
     }
 

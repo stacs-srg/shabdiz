@@ -33,7 +33,7 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> ex
      * 
      * @return the name of this application
      */
-    String getName();
+    String getApplicationName();
 
     /**
      * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
@@ -52,8 +52,9 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> ex
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws InterruptedException if interrupted while waiting for deployment to complete
      * @throws TimeoutException if the deployment times out
+     * @throws Exception
      */
-    void deployAll() throws IOException, InterruptedException, TimeoutException;
+    void deployAll() throws IOException, InterruptedException, TimeoutException, Exception;
 
     /**
      * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.

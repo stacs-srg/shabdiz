@@ -70,6 +70,8 @@ public class WorkerMain {
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
+        //        configureThreadPoolSize(arguments);
+        //        configureSocketReadTimeout(arguments);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -111,7 +113,7 @@ public class WorkerMain {
 
     private static void printWorkerAddress(final DefaultWorkerRemote worker) {
 
-        ProcessUtil.printValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
+        ProcessUtil.printKeyValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
     }
 
     public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port, final Integer thread_pool_size, final Duration socket_read_timeout) {
@@ -157,12 +159,8 @@ public class WorkerMain {
     private void configureLocalAddress(final Map<String, String> arguments) throws UnknownHostException {
 
         final String local_address_parameter = arguments.get(LOCAL_ADDRESS_KEY);
-        if (local_address_parameter != null) {
-            local_address = NetworkUtil.extractInetSocketAddress(local_address_parameter, 0);
-        }
-        else {
-            local_address = NetworkUtil.getLocalIPv4InetSocketAddress(0);
-        }
+        final int port = local_address_parameter != null ? NetworkUtil.extractPortNumber(local_address_parameter) : 0;
+        local_address = NetworkUtil.getLocalIPv4InetSocketAddress(port);
     }
 
     private void configureLauncherAddress(final Map<String, String> arguments) throws UnknownHostException {

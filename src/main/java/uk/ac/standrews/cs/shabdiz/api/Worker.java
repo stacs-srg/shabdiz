@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**
  * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
@@ -44,7 +43,7 @@ public interface Worker extends Comparable<Worker> {
      * @param <Result> the type of pending result
      * @param job the job to submit
      * @return the pending result of the job
-     * @throws RPCException if unable to make the remote call
+     * @throws JsonRpcException if unable to make the remote call
      * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
@@ -53,7 +52,7 @@ public interface Worker extends Comparable<Worker> {
     /**
      * Attempts to {@link Thread#interrupt() interrupt} any executing jobs. After this method is called any future job submission with be rejected.
      * 
-     * @throws RPCException if unable to make the remote call
+     * @throws JsonRpcException if unable to make the remote call
      */
     void shutdown() throws JsonRpcException;
 }

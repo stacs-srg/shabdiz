@@ -16,7 +16,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.examples.echo;
 
-import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
@@ -33,15 +33,15 @@ public class EchoNetwork extends AbstractApplicationNetwork<EchoApplicationDescr
         super("Echo Service Network");
     }
 
-    public static void main(final String[] args) throws IOException, InterruptedException {
+    public static void main(final String[] args) throws TimeoutException, Exception {
 
         final EchoNetwork network = new EchoNetwork();
         final EchoApplicationManager application_manager = new EchoApplicationManager();
         final LocalHost local_host = new LocalHost();
         addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
+        //        addEchoServiceDescriptor(network, local_host, application_manager);
+        //        addEchoServiceDescriptor(network, local_host, application_manager);
+        //        addEchoServiceDescriptor(network, local_host, application_manager);
         //        addEchoServiceDescriptor(network, new SSHHost("localhost", Credentials.newSSHCredential(true)), application_manager);
         //        addEchoServiceDescriptor(network, new SSHHost("beast.cs.st-andrews.ac.uk", Credentials.newSSHCredential(true)), application_manager);
         //        addEchoServiceDescriptor(network, new SSHHost("blub.cs.st-andrews.ac.uk", SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"))), application_manager);
@@ -63,11 +63,12 @@ public class EchoNetwork extends AbstractApplicationNetwork<EchoApplicationDescr
         network.shutdown();
     }
 
-    private static void addEchoServiceDescriptor(final EchoNetwork network, final Host host, final EchoApplicationManager application_manager) {
+    protected static EchoApplicationDescriptor addEchoServiceDescriptor(final EchoNetwork network, final Host host, final EchoApplicationManager application_manager) {
 
         final EchoApplicationDescriptor descriptor = new EchoApplicationDescriptor(host, application_manager);
         descriptor.addStateChangeListener(PRINT_LISTENER);
         network.add(descriptor);
+        return descriptor;
     }
 
 }

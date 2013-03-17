@@ -17,10 +17,11 @@
 package uk.ac.standrews.cs.shabdiz.credentials;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import uk.ac.standrews.cs.barreleye.SSHClient;
 
-public abstract class SSHCredential {
+public abstract class SSHCredential implements Serializable {
 
     private final String username;
 

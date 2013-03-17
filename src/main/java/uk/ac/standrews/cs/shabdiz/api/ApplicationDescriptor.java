@@ -22,6 +22,11 @@ package uk.ac.standrews.cs.shabdiz.api;
  */
 public interface ApplicationDescriptor {
 
+    /**
+     * Gets the application manager.
+     * 
+     * @return the application manager
+     */
     ApplicationManager getApplicationManager();
 
     /**

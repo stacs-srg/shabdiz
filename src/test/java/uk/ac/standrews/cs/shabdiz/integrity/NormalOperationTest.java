@@ -27,10 +27,12 @@ import org.junit.Test;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
+import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
@@ -59,7 +61,11 @@ public class NormalOperationTest {
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
         //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
-        localhost = new LocalHost();
+        //        localhost = new LocalHost();
+
+        final SSHPublicKeyCredential credentials = SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
+        localhost = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
+
         launcher = new WorkerNetwork();
         launcher.add(localhost);
         launcher.deployAll();

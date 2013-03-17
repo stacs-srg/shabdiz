@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,8 +36,6 @@ import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
@@ -63,6 +62,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      * 
+     * @throws UnknownHostException
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
@@ -70,7 +70,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public WorkerNetwork() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork() throws UnknownHostException, IOException {
 
         this(new HashSet<File>());
     }
@@ -81,13 +81,8 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
      * 
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
-     * @throws AlreadyBoundException the already bound exception
-     * @throws RegistryUnavailableException the registry unavailable exception
-     * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
      */
-    public WorkerNetwork(final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork(final Set<File> classpath) throws UnknownHostException, IOException {
 
         this(EPHEMERAL_PORT, classpath);
     }
@@ -98,14 +93,10 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
      * 
      * @param callback_server_port the port on which the callback server is exposed
      * @param classpath the application library URLs
+     * @throws UnknownHostException
      * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
-     * @throws AlreadyBoundException the already bound exception
-     * @throws RegistryUnavailableException the registry unavailable exception
-     * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
      */
-    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws UnknownHostException, IOException {
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
@@ -149,7 +140,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
             id_future_map.get(job_id).setException(exception);
         }
         else {
-            Diagnostic.trace(DiagnosticLevel.NONE, "Launcher was notified about an unknown job exception ", job_id);
+            LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
         }
     }
 
@@ -164,7 +155,7 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
 
         try {
             deployment_executor.shutdownNow();
-            unexpose();
+            callback_server.shutdown();
             releaseAllPendingFutures(); // Release the futures which are still pending for notification
         }
         finally {

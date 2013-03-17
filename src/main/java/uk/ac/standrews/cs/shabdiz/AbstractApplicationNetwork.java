@@ -78,17 +78,11 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     }
 
     @Override
-    public void deployAll() {
+    public void deployAll() throws IOException, InterruptedException, TimeoutException, Exception {
 
         for (final T applciation_descriptor : this) {
 
-            try {
-                deploy(applciation_descriptor);
-            }
-            catch (final Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            deploy(applciation_descriptor);
         }
     }
 
@@ -124,7 +118,7 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     }
 
     @Override
-    public String getName() {
+    public String getApplicationName() {
 
         return application_name;
     }

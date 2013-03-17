@@ -22,8 +22,9 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Input;
+import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
@@ -75,16 +76,17 @@ public class SupervisedRemoteTest {
     public static void main(final String[] args) throws Exception {
 
         AbstractHost remoteHost = null;
-        WorkerNetwork launcher = null;
+        WorkerNetwork network = null;
         Worker worker = null;
 
         try {
-            remoteHost = new SSHHost("localhost", new SSHPasswordCredential(Input.readPassword("Enter Password")));
+            remoteHost = new SSHHost(NetworkUtil.getLocalIPv4Address(), new SSHPasswordCredential(Input.readPassword("Enter Password")));
             //            remoteHost = new LocalHost();
-            launcher = new WorkerNetwork();
-            launcher.add(remoteHost);
-            launcher.deployAll();
-            worker = launcher.iterator().next().getApplicationReference();
+            network = new WorkerNetwork();
+            network.add(remoteHost);
+            network.deployAll();
+            network.awaitAnyOfStates(ApplicationState.RUNNING);
+            worker = network.iterator().next().getApplicationReference();
 
             System.out.println("submitting job to the remote worker");
             final Future<UUID> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());
@@ -97,25 +99,18 @@ public class SupervisedRemoteTest {
             final Future<Boolean> file_test_result = worker.submit(new VerifyStoredTestDirJob(remotely_sotored_object_key));
 
             System.out.println("File test result " + file_test_result.get(20, TimeUnit.SECONDS));
-            System.out.println("killing Shabdiz ");
+            System.out.println("killing network ");
         }
         finally {
-            cleanUp(remoteHost, launcher, worker);
+            cleanUp(remoteHost, network, worker);
         }
     }
 
-    private static void cleanUp(final Host remoteHost, final WorkerNetwork launcher, final Worker worker) {
+    private static void cleanUp(final Host remoteHost, final WorkerNetwork network, final Worker worker) {
 
-        if (worker != null) {
-            try {
-                worker.shutdown();
-            }
-            catch (final JsonRpcException e) {
-                //ignore; expected
-            }
-        }
-        if (launcher != null) {
-            launcher.shutdown();
+        if (network != null) {
+            network.killAll();
+            network.shutdown();
         }
         if (remoteHost != null) {
             try {

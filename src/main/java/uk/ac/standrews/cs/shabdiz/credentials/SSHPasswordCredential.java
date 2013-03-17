@@ -33,7 +33,7 @@ public class SSHPasswordCredential extends SSHCredential {
 
     public SSHPasswordCredential(final char[] password) {
 
-        this.password = new char[password.length];
+        this.password = password == null ? null : new char[password.length];
         copyPassword(password);
     }
 
@@ -67,7 +67,10 @@ public class SSHPasswordCredential extends SSHCredential {
 
     private void copyPassword(final char[] password) {
 
-        System.arraycopy(password, 0, this.password, 0, password.length);
+        if (password != null) {
+
+            System.arraycopy(password, 0, this.password, 0, password.length);
+        }
     }
 
     private static class PasswordUserInfo implements UserInfo, UIKeyboardInteractive {

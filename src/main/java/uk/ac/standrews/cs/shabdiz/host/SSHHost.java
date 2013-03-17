@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -57,6 +58,14 @@ public class SSHHost extends AbstractHost {
     private final ReentrantLock platform_lock;
     private volatile Platform platform;
     private final SSHCredential credentials;
+
+    public SSHHost(final InetAddress address, final SSHCredential credentials) throws IOException {
+
+        super(address);
+        this.credentials = credentials;
+        ssh_client = createSSHClient(getAddress().getHostName(), credentials);
+        platform_lock = new ReentrantLock();
+    }
 
     public SSHHost(final String name, final SSHCredential credentials) throws IOException {
 
@@ -212,6 +221,7 @@ public class SSHHost extends AbstractHost {
             sb.append(cmd);
             sb.append(" ");
         }
+
         return new ChannelExecProcess(sb.toString());
     }
 
@@ -278,6 +288,7 @@ public class SSHHost extends AbstractHost {
 
         public ChannelExecProcess(final String command) throws IOException {
 
+            LOGGER.info(command);
             this.command = command;
             this.channel = openSSHChannel(ChannelType.EXEC);
             in = new PipedInputStream();
@@ -316,6 +327,10 @@ public class SSHHost extends AbstractHost {
         @Override
         public int waitFor() throws InterruptedException {
 
+            //            System.out.println(channel.getExitStatus());
+            //            System.out.println(channel.isConnected());
+            //            System.out.println(channel.isEOF());
+            //            System.out.println(channel.isClosed());
             channel.awaitEOF();
             channel.disconnect();
             return exitValue();

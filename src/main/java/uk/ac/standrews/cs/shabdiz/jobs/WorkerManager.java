@@ -25,10 +25,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -62,11 +64,28 @@ class WorkerManager extends AbstractApplicationManager {
 
         final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
         final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
-        final InetSocketAddress worker_address = getWorkerRemoteAddressFromProcessOutput(worker_process);
+        final InetSocketAddress worker_address = new InetSocketAddress(worker_descriptor.getHost().getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
-        final DefaultWorkerWrapper worker = new DefaultWorkerWrapper(network, worker_remote, worker_process, worker_address);
-
+        final DefaultWorkerWrapper worker = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(descriptor.getHost().getAddress(), worker_address.getPort()));
         worker_descriptor.setApplicationReference(worker);
+    }
+
+    @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+
+        try {
+            final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
+            final Worker worker = worker_descriptor.getApplicationReference();
+            if (worker != null) {
+                worker.shutdown();
+            }
+        }
+        catch (final JsonRpcException e) {
+            //ignore; expected.
+        }
+        finally {
+            super.kill(descriptor);
+        }
     }
 
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
