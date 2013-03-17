@@ -25,29 +25,35 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
 
-public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comparable<DefaultApplicationDescriptor> {
+/**
+ * Describes an application.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
+    private static final String STATE_PROPERTY_NAME = "state";
     private final Long id; // used to resolve ties when comparing
     private final Host host;
     private final AtomicReference<ApplicationState> state;
-    protected final PropertyChangeSupport property_change_support;
-    private static final String STATE_PROPERTY_NAME = "state";
+    private final AtomicReference<Object> application_reference;
     private final ConcurrentSkipListSet<Process> processes;
     private final ApplicationManager application_manager;
+    protected final PropertyChangeSupport property_change_support;
 
-    public DefaultApplicationDescriptor(final Host host, final ApplicationManager application_manager) {
+    public ApplicationDescriptor(final Host host, final ApplicationManager application_manager) {
 
         this.application_manager = application_manager;
         id = generateId();
         processes = new ConcurrentSkipListSet<Process>(new ProcessHashcodeComparator());
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
+        application_reference = new AtomicReference<Object>();
         property_change_support = new PropertyChangeSupport(this);
         this.host = new HostWrapper(host) {
 
@@ -61,13 +67,11 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
         };
     }
 
-    @Override
     public ApplicationManager getApplicationManager() {
 
         return application_manager;
     }
 
-    @Override
     public Host getHost() {
 
         return host;
@@ -83,14 +87,23 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
         return processes.add(process);
     }
 
-    @Override
     public ApplicationState getCachedApplicationState() {
 
         return state.get();
     }
 
-    @Override
-    public void setCachedApplicationState(final ApplicationState new_state) {
+    @SuppressWarnings("unchecked")
+    public <T> T getApplicationReference() {
+
+        return (T) application_reference.get();
+    }
+
+    protected void setApplicationReference(final Object reference) {
+
+        application_reference.set(reference);
+    }
+
+    protected void setCachedApplicationState(final ApplicationState new_state) {
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
@@ -145,7 +158,7 @@ public class DefaultApplicationDescriptor implements ApplicationDescriptor, Comp
     }
 
     @Override
-    public int compareTo(final DefaultApplicationDescriptor other) {
+    public int compareTo(final ApplicationDescriptor other) {
 
         final int host_name_comparison = host == null || other.host == null ? 0 : host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
         return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);

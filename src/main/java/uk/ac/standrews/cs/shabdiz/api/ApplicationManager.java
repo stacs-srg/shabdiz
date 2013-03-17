@@ -16,6 +16,8 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface ApplicationManager.
@@ -28,8 +30,9 @@ public interface ApplicationManager {
      * Update application state of the given descriptor by calling {@link ApplicationDescriptor#setCachedApplicationState(ApplicationState)}.
      * 
      * @param descriptor the descriptor
+     * @return the application state
      */
-    void updateApplicationState(ApplicationDescriptor descriptor);
+    ApplicationState probeApplicationState(ApplicationDescriptor descriptor);
 
     /**
      * Kill.
@@ -43,8 +46,9 @@ public interface ApplicationManager {
      * Deploy.
      * 
      * @param descriptor the descriptor
+     * @return the object
      * @throws Exception the exception
      */
-    void deploy(ApplicationDescriptor descriptor) throws Exception;
+    Object deploy(ApplicationDescriptor descriptor) throws Exception;
 
 }

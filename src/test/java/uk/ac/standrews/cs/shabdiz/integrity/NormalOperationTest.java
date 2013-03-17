@@ -19,20 +19,18 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
-import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
@@ -46,31 +44,31 @@ public class NormalOperationTest {
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
 
-    private AbstractHost localhost;
-    private WorkerNetwork launcher;
-    private Worker worker;
+    private static AbstractHost localhost;
+    private static WorkerNetwork network;
+    private static Worker worker;
 
     /**
      * Sets the up the test.
      * 
      * @throws Exception if unable to set up
      */
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
 
         Diagnostic.setLevel(DiagnosticLevel.NONE);
 
         //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
-        //        localhost = new LocalHost();
+        localhost = new LocalHost();
 
-        final SSHPublicKeyCredential credentials = SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
-        localhost = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
+        //        final SSHPublicKeyCredential credentials = SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
+        //        localhost = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
 
-        launcher = new WorkerNetwork();
-        launcher.add(localhost);
-        launcher.deployAll();
-        launcher.awaitAnyOfStates(ApplicationState.RUNNING);
-        worker = launcher.first().getApplicationReference();
+        network = new WorkerNetwork();
+        network.add(localhost);
+        network.deployAll();
+        network.awaitAnyOfStates(ApplicationState.RUNNING);
+        worker = network.first().getApplicationReference();
     }
 
     /**
@@ -83,12 +81,6 @@ public class NormalOperationTest {
 
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
         Assert.assertEquals(HELLO, future.get());
-        try {
-            worker.shutdown();
-        }
-        catch (final Exception e) {
-            //            e.printStackTrace();
-        }
     }
 
     /**
@@ -118,8 +110,8 @@ public class NormalOperationTest {
      * 
      * @throws Exception if unable to clean up
      */
-    @After
-    public void tearDown() throws Exception {
+    @AfterClass
+    public static void tearDown() throws Exception {
 
         try {
             worker.shutdown();
@@ -127,7 +119,7 @@ public class NormalOperationTest {
         catch (final JsonRpcException e) {
             //ignore; expected.
         }
-        launcher.shutdown();
+        network.shutdown();
         localhost.close();
     }
 }

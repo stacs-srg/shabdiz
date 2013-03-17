@@ -18,9 +18,9 @@ package uk.ac.standrews.cs.shabdiz.examples.url_pinger;
 
 import java.net.URL;
 
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 
-class UrlPingerDescriptor extends DefaultApplicationDescriptor {
+class UrlPingerDescriptor extends ApplicationDescriptor {
 
     private static final UrlPingerManager URL_PINGER_MANAGER = new UrlPingerManager();
 
@@ -44,7 +44,7 @@ class UrlPingerDescriptor extends DefaultApplicationDescriptor {
     }
 
     @Override
-    public int compareTo(final DefaultApplicationDescriptor other) {
+    public int compareTo(final ApplicationDescriptor other) {
 
         return toString().compareTo(other.toString());
     }

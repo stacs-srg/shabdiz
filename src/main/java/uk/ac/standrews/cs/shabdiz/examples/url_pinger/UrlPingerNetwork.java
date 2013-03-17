@@ -18,12 +18,14 @@ package uk.ac.standrews.cs.shabdiz.examples.url_pinger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
 
-public class UrlPingerNetwork extends AbstractApplicationNetwork<DefaultApplicationDescriptor> {
+public class UrlPingerNetwork extends DefaultApplicationNetwork {
 
     private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
 
@@ -35,12 +37,15 @@ public class UrlPingerNetwork extends AbstractApplicationNetwork<DefaultApplicat
     public static void main(final String[] args) throws MalformedURLException {
 
         final UrlPingerNetwork network = new UrlPingerNetwork();
-        final URL[] targets = {new URL("http://www.google.co.uk"), new URL("http://www.cs.st-andrews.ac.uk"), new URL("http://maven.cs.st-andrews.ac.uk"), new URL("http://www.bbc.co.uk/news/"), new URL("http://quicksilver.hg.cs.st-andrews.ac.uk")};
-
+        final List<URL> targets = new ArrayList<URL>();
+        targets.add(new URL("http://www.google.co.uk"));
+        targets.add(new URL("http://www.cs.st-andrews.ac.uk"));
+        targets.add(new URL("http://www.bbc.co.uk/news/"));
+        targets.add(new URL("http://quicksilver.hg.cs.st-andrews.ac.uk"));
         configureUrlPingerNetwork(network, targets);
     }
 
-    private static void configureUrlPingerNetwork(final UrlPingerNetwork network, final URL[] targets) throws MalformedURLException {
+    private static void configureUrlPingerNetwork(final UrlPingerNetwork network, final Collection<URL> targets) throws MalformedURLException {
 
         for (final URL url : targets) {
             final UrlPingerDescriptor descriptor = createUrlPingerDescriptor(url);

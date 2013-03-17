@@ -28,14 +28,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 
 /**
  * A host scanner that concurrently scans a given collection of hosts.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor> extends AbstractScanner<T> {
+public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractConcurrentScanner.class.getName());
 
@@ -52,7 +52,7 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
         scheduled_checks = new ArrayList<Future<?>>();
     }
 
-    protected abstract void scan(T application_descriptor);
+    protected abstract void scan(ApplicationNetwork network, ApplicationDescriptor descriptor);
 
     void injectExecutorService(final ExecutorService executor) {
 
@@ -78,14 +78,14 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
     }
 
     @Override
-    public final void scan() {
+    public final void scan(final ApplicationNetwork network) {
 
         check_lock.lock();
         try {
             if (isEnabled()) {
                 beforeScan();
                 prepareForChecks();
-                scheduleConcurrentChecks();
+                scheduleConcurrentChecks(network);
                 awaitCheckCompletion();
                 cancelLingeringChecks();
                 afterScan();
@@ -102,22 +102,22 @@ public abstract class AbstractConcurrentScanner<T extends ApplicationDescriptor>
         scheduled_checks.clear();
     }
 
-    private void scheduleConcurrentChecks() {
+    private void scheduleConcurrentChecks(final ApplicationNetwork network) {
 
-        for (final T host_descriptor : getNetwork()) {
-            final Future<?> future_check = scheduleCheck(host_descriptor);
+        for (final ApplicationDescriptor descriptor : network) {
+            final Future<?> future_check = scheduleCheck(network, descriptor);
             scheduled_checks.add(future_check);
         }
     }
 
-    private Future<?> scheduleCheck(final T application_descriptor) {
+    private Future<?> scheduleCheck(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
         return executor.submit(new Runnable() {
 
             @Override
             public void run() {
 
-                scan(application_descriptor);
+                scan(network, descriptor);
             }
         });
     }

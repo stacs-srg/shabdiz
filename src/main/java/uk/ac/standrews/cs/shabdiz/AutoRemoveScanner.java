@@ -19,7 +19,7 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
@@ -28,7 +28,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoRemoveScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class AutoRemoveScanner extends AbstractConcurrentScanner {
 
     private static final Duration DROP_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
@@ -37,17 +37,17 @@ public class AutoRemoveScanner<T extends ApplicationDescriptor> extends Abstract
         super(cycle_delay, DROP_CHECK_TIMEOUT, false);
     }
 
-    protected boolean isRemovable(final T application_descriptor) {
+    protected boolean isRemovable(final ApplicationDescriptor application_descriptor) {
 
         final ApplicationState state = application_descriptor.getCachedApplicationState();
         return state == ApplicationState.UNREACHABLE || state == ApplicationState.INVALID;
     }
 
     @Override
-    protected void scan(final T application_descriptor) {
+    protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isRemovable(application_descriptor)) {
-            getNetwork().remove(application_descriptor);
+        if (isEnabled() && isRemovable(descriptor)) {
+            network.remove(descriptor);
         }
     }
 }

@@ -109,7 +109,12 @@ public class SupervisedRemoteTest {
     private static void cleanUp(final Host remoteHost, final WorkerNetwork network, final Worker worker) {
 
         if (network != null) {
-            network.killAll();
+            try {
+                network.killAll();
+            }
+            catch (final Exception e) {
+                e.printStackTrace();
+            }
             network.shutdown();
         }
         if (remoteHost != null) {

@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -56,18 +56,18 @@ class WorkerManager extends AbstractApplicationManager {
     protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
         final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
-        worker_descriptor.getApplicationReference().getAddress(); // makes a remote call
+        final Worker worker = worker_descriptor.getApplicationReference();
+        worker.getAddress(); // makes a remote call
     }
 
     @Override
-    public void deploy(final ApplicationDescriptor descriptor) throws Exception {
+    public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
         final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
         final InetSocketAddress worker_address = new InetSocketAddress(worker_descriptor.getHost().getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
-        final DefaultWorkerWrapper worker = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(descriptor.getHost().getAddress(), worker_address.getPort()));
-        worker_descriptor.setApplicationReference(worker);
+        return new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(descriptor.getHost().getAddress(), worker_address.getPort()));
     }
 
     @Override

@@ -16,17 +16,17 @@
  */
 package uk.ac.standrews.cs.shabdiz.api;
 
-import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.TimeoutException;
 
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+
+// TODO: Auto-generated Javadoc
 /**
  * Maintains a set of {@link ApplicationDescriptor hooks} to application instances across multiple {@link Host hosts}.
  * 
- * @param <Descriptor> the type of {@link ApplicationDescriptor hooks} that are maintained by this network
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> extends Set<Descriptor> {
+public interface ApplicationNetwork extends Set<ApplicationDescriptor> {
 
     /**
      * Gets the name of this application.
@@ -39,41 +39,39 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> ex
      * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
      * 
      * @param application_descriptor the application_descriptor
-     * @throws IOException Signals that an I/O exception has occurred
-     * @throws InterruptedException if interrupted while waiting for deployment to complete
-     * @throws TimeoutException if the deployment times out
-     * @throws Exception
+     * @throws Exception the exception
      */
-    void deploy(Descriptor application_descriptor) throws IOException, InterruptedException, TimeoutException, Exception;
+    void deploy(ApplicationDescriptor application_descriptor) throws Exception;
 
     /**
      * Attempts to {@link #deploy(ApplicationDescriptor) deploy} the application instances that are maintained by this network.
      * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws InterruptedException if interrupted while waiting for deployment to complete
-     * @throws TimeoutException if the deployment times out
-     * @throws Exception
+     * @throws Exception the exception
      */
-    void deployAll() throws IOException, InterruptedException, TimeoutException, Exception;
+    void deployAll() throws Exception;
 
     /**
      * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.
      * 
      * @param application_descriptor the application instance to terminate
+     * @throws Exception the exception
      */
-    void kill(Descriptor application_descriptor);
+    void kill(ApplicationDescriptor application_descriptor) throws Exception;
 
     /**
      * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
      * 
      * @param host the host on which to terminate the application instances
+     * @throws Exception the exception
      */
-    void killAllOnHost(Host host);
+    void killAllOnHost(Host host) throws Exception;
 
     /**
      * Attempts to terminate all the application instances that are managed by this network.
+     * 
+     * @throws Exception the exception
      */
-    void killAll();
+    void killAll() throws Exception;
 
     /**
      * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
@@ -90,7 +88,7 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> ex
      * @param scanner the scanner to add
      * @return true, if successfully added
      */
-    boolean addScanner(Scanner<? extends Descriptor> scanner);
+    boolean addScanner(Scanner scanner);
 
     /**
      * Removes the given {@code scanner} from the collection of this network's scanners.
@@ -99,7 +97,7 @@ public interface ApplicationNetwork<Descriptor extends ApplicationDescriptor> ex
      * @param scanner the scanner to remove
      * @return true, if successfully removed
      */
-    boolean removeScanner(Scanner<? extends Descriptor> scanner);
+    boolean removeScanner(Scanner scanner);
 
     /**
      * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.

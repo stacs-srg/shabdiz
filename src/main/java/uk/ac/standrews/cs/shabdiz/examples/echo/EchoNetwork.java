@@ -18,13 +18,13 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 
-public class EchoNetwork extends AbstractApplicationNetwork<EchoApplicationDescriptor> {
+public class EchoNetwork extends DefaultApplicationNetwork {
 
     private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
 
@@ -39,12 +39,9 @@ public class EchoNetwork extends AbstractApplicationNetwork<EchoApplicationDescr
         final EchoApplicationManager application_manager = new EchoApplicationManager();
         final LocalHost local_host = new LocalHost();
         addEchoServiceDescriptor(network, local_host, application_manager);
-        //        addEchoServiceDescriptor(network, local_host, application_manager);
-        //        addEchoServiceDescriptor(network, local_host, application_manager);
-        //        addEchoServiceDescriptor(network, local_host, application_manager);
-        //        addEchoServiceDescriptor(network, new SSHHost("localhost", Credentials.newSSHCredential(true)), application_manager);
-        //        addEchoServiceDescriptor(network, new SSHHost("beast.cs.st-andrews.ac.uk", Credentials.newSSHCredential(true)), application_manager);
-        //        addEchoServiceDescriptor(network, new SSHHost("blub.cs.st-andrews.ac.uk", SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"))), application_manager);
+        addEchoServiceDescriptor(network, local_host, application_manager);
+        addEchoServiceDescriptor(network, local_host, application_manager);
+        addEchoServiceDescriptor(network, local_host, application_manager);
 
         network.deployAll();
         System.out.print("Awaiting RUNNING state...");

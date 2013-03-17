@@ -19,7 +19,7 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class AutoKillScanner extends AbstractConcurrentScanner {
 
     /** The timeout for attempted kill checks. */
     public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
@@ -39,17 +39,17 @@ public class AutoKillScanner<T extends ApplicationDescriptor> extends AbstractCo
         super(min_cycle_time, DEFAULT_KILL_CHECK_TIMEOUT, false);
     }
 
-    private boolean isKillable(final T application_descriptor) {
+    private boolean isKillable(final ApplicationDescriptor application_descriptor) {
 
         return application_descriptor.getCachedApplicationState() == ApplicationState.RUNNING;
     }
 
     @Override
-    protected void scan(final T application_descriptor) {
+    protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isKillable(application_descriptor)) {
+        if (isEnabled() && isKillable(descriptor)) {
             try {
-                application_descriptor.getApplicationManager().kill(application_descriptor);
+                descriptor.getApplicationManager().kill(descriptor);
             }
             catch (final Exception e) {
                 // TODO Auto-generated catch block

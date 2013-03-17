@@ -21,8 +21,6 @@ import java.beans.PropertyChangeSupport;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
 /**
@@ -30,13 +28,12 @@ import uk.ac.standrews.cs.shabdiz.api.Scanner;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractScanner<T extends ApplicationDescriptor> implements Scanner<T> {
+public abstract class AbstractScanner implements Scanner {
 
     private final Duration delay;
     private final AtomicBoolean enabled;
     private final Duration timeout;
     protected final PropertyChangeSupport property_change_support;
-    private volatile ApplicationNetwork<T> application_network;
 
     protected AbstractScanner(final Duration delay, final Duration timeout, final boolean enabled) {
 
@@ -44,16 +41,6 @@ public abstract class AbstractScanner<T extends ApplicationDescriptor> implement
         this.timeout = timeout;
         this.enabled = new AtomicBoolean(enabled);
         property_change_support = new PropertyChangeSupport(this);
-    }
-
-    void setNetwork(final ApplicationNetwork<T> application_network) {
-
-        this.application_network = application_network;
-    }
-
-    ApplicationNetwork<T> getNetwork() {
-
-        return application_network;
     }
 
     @Override

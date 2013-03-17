@@ -19,14 +19,15 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
  * The results of these tests are recorded in the corresponding host descriptors.
  * This scanner publishes a new latch after every cycle through the host list. This enables other scanners to synchronize their own operation with this one.
  */
-public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class StatusScanner extends AbstractConcurrentScanner {
 
     /** The default timeout for attempted status checks. */
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
@@ -43,10 +44,11 @@ public class StatusScanner<T extends ApplicationDescriptor> extends AbstractConc
     }
 
     @Override
-    protected void scan(final T application_descriptor) {
+    protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
         if (isEnabled()) {
-            application_descriptor.getApplicationManager().updateApplicationState(application_descriptor);
+            final ApplicationState new_state = descriptor.getApplicationManager().probeApplicationState(descriptor);
+            descriptor.setCachedApplicationState(new_state);
         }
     }
 }

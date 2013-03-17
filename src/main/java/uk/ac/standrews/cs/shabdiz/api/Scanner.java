@@ -18,18 +18,20 @@ package uk.ac.standrews.cs.shabdiz.api;
 
 import uk.ac.standrews.cs.nds.util.Duration;
 
+// TODO: Auto-generated Javadoc
 /**
  * Scans a {@link DeployableNetwork network} for an application-specific change.
  * 
- * @param <T> the type of {@link ApplicationDescriptor applications} to scan
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Scanner<T extends ApplicationDescriptor> {
+public interface Scanner {
 
     /**
      * Scans the {@link DeployableNetwork network} for a change.
+     * 
+     * @param network the network
      */
-    void scan();
+    void scan(ApplicationNetwork network);
 
     /**
      * Gets the delay between the termination of one scan and the commencement of the next.

@@ -38,7 +38,7 @@ import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 
 /**
@@ -46,7 +46,7 @@ import uk.ac.standrews.cs.shabdiz.api.Host;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescriptor> implements WorkerCallback {
+public class WorkerNetwork extends DefaultApplicationNetwork implements WorkerCallback {
 
     private static final long serialVersionUID = -8888064138251583848L;
 
@@ -171,11 +171,6 @@ public class WorkerNetwork extends AbstractApplicationNetwork<RemoteWorkerDescri
     private void expose() throws IOException {
 
         callback_server.expose();
-    }
-
-    private void unexpose() {
-
-        callback_server.unexpose();
     }
 
     private void releaseAllPendingFutures() {

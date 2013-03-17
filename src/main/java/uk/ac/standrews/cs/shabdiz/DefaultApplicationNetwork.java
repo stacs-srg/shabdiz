@@ -36,40 +36,42 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.api.Scanner;
 
-public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDescriptor> extends ConcurrentSkipListSet<T> implements ApplicationNetwork<T> {
+public class DefaultApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescriptor> implements ApplicationNetwork {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractApplicationNetwork.class.getName());
+    private static final long serialVersionUID = 6709443520736431534L;
+
+    private static final Logger LOGGER = Logger.getLogger(DefaultApplicationNetwork.class.getName());
 
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final String application_name;
-    private final Map<Scanner<? extends T>, ScheduledFuture<?>> scheduled_scanners;
+    private final Map<Scanner, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledThreadPoolExecutor scanner_executor;
     private final ExecutorService concurrent_scanner_executor;
 
-    private final AutoKillScanner<T> auto_kill_scanner;
-    private final AutoDeployScanner<T> auto_deploy_scanner;
-    private final AutoRemoveScanner<T> auto_remove_scanner;
-    private final StatusScanner<T> status_scanner;
+    private final AutoKillScanner auto_kill_scanner;
+    private final AutoDeployScanner auto_deploy_scanner;
+    private final AutoRemoveScanner auto_remove_scanner;
+    private final StatusScanner status_scanner;
 
-    public AbstractApplicationNetwork(final String application_name) {
+    public DefaultApplicationNetwork(final String application_name) {
 
         this.application_name = application_name;
-        scheduled_scanners = new HashMap<Scanner<? extends T>, ScheduledFuture<?>>();
+        scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_executor = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
         concurrent_scanner_executor = Executors.newCachedThreadPool();
 
-        auto_kill_scanner = new AutoKillScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
-        auto_deploy_scanner = new AutoDeployScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
-        auto_remove_scanner = new AutoRemoveScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
-        status_scanner = new StatusScanner<T>(DEFAULT_SCANNER_CYCLE_DELAY);
+        auto_kill_scanner = new AutoKillScanner(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
+        auto_deploy_scanner = new AutoDeployScanner(DEFAULT_SCANNER_CYCLE_DELAY);
+        auto_remove_scanner = new AutoRemoveScanner(DEFAULT_SCANNER_CYCLE_DELAY);
+        status_scanner = new StatusScanner(DEFAULT_SCANNER_CYCLE_DELAY);
 
         addScanner(auto_kill_scanner);
         addScanner(auto_deploy_scanner);
@@ -78,18 +80,26 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     }
 
     @Override
+    public void deploy(final ApplicationDescriptor descriptor) throws Exception {
+
+        final ApplicationManager manager = descriptor.getApplicationManager();
+        final Object application_reference = manager.deploy(descriptor);
+        descriptor.setApplicationReference(application_reference);
+    }
+
+    @Override
     public void deployAll() throws IOException, InterruptedException, TimeoutException, Exception {
 
-        for (final T applciation_descriptor : this) {
+        for (final ApplicationDescriptor applciation_descriptor : this) {
 
             deploy(applciation_descriptor);
         }
     }
 
     @Override
-    public void killAllOnHost(final Host host) {
+    public void killAllOnHost(final Host host) throws Exception {
 
-        for (final T applciation_descriptor : this) {
+        for (final ApplicationDescriptor applciation_descriptor : this) {
             if (applciation_descriptor.getHost().equals(host)) {
                 kill(applciation_descriptor);
             }
@@ -97,23 +107,17 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     }
 
     @Override
-    public void killAll() {
+    public void killAll() throws Exception {
 
-        for (final T applciation_descriptor : this) {
+        for (final ApplicationDescriptor applciation_descriptor : this) {
             kill(applciation_descriptor);
         }
     }
 
     @Override
-    public void kill(final T member) {
+    public void kill(final ApplicationDescriptor member) throws Exception {
 
-        try {
-            member.getApplicationManager().kill(member);
-        }
-        catch (final Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        member.getApplicationManager().kill(member);
 
     }
 
@@ -128,10 +132,10 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
 
         //TODO tidy this up
 
-        final Iterator<T> application_descriptors = iterator();
+        final Iterator<ApplicationDescriptor> application_descriptors = iterator();
         final List<CountDownLatch> latches = new ArrayList<CountDownLatch>();
         while (application_descriptors.hasNext()) {
-            final DefaultApplicationDescriptor application_descriptor = application_descriptors.next();
+            final ApplicationDescriptor application_descriptor = application_descriptors.next();
             //Create a latch per listener since we cannot know the number of application descriptors
             final CountDownLatch latch = new CountDownLatch(1);
 
@@ -157,53 +161,40 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
         }
     }
 
-    public boolean addScanner(final AbstractScanner<T> scanner) {
+    public boolean addScanner(final AbstractConcurrentScanner scanner) {
 
         synchronized (scheduled_scanners) {
-            return isAddable(scanner) ? injectSelfThenAdd(scanner) : false;
-        }
-    }
-
-    public boolean addScanner(final AbstractConcurrentScanner<T> scanner) {
-
-        synchronized (scheduled_scanners) {
-            return isAddable(scanner) ? injectSelfAndExecutorThenAdd(scanner) : false;
+            return isAddable(scanner) ? injectExecutorThenAdd(scanner) : false;
         }
     }
 
     @Override
-    public boolean addScanner(final Scanner<? extends T> scanner) {
+    public boolean addScanner(final Scanner scanner) {
 
         synchronized (scheduled_scanners) {
             return isAddable(scanner) ? add(scanner) : false;
         }
     }
 
-    private boolean injectSelfAndExecutorThenAdd(final AbstractConcurrentScanner<T> scanner) {
+    private boolean injectExecutorThenAdd(final AbstractConcurrentScanner scanner) {
 
         scanner.injectExecutorService(concurrent_scanner_executor);
-        return injectSelfThenAdd(scanner);
-    }
-
-    private boolean injectSelfThenAdd(final AbstractScanner<T> scanner) {
-
-        scanner.setNetwork(this);
         return add(scanner);
     }
 
-    private boolean add(final Scanner<? extends T> scanner) {
+    private boolean add(final Scanner scanner) {
 
         final ScheduledFuture<?> scheduled_scanner = scheduleScanner(scanner);
         return scheduled_scanners.put(scanner, scheduled_scanner) == null;
     }
 
-    private boolean isAddable(final Scanner<? extends ApplicationDescriptor> scanner) {
+    private boolean isAddable(final Scanner scanner) {
 
         return !scheduled_scanners.containsKey(scanner);
     }
 
     @Override
-    public boolean removeScanner(final Scanner<? extends T> scanner) {
+    public boolean removeScanner(final Scanner scanner) {
 
         final ScheduledFuture<?> scheduled_scanner;
         synchronized (scheduled_scanners) {
@@ -216,7 +207,7 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
     public void setScanEnabled(final boolean enabled) {
 
         synchronized (scheduled_scanners) {
-            for (final Scanner<? extends T> scanner : scheduled_scanners.keySet()) {
+            for (final Scanner scanner : scheduled_scanners.keySet()) {
                 scanner.setEnabled(enabled);
             }
         }
@@ -240,17 +231,16 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
         auto_remove_scanner.setEnabled(enabled);
     }
 
-    private ScheduledFuture<?> scheduleScanner(@SuppressWarnings("rawtypes") final Scanner scanner) {
+    private ScheduledFuture<?> scheduleScanner(final Scanner scanner) {
 
         final Duration cycle_delay = scanner.getCycleDelay();
         final long cycle_delay_length = cycle_delay.getLength();
         return scanner_executor.scheduleWithFixedDelay(new Runnable() {
 
-            @SuppressWarnings("unchecked")
             @Override
             public void run() {
 
-                scanner.scan();
+                scanner.scan(DefaultApplicationNetwork.this);
             }
         }, cycle_delay_length, cycle_delay_length, cycle_delay.getTimeUnit());
     }
@@ -267,7 +257,7 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
             }
         }
 
-        for (final T application_descriptor : this) {
+        for (final ApplicationDescriptor application_descriptor : this) {
             application_descriptor.kill();
             try {
                 application_descriptor.getHost().close();
@@ -276,12 +266,5 @@ public abstract class AbstractApplicationNetwork<T extends DefaultApplicationDes
                 LOGGER.log(Level.WARNING, "failed to close host", e);
             }
         }
-    }
-
-    @Override
-    public void deploy(final T application_descriptor) throws IOException, InterruptedException, TimeoutException, Exception {
-
-        application_descriptor.getApplicationManager().deploy(application_descriptor);
-
     }
 }

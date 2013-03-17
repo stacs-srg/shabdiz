@@ -19,7 +19,7 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoDeployScanner<T extends ApplicationDescriptor> extends AbstractConcurrentScanner<T> {
+public class AutoDeployScanner extends AbstractConcurrentScanner {
 
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
@@ -38,17 +38,18 @@ public class AutoDeployScanner<T extends ApplicationDescriptor> extends Abstract
         super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
     }
 
-    protected boolean isDeployable(final T application_descriptor) {
+    protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
 
         return ApplicationState.AUTH.equals(application_descriptor.getCachedApplicationState());
     }
 
     @Override
-    protected void scan(final T application_descriptor) {
+    protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isDeployable(application_descriptor)) {
+        if (isEnabled() && isDeployable(descriptor)) {
             try {
-                application_descriptor.getApplicationManager().deploy(application_descriptor);
+                final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
+                descriptor.setApplicationReference(application_reference);
             }
             catch (final Exception e) {
                 // TODO Auto-generated catch block
@@ -56,4 +57,5 @@ public class AutoDeployScanner<T extends ApplicationDescriptor> extends Abstract
             }
         }
     }
+
 }

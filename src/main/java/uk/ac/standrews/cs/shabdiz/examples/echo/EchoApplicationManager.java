@@ -25,7 +25,7 @@ import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.api.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -51,7 +51,7 @@ public class EchoApplicationManager extends AbstractApplicationManager {
     }
 
     @Override
-    public void deploy(final ApplicationDescriptor descriptor) throws Exception {
+    public EchoService deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final EchoApplicationDescriptor echo_descriptor = (EchoApplicationDescriptor) descriptor;
         final Host host = echo_descriptor.getHost();
@@ -59,8 +59,8 @@ public class EchoApplicationManager extends AbstractApplicationManager {
         final String address_as_string = ProcessUtil.getValueFromProcessOutput(echo_service_process, SimpleEchoService.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final InetSocketAddress address = Marshaller.getAddress(address_as_string);
         final EchoService echo_proxy = proxy_factory.get(address);
-        echo_descriptor.setApplicationReference(echo_proxy);
         echo_descriptor.setAddress(address);
+        return echo_proxy;
     }
 
     @Override
@@ -68,7 +68,8 @@ public class EchoApplicationManager extends AbstractApplicationManager {
 
         final EchoApplicationDescriptor echo_descriptor = (EchoApplicationDescriptor) descriptor;
         final String random_message = generateRandomString();
-        final String echoed_message = echo_descriptor.getApplicationReference().echo(random_message);
+        final EchoService echo_service = echo_descriptor.getApplicationReference();
+        final String echoed_message = echo_service.echo(random_message);
         if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but recieved " + echoed_message); }
 
     }
@@ -78,7 +79,8 @@ public class EchoApplicationManager extends AbstractApplicationManager {
 
         final EchoApplicationDescriptor echo_descriptor = (EchoApplicationDescriptor) descriptor;
         try {
-            echo_descriptor.getApplicationReference().shutdown();
+            final EchoService echo_service = echo_descriptor.getApplicationReference();
+            echo_service.shutdown();
         }
         catch (final JsonRpcException e) {
             //expected;
