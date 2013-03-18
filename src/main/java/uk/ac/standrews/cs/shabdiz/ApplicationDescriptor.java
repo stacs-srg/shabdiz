@@ -27,9 +27,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
+import uk.ac.standrews.cs.shabdiz.util.SelfRemovingStateChangeListener;
 
 /**
- * Describes an application.
+ * Describes an application instance that is managed by an {@link ApplicationNetwork application network}.
+ * Instances of this class are in one-to-one correspondence to the application instances within an {@link ApplicationNetwork application network}.
+ * However, a {@link Host} and/or an {@link ApplicationManager} may be associated to multiple {@link ApplicationDescriptor application descriptors}.
+ * The {@link #getHost() host} of an application descriptor may be {@code null}.
+ * However, the {@link #getApplicationManager() manager} must not be {@code null}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -45,36 +50,61 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     private final ApplicationManager application_manager;
     protected final PropertyChangeSupport property_change_support;
 
+    /**
+     * Instantiates a new application descriptor with the given {@link ApplicationManager manager} and {@code null} as {@link #getHost() host}.
+     * The initial {@link #getCachedApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
+     * 
+     * @param application_manager the manager of the application instance
+     */
+    public ApplicationDescriptor(final ApplicationManager application_manager) {
+
+        this(null, application_manager);
+    }
+
+    /**
+     * Instantiates a new application descriptor with the given {@link Host host} and {@link ApplicationManager manager}.
+     * The initial {@link #getCachedApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
+     * 
+     * @param host the host of the application instance that is described by this descriptor
+     * @param application_manager the manager of the application instance
+     */
     public ApplicationDescriptor(final Host host, final ApplicationManager application_manager) {
 
         this.application_manager = application_manager;
+        this.host = createHostWrapper(host);
         id = generateId();
         processes = new ConcurrentSkipListSet<Process>(new ProcessHashcodeComparator());
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         application_reference = new AtomicReference<Object>();
         property_change_support = new PropertyChangeSupport(this);
-        this.host = new HostWrapper(host) {
-
-            @Override
-            public Process execute(final String... command) throws IOException {
-
-                final Process process = getUnwrappedHost().execute(command);
-                processes.add(process);
-                return process;
-            }
-        };
     }
 
+    /**
+     * Gets the manager of application instance that is described by this descriptor.
+     * 
+     * @return the manager of application instance that is described by this descriptor
+     */
     public ApplicationManager getApplicationManager() {
 
         return application_manager;
     }
 
+    /**
+     * Gets the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor.
+     * 
+     * @return the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor
+     */
     public Host getHost() {
 
         return host;
     }
 
+    /**
+     * Gets the set of processes that are started using this descrptor's {@link #getHost() host}.
+     * The collection of processes are updated automatically when a command is {@link Host#execute(String...) executed} by this descriptor's {@link #getHost() host}.
+     * 
+     * @return the set of processes that are {@link Host#execute(String...) started} using this descrptor's {@link #getHost() host}
+     */
     public ConcurrentSkipListSet<Process> getProcesses() {
 
         return processes;
@@ -85,15 +115,29 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return processes.add(process);
     }
 
+    /**
+     * Gets the cached state of the application instance that is described by this descriptor.
+     * 
+     * @return the cached state of the application instance that is described by this descriptor
+     */
     public ApplicationState getCachedApplicationState() {
 
         return state.get();
     }
 
+    /**
+     * Gets a reference to the application instance that is {@link ApplicationManager#deploy(ApplicationDescriptor) deployed} by the {@link #getApplicationManager() manager} of this descriptor.
+     * The application reference is casted to the type of the variable, which stores the returned value of this method.
+     * This may cause {@link ClassCastException} if the application reference cannot be cased to the variable type.
+     * This method may return {@code null} if no instance was {@link ApplicationManager#deploy(ApplicationDescriptor) deployed} by this descriptor's {@link #getApplicationManager() manager}.
+     * 
+     * @param <ApplicationReference> the type of application reference to which the application reference is casted
+     * @return a reference to the application instance that is described by this descriptor, or {@code null} if no instance was deployed by this descriptor's {@link #getApplicationManager() manager}
+     */
     @SuppressWarnings("unchecked")
-    public <T> T getApplicationReference() {
+    public <ApplicationReference> ApplicationReference getApplicationReference() {
 
-        return (T) application_reference.get();
+        return (ApplicationReference) application_reference.get();
     }
 
     protected void setApplicationReference(final Object reference) {
@@ -171,6 +215,28 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     private static Long generateId() {
 
         return NEXT_ID.getAndIncrement();
+    }
+
+    @SuppressWarnings("resource")
+    private ApplicationDescriptorHostWrapper createHostWrapper(final Host host) {
+
+        return host != null ? new ApplicationDescriptorHostWrapper(host) : null;
+    }
+
+    private final class ApplicationDescriptorHostWrapper extends HostWrapper {
+
+        private ApplicationDescriptorHostWrapper(final Host host) {
+
+            super(host);
+        }
+
+        @Override
+        public Process execute(final String... command) throws IOException {
+
+            final Process process = getUnwrappedHost().execute(command);
+            addProcess(process);
+            return process;
+        }
     }
 
     private static final class ProcessHashcodeComparator implements Comparator<Process> {

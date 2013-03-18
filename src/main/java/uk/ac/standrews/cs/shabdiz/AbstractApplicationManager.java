@@ -31,7 +31,12 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
 /**
- * The Class AbstractApplicationManager.
+ * Provides default implementations of {@link ApplicationDescriptor} termination and state probe.
+ * This class executes the SSH command '{@code cd /}' to determine the state of an {@link ApplicationDescriptor application descriptor's} host if the application call attempt fails.
+ * The application-specific call is defined by {@link #attemptApplicationCall(ApplicationDescriptor)}. The application call is considered to have failed if the execution of this method results in {@link Exception}.
+ * This class terminates a given {@link ApplicationDescriptor} by {@link Process#destroy() destroying} all of its {@link ApplicationDescriptor#getProcesses() processes}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
@@ -44,7 +49,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     private final Duration ssh_timeout;
 
     /**
-     * Instantiates a new application manager with the default SSH timeout of {@value #SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT}.
+     * Instantiates a new application manager with the default timeout of {@code 5 seconds} for executing a minimal SSH command.
      */
     protected AbstractApplicationManager() {
 
