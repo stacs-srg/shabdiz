@@ -19,8 +19,6 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that

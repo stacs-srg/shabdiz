@@ -21,11 +21,11 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.api.Platform;
+import uk.ac.standrews.cs.shabdiz.legacy.ClassPath;
+import uk.ac.standrews.cs.shabdiz.legacy.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.URL;
-import uk.ac.standrews.cs.shabdiz.zold.ClassPath;
-import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
 
 /**
  * Various tests of local and remote process invocation, not intended to be run automatically.

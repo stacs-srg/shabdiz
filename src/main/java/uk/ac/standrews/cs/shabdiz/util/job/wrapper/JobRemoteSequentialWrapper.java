@@ -18,7 +18,7 @@ package uk.ac.standrews.cs.shabdiz.util.job.wrapper;
 
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 
 /**
  * Wraps an array of {@link JobRemote}s into a single sequential {@link JobRemote}.

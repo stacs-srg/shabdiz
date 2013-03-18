@@ -21,8 +21,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 
-import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.Platform;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 public abstract class HostWrapper implements Host {
 

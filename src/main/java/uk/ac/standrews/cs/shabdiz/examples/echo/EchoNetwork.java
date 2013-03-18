@@ -18,13 +18,13 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 
-public class EchoNetwork extends DefaultApplicationNetwork {
+public class EchoNetwork extends ApplicationNetwork {
 
     private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
 
@@ -39,7 +39,7 @@ public class EchoNetwork extends DefaultApplicationNetwork {
         final EchoApplicationManager application_manager = new EchoApplicationManager();
         final LocalHost local_host = new LocalHost();
         addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
+        final EchoApplicationDescriptor kill_candidate = addEchoServiceDescriptor(network, local_host, application_manager);
         addEchoServiceDescriptor(network, local_host, application_manager);
         addEchoServiceDescriptor(network, local_host, application_manager);
 
@@ -48,7 +48,9 @@ public class EchoNetwork extends DefaultApplicationNetwork {
         network.awaitAnyOfStates(ApplicationState.RUNNING);
         System.out.println();
         System.out.println("All instances are in RUNNING state");
-        System.out.println();
+        System.out.println("Killing a member");
+        network.kill(kill_candidate);
+        kill_candidate.awaitAnyOfStates(ApplicationState.AUTH);
 
         System.out.print("About to kill all..");
         network.killAll();

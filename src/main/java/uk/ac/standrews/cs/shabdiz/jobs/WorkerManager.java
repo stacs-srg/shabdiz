@@ -30,7 +30,6 @@ import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 

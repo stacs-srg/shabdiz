@@ -27,9 +27,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
-import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.legacy.HostDescriptor;
 
 
 /**

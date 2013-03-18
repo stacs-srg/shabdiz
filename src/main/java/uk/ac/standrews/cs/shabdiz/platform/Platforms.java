@@ -33,8 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.Platform;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 
 /**

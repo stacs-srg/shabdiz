@@ -20,14 +20,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
 
 /**
@@ -134,10 +132,10 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Checks if a given {@link ApplicationDescriptor} is in one of the given states.
+     * Checks if the {@link ApplicationDescriptor#getCachedApplicationState() cached state} of this descriptor is equal to one of the given {@code states}.
      * 
      * @param states the states to check for
-     * @return true, if the given {@link ApplicationDescriptor} is in on of the given states
+     * @return {@code true} if the {@link ApplicationDescriptor#getCachedApplicationState() cached state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
      */
     public boolean isInState(final ApplicationState... states) {
 
@@ -148,20 +146,26 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return false;
     }
 
-    public void kill() {
+    /**
+     * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
+     * 
+     * @param states the states which application instances must reach at least once
+     * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
+     */
+    public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        final Iterator<Process> process_iterator = processes.iterator();
-        while (process_iterator.hasNext()) {
-            final Process process = process_iterator.next();
-            process.destroy();
+        if (!isInState(states)) {
+            final CountDownLatch latch = new CountDownLatch(1);
+            final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
+            addStateChangeListener(state_change);
+            latch.await();
         }
     }
 
     @Override
     public int compareTo(final ApplicationDescriptor other) {
 
-        final int host_name_comparison = host == null || other.host == null ? 0 : host.getAddress().getHostName().compareTo(other.host.getAddress().getHostName());
-        return host_name_comparison != 0 ? host_name_comparison : id.compareTo(other.id);
+        return id.compareTo(other.id);
     }
 
     private static Long generateId() {

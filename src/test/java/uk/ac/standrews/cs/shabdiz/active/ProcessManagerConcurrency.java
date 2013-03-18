@@ -25,7 +25,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
-import uk.ac.standrews.cs.shabdiz.zold.HostDescriptor;
+import uk.ac.standrews.cs.shabdiz.legacy.HostDescriptor;
 
 public class ProcessManagerConcurrency {
 

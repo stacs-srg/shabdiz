@@ -27,10 +27,10 @@ import org.junit.Test;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 

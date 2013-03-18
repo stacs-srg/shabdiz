@@ -24,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import uk.ac.standrews.cs.jetson.util.CloseableUtil;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;

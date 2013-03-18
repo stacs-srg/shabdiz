@@ -27,71 +27,96 @@ import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
+/**
+ * The Class AbstractApplicationManager.
+ */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
-    private static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    /** The Constant SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT. */
+    public static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
 
     // A minimal shell command that will be attempted in order to check ssh connectivity. Chosen to have minimal dependency on execution environment, so doesn't rely on anything specific to a user.
     private static final String MINIMAL_COMMAND = "cd /"; //FIXME is this platform dependent?
 
+    private final Duration ssh_timeout;
+
+    /**
+     * Instantiates a new application manager with the default SSH timeout of {@value #SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT}.
+     */
+    protected AbstractApplicationManager() {
+
+        this(SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT);
+    }
+
+    /**
+     * Instantiates a new application manager and sets the SSH timeout to the given {@code ssh_timeout}.
+     * 
+     * @param ssh_timeout the ssh_timeout
+     */
+    protected AbstractApplicationManager(final Duration ssh_timeout) {
+
+        this.ssh_timeout = ssh_timeout;
+    }
+
     protected abstract void attemptApplicationCall(ApplicationDescriptor descriptor) throws Exception;
+
+    @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+
+        final Iterator<Process> process_iterator = descriptor.getProcesses().iterator();
+        while (process_iterator.hasNext()) {
+            final Process process = process_iterator.next();
+            process.destroy();
+            process_iterator.remove();
+        }
+    }
 
     @Override
     public ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) {
 
-        ApplicationState state;
         try {
-            state = getStateFromApplicationReference(descriptor);
+            return probeStateByApplicationCall(descriptor);
         }
-        catch (final Exception e) { //Catch Exception to cover NPE since application reference may be null
-            final Host host = descriptor.getHost();
-            state = getStateFromHost(host);
+        catch (final Exception e) {
+            //Catch Exception to cover NPE since application reference may be null
+            return probeStateBySshCommandExecution(descriptor);
         }
-        return state;
     }
 
-    private ApplicationState getStateFromHost(final Host host) {
+    private ApplicationState probeStateBySshCommandExecution(final ApplicationDescriptor descriptor) {
 
-        //TODO tidy up
+        final Host host = descriptor.getHost();
         try {
             attemptAddressResolution(host.getAddress().getHostName());
-            // Application call failed, so try SSH connection.
-            attemptCommandExecution(host);
+            attemptMinimalSshCommandExecution(host);
             return ApplicationState.AUTH;
         }
         catch (final UnknownHostException e) {
 
-            // Machine address couldn't be resolved.
-            return ApplicationState.INVALID;
+            return ApplicationState.INVALID; // Machine address couldn't be resolved.
         }
         catch (final SSHException e) {
 
-            // Couldn't make SSH connection with specified credentials.
-            return ApplicationState.NO_AUTH;
+            return ApplicationState.NO_AUTH; // Couldn't make SSH connection with specified credentials.
         }
         catch (final IOException e) {
 
-            // Network error trying to make SSH connection.
-            return ApplicationState.UNREACHABLE;
+            return ApplicationState.UNREACHABLE; // Network error trying to make SSH connection.
         }
         catch (final TimeoutException e) {
 
-            // SSH connection timed out.
-            return ApplicationState.UNREACHABLE;
+            return ApplicationState.UNREACHABLE; // SSH connection timed out.
         }
         catch (final InterruptedException e) {
 
-            // SSH connection timed out.
-            return ApplicationState.UNREACHABLE;
+            return ApplicationState.UNREACHABLE; // SSH connection was interrupted while waiting for completion.
         }
         catch (final Throwable e) {
-            // Treat any other exception as unreachable state
-            return ApplicationState.UNREACHABLE;
+
+            return ApplicationState.UNREACHABLE; // Treat any other exception as unreachable state
         }
     }
 
@@ -100,13 +125,13 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         InetAddress.getByName(host_name);
     }
 
-    private ApplicationState getStateFromApplicationReference(final ApplicationDescriptor descriptor) throws Exception {
+    private ApplicationState probeStateByApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
         attemptApplicationCall(descriptor);
         return ApplicationState.RUNNING;
     }
 
-    private void attemptCommandExecution(final Host host) throws Throwable {
+    private void attemptMinimalSshCommandExecution(final Host host) throws Throwable {
 
         // Try to execute a 'cd /' shell command on the machine.
         // This is selected as a command that produces no output and doesn't require a functioning home directory.
@@ -128,21 +153,10 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
                     }
                     return null; // Void task.
                 }
-            }, SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT);
+            }, ssh_timeout);
         }
         catch (final ExecutionException e) {
             throw e.getCause();
-        }
-    }
-
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        final Iterator<Process> process_iterator = descriptor.getProcesses().iterator();
-        while (process_iterator.hasNext()) {
-            final Process process = process_iterator.next();
-            process.destroy();
-            process_iterator.remove();
         }
     }
 }

@@ -19,8 +19,6 @@ package uk.ac.standrews.cs.shabdiz;
 import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.

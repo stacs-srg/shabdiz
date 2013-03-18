@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
 
 /**
  * Presents a special type of worker which is deployed by {@link WorkerNetwork}.

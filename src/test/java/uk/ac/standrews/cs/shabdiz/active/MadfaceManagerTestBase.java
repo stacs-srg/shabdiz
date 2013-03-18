@@ -23,11 +23,11 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 
+import uk.ac.standrews.cs.shabdiz.legacy.Configuration;
+import uk.ac.standrews.cs.shabdiz.legacy.MadfaceManagerFactory;
+import uk.ac.standrews.cs.shabdiz.legacy.ParameterValue;
+import uk.ac.standrews.cs.shabdiz.legacy.api.MadfaceManager;
 import uk.ac.standrews.cs.shabdiz.util.URL;
-import uk.ac.standrews.cs.shabdiz.zold.Configuration;
-import uk.ac.standrews.cs.shabdiz.zold.MadfaceManagerFactory;
-import uk.ac.standrews.cs.shabdiz.zold.ParameterValue;
-import uk.ac.standrews.cs.shabdiz.zold.api.MadfaceManager;
 
 /**
  * Common to several test classes.

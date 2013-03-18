@@ -24,13 +24,13 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
+import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
 

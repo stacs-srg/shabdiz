@@ -28,7 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationNetwork;
 
 /**
  * A host scanner that concurrently scans a given collection of hosts.

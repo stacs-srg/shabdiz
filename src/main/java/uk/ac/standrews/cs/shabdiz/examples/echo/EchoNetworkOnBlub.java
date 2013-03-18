@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.util.Input;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
+import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
 
 public class EchoNetworkOnBlub {

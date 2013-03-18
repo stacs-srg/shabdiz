@@ -20,8 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationManager;
-import uk.ac.standrews.cs.shabdiz.api.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.ApplicationManager;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 class UrlPingerManager implements ApplicationManager {
 

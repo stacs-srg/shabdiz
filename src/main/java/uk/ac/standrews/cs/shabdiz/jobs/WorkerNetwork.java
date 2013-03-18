@@ -38,15 +38,15 @@ import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * Deploys workers on hosts.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class WorkerNetwork extends DefaultApplicationNetwork implements WorkerCallback {
+public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback {
 
     private static final long serialVersionUID = -8888064138251583848L;
 

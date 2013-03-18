@@ -17,7 +17,6 @@
 package uk.ac.standrews.cs.shabdiz.platform;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-import uk.ac.standrews.cs.shabdiz.api.Platform;
 
 /**
  * Provides platform-specific settings such as path separator and separator.

@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import uk.ac.standrews.cs.shabdiz.DefaultApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
 
-public class UrlPingerNetwork extends DefaultApplicationNetwork {
+public class UrlPingerNetwork extends ApplicationNetwork {
 
     private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
 

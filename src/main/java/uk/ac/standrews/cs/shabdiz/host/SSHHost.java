@@ -44,9 +44,9 @@ import uk.ac.standrews.cs.barreleye.SSHClientFactory;
 import uk.ac.standrews.cs.barreleye.SftpATTRS;
 import uk.ac.standrews.cs.barreleye.exception.SFTPException;
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.api.Platform;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHCredential;
 import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 public class SSHHost extends AbstractHost {

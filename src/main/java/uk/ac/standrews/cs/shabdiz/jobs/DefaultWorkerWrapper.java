@@ -22,8 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.

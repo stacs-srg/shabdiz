@@ -19,8 +19,7 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.Worker;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 
 public class RemoteWorkerDescriptor extends ApplicationDescriptor {
 

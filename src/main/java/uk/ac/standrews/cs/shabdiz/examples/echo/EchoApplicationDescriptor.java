@@ -17,25 +17,17 @@
 package uk.ac.standrews.cs.shabdiz.examples.echo;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.api.Host;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 
 public class EchoApplicationDescriptor extends ApplicationDescriptor {
 
-    private final AtomicReference<EchoService> application_reference;
     private InetSocketAddress address;
 
     public EchoApplicationDescriptor(final Host host, final EchoApplicationManager manager) {
 
         super(host, manager);
-        application_reference = new AtomicReference<EchoService>();
-    }
-
-    public InetSocketAddress getAddress() {
-
-        return address;
     }
 
     public void setAddress(final InetSocketAddress address) {

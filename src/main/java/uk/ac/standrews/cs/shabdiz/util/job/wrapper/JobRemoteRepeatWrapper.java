@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.nds.util.Timing;
-import uk.ac.standrews.cs.shabdiz.api.JobRemote;
+import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 import uk.ac.standrews.cs.shabdiz.util.SerializableVoid;
 
 /**

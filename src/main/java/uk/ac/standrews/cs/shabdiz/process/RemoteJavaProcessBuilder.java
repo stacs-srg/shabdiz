@@ -27,9 +27,8 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
-import uk.ac.standrews.cs.shabdiz.api.Host;
-import uk.ac.standrews.cs.shabdiz.api.Platform;
-import uk.ac.standrews.cs.shabdiz.api.RemoteProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
 
 /**
