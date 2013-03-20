@@ -19,10 +19,7 @@ package uk.ac.standrews.cs.shabdiz.host;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
@@ -63,26 +60,23 @@ public class LocalHost extends AbstractHost {
     }
 
     @Override
-    public Process execute(final String... commands) throws IOException {
+    public Process execute(final String command) throws IOException {
 
-        final List<String> command_list = prepareCommands(commands);
-        final ProcessBuilder process_builder = new ProcessBuilder(command_list);
-        System.out.println(Arrays.toString(commands));
+        return execute(null, command);
+    }
+
+    @Override
+    public Process execute(final String working_directory, final String command) throws IOException {
+
+        final ProcessBuilder process_builder = createProcessBuilder(command);
+        process_builder.directory(new File(working_directory));
+        LOGGER.info(command);
         return process_builder.start();
     }
 
-    private List<String> prepareCommands(final String... command) {
+    private ProcessBuilder createProcessBuilder(final String command) {
 
-        final List<String> command_list = new ArrayList<String>(Arrays.asList(command));
-        if (Platforms.isUnixBased(getPlatform())) {
-            command_list.add(0, "bash");
-            command_list.add(1, "-c");
-        }
-        else {
-            command_list.add(0, "cmd.exe");
-            command_list.add(1, "/c");
-        }
-        return command_list;
+        return Platforms.isUnixBased(getPlatform()) ? new ProcessBuilder("bash", "-c", command) : new ProcessBuilder("cmd.exe", "/c", command);
     }
 
     private void copy(final File source, final File destination) throws IOException {

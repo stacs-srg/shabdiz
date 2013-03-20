@@ -74,9 +74,15 @@ public abstract class HostWrapper implements Host {
     }
 
     @Override
-    public Process execute(final String... command) throws IOException {
+    public Process execute(final String command) throws IOException {
 
         return unwrapped_host.execute(command);
+    }
+
+    @Override
+    public Process execute(final String working_directory, final String command) throws IOException {
+
+        return unwrapped_host.execute(working_directory, command);
     }
 
     @Override

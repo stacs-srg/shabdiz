@@ -69,14 +69,23 @@ public interface Host extends Closeable {
     void download(String source, File destination) throws IOException;
 
     /**
-     * Executes the given command and arguments on this host.
+     * Executes the given command in a new process on this host.
      * 
-     * @param commands the command and its arguments
+     * @param command the command
      * @return the process that was started as the result of executing this command
      * @throws IOException Signals that an I/O exception has occurred.
-     * @see ProcessBuilder#ProcessBuilder(String...)
      */
-    Process execute(String... commands) throws IOException;
+    Process execute(String command) throws IOException;
+
+    /**
+     * Executes the given command in a new process on this host at the given working directory.
+     * 
+     * @param working_directory the working directory
+     * @param command the command
+     * @return the process that was started as the result of executing this command
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    Process execute(String working_directory, String command) throws IOException;
 
     /**
      * Gets the platform-specific settings of this host.

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
@@ -16,6 +17,8 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
 
 public final class CompressionUtil {
+
+    private static final Logger LOGGER = Logger.getLogger(CompressionUtil.class.getName());
 
     private CompressionUtil() {
 
@@ -47,12 +50,14 @@ public final class CompressionUtil {
             if (file.isFile()) {
                 final BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
                 final ZipEntry entry = new ZipEntry(base.relativize(file.getCanonicalFile().toURI()).getPath());
-                try{
+                try {
                     zip.putNextEntry(entry);
                     IOUtils.copy(in, zip);
-                }catch(final ZipException e){
-                    System.out.println(e.getMessage());
-                }finally{
+                }
+                catch (final ZipException e) {
+                    LOGGER.severe(e.getMessage());
+                }
+                finally {
                     in.close();
                 }
             }

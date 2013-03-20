@@ -63,9 +63,9 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     public Process start(final Host host) throws IOException {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
-        final String command = assembleRemoteJavaCommand(host, remote_working_directory);
+        final String command = assembleRemoteJavaCommand(host);
         LOGGER.fine("prepareing to execute command: " + command);
-        return host.execute(command);
+        return host.execute(remote_working_directory, command);
     }
 
     private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
@@ -76,15 +76,22 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         LOGGER.info(compressed_classpath.toString());
         CompressionUtil.compress(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);
-        final Process unzip = host.execute("cd "+ remote_working_directory+ "; "+ "unzip -q -o "+ compressed_classpath.getName()+ ";");
+        uncompress(host, remote_working_directory, compressed_classpath);
+        return remote_working_directory;
+    }
+
+    private void uncompress(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
+
+        final Process unzip = host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName() + ";");
         try {
             unzip.waitFor();
         }
         catch (final InterruptedException e) {
-            e.printStackTrace();
+            throw new IOException(e);
         }
-        unzip.destroy();
-        return remote_working_directory;
+        finally {
+            unzip.destroy();
+        }
     }
 
     private String getRemoteWorkingDirectory(final Host host) throws IOException {
@@ -92,26 +99,16 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
         return host.getPlatform().getTempDirectory() + UUID.randomUUID().toString();
     }
 
-    private String assembleRemoteJavaCommand(final Host host, final String remote_working_directory) throws IOException {
+    private String assembleRemoteJavaCommand(final Host host) throws IOException {
 
         final StringBuilder command = new StringBuilder();
         final Platform platform = host.getPlatform();
-        appendRemoteWorkingDirectory(remote_working_directory, command);
         appendJavaBinPath(command, platform);
         appendJVMArguments(command, platform);
         appendMainClass(command);
         appendCommandLineArguments(command);
 
         return command.toString();
-    }
-
-    private void appendRemoteWorkingDirectory(final String remote_working_directory, final StringBuilder command) {
-
-        command.append("cd");
-        command.append(SPACE);
-        command.append(remote_working_directory);
-        command.append(";");
-        command.append(SPACE);
     }
 
     private void appendCommandLineArguments(final StringBuilder command) {

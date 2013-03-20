@@ -214,15 +214,24 @@ public class SSHHost extends AbstractHost {
     }
 
     @Override
-    public Process execute(final String... command) throws IOException {
+    public Process execute(final String command) throws IOException {
 
+        return new ChannelExecProcess(command);
+    }
+
+    @Override
+    public Process execute(final String working_directory, final String command) throws IOException {
+
+        LOGGER.info(working_directory);
+        LOGGER.info(command);
         final StringBuilder sb = new StringBuilder();
-        for (final String cmd : command) {
-            sb.append(cmd);
-            sb.append(" ");
-        }
+        sb.append("cd ");
+        sb.append(working_directory);
+        sb.append(";");
+        sb.append(" ");
+        sb.append(command);
 
-        return new ChannelExecProcess(sb.toString());
+        return execute(sb.toString());
     }
 
     @Override

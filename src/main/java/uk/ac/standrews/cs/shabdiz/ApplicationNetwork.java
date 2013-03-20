@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +46,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     private final String application_name;
     private final Map<Scanner, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledThreadPoolExecutor scanner_scheduler;
-    private final ExecutorService concurrent_scanner_executor;
+    private final ThreadPoolExecutor concurrent_scanner_executor;
 
     private final AutoKillScanner auto_kill_scanner;
     private final AutoDeployScanner auto_deploy_scanner;
@@ -63,7 +63,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         this.application_name = application_name;
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
-        concurrent_scanner_executor = Executors.newCachedThreadPool();
+        concurrent_scanner_executor = new ThreadPoolExecutor(0, 500, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
         auto_kill_scanner = new AutoKillScanner(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
         auto_deploy_scanner = new AutoDeployScanner(DEFAULT_SCANNER_CYCLE_DELAY);
@@ -267,6 +267,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
             killAll();
         }
         catch (final Exception e) {
+            e.printStackTrace();
             LOGGER.log(Level.WARNING, "failed to kill all managed application descriptors", e);
         }
     }
@@ -310,7 +311,9 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
             @Override
             public void run() {
 
-                scanner.scan(ApplicationNetwork.this);
+                if (scanner.isEnabled()) {
+                    scanner.scan(ApplicationNetwork.this);
+                }
             }
         }, cycle_delay_length, cycle_delay_length, cycle_delay.getTimeUnit());
     }

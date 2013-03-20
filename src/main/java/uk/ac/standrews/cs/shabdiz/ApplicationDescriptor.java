@@ -110,7 +110,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return processes;
     }
 
-    protected boolean addProcess(final Process process) {
+    public boolean addProcess(final Process process) {
 
         return processes.add(process);
     }
@@ -231,9 +231,9 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         }
 
         @Override
-        public Process execute(final String... command) throws IOException {
+        public Process execute(final String working_directory, final String command) throws IOException {
 
-            final Process process = getUnwrappedHost().execute(command);
+            final Process process = getUnwrappedHost().execute(working_directory, command);
             addProcess(process);
             return process;
         }

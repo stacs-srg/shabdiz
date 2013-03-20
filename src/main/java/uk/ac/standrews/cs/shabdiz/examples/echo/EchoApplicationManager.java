@@ -41,7 +41,7 @@ public class EchoApplicationManager extends AbstractApplicationManager {
 
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    EchoApplicationManager() {
+    public EchoApplicationManager() {
 
         random = new Random();
         process_builder = new RemoteJavaProcessBuilder(SimpleEchoService.class);

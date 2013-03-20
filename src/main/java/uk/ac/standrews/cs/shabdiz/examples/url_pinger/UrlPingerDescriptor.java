@@ -43,11 +43,6 @@ class UrlPingerDescriptor extends ApplicationDescriptor {
         return target;
     }
 
-    @Override
-    public int compareTo(final ApplicationDescriptor other) {
-
-        return toString().compareTo(other.toString());
-    }
 
     @Override
     public String toString() {
