@@ -43,7 +43,8 @@ public class SimpleEchoService implements EchoService {
 
     public SimpleEchoService(final InetSocketAddress local_address) throws IOException {
 
-        server = new JsonRpcServer(local_address, EchoService.class, this, new JsonFactory(new ObjectMapper()), Executors.newCachedThreadPool());
+        server = new JsonRpcServer(EchoService.class, this, new JsonFactory(new ObjectMapper()), Executors.newCachedThreadPool());
+        server.setBindAddress(local_address);
         server.expose();
         this.local_address = server.getLocalSocketAddress();
     }

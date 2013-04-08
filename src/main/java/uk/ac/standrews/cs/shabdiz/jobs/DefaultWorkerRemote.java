@@ -53,7 +53,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
         callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor = createExecutorService();
-        server = new JsonRpcServer(local_address, WorkerRemote.class, this, WorkerJsonFactory.getInstance(), exexcutor);
+        server = new JsonRpcServer( WorkerRemote.class, this, WorkerJsonFactory.getInstance(), exexcutor);
+        server.setBindAddress(local_address);
         expose();
         this.local_address = server.getLocalSocketAddress();
     }

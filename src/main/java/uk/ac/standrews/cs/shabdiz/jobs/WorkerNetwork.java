@@ -101,7 +101,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
         deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizNetwork_"));
-        callback_server = new JsonRpcServer(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port), WorkerCallback.class, this, WorkerJsonFactory.getInstance(), deployment_executor);
+        callback_server = new JsonRpcServer(WorkerCallback.class, this, WorkerJsonFactory.getInstance(), deployment_executor);
+        callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
         worker_manager = new WorkerManager(this, classpath);
