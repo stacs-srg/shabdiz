@@ -276,11 +276,14 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
         for (final ApplicationDescriptor application_descriptor : this) {
 
-            try {
-                application_descriptor.getHost().close();
-            }
-            catch (final IOException e) {
-                LOGGER.log(Level.WARNING, "failed to close host", e);
+            final Host host = application_descriptor.getHost();
+            if (host != null) {
+                try {
+                    host.close();
+                }
+                catch (final IOException e) {
+                    LOGGER.log(Level.WARNING, "failed to close host", e);
+                }
             }
         }
     }

@@ -33,7 +33,7 @@ public class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private TimeoutExecutorService() {
 
-        super(0, Integer.MAX_VALUE, 5L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new NamingThreadFactory("TimeoutExecutorService_"));
+        super(0, Integer.MAX_VALUE, 500L, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamingThreadFactory("TimeoutExecutorService_"));
     }
 
     public static <Result> Result awaitCompletion(final Callable<Result> task, final Duration timeout) throws InterruptedException, ExecutionException, TimeoutException {

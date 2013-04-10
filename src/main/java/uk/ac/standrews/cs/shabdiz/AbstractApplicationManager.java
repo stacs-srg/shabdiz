@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
     /** The Constant SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT. */
-    public static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    private static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
 
     // A minimal shell command that will be attempted in order to check ssh connectivity. Chosen to have minimal dependency on execution environment, so doesn't rely on anything specific to a user.
     private static final String MINIMAL_COMMAND = "cd /"; //FIXME is this platform dependent?
