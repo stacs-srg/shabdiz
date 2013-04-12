@@ -25,7 +25,7 @@ import org.junit.runners.Suite;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({MadfaceManagerTests.class, PatternResolutionTests.class})
+@Suite.SuiteClasses({ApplicationManagerTests.class, PatternResolutionTests.class})
 public class NightlyTests {
     // Empty.
 }

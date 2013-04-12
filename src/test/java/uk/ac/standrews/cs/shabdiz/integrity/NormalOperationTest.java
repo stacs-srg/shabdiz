@@ -32,7 +32,6 @@ import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.util.TestJobRemoteFactory;
 
 /**
  * Tests whether a deployed job returns expected result.

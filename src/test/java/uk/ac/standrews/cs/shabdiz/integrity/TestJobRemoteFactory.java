@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.util;
+package uk.ac.standrews.cs.shabdiz.integrity;
 
 import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 

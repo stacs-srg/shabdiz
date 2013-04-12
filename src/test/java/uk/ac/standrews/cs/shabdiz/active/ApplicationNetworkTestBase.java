@@ -14,13 +14,41 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.legacy.p2p.network;
+package uk.ac.standrews.cs.shabdiz.active;
 
-public class InvalidServerClassException extends Exception {
+import java.io.IOException;
 
-    public InvalidServerClassException(final Throwable cause) {
+import org.junit.After;
+import org.junit.Before;
 
-        super(cause);
+/**
+ * Common to several test classes.
+ * 
+ * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ */
+public class ApplicationNetworkTestBase {
+
+    /**
+     * Set-up.
+     * 
+     * @throws Exception if set-up fails
+     */
+    @Before
+    public void setup() throws Exception {
+
     }
 
+    /**
+     * Tear-down.
+     * 
+     * @throws Exception if tear-down fails
+     */
+    @After
+    public void teardown() throws Exception {
+
+    }
+
+    protected void configureManager() throws IOException, InstantiationException, IllegalAccessException {
+
+    }
 }
