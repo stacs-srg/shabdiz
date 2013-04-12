@@ -75,7 +75,7 @@ public abstract class AbstractScanner implements Scanner {
      * @param listener the listener to be added
      * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
      */
-    public void addPropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
+    protected void addPropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
 
         property_change_support.addPropertyChangeListener(property_name, listener);
     }
@@ -89,8 +89,13 @@ public abstract class AbstractScanner implements Scanner {
      * @param listener the listener to be removed
      * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
      */
-    public void removePropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
+    protected void removePropertyChangeListener(final String property_name, final PropertyChangeListener listener) {
 
         property_change_support.removePropertyChangeListener(property_name, listener);
+    }
+
+    protected void firePropertyChange(final String property_name, final Object old_value, final Object new_value) {
+
+        property_change_support.firePropertyChange(property_name, old_value, new_value);
     }
 }

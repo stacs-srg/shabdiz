@@ -107,8 +107,13 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     public void deployAll() throws Exception {
 
         for (final ApplicationDescriptor applciation_descriptor : this) {
-
-            deploy(applciation_descriptor);
+            try {
+                deploy(applciation_descriptor);
+            }
+            catch (final Exception e) {
+                e.printStackTrace();
+                throw e;
+            }
         }
     }
 
@@ -250,6 +255,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         cancelScheduledScanners();
         killAllScilently();
         closeHosts();
+        clear();
     }
 
     private void cancelScheduledScanners() {

@@ -130,7 +130,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         InetAddress.getByName(host_name);
     }
 
-    private ApplicationState probeStateByApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
+    protected ApplicationState probeStateByApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
         attemptApplicationCall(descriptor);
         return ApplicationState.RUNNING;
