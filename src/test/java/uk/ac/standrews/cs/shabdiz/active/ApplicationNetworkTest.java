@@ -34,7 +34,7 @@ public class ApplicationNetworkTest extends ApplicationNetworkTestBase {
     private static final int TEST_TIMEOUT = 100000;
 
     @Rule
-    Timeout global_timeout = new Timeout(TEST_TIMEOUT);
+    public Timeout global_timeout = new Timeout(TEST_TIMEOUT);
 
     /**
      * Initializes a host descriptor interactively.
