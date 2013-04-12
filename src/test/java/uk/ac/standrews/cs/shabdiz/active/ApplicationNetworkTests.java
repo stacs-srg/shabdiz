@@ -29,7 +29,7 @@ import org.junit.rules.Timeout;
 /**
  * Tests requiring authentication, not intended to be run automatically.
  */
-public class ApplicationNetworkTest extends ApplicationNetworkTestBase {
+public class ApplicationNetworkTests extends ApplicationNetworkTestBase {
 
     private static final int TEST_TIMEOUT = 100000;
 
