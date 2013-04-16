@@ -38,6 +38,7 @@ import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
@@ -118,9 +119,10 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         return callback_address;
     }
 
-    public boolean add(final Host host) {
+    public ApplicationDescriptor add(final Host host) {
 
-        return add(new RemoteWorkerDescriptor(host, worker_manager));
+        final ApplicationDescriptor descriptor = new ApplicationDescriptor(host, worker_manager);
+        return add(descriptor) ? descriptor : null;
     }
 
     @Override

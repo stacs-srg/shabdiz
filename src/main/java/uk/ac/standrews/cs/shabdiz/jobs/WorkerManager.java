@@ -30,6 +30,7 @@ import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -54,27 +55,25 @@ class WorkerManager extends AbstractApplicationManager {
     @Override
     protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
-        final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
-        final Worker worker = worker_descriptor.getApplicationReference();
+        final Worker worker = descriptor.getApplicationReference();
         worker.getAddress(); // makes a remote call
     }
 
     @Override
     public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
-        final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
-        final Process worker_process = worker_process_builder.start(worker_descriptor.getHost());
-        final InetSocketAddress worker_address = new InetSocketAddress(worker_descriptor.getHost().getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
+        final Host host = descriptor.getHost();
+        final Process worker_process = worker_process_builder.start(host);
+        final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
-        return new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(descriptor.getHost().getAddress(), worker_address.getPort()));
+        return new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
     }
 
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         try {
-            final RemoteWorkerDescriptor worker_descriptor = (RemoteWorkerDescriptor) descriptor;
-            final Worker worker = worker_descriptor.getApplicationReference();
+            final Worker worker = descriptor.getApplicationReference();
             if (worker != null) {
                 worker.shutdown();
             }
