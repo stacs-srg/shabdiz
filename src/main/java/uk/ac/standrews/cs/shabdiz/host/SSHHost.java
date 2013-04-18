@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
@@ -32,9 +31,9 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 
-public class JSchSSHost extends AbstractHost {
+public class SSHHost extends AbstractHost {
 
-    private static final Logger LOGGER = Logger.getLogger(JSchSSHost.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SSHHost.class.getName());
     private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
     private static final int DEFAULT_SSH_PORT = 22;
 
@@ -44,12 +43,12 @@ public class JSchSSHost extends AbstractHost {
     private final SSHCredential credential;
     private final String username;
 
-    public JSchSSHost(final String host_name, final SSHCredential credential) throws IOException {
+    public SSHHost(final String host_name, final SSHCredential credential) throws IOException {
 
         this(InetAddress.getByName(host_name), credential);
     }
 
-    public JSchSSHost(final InetAddress host, final SSHCredential credential) throws IOException {
+    public SSHHost(final InetAddress host, final SSHCredential credential) throws IOException {
 
         super(host);
         this.credential = credential;
@@ -390,11 +389,5 @@ public class JSchSSHost extends AbstractHost {
                 disconnect(session, channel);
             }
         }
-    }
-
-    public static void main(final String[] args) throws IOException, JSchException {
-
-        final JSchSSHost host = new JSchSSHost("localhost", new SSHPasswordCredentials(Input.readPassword("")));
-        host.execute("pwd");
     }
 }

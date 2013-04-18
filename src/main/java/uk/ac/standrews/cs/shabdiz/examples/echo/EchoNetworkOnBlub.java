@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.host.JSchSSHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 import uk.ac.standrews.cs.shabdiz.jobs.Worker;
@@ -37,7 +37,7 @@ public class EchoNetworkOnBlub {
 
         final WorkerNetwork worker_network = new WorkerNetwork();
         final SSHPublicKeyCredentials credentials = SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
-        final JSchSSHost blub_head = new JSchSSHost("blub.cs.st-andrews.ac.uk", credentials);
+        final SSHHost blub_head = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
         worker_network.add(blub_head);
         worker_network.deployAll();
         worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -54,11 +54,11 @@ public class EchoNetworkOnBlub {
         worker_network.shutdown();
     }
 
-    static List<JSchSSHost> getBlubNodes() throws IOException {
+    static List<SSHHost> getBlubNodes() throws IOException {
 
-        final List<JSchSSHost> blub_nodes = new ArrayList<JSchSSHost>();
+        final List<SSHHost> blub_nodes = new ArrayList<SSHHost>();
         for (int i = 0; i < 5; i++) {
-            final JSchSSHost node = new JSchSSHost("compute-0-" + i, SSHPublicKeyCredentials.getDefaultRSACredentials(new String().toCharArray()));
+            final SSHHost node = new SSHHost("compute-0-" + i, SSHPublicKeyCredentials.getDefaultRSACredentials(new String().toCharArray()));
             blub_nodes.add(node);
         }
         return blub_nodes;
@@ -85,9 +85,9 @@ public class EchoNetworkOnBlub {
                 };
 
                 final EchoApplicationManager application_manager = new EchoApplicationManager();
-                final List<JSchSSHost> nodes = getBlubNodes();
+                final List<SSHHost> nodes = getBlubNodes();
 
-                for (final JSchSSHost node : nodes) {
+                for (final SSHHost node : nodes) {
                     final EchoApplicationDescriptor descriptor = new EchoApplicationDescriptor(node, application_manager);
                     descriptor.addStateChangeListener(report_listener);
                     network.add(descriptor);

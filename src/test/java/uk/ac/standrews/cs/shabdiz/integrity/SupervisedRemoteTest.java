@@ -27,7 +27,7 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.JSchSSHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHPasswordCredentials;
 import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 import uk.ac.standrews.cs.shabdiz.jobs.Worker;
@@ -80,7 +80,7 @@ public class SupervisedRemoteTest {
         Worker worker = null;
 
         try {
-            remoteHost = new JSchSSHost(NetworkUtil.getLocalIPv4Address(), new SSHPasswordCredentials(Input.readPassword("Enter Password")));
+            remoteHost = new SSHHost(NetworkUtil.getLocalIPv4Address(), new SSHPasswordCredentials(Input.readPassword("Enter Password")));
             //            remoteHost = new LocalHost();
             network = new WorkerNetwork();
             network.add(remoteHost);
