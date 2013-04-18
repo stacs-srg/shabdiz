@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.credentials;
+package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.nds.util.Input;
 
 /**
- * Factory for {@link SSHPasswordCredential}, {@link SSHPublicKeyCredential} and utility methods for JSON serialisation and deserialisation of {@link SSHCredential credentials}.
+ * Factory for {@link SSHPasswordCredentials}, {@link SSHPublicKeyCredentials} and utility methods for JSON serialisation and deserialisation of {@link SSHCredential credentials}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -54,8 +54,8 @@ public final class Credentials {
     /**
      * Initialises a credentials by prompting the user for information.
      * 
-     * @param use_password whether the credentials is {@link SSHPasswordCredential}
-     * @return an instance of {@link SSHPasswordCredential} if {@code use_password} is {@code true}, an instance of {@link SSHPublicKeyCredential} otherwise
+     * @param use_password whether the credentials is {@link SSHPasswordCredentials}
+     * @return an instance of {@link SSHPasswordCredentials} if {@code use_password} is {@code true}, an instance of {@link SSHPublicKeyCredentials} otherwise
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public static SSHCredential newSSHCredential(final boolean use_password) throws IOException {
@@ -68,13 +68,13 @@ public final class Credentials {
 
         final File private_key = new File(Input.readLine("enter full path to the private key"));
         final char[] passphrase = Input.readPassword("enter private key passphrase:");
-        return new SSHPublicKeyCredential(username, private_key, passphrase);
+        return new SSHPublicKeyCredentials(username, private_key, passphrase);
     }
 
-    private static SSHPasswordCredential newSSHPasswordCredential(final String username) {
+    private static SSHPasswordCredentials newSSHPasswordCredential(final String username) {
 
         final char[] password = Input.readPassword("enter password:");
-        return new SSHPasswordCredential(username, password);
+        return new SSHPasswordCredentials(username, password);
     }
 
     /**
@@ -91,11 +91,11 @@ public final class Credentials {
         if (credential == null) {
             serialized_credentials = JSONObject.NULL;
         }
-        else if (SSHPasswordCredential.class.isInstance(credential)) {
-            serialized_credentials = toJSONObject(SSHPasswordCredential.class.cast(credential));
+        else if (SSHPasswordCredentials.class.isInstance(credential)) {
+            serialized_credentials = toJSONObject(SSHPasswordCredentials.class.cast(credential));
         }
-        else if (SSHPublicKeyCredential.class.isInstance(credential)) {
-            serialized_credentials = toJSONObject(SSHPublicKeyCredential.class.cast(credential));
+        else if (SSHPublicKeyCredentials.class.isInstance(credential)) {
+            serialized_credentials = toJSONObject(SSHPublicKeyCredentials.class.cast(credential));
         }
         else {
             throw new JSONException("unable to serialize credentials to JSON object; unknown credential type");
@@ -104,46 +104,46 @@ public final class Credentials {
         return serialized_credentials;
     }
 
+    //    /**
+    //     * Serialises a {@link SSHPasswordCredentials} instance to a {@link JSONObject JSON}.
+    //     *
+    //     * @param credential the credential to serialise
+    //     * @return the serialised password credentials
+    //     * @see #fromJSONObject(JSONObject)
+    //     */
+    //    public static JSONObject toJSONObject(final SSHPasswordCredentials credential) {
+    //
+    //        final JSONObject serialized_credentials = new JSONObject();
+    //        serialized_credentials.put(USERNAME_KEY, credential.getUsername());
+    //        serialized_credentials.put(PASSWORD_KEY, new String(credential.getPassword()));
+    //        return serialized_credentials;
+    //    }
+    //
+    //    /**
+    //     * Serialises a {@link SSHPublicKeyCredentials} instance to {@link JSONObject JSON}.
+    //     *
+    //     * @param credential the credential to serialise
+    //     * @return the serialised public key credentials
+    //     * @see #fromJSONObject(JSONObject)
+    //     */
+    //    public static JSONObject toJSONObject(final SSHPublicKeyCredentials credential) {
+    //
+    //        final JSONObject serialized_credentials = new JSONObject();
+    //        serialized_credentials.put(USERNAME_KEY, credential.getUsername());
+    //        serialized_credentials.put(PASSPHRASE_KEY, new String(credential.getPassword()));
+    //        serialized_credentials.put(PRIVATE_KEY_FILE_KEY, credential.getPrivateKey().getAbsolutePath());
+    //        return serialized_credentials;
+    //    }
+
     /**
-     * Serialises a {@link SSHPasswordCredential} instance to a {@link JSONObject JSON}.
-     * 
-     * @param credential the credential to serialise
-     * @return the serialised password credentials
-     * @see #fromJSONObject(JSONObject)
-     */
-    public static JSONObject toJSONObject(final SSHPasswordCredential credential) {
-
-        final JSONObject serialized_credentials = new JSONObject();
-        serialized_credentials.put(USERNAME_KEY, credential.getUsername());
-        serialized_credentials.put(PASSWORD_KEY, new String(credential.getPassword()));
-        return serialized_credentials;
-    }
-
-    /**
-     * Serialises a {@link SSHPublicKeyCredential} instance to {@link JSONObject JSON}.
-     * 
-     * @param credential the credential to serialise
-     * @return the serialised public key credentials
-     * @see #fromJSONObject(JSONObject)
-     */
-    public static JSONObject toJSONObject(final SSHPublicKeyCredential credential) {
-
-        final JSONObject serialized_credentials = new JSONObject();
-        serialized_credentials.put(USERNAME_KEY, credential.getUsername());
-        serialized_credentials.put(PASSPHRASE_KEY, new String(credential.getPassword()));
-        serialized_credentials.put(PRIVATE_KEY_FILE_KEY, credential.getPrivateKey().getAbsolutePath());
-        return serialized_credentials;
-    }
-
-    /**
-     * Deserialises a {@link JSONObject} to either a {@link SSHPasswordCredential} or a {@link SSHPublicKeyCredential}.
+     * Deserialises a {@link JSONObject} to either a {@link SSHPasswordCredentials} or a {@link SSHPublicKeyCredentials}.
      * 
      * @param serialized_credential the serialised credentials
      * @return the deserialised credentials
      * @throws JSONException if an error occurs during deserialisation, or the given serialisation format is unknown
      * @see #toJSONObject(SSHCredential)
-     * @see #toJSONObject(SSHPasswordCredential)
-     * @see #toJSONObject(SSHPublicKeyCredential)
+     * @see #toJSONObject(SSHPasswordCredentials)
+     * @see #toJSONObject(SSHPublicKeyCredentials)
      */
     public static SSHCredential fromJSONObject(final JSONObject serialized_credential) throws JSONException {
 
@@ -164,13 +164,13 @@ public final class Credentials {
         final String passphrase = serialized_credential.getString(PASSPHRASE_KEY);
         final String file_path = serialized_credential.getString(PRIVATE_KEY_FILE_KEY);
         final File private_key_file = file_path != null ? new File(file_path) : null;
-        return new SSHPublicKeyCredential(username, private_key_file, passphrase.toCharArray());
+        return new SSHPublicKeyCredentials(username, private_key_file, passphrase.toCharArray());
     }
 
     private static SSHCredential deserializeSSHPasswordCredential(final JSONObject serialized_credential, final String username) throws JSONException {
 
         final String password = serialized_credential.getString(PASSWORD_KEY);
-        return new SSHPasswordCredential(username, password.toCharArray());
+        return new SSHPasswordCredentials(username, password.toCharArray());
     }
 
     private static boolean isSerializedSSHPasswordCredential(final JSONObject serialized_credential) {

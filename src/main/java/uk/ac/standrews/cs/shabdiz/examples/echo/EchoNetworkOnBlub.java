@@ -25,8 +25,8 @@ import java.util.concurrent.Future;
 
 import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.credentials.SSHPublicKeyCredential;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.JSchSSHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
@@ -36,8 +36,8 @@ public class EchoNetworkOnBlub {
     public static void main(final String[] args) throws Exception {
 
         final WorkerNetwork worker_network = new WorkerNetwork();
-        final SSHPublicKeyCredential credentials = SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
-        final SSHHost blub_head = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
+        final SSHPublicKeyCredentials credentials = SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
+        final JSchSSHost blub_head = new JSchSSHost("blub.cs.st-andrews.ac.uk", credentials);
         worker_network.add(blub_head);
         worker_network.deployAll();
         worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -54,11 +54,11 @@ public class EchoNetworkOnBlub {
         worker_network.shutdown();
     }
 
-    static List<SSHHost> getBlubNodes() throws IOException {
+    static List<JSchSSHost> getBlubNodes() throws IOException {
 
-        final List<SSHHost> blub_nodes = new ArrayList<SSHHost>();
+        final List<JSchSSHost> blub_nodes = new ArrayList<JSchSSHost>();
         for (int i = 0; i < 5; i++) {
-            final SSHHost node = new SSHHost("compute-0-" + i, SSHPublicKeyCredential.getDefaultRSACredentials(new String().toCharArray()));
+            final JSchSSHost node = new JSchSSHost("compute-0-" + i, SSHPublicKeyCredentials.getDefaultRSACredentials(new String().toCharArray()));
             blub_nodes.add(node);
         }
         return blub_nodes;
@@ -85,9 +85,9 @@ public class EchoNetworkOnBlub {
                 };
 
                 final EchoApplicationManager application_manager = new EchoApplicationManager();
-                final List<SSHHost> nodes = getBlubNodes();
+                final List<JSchSSHost> nodes = getBlubNodes();
 
-                for (final SSHHost node : nodes) {
+                for (final JSchSSHost node : nodes) {
                     final EchoApplicationDescriptor descriptor = new EchoApplicationDescriptor(node, application_manager);
                     descriptor.addStateChangeListener(report_listener);
                     network.add(descriptor);

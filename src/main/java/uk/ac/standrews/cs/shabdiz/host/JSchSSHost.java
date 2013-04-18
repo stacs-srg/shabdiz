@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -17,8 +18,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
 
 import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.shabdiz.credentials.SSHCredential;
-import uk.ac.standrews.cs.shabdiz.credentials.SSHPasswordCredential;
+import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
@@ -44,14 +44,29 @@ public class JSchSSHost extends AbstractHost {
     private final SSHCredential credential;
     private final String username;
 
-    public JSchSSHost(final String host_name, final SSHCredential credential) throws IOException, JSchException {
+    public JSchSSHost(final String host_name, final SSHCredential credential) throws IOException {
 
-        super(host_name);
+        this(InetAddress.getByName(host_name), credential);
+    }
+
+    public JSchSSHost(final InetAddress host, final SSHCredential credential) throws IOException {
+
+        super(host);
         this.credential = credential;
         username = credential.getUsername();
         platform_lock = new ReentrantLock();
         ssh_client = new JSch();
-        ssh_client.setKnownHosts(credential.getKnownHostsFile());
+        configure();
+    }
+
+    private void configure() throws IOException {
+
+        try {
+            ssh_client.setKnownHosts(credential.getKnownHostsFile());
+        }
+        catch (final JSchException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -161,7 +176,7 @@ public class JSchSSHost extends AbstractHost {
 
         try {
             final Session session = ssh_client.getSession(username, getName(), DEFAULT_SSH_PORT);
-            session.setPassword(new String(((SSHPasswordCredential) credential).getPassword()));
+            credential.authenticate(ssh_client, session);
             session.connect(SSH_CONNECTION_TIMEOUT);
             return session;
         }
@@ -375,5 +390,11 @@ public class JSchSSHost extends AbstractHost {
                 disconnect(session, channel);
             }
         }
+    }
+
+    public static void main(final String[] args) throws IOException, JSchException {
+
+        final JSchSSHost host = new JSchSSHost("localhost", new SSHPasswordCredentials(Input.readPassword("")));
+        host.execute("pwd");
     }
 }

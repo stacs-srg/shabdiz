@@ -25,10 +25,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.barreleye.exception.SSHException;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
+
+import com.jcraft.jsch.JSchException;
 
 /**
  * Provides default implementations of {@link ApplicationDescriptor} termination and state probe.
@@ -103,7 +104,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
             return ApplicationState.INVALID; // Machine address couldn't be resolved.
         }
-        catch (final SSHException e) {
+        catch (final JSchException e) {
 
             return ApplicationState.NO_AUTH; // Couldn't make SSH connection with specified credentials.
         }

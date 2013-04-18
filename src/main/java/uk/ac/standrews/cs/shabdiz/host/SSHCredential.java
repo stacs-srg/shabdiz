@@ -14,18 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.credentials;
+package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import uk.ac.standrews.cs.barreleye.SSHClient;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
 public abstract class SSHCredential implements Serializable {
 
+    private static final long serialVersionUID = -7383859655297094420L;
     static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
-    static final File SSH_KNOWN_HOSTS = new File(SSHPublicKeyCredential.SSH_HOME, "known_hosts");
+    static final File SSH_KNOWN_HOSTS = new File(SSHPublicKeyCredentials.SSH_HOME, "known_hosts");
     private final String username;
 
     protected SSHCredential() {
@@ -38,7 +40,7 @@ public abstract class SSHCredential implements Serializable {
         this.username = username;
     }
 
-    public String getKnownHostsFile() {
+    protected String getKnownHostsFile() {
 
         return SSH_KNOWN_HOSTS.getAbsolutePath();
     }
@@ -49,7 +51,7 @@ public abstract class SSHCredential implements Serializable {
      * @param ssh_client the SSH client to authenticate
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public abstract void authenticate(SSHClient ssh_client) throws IOException;
+    abstract void authenticate(JSch ssh_client, Session ssh_session) throws IOException;
 
     /**
      * Gets the username.
