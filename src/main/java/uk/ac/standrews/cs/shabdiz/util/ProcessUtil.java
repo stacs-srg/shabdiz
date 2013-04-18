@@ -24,6 +24,8 @@ import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 
@@ -31,6 +33,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 
 public final class ProcessUtil {
 
+    private static final Logger LOGGER = Logger.getLogger(ProcessUtil.class.getName());
     private static final String UTF_8 = "UTF-8";
     private static final String DELIMITER = "=";
     private static final int NORMAL_TERMINATION = 0;
@@ -75,7 +78,23 @@ public final class ProcessUtil {
         }
     }
 
-    private static Callable<String> createProcessOutputScanTask(final Process worker_process, final String key) {
+    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
+
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+
+        if (index_of_at != -1) {
+            try {
+                pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+            }
+            catch (final NumberFormatException e) {
+                LOGGER.log(Level.FINE, "failed to extract pid from runtime MXBean name", e);
+            }
+        }
+        return pid;
+    }
+
+    private static Callable<String> createProcessOutputScanTask(final Process process, final String key) {
 
         return new Callable<String>() {
 
@@ -83,7 +102,7 @@ public final class ProcessUtil {
             public String call() throws Exception {
 
                 String worker_address;
-                final Scanner scanner = new Scanner(worker_process.getInputStream(), UTF_8);
+                final Scanner scanner = new Scanner(process.getInputStream(), UTF_8);
                 do {
                     final String output_line = scanner.nextLine();
                     worker_address = findValueInLine(output_line, key);

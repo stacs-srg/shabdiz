@@ -28,8 +28,6 @@ import uk.ac.standrews.cs.barreleye.userauth.IdentityManager;
 public class SSHPublicKeyCredential extends SSHPasswordCredential {
 
     private static final Logger LOGGER = Logger.getLogger(SSHPublicKeyCredential.class.getName());
-    static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
-    static final File SSH_KNOWN_HOSTS = new File(SSHPublicKeyCredential.SSH_HOME, "known_hosts");
     private static final File SSH_RSA_PRIVATE_KEY = new File(SSH_HOME, "id_rsa");
     private transient final File private_key;
 

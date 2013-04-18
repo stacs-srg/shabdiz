@@ -60,7 +60,7 @@ public class SSHPasswordCredential extends SSHCredential {
         return Input.toBytes(password);
     }
 
-    protected char[] getPassword() {
+    public char[] getPassword() {
 
         return password;
     }

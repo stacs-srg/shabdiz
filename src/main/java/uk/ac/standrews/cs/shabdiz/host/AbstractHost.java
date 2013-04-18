@@ -27,6 +27,7 @@ public abstract class AbstractHost implements Host {
     private static final Logger LOGGER = Logger.getLogger(AbstractHost.class.getName());
     private final InetAddress address;
     private final boolean local;
+    private final String name;
 
     public AbstractHost(final String name) throws IOException {
 
@@ -37,6 +38,13 @@ public abstract class AbstractHost implements Host {
 
         this.address = address;
         local = NetworkUtil.isValidLocalAddress(address);
+        name = address.getHostName();
+    }
+
+    @Override
+    public String getName() {
+
+        return name;
     }
 
     @Override
@@ -56,4 +64,5 @@ public abstract class AbstractHost implements Host {
 
         LOGGER.fine("closing host " + address);
     }
+
 }

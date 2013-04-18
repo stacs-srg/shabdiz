@@ -16,6 +16,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.credentials;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -23,6 +24,8 @@ import uk.ac.standrews.cs.barreleye.SSHClient;
 
 public abstract class SSHCredential implements Serializable {
 
+    static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
+    static final File SSH_KNOWN_HOSTS = new File(SSHPublicKeyCredential.SSH_HOME, "known_hosts");
     private final String username;
 
     protected SSHCredential() {
@@ -33,6 +36,11 @@ public abstract class SSHCredential implements Serializable {
     protected SSHCredential(final String username) {
 
         this.username = username;
+    }
+
+    public String getKnownHostsFile() {
+
+        return SSH_KNOWN_HOSTS.getAbsolutePath();
     }
 
     /**

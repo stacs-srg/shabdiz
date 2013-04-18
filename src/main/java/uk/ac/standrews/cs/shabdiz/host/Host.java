@@ -102,6 +102,8 @@ public interface Host extends Closeable {
      */
     InetAddress getAddress();
 
+    String getName();
+
     /**
      * Checks if this host represents the local platform.
      * 

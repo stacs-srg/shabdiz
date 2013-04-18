@@ -68,6 +68,12 @@ public abstract class HostWrapper implements Host {
     }
 
     @Override
+    public String getName() {
+
+        return unwrapped_host.getName();
+    }
+
+    @Override
     public InetAddress getAddress() {
 
         return unwrapped_host.getAddress();

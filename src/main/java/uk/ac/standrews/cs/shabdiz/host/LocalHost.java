@@ -62,7 +62,7 @@ public class LocalHost extends AbstractHost {
     @Override
     public Process execute(final String command) throws IOException {
 
-        return execute(null, command);
+        return execute(".", command);
     }
 
     @Override
