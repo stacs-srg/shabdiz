@@ -1,4 +1,6 @@
 /*
+ * Copyright 2013 University of St Andrews School of Computer Science
+ * 
  * This file is part of Shabdiz.
  * 
  * Shabdiz is free software: you can redistribute it and/or modify
