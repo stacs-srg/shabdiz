@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -114,12 +113,6 @@ public class NormalOperationTest {
     @AfterClass
     public static void tearDown() throws Exception {
 
-        try {
-            worker.shutdown();
-        }
-        catch (final JsonRpcException e) {
-            //ignore; expected.
-        }
         network.shutdown();
         localhost.close();
     }

@@ -19,6 +19,7 @@
 package uk.ac.standrews.cs.shabdiz.jobs;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 public class WorkerMain {
 
     public static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
+    public static final String RUNTIME_MXBEAN_NAME_KEY = "runtimeMXBeanName";
     private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
@@ -104,6 +106,7 @@ public class WorkerMain {
         try {
             final DefaultWorkerRemote worker = server.createNode();
             printWorkerAddress(worker);
+            ProcessUtil.printKeyValue(System.out, RUNTIME_MXBEAN_NAME_KEY, ManagementFactory.getRuntimeMXBean().getName());
             LOGGER.info("Started Shabdiz worker at " + worker.getAddress());
         }
         catch (final IOException e) {

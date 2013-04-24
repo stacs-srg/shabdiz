@@ -36,6 +36,7 @@ class DefaultWorkerWrapper implements Worker {
     private final Process worker_process;
     private final WorkerRemote proxy;
     private final InetSocketAddress worker_address;
+    private volatile Integer worker_process_id;
 
     /**
      * Instantiates a new worker which is contacted passively.
@@ -50,6 +51,15 @@ class DefaultWorkerWrapper implements Worker {
         this.proxy = proxy;
         this.worker_process = worker_process;
         this.worker_address = worker_address;
+    }
+
+    void setWorkerProcessId(final Integer id){
+        worker_process_id = id;
+    }
+
+    public Integer getWorkerProcessId() {
+
+        return worker_process_id;
     }
 
     @Override

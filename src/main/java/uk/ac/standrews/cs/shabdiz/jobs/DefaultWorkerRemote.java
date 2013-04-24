@@ -29,7 +29,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.JsonRpcServerNIO;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
@@ -45,7 +45,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
-    private final JsonRpcServer server;
+    private final JsonRpcServerNIO server;
     private final WorkerCallback callback;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
@@ -55,7 +55,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor = createExecutorService();
-        server = new JsonRpcServer( WorkerRemote.class, this, WorkerJsonFactory.getInstance(), exexcutor);
+        server = new JsonRpcServerNIO( WorkerRemote.class, this, WorkerJsonFactory.getInstance());
         server.setBindAddress(local_address);
         expose();
         this.local_address = server.getLocalSocketAddress();

@@ -67,16 +67,25 @@ class WorkerManager extends AbstractApplicationManager {
         final Host host = descriptor.getHost();
         final Process worker_process = worker_process_builder.start(host);
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
+        final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
-        return new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
+        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
+        worker_wrapper.setWorkerProcessId(ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name));
+        return worker_wrapper;
     }
 
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         try {
-            final Worker worker = descriptor.getApplicationReference();
+            final DefaultWorkerWrapper worker = descriptor.getApplicationReference();
             if (worker != null) {
+                final Integer processId = worker.getWorkerProcessId();
+                if (processId != null) {
+                    final Process process = descriptor.getHost().execute("kill -9 " + processId);
+                    process.waitFor();
+                    process.destroy();
+                }
                 worker.shutdown();
             }
         }

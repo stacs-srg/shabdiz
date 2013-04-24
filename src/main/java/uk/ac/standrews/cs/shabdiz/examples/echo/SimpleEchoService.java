@@ -20,9 +20,8 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.JsonRpcServerNIO;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -32,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class SimpleEchoService implements EchoService {
 
     private final InetSocketAddress local_address;
-    private final JsonRpcServer server;
+    private final JsonRpcServerNIO server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
 
     public static void main(final String[] args) throws NumberFormatException, IOException {
@@ -45,7 +44,7 @@ public class SimpleEchoService implements EchoService {
 
     public SimpleEchoService(final InetSocketAddress local_address) throws IOException {
 
-        server = new JsonRpcServer(EchoService.class, this, new JsonFactory(new ObjectMapper()), Executors.newCachedThreadPool());
+        server = new JsonRpcServerNIO(EchoService.class, this, new JsonFactory(new ObjectMapper()));
         server.setBindAddress(local_address);
         server.expose();
         this.local_address = server.getLocalSocketAddress();

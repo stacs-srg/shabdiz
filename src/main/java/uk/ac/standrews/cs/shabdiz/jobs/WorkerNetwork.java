@@ -28,17 +28,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.JsonRpcServerNIO;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
@@ -57,9 +54,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final int EPHEMERAL_PORT = 0;
 
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final JsonRpcServer callback_server; // The server which listens to the callbacks  from workers
+    private final JsonRpcServerNIO callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
-    private final ExecutorService deployment_executor;
     private final WorkerManager worker_manager;
 
     /**
@@ -103,17 +99,11 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
-        deployment_executor = Executors.newCachedThreadPool(new NamingThreadFactory("ShabdizNetwork_"));
-        callback_server = new JsonRpcServer(WorkerCallback.class, this, WorkerJsonFactory.getInstance(), deployment_executor);
+        callback_server = new JsonRpcServerNIO(WorkerCallback.class, this, WorkerJsonFactory.getInstance());
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
         worker_manager = new WorkerManager(this, classpath);
-    }
-
-    ExecutorService getExecutor() {
-
-        return deployment_executor;
     }
 
     InetSocketAddress getCallbackAddress() {
@@ -159,7 +149,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     public void shutdown() {
 
         try {
-            deployment_executor.shutdownNow();
             callback_server.shutdown();
             releaseAllPendingFutures(); // Release the futures which are still pending for notification
         }
