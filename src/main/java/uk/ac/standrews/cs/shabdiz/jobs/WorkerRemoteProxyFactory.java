@@ -21,9 +21,9 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import uk.ac.standrews.cs.jetson.JsonRpcProxyFactoryNIO;
+import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
 
-public final class WorkerRemoteProxyFactory extends JsonRpcProxyFactoryNIO {
+public final class WorkerRemoteProxyFactory extends JsonRpcProxyFactory {
 
     private static final WorkerRemoteProxyFactory WORKER_REMOTE_PROXY_FACTORY_INSTANCE = new WorkerRemoteProxyFactory();
 

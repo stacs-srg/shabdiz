@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServerNIO;
+import uk.ac.standrews.cs.jetson.JsonRpcServer;
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -54,7 +54,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final int EPHEMERAL_PORT = 0;
 
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final JsonRpcServerNIO callback_server; // The server which listens to the callbacks  from workers
+    private final JsonRpcServer callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final WorkerManager worker_manager;
 
@@ -99,7 +99,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
-        callback_server = new JsonRpcServerNIO(WorkerCallback.class, this, WorkerJsonFactory.getInstance());
+        callback_server = new JsonRpcServer(WorkerCallback.class, this, WorkerJsonFactory.getInstance());
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server

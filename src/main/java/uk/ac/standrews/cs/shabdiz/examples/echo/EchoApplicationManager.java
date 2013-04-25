@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.jetson.JsonRpcProxyFactoryNIO;
+import uk.ac.standrews.cs.jetson.JsonRpcProxyFactory;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class EchoApplicationManager extends AbstractApplicationManager {
 
     private final Random random;
-    final JsonRpcProxyFactoryNIO proxy_factory;
+    final JsonRpcProxyFactory proxy_factory;
     private final RemoteJavaProcessBuilder process_builder;
 
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
@@ -49,7 +49,7 @@ public class EchoApplicationManager extends AbstractApplicationManager {
         process_builder = new RemoteJavaProcessBuilder(SimpleEchoService.class);
         process_builder.addCommandLineArgument(":0");
         process_builder.addCurrentJVMClasspath();
-        proxy_factory = new JsonRpcProxyFactoryNIO(EchoService.class, new JsonFactory(new ObjectMapper()));
+        proxy_factory = new JsonRpcProxyFactory(EchoService.class, new JsonFactory(new ObjectMapper()));
     }
 
     @Override
