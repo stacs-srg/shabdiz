@@ -21,7 +21,8 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.JsonRpcException;
+
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 
 /**

@@ -21,13 +21,13 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import uk.ac.standrews.cs.jetson.Server;
-import uk.ac.standrews.cs.jetson.ServerFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
 
 public class SimpleEchoService implements EchoService {
 
@@ -46,7 +46,7 @@ public class SimpleEchoService implements EchoService {
 
     public SimpleEchoService(final InetSocketAddress local_address) throws IOException {
 
-        server = SERVER_FACTORY.createJsonRpcServer(this);
+        server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(local_address);
         server.expose();
         this.local_address = server.getLocalSocketAddress();

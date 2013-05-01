@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.examples.echo;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.JsonRpcException;
 
 public interface EchoService {
 

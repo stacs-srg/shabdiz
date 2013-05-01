@@ -22,8 +22,6 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.jetson.ClientFactory;
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
@@ -34,6 +32,8 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.staticiser.jetson.ClientFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
 
 public class EchoApplicationManager extends AbstractApplicationManager {
 

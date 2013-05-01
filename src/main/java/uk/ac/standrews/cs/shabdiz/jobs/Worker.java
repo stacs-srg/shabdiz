@@ -23,7 +23,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.JsonRpcException;
+
 
 /**
  * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.

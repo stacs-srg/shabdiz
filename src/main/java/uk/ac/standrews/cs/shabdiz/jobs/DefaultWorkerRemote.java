@@ -29,9 +29,10 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.Server;
-import uk.ac.standrews.cs.jetson.ServerFactory;
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
+
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
@@ -57,7 +58,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor = createExecutorService();
-        server = SERVER_FACTORY.createJsonRpcServer(this);
+        server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(local_address);
         expose();
         this.local_address = server.getLocalSocketAddress();

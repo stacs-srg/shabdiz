@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.jobs;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.JsonRpcException;
 
 /**
  * Presents a remote exception on a worker.

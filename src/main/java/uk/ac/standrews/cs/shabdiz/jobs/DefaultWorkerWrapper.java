@@ -23,7 +23,8 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.JsonRpcException;
+
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.

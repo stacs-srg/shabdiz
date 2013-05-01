@@ -32,8 +32,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.Server;
-import uk.ac.standrews.cs.jetson.ServerFactory;
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+
 import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
 import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
@@ -102,7 +103,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
 
-        callback_server = CALLBACK_SERVER_FACTORY.createJsonRpcServer(this);
+        callback_server = CALLBACK_SERVER_FACTORY.createServer(this);
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server

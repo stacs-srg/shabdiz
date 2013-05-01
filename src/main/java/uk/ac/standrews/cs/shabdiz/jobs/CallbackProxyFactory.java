@@ -21,7 +21,8 @@ package uk.ac.standrews.cs.shabdiz.jobs;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import uk.ac.standrews.cs.jetson.ClientFactory;
+import com.staticiser.jetson.ClientFactory;
+
 
 public final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
 
