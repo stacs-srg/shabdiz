@@ -21,7 +21,8 @@ package uk.ac.standrews.cs.shabdiz.examples.echo;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.Server;
+import uk.ac.standrews.cs.jetson.ServerFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -31,8 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class SimpleEchoService implements EchoService {
 
     private final InetSocketAddress local_address;
-    private final JsonRpcServer server;
+    private final Server server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
+    private static final ServerFactory<EchoService> SERVER_FACTORY = new ServerFactory<EchoService>(EchoService.class, new JsonFactory(new ObjectMapper()));
 
     public static void main(final String[] args) throws NumberFormatException, IOException {
 
@@ -44,7 +46,7 @@ public class SimpleEchoService implements EchoService {
 
     public SimpleEchoService(final InetSocketAddress local_address) throws IOException {
 
-        server = new JsonRpcServer(EchoService.class, this, new JsonFactory(new ObjectMapper()));
+        server = SERVER_FACTORY.createJsonRpcServer(this);
         server.setBindAddress(local_address);
         server.expose();
         this.local_address = server.getLocalSocketAddress();
@@ -64,6 +66,12 @@ public class SimpleEchoService implements EchoService {
     @Override
     public void shutdown() {
 
-        server.shutdown();
+        try {
+            server.unexpose();
+        }
+        catch (final IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

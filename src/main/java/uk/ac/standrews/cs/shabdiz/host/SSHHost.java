@@ -52,7 +52,7 @@ import com.jcraft.jsch.SftpException;
 public class SSHHost extends AbstractHost {
 
     private static final Logger LOGGER = Logger.getLogger(SSHHost.class.getName());
-    private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(15, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
+    private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(60, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
     private static final int DEFAULT_SSH_PORT = 22;
 
     private final JSch ssh_client;

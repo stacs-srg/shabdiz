@@ -20,20 +20,21 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.nds.util.Input;
-import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
-import uk.ac.standrews.cs.shabdiz.host.SSHPasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.jobs.DefaultWorkerWrapper;
 import uk.ac.standrews.cs.shabdiz.jobs.JobRemote;
 import uk.ac.standrews.cs.shabdiz.jobs.Worker;
 import uk.ac.standrews.cs.shabdiz.jobs.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.jobs.WorkerRemote;
+import uk.ac.standrews.cs.shabdiz.jobs.WorkerRemoteProxyFactory;
 import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
 
 public class SupervisedRemoteTest {
@@ -77,18 +78,22 @@ public class SupervisedRemoteTest {
 
     public static void main(final String[] args) throws Exception {
 
-        AbstractHost remoteHost = null;
+        final AbstractHost remoteHost = null;
         WorkerNetwork network = null;
         Worker worker = null;
 
         try {
-            remoteHost = new SSHHost(NetworkUtil.getLocalIPv4Address(), new SSHPasswordCredentials(Input.readPassword("Enter Password")));
-            //            remoteHost = new LocalHost();
-            network = new WorkerNetwork();
-            network.add(remoteHost);
-            network.deployAll();
-            network.awaitAnyOfStates(ApplicationState.RUNNING);
-            worker = network.iterator().next().getApplicationReference();
+            //            remoteHost = new SSHHost("192.168.1.3", new SSHPasswordCredentials("Administrator",Input.readPassword("Enter Password")));
+            //            //            remoteHost = new LocalHost();
+            network = new WorkerNetwork(61255, new HashSet<File>());
+            new Scanner(System.in).nextLine();
+            //            network.add(remoteHost);
+            //            network.deployAll();
+            //            network.awaitAnyOfStates(ApplicationState.RUNNING);
+            //            worker = network.iterator().next().getApplicationReference();
+            final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(new InetSocketAddress("192.168.1.3", 52398));
+
+            worker = new DefaultWorkerWrapper(network, worker_remote, null, new InetSocketAddress("192.168.1.3", 52398));
 
             System.out.println("submitting job to the remote worker");
             final Future<UUID> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());

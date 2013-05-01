@@ -29,7 +29,8 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.jetson.JsonRpcServer;
+import uk.ac.standrews.cs.jetson.Server;
+import uk.ac.standrews.cs.jetson.ServerFactory;
 import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
 import uk.ac.standrews.cs.nds.util.Diagnostic;
 import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
@@ -45,7 +46,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private final InetSocketAddress local_address;
     private final ExecutorService exexcutor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
-    private final JsonRpcServer server;
+    private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new ServerFactory<WorkerRemote>(WorkerRemote.class, WorkerJsonFactory.getInstance());
+    private final Server server;
     private final WorkerCallback callback;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
@@ -55,7 +57,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         exexcutor = createExecutorService();
-        server = new JsonRpcServer( WorkerRemote.class, this, WorkerJsonFactory.getInstance());
+        server = SERVER_FACTORY.createJsonRpcServer(this);
         server.setBindAddress(local_address);
         expose();
         this.local_address = server.getLocalSocketAddress();
@@ -92,7 +94,6 @@ public class DefaultWorkerRemote implements WorkerRemote {
         exexcutor.shutdownNow();
         try {
             unexpose();
-            server.shutdown();
         }
         catch (final IOException e) {
             Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);

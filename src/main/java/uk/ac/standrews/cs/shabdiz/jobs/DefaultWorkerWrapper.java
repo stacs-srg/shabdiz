@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.jetson.exception.JsonRpcException;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class DefaultWorkerWrapper implements Worker {
+public class DefaultWorkerWrapper implements Worker {
 
     private final WorkerNetwork network;
     private final Process worker_process;
@@ -45,7 +45,7 @@ class DefaultWorkerWrapper implements Worker {
      * @param network the launcher by which the remote correspondence of this worker is launched
      * @param worker_process
      */
-    DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
+    public  DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
 
         this.network = network;
         this.proxy = proxy;
