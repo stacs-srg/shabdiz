@@ -10,7 +10,7 @@
 
 	<groupId>uk.ac.standrews.cs</groupId>
 	<artifactId>shabdiz</artifactId>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 	<version>1.0-SNAPSHOT</version>
 	<name>shabdiz</name>
 	<url>https://builds.cs.st-andrews.ac.uk/job/shabdiz</url>
@@ -38,7 +38,13 @@
 			<url>http://maven.cs.st-andrews.ac.uk/</url>
 		</repository>
 	</repositories>
-
+	 
+	<modules>
+	    <module>core</module>
+	    <module>example</module>
+	    <module>job</module>
+	</modules>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.json</groupId>
