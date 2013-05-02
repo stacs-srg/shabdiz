@@ -47,7 +47,6 @@ import com.jcraft.jsch.JSchException;
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
-    /** The Constant SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT. */
     private static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
 
     // A minimal shell command that will be attempted in order to check ssh connectivity. Chosen to have minimal dependency on execution environment, so doesn't rely on anything specific to a user.
@@ -93,12 +92,14 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             return probeStateByApplicationCall(descriptor);
         }
         catch (final Exception e) {
-            //Catch Exception to cover NPE since application reference may be null
+            LOGGER.debug("state probe using application call failed", e);
             return probeStateBySshCommandExecution(descriptor);
         }
     }
 
     private ApplicationState probeStateBySshCommandExecution(final ApplicationDescriptor descriptor) {
+
+        LOGGER.debug("attempting SSH-based state probe on descriptor {}", descriptor);
 
         final Host host = descriptor.getHost();
         try {

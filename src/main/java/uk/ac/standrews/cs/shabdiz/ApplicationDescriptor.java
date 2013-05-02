@@ -44,7 +44,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final String STATE_PROPERTY_NAME = "state";
-    private final Long id; // used to resolve ties when comparing
+    private final Long id; // used to resolve ties when comparing descriptors
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     private final AtomicReference<Object> application_reference;
@@ -112,7 +112,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return processes;
     }
 
-    public boolean addProcess(final Process process) {
+    protected boolean addProcess(final Process process) {
 
         return processes.add(process);
     }
