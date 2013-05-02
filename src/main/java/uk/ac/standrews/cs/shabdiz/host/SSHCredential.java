@@ -29,7 +29,7 @@ public abstract class SSHCredential implements Serializable {
 
     private static final long serialVersionUID = -7383859655297094420L;
     static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
-    static final File SSH_KNOWN_HOSTS = new File(SSHPublicKeyCredentials.SSH_HOME, "known_hosts");
+    static final File SSH_KNOWN_HOSTS = new File(SSH_HOME, "known_hosts");
     private final String username;
 
     protected SSHCredential() {
