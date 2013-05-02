@@ -27,6 +27,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
@@ -43,6 +46,7 @@ import com.jcraft.jsch.JSchException;
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
     /** The Constant SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT. */
     private static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
 
