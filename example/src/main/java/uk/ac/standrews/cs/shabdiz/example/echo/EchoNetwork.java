@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples.echo;
+package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import java.util.concurrent.TimeoutException;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
+import uk.ac.standrews.cs.shabdiz.example.PrintNewAndOldPropertyListener;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 

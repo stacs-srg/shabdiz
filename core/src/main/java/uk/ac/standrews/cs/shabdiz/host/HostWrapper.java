@@ -25,6 +25,11 @@ import java.util.Collection;
 
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
+/**
+ * Implements a wrapper around a given {@link Host host}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public abstract class HostWrapper implements Host {
 
     private final Host unwrapped_host;

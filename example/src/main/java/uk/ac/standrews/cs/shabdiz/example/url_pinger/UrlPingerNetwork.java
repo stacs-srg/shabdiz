@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples.url_pinger;
+package uk.ac.standrews.cs.shabdiz.example.url_pinger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.examples.PrintNewAndOldPropertyListener;
+import uk.ac.standrews.cs.shabdiz.example.PrintNewAndOldPropertyListener;
 
 public class UrlPingerNetwork extends ApplicationNetwork {
 

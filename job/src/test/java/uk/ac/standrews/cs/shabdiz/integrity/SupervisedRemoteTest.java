@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.WorkerRemote;
 import uk.ac.standrews.cs.shabdiz.job.WorkerRemoteProxyFactory;
-import uk.ac.standrews.cs.shabdiz.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.job.util.ObjectStore;
 
 public class SupervisedRemoteTest {
 

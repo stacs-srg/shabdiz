@@ -34,7 +34,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 class WorkerManager extends AbstractApplicationManager {
@@ -45,7 +45,7 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Integer DEFAULT_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_WORKER_SOCKET_READ_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
-    private final RemoteJavaProcessBuilder worker_process_builder;
+    private final JavaProcessBuilder worker_process_builder;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
     private final WorkerNetwork network;
 
@@ -104,9 +104,9 @@ class WorkerManager extends AbstractApplicationManager {
         return Marshaller.getAddress(address_as_string);
     }
 
-    private RemoteJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
+    private JavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
 
-        final RemoteJavaProcessBuilder process_builder = new RemoteJavaProcessBuilder(WorkerMain.class);
+        final JavaProcessBuilder process_builder = new JavaProcessBuilder(WorkerMain.class);
         final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT, DEFAULT_THREAD_POOL_SIZE, DEFAULT_WORKER_SOCKET_READ_TIMEOUT);
         process_builder.addCommandLineArguments(arguments);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);

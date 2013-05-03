@@ -16,16 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples;
+package uk.ac.standrews.cs.shabdiz.example.echo;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import com.staticiser.jetson.exception.JsonRpcException;
 
-public final class PrintNewAndOldPropertyListener implements PropertyChangeListener {
+public interface EchoService {
 
-    @Override
-    public void propertyChange(final PropertyChangeEvent evt) {
+    String echo(String message) throws JsonRpcException;
 
-        System.out.println("State of " + evt.getSource() + " changed from " + evt.getOldValue() + " to " + evt.getNewValue());
-    }
+    void shutdown() throws JsonRpcException;
 }

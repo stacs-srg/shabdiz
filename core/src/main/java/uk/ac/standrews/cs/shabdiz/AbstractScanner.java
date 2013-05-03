@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
- * Common scanner functionality.
+ * Provides common {@link Scanner} functionality.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

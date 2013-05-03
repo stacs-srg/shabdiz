@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import uk.ac.standrews.cs.nds.util.Duration;
 
 /**
- * A host scanner that concurrently scans a given {@link ApplicationNetwork application network}.
+ * A host scanner that concurrently scans each {@link ApplicationDescriptor descriptor} in a given {@link ApplicationNetwork application network}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

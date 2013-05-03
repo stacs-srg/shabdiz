@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples.echo;
+package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

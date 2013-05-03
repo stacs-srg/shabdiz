@@ -16,25 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.process;
+package uk.ac.standrews.cs.shabdiz.example.echo;
 
-import java.io.IOException;
+import java.net.InetSocketAddress;
 
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
-/**
- * Starts a {@link Process process} on a given {@link Host host}.
- * 
- * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- */
-public interface RemoteProcessBuilder {
+public class EchoApplicationDescriptor extends ApplicationDescriptor {
 
-    /**
-     * Starts a {@link Process process} on a given {@code host}.
-     * 
-     * @param host the host on which to start a process
-     * @return the process running on the host
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    Process start(Host host) throws IOException;
+    private InetSocketAddress address;
+
+    public EchoApplicationDescriptor(final Host host, final EchoApplicationManager manager) {
+
+        super(host, manager);
+    }
+
+    public void setAddress(final InetSocketAddress address) {
+
+        this.address = address;
+    }
+
+    @Override
+    public String toString() {
+
+        return "Echo Service on [" + (address == null ? "UNDEPLOYED" : address) + "]";
+    }
 }

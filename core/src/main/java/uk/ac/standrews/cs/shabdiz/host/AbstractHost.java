@@ -20,23 +20,30 @@ package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 
+/**
+ * Provides the common functionality for a {@link Host}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public abstract class AbstractHost implements Host {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractHost.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHost.class);
     private final InetAddress address;
     private final boolean local;
     private final String name;
 
-    public AbstractHost(final String name) throws IOException {
+    protected AbstractHost(final String name) throws IOException {
 
         this(InetAddress.getByName(name));
     }
 
-    public AbstractHost(final InetAddress address) {
+    protected AbstractHost(final InetAddress address) {
 
         this.address = address;
         local = NetworkUtil.isValidLocalAddress(address);
@@ -64,7 +71,7 @@ public abstract class AbstractHost implements Host {
     @Override
     public void close() throws IOException {
 
-        LOGGER.fine("closing host " + address);
+        LOGGER.debug("closing host {}", address);
     }
 
 }

@@ -30,12 +30,11 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
@@ -48,42 +47,91 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
+import com.staticiser.jetson.util.CloseableUtil;
 
+/**
+ * Implements a {@link Host} that uses SSH2 to upload, download and execute commands.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class SSHHost extends AbstractHost {
 
-    private static final Logger LOGGER = Logger.getLogger(SSHHost.class.getName());
-    private static final int SSH_CONNECTION_TIMEOUT = (int) new Duration(60, TimeUnit.SECONDS).getLength(TimeUnit.MILLISECONDS);
-    private static final int DEFAULT_SSH_PORT = 22;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSHHost.class);
 
-    private final JSch ssh_client;
+    /** The Constant DEFAULT_SSH_PORT. */
+    public static final int DEFAULT_SSH_PORT = 22;
+    private static final int DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS = (int) TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES);
+
+    private final JSch ssh_session_factory;
     private final ReentrantLock platform_lock;
-    private volatile Platform platform;
-    private final SSHCredential credential;
     private final String username;
+    private final transient SSHCredentials credentials;
+    private volatile Platform platform;
+    private volatile int ssh_port;
+    private volatile int ssh_connection_timeout_in_millis;
 
-    public SSHHost(final String host_name, final SSHCredential credential) throws IOException {
+    /**
+     * Instantiates a new SSH-managed host.
+     * 
+     * @param host_name the host name
+     * @param credentials the credentials
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    public SSHHost(final String host_name, final SSHCredentials credentials) throws IOException {
 
-        this(InetAddress.getByName(host_name), credential);
+        this(InetAddress.getByName(host_name), credentials);
     }
 
-    public SSHHost(final InetAddress host, final SSHCredential credential) throws IOException {
+    /**
+     * Instantiates a new SSH-managed host.
+     * 
+     * @param host_address the host address
+     * @param credentials the credentials
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    public SSHHost(final InetAddress host_address, final SSHCredentials credentials) throws IOException {
 
-        super(host);
-        this.credential = credential;
-        username = credential.getUsername();
+        super(host_address);
+        this.credentials = credentials;
+        username = credentials.getUsername();
         platform_lock = new ReentrantLock();
-        ssh_client = new JSch();
+        ssh_session_factory = new JSch();
         configure();
+    }
+
+    /**
+     * Sets the port number that is used for SSH connection. The default port is set to {@value #DEFAULT_SSH_PORT}.
+     * 
+     * @param ssh_port the new sSH port
+     */
+    public void setSSHPort(final int ssh_port) {
+
+        this.ssh_port = ssh_port;
+    }
+
+    /**
+     * Sets the SSH connection timeout.
+     * 
+     * @param timeout the timeout
+     * @param unit the unit of the specified timeout
+     */
+    public void setSSHConnectionTimeout(final long timeout, final TimeUnit unit) {
+
+        final long timeout_in_millis = TimeUnit.MILLISECONDS.convert(timeout, unit);
+        //cast to integer to cope with the JSch's mad bad API
+        this.ssh_connection_timeout_in_millis = new Long(timeout_in_millis).intValue();
     }
 
     private void configure() throws IOException {
 
         try {
-            ssh_client.setKnownHosts(credential.getKnownHostsFile());
+            ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
         }
         catch (final JSchException e) {
             throw new IOException(e);
         }
+        ssh_port = DEFAULT_SSH_PORT;
+        ssh_connection_timeout_in_millis = DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS;
     }
 
     @Override
@@ -131,7 +179,7 @@ public class SSHHost extends AbstractHost {
     private void uploadRecursively(final ChannelSftp sftp, final Collection<File> files) throws SftpException {
 
         for (final File file : files) {
-            LOGGER.fine("Uploading: " + file.getAbsolutePath());
+            LOGGER.debug("Uploading {}", file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
             }
@@ -164,6 +212,7 @@ public class SSHHost extends AbstractHost {
 
     private boolean exists(final String name, final ChannelSftp sftp) throws SftpException {
 
+        @SuppressWarnings("unchecked")
         final List<LsEntry> list = sftp.ls(".");
         for (final LsEntry entry : list) {
             if (entry.getFilename().equals(name)) { return true; }
@@ -192,9 +241,9 @@ public class SSHHost extends AbstractHost {
     private Session createSession() throws IOException {
 
         try {
-            final Session session = ssh_client.getSession(username, getName(), DEFAULT_SSH_PORT);
-            credential.authenticate(ssh_client, session);
-            session.connect(SSH_CONNECTION_TIMEOUT);
+            final Session session = ssh_session_factory.getSession(username, getName(), ssh_port);
+            credentials.authenticate(ssh_session_factory, session);
+            session.connect(ssh_connection_timeout_in_millis);
             return session;
         }
         catch (final JSchException e) {
@@ -206,7 +255,7 @@ public class SSHHost extends AbstractHost {
 
         try {
             final ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
-            sftp.connect(SSH_CONNECTION_TIMEOUT);
+            sftp.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
             return sftp;
         }
         catch (final JSchException e) {
@@ -241,6 +290,7 @@ public class SSHHost extends AbstractHost {
         final File sub_destination = new File(destination, directory_name);
         sub_destination.mkdirs();
         sftp.cd(source);
+        @SuppressWarnings("unchecked")
         final List<LsEntry> ls_entries = sftp.ls(".");
         for (final LsEntry ls_entry : ls_entries) {
             final String remote_file_name = ls_entry.getFilename();
@@ -328,7 +378,7 @@ public class SSHHost extends AbstractHost {
             channel.setInputStream(termination_aware_in);
             channel.setCommand(command);
             try {
-                channel.connect(SSH_CONNECTION_TIMEOUT);
+                channel.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
             }
             catch (final JSchException e) {
                 throw new IOException(e);
@@ -351,14 +401,12 @@ public class SSHHost extends AbstractHost {
 
         private ChannelExec openExecChannel() throws IOException {
 
-            ChannelExec channel;
             try {
-                channel = (ChannelExec) session.openChannel("exec");
+                return (ChannelExec) session.openChannel("exec");
             }
             catch (final JSchException e) {
                 throw new IOException(e);
             }
-            return channel;
         }
 
         @Override
@@ -395,17 +443,8 @@ public class SSHHost extends AbstractHost {
         @Override
         public void destroy() {
 
-            try {
-                in.close();
-                out.close();
-                err.close();
-            }
-            catch (final IOException e) {
-                LOGGER.log(Level.FINE, "failed to close IO streams", e);
-            }
-            finally {
-                disconnect(session, channel);
-            }
+            CloseableUtil.closeQuietly(in, out, err);
+            disconnect(session, channel);
         }
     }
 }

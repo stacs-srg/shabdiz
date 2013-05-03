@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.host;
+package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.util.regex.Pattern;
 

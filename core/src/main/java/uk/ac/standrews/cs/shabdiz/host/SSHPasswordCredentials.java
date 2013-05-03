@@ -19,32 +19,57 @@
 package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public class SSHPasswordCredentials extends SSHCredential {
+/**
+ * Presents password credentials of a {@link SSHHost}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public class SSHPasswordCredentials extends SSHCredentials {
 
-    private static final Logger LOGGER = Logger.getLogger(SSHPasswordCredentials.class.getName());
     protected final String password;
 
+    /**
+     * Instantiates a new SSH password credentials.
+     * 
+     * @param password the password
+     */
     public SSHPasswordCredentials(final char[] password) {
 
         this(String.valueOf(password));
     }
 
+    /**
+     * Instantiates a new SSH password credentials.
+     * 
+     * @param password the password
+     */
     public SSHPasswordCredentials(final String password) {
 
         super();
         this.password = password;
     }
 
+    /**
+     * Instantiates a new SSH password credentials.
+     * 
+     * @param username the username
+     * @param password the password
+     */
     public SSHPasswordCredentials(final String username, final char[] password) {
 
         this(username, String.valueOf(password));
     }
 
+    /**
+     * Instantiates a new SSH password credentials.
+     * 
+     * @param username the username
+     * @param password the password
+     */
     public SSHPasswordCredentials(final String username, final String password) {
 
         super(username);
@@ -52,7 +77,7 @@ public class SSHPasswordCredentials extends SSHCredential {
     }
 
     @Override
-    public void authenticate(final JSch ssh_client, final Session session) throws IOException {
+    void authenticate(final JSch ssh_client, final Session session) throws IOException {
 
         session.setPassword(password);
     }

@@ -36,7 +36,7 @@ import org.json.JSONException;
 
 import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 
 /**
  * Factory for {@link Platform} and {@link SimplePlatform}, and utility methods to detect {@link Platform platform} from {@link Host host} by executing {@code uname} command or a Java-based platform detector.
@@ -88,7 +88,7 @@ public final class Platforms {
     private static Platform detectRemotePlatformUsingJava(final Host host) throws IOException {
 
         final File platform_detector = getPlatformDetectorJar();
-        final RemoteJavaProcessBuilder java_process_builder = new RemoteJavaProcessBuilder(PlatformDetector.class);
+        final JavaProcessBuilder java_process_builder = new JavaProcessBuilder(PlatformDetector.class);
         java_process_builder.addClasspath(platform_detector);
         final Process platform_detector_process = java_process_builder.start(host);
         try {

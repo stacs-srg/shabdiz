@@ -16,13 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples.echo;
+package uk.ac.standrews.cs.shabdiz.host.exec;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
-public interface EchoService {
+/**
+ * Abstracts over platform-specific commands.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public interface CommandBuilder {
 
-    String echo(String message) throws JsonRpcException;
-
-    void shutdown() throws JsonRpcException;
+    /**
+     * Gets the platform-specific command.
+     * 
+     * @param platform the platform
+     * @param parameters the command parameters
+     * @return the command
+     */
+    String get(Platform platform, String... parameters);
 }

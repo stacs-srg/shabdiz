@@ -23,6 +23,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 /**
  * Scans a {@link ApplicationNetwork network} for an application-specific change. Scanners are executed periodically.
  * 
+ * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Scanner {

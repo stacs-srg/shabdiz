@@ -20,31 +20,34 @@ package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public abstract class SSHCredential implements Serializable {
+/**
+ * Presents credentials of a {@link SSHHost}.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public abstract class SSHCredentials {
 
-    private static final long serialVersionUID = -7383859655297094420L;
-    static final File SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
-    static final File SSH_KNOWN_HOSTS = new File(SSH_HOME, "known_hosts");
+    static final File DEFAULT_SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
+    static final File DEFAULT_SSH_KNOWN_HOSTS_FILE = new File(DEFAULT_SSH_HOME, "known_hosts");
     private final String username;
 
-    protected SSHCredential() {
+    protected SSHCredentials() {
 
         this(Credentials.getCurrentUser());
     }
 
-    protected SSHCredential(final String username) {
+    protected SSHCredentials(final String username) {
 
         this.username = username;
     }
 
     protected String getKnownHostsFile() {
 
-        return SSH_KNOWN_HOSTS.getAbsolutePath();
+        return DEFAULT_SSH_KNOWN_HOSTS_FILE.getAbsolutePath();
     }
 
     /**

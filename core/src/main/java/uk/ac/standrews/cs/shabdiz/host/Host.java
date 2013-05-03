@@ -27,7 +27,7 @@ import java.util.Collection;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
- * Provides hooks to download, upload and execute commands on a host.
+ * Presents a host and hooks to download, upload and execute commands on the host.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -104,6 +104,11 @@ public interface Host extends Closeable {
      */
     InetAddress getAddress();
 
+    /**
+     * Gets the host name.
+     * 
+     * @return the host name
+     */
     String getName();
 
     /**

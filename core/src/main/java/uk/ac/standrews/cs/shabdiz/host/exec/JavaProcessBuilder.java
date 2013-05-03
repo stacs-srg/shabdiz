@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.process;
+package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +25,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
@@ -38,9 +39,9 @@ import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
+public class JavaProcessBuilder implements HostProcessBuilder {
 
-    private static final Logger LOGGER = Logger.getLogger(RemoteJavaProcessBuilder.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaProcessBuilder.class);
     private static final String SPACE = " ";
     private final StringBuffer jvm_arguments;
     private final StringBuffer command_line_arguments;
@@ -48,12 +49,12 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     private final Set<File> classpath;
     private volatile String java_home;
 
-    public RemoteJavaProcessBuilder(final Class<?> main_class) {
+    public JavaProcessBuilder(final Class<?> main_class) {
 
         this(main_class.getName());
     }
 
-    public RemoteJavaProcessBuilder(final String main_class) {
+    public JavaProcessBuilder(final String main_class) {
 
         this.main_class = main_class;
         jvm_arguments = new StringBuffer();
@@ -66,16 +67,16 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host);
-        LOGGER.fine("prepareing to execute command: " + command);
+        LOGGER.debug("prepareing to execute command: {}", command);
         return host.execute(remote_working_directory, command);
     }
 
     private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
 
         final String remote_working_directory = getRemoteWorkingDirectory(host);
-        LOGGER.info(remote_working_directory);
+        LOGGER.debug("remote working directory: {}", remote_working_directory);
         final File compressed_classpath = File.createTempFile("compressed_classpath", ".zip");
-        LOGGER.info(compressed_classpath.toString());
+        LOGGER.debug("compressed classpath: {}", compressed_classpath);
         CompressionUtil.compress(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);
         uncompress(host, remote_working_directory, compressed_classpath);
@@ -83,6 +84,8 @@ public class RemoteJavaProcessBuilder implements RemoteProcessBuilder {
     }
 
     private void uncompress(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
+
+        //FIXME use tar.gz instead; comes with cygwin where as unzip package needs to be installed
 
         final Process unzip = host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName() + ";");
         try {

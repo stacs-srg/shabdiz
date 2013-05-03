@@ -26,6 +26,9 @@ import uk.ac.standrews.cs.nds.util.Duration;
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
  * The results of these tests are recorded in the corresponding host descriptors.
  * This scanner publishes a new latch after every cycle through the host list. This enables other scanners to synchronize their own operation with this one.
+ * 
+ * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class StatusScanner extends AbstractConcurrentScanner {
 

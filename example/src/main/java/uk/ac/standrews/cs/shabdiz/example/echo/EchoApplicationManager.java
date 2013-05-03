@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.examples.echo;
+package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import java.net.InetSocketAddress;
 import java.util.Random;
@@ -27,7 +27,7 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.process.RemoteJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -39,14 +39,14 @@ public class EchoApplicationManager extends AbstractApplicationManager {
 
     private final Random random;
     final ClientFactory<EchoService> proxy_factory;
-    private final RemoteJavaProcessBuilder process_builder;
+    private final JavaProcessBuilder process_builder;
 
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     public EchoApplicationManager() {
 
         random = new Random();
-        process_builder = new RemoteJavaProcessBuilder(SimpleEchoService.class);
+        process_builder = new JavaProcessBuilder(SimpleEchoService.class);
         process_builder.addCommandLineArgument(":0");
         process_builder.addCurrentJVMClasspath();
         proxy_factory = new ClientFactory(EchoService.class, new JsonFactory(new ObjectMapper()));
