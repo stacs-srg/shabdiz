@@ -138,8 +138,8 @@ public final class Platforms {
     public static SimplePlatform fromUnameOutput(final String uname_output) {
 
         final String output = uname_output.toLowerCase().trim();
-        if (output.contains(CygwinPlatform.CYGWIN_OS_NAME)) { return new CygwinPlatform(output); }
-        if (output.contains(WindowsPlatform.WINDOWS_OS_NAME)) { return new WindowsPlatform(output); }
+        if (output.contains(CygwinPlatform.CYGWIN_OS_NAME_KEY)) { return new CygwinPlatform(output); }
+        if (output.contains(WindowsPlatform.WINDOWS_OS_NAME_KEY)) { return new WindowsPlatform(output); }
         return new UnixPlatform(output);
     }
 

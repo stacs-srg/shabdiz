@@ -19,20 +19,21 @@
 package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
- * The Class CygwinPlatform.
+ * Presents a <a href="http://cygwin.com/">Cygwin</a> platform.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class CygwinPlatform extends SimplePlatform {
 
-    /** Default Cygwin operating system name. */
-    public static final String CYGWIN_OS_NAME = "cygwin";
+     static final String CYGWIN_OS_NAME_KEY = "cygwin";
 
     /**
-     * Instantiates a new cygwin platform.
-     * 
+     * Instantiates a new Cygwin platform.
+     *
      * @param os_name the os_name
      */
     public CygwinPlatform(final String os_name) {
 
-        super(os_name, WINDOWS_PATH_SEPARATOR, UNIX_SEPARATOR, UnixPlatform.TEMP_DIR);
+        super(os_name, UNIX_PATH_SEPARATOR, UNIX_SEPARATOR, UnixPlatform.TEMP_DIR);
     }
 }

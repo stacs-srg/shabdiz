@@ -1,9 +1,11 @@
 
 syntax: regexp
-^\.idea$
+.idea$
 syntax: regexp
-^shabdiz\.iml$
+.iml$
 syntax: regexp
 ^target$
 syntax: regexp
-\.DS_Store$
+.DS_Store$
+syntax: regexp
+/target$

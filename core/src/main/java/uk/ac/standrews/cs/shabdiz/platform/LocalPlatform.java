@@ -21,27 +21,28 @@ package uk.ac.standrews.cs.shabdiz.platform;
 import java.io.File;
 
 /**
- * A singleton presentation of the local platform.
- * 
+ * A singleton presentation of the local platform. The only instance of this class is retrieved using {@link #getInstance()}.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * @see #getInstance()
  */
 public final class LocalPlatform extends SimplePlatform {
 
+    private static final String TMP_DIR_PROPERTY_NAME = "java.io.tmpdir";
+    private static final String OS_NAME_PROPERTY_NAME = "os.name";
     private static final LocalPlatform LOCAL_PLATFORM_INSTANCE = new LocalPlatform();
+
+    private LocalPlatform() {
+
+        super(System.getProperty(OS_NAME_PROPERTY_NAME), File.pathSeparatorChar, File.separatorChar, System.getProperty(TMP_DIR_PROPERTY_NAME));
+    }
 
     /**
      * Gets the single instance of the {@link LocalPlatform local platform}.
-     * 
+     *
      * @return single instance of the {@link LocalPlatform local platform}
      */
     public static LocalPlatform getInstance() {
 
         return LOCAL_PLATFORM_INSTANCE;
-    }
-
-    private LocalPlatform() {
-
-        super(System.getProperty("os.name"), File.pathSeparatorChar, File.separatorChar, System.getProperty("java.io.tmpdir"));
     }
 }

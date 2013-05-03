@@ -25,7 +25,7 @@ package uk.ac.standrews.cs.shabdiz.platform;
  */
 public class WindowsPlatform extends SimplePlatform {
 
-    static final String WINDOWS_OS_NAME = "windows";
+    static final String WINDOWS_OS_NAME_KEY = "windows";
 
     /**
      * Instantiates a new windows platform.

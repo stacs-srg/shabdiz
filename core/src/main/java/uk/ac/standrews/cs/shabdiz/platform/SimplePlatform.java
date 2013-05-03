@@ -18,11 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.platform;
 
-import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-
 /**
  * Provides platform-specific settings such as path separator and separator.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SimplePlatform implements Platform {
@@ -34,7 +32,7 @@ public class SimplePlatform implements Platform {
 
     /**
      * Instantiates a new platform.
-     * 
+     *
      * @param os_name the operating system name
      * @param path_separator the path separator
      * @param separator the separator
@@ -46,6 +44,11 @@ public class SimplePlatform implements Platform {
         this.path_separator = path_separator;
         this.separator = separator;
         this.temp_dir = addTailingSeparator(separator, temp_dir);
+    }
+
+    protected static String addTailingSeparator(final char separator, final String path) {
+
+        return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }
 
     @Override
@@ -72,23 +75,8 @@ public class SimplePlatform implements Platform {
         return os_name;
     }
 
-    /**
-     * Serialises this platform to JSON.
-     * 
-     * @return a JSON representation of this platform
-     */
-    public JSONObject toJSON() {
-
-        final JSONObject json = new JSONObject();
-        json.put("path_separator", path_separator);
-        json.put("separator", separator);
-        json.put("temp_dir", temp_dir);
-        json.put("os_name", os_name);
-        return json;
-    }
-
-    protected static String addTailingSeparator(final char separator, final String path) {
-
-        return path.endsWith(Character.toString(separator)) ? path : path + separator;
+    @Override
+    public String toString() {
+        return new StringBuilder().append("SimplePlatform{").append("path_separator=").append(path_separator).append(", separator=").append(separator).append(", temp_dir='").append(temp_dir).append('\'').append(", os_name='").append(os_name).append('\'').append('}').toString();
     }
 }

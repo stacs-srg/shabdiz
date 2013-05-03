@@ -20,15 +20,15 @@ package uk.ac.standrews.cs.shabdiz;
 
 /**
  * Provides a mean of deployment, termination and status probe for application instances.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface ApplicationManager {
 
     /**
      * Attempts to investigate the {@link ApplicationState state} of the application instance that is described by the given {@code descriptor}.
-     * 
-     * @param descriptor a descriptor for an application instance
+     *
+     * @param descriptor the descriptor of an application instance
      * @return the state that the application instance is believed to be in
      * @see ApplicationState
      */
@@ -36,8 +36,8 @@ public interface ApplicationManager {
 
     /**
      * Attempts to deploy a new instance of the application that is described by the given {@code descriptor}, and returns a reference to the deployed instance.
-     * 
-     * @param descriptor a descriptor for an application
+     *
+     * @param descriptor the descriptor of an application instance
      * @return a reference to the deployed application
      * @throws Exception if the attempted application deployment fails
      */
@@ -45,8 +45,8 @@ public interface ApplicationManager {
 
     /**
      * Attempts to kill the application instance that is described by the given {@code descriptor}.
-     * 
-     * @param descriptor a descriptor of the instance to kill
+     *
+     * @param descriptor the descriptor of an application instance
      * @throws Exception if the attempt to kill the application fails
      */
     void kill(ApplicationDescriptor descriptor) throws Exception;
