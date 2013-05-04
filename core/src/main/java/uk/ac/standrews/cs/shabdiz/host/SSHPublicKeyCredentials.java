@@ -20,8 +20,9 @@ package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -35,7 +36,7 @@ import com.jcraft.jsch.UserInfo;
  */
 public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
 
-    private static final Logger LOGGER = Logger.getLogger(SSHPublicKeyCredentials.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSHPublicKeyCredentials.class);
     private static final File DEFAULT_SSH_RSA_PRIVATE_KEY = new File(DEFAULT_SSH_HOME, "id_rsa");
 
     private final File private_key;
@@ -85,6 +86,7 @@ public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
     public void authenticate(final JSch ssh_client, final Session session) throws IOException {
 
         addIdentity(ssh_client);
+        session.setUserInfo(createUserInfo());
     }
 
     void addIdentity(final JSch ssh_client) throws IOException {
@@ -119,25 +121,28 @@ public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
         @Override
         public boolean promptPassword(final String message) {
 
+            LOGGER.info(message);
             return false;
         }
 
         @Override
         public boolean promptPassphrase(final String message) {
 
+            LOGGER.info(message);
             return true;
         }
 
         @Override
         public boolean promptYesNo(final String message) {
 
+            LOGGER.info(message);
             return false;
         }
 
         @Override
         public void showMessage(final String message) {
 
-            LOGGER.log(Level.INFO, message);
+            LOGGER.info(message);
         }
     }
 }

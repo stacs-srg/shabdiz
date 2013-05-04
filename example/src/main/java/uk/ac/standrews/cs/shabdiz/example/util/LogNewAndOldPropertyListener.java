@@ -16,16 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.example;
+package uk.ac.standrews.cs.shabdiz.example.util;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-public final class PrintNewAndOldPropertyListener implements PropertyChangeListener {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * A {@link PropertyChangeListener} that logs the new and the old value of a changed property.
+ * This class is typically used by the examples to demonstrate changes that are detected by Scanners.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public final class LogNewAndOldPropertyListener implements PropertyChangeListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogNewAndOldPropertyListener.class);
 
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {
 
-        System.out.println("State of " + evt.getSource() + " changed from " + evt.getOldValue() + " to " + evt.getNewValue());
+        LOGGER.info("Property {} changed from {} to {}; Source: {}", evt.getPropertyName(), evt.getOldValue(), evt.getNewValue(), evt.getSource());
     }
 }

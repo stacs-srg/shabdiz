@@ -25,7 +25,7 @@ package uk.ac.standrews.cs.shabdiz.platform;
  */
 public class CygwinPlatform extends SimplePlatform {
 
-     static final String CYGWIN_OS_NAME_KEY = "cygwin";
+    static final String CYGWIN_OS_NAME_KEY = "cygwin";
 
     /**
      * Instantiates a new Cygwin platform.
@@ -34,6 +34,6 @@ public class CygwinPlatform extends SimplePlatform {
      */
     public CygwinPlatform(final String os_name) {
 
-        super(os_name, UNIX_PATH_SEPARATOR, UNIX_SEPARATOR, UnixPlatform.TEMP_DIR);
+        super(os_name, WINDOWS_PATH_SEPARATOR, UNIX_SEPARATOR, UnixPlatform.TEMP_DIR);
     }
 }

@@ -25,11 +25,11 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.example.PrintNewAndOldPropertyListener;
+import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 
 public class UrlPingerNetwork extends ApplicationNetwork {
 
-    private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
+    private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
 
     public UrlPingerNetwork() {
 

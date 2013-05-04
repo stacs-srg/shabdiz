@@ -21,6 +21,9 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -29,22 +32,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.staticiser.jetson.Server;
 import com.staticiser.jetson.ServerFactory;
 
-public class SimpleEchoService implements EchoService {
+/**
+ * The default implementation of {@link Echo} service.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public class DefaultEcho implements Echo {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEcho.class);
     private final InetSocketAddress local_address;
     private final Server server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
-    private static final ServerFactory<EchoService> SERVER_FACTORY = new ServerFactory<EchoService>(EchoService.class, new JsonFactory(new ObjectMapper()));
+    private static final ServerFactory<Echo> SERVER_FACTORY = new ServerFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
 
-    public static void main(final String[] args) throws NumberFormatException, IOException {
+    /**
+     * Starts a new instance of {@link DefaultEcho}.
+     * 
+     * @param args expects the first entry to be the port number on which to listen for incoming connections
+     * @exception NumberFormatException if the first entry in the arguments cannot be parsed to an integer
+     * @throws IOException Signals that an I/O exception has occurred
+     */
+    public static void main(final String[] args) throws IOException {
 
         final String port_as_string = NetworkUtil.extractPortNumberAsString(args[0]);
         final InetSocketAddress local_address = NetworkUtil.getLocalIPv4InetSocketAddress(Integer.parseInt(port_as_string));
-        final SimpleEchoService echo_service = new SimpleEchoService(local_address);
+        final DefaultEcho echo_service = new DefaultEcho(local_address);
         ProcessUtil.printKeyValue(System.out, ECHO_SERVICE_ADDRESS_KEY, echo_service.getAddress());
     }
 
-    public SimpleEchoService(final InetSocketAddress local_address) throws IOException {
+    /**
+     * Instantiates a new default echo and exposes an echo server on the given address.
+     * 
+     * @param local_address the address on which this service is exposed
+     * @throws IOException Signals that an I/O exception has occurred
+     */
+    public DefaultEcho(final InetSocketAddress local_address) throws IOException {
 
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(local_address);
@@ -52,7 +74,7 @@ public class SimpleEchoService implements EchoService {
         this.local_address = server.getLocalSocketAddress();
     }
 
-    public InetSocketAddress getAddress() {
+    InetSocketAddress getAddress() {
 
         return local_address;
     }
@@ -70,8 +92,7 @@ public class SimpleEchoService implements EchoService {
             server.unexpose();
         }
         catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error("failed to unexpose echo server", e);
         }
     }
 }

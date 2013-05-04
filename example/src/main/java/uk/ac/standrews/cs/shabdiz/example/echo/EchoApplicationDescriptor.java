@@ -23,16 +23,16 @@ import java.net.InetSocketAddress;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
-public class EchoApplicationDescriptor extends ApplicationDescriptor {
+class EchoApplicationDescriptor extends ApplicationDescriptor {
 
     private InetSocketAddress address;
 
-    public EchoApplicationDescriptor(final Host host, final EchoApplicationManager manager) {
+    EchoApplicationDescriptor(final Host host, final EchoApplicationManager manager) {
 
         super(host, manager);
     }
 
-    public void setAddress(final InetSocketAddress address) {
+    void setAddress(final InetSocketAddress address) {
 
         this.address = address;
     }

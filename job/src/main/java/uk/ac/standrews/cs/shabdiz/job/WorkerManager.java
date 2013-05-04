@@ -24,10 +24,13 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
 import uk.ac.standrews.cs.nds.util.Duration;
@@ -37,8 +40,11 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
+import com.staticiser.jetson.exception.JsonRpcException;
+
 class WorkerManager extends AbstractApplicationManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerManager.class);
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
@@ -67,11 +73,29 @@ class WorkerManager extends AbstractApplicationManager {
 
         final Host host = descriptor.getHost();
         final Process worker_process = worker_process_builder.start(host);
+
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
         final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
         worker_wrapper.setWorkerProcessId(ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name));
+        Executors.newFixedThreadPool(1).execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        LOGGER.info(IOUtils.toString(worker_process.getErrorStream()));
+                    }
+                }
+                catch (final IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+        });
         return worker_wrapper;
     }
 

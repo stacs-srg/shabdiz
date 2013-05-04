@@ -18,24 +18,40 @@
  */
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
-import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.example.PrintNewAndOldPropertyListener;
+import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 
+/**
+ * Presents a network of Echo service instances.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class EchoNetwork extends ApplicationNetwork {
 
-    private static final PrintNewAndOldPropertyListener PRINT_LISTENER = new PrintNewAndOldPropertyListener();
+    private static final long serialVersionUID = 1218798936967429750L;
 
-    public EchoNetwork() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EchoNetwork.class);
+    private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
+
+    EchoNetwork() {
 
         super("Echo Service Network");
     }
 
-    public static void main(final String[] args) throws TimeoutException, Exception {
+    /**
+     * Starts an Echo network of four instances all running on a single {@link LocalHost local hosts}.
+     * All four instances are managed by a single instance of {@link EchoApplicationManager}.
+     * 
+     * @param args the arguments are ignored
+     * @throws Exception if failure occurs during the deployment of the network
+     */
+    public static void main(final String[] args) throws Exception {
 
         final EchoNetwork network = new EchoNetwork();
         final EchoApplicationManager application_manager = new EchoApplicationManager();
@@ -46,21 +62,19 @@ public class EchoNetwork extends ApplicationNetwork {
         addEchoServiceDescriptor(network, local_host, application_manager);
 
         network.deployAll();
-        System.out.print("Awaiting RUNNING state...");
+        LOGGER.info("Awaiting RUNNING state...");
         network.awaitAnyOfStates(ApplicationState.RUNNING);
-        System.out.println();
-        System.out.println("All instances are in RUNNING state");
-        System.out.println("Killing a member");
+        LOGGER.info("All instances are in RUNNING state");
+        LOGGER.info("Killing a member");
         network.kill(kill_candidate);
         kill_candidate.awaitAnyOfStates(ApplicationState.AUTH);
 
-        System.out.print("About to kill all..");
+        LOGGER.info("About to kill all..");
         network.killAll();
-        System.out.print("Awaiting AUTH state...");
+        LOGGER.info("Awaiting AUTH state...");
         network.awaitAnyOfStates(ApplicationState.AUTH);
 
-        System.out.println("All done, shutting down");
-
+        LOGGER.info("All done, shutting down");
         network.shutdown();
     }
 

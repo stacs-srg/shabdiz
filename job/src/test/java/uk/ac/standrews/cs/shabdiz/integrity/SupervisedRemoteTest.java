@@ -20,24 +20,28 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.ac.standrews.cs.nds.util.Input;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.job.DefaultWorkerWrapper;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.job.JobRemote;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.job.WorkerRemote;
-import uk.ac.standrews.cs.shabdiz.job.WorkerRemoteProxyFactory;
 import uk.ac.standrews.cs.shabdiz.job.util.ObjectStore;
 
 public class SupervisedRemoteTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedRemoteTest.class);
 
     private static final class VerifyStoredTestDirJob implements JobRemote<Boolean> {
 
@@ -78,22 +82,24 @@ public class SupervisedRemoteTest {
 
     public static void main(final String[] args) throws Exception {
 
-        final AbstractHost remoteHost = null;
+        AbstractHost remoteHost = null;
         WorkerNetwork network = null;
         Worker worker = null;
 
         try {
-            //            remoteHost = new SSHHost("192.168.1.3", new SSHPasswordCredentials("Administrator",Input.readPassword("Enter Password")));
-            //            //            remoteHost = new LocalHost();
-            network = new WorkerNetwork(61255, new HashSet<File>());
-            new Scanner(System.in).nextLine();
-            //            network.add(remoteHost);
-            //            network.deployAll();
-            //            network.awaitAnyOfStates(ApplicationState.RUNNING);
-            //            worker = network.iterator().next().getApplicationReference();
-            final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(new InetSocketAddress("192.168.1.3", 52398));
+            //            remoteHost = new SSHHost("beast.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter Password")));
+            remoteHost = new SSHHost("project07.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter Password")));
+            final Process worker_process = remoteHost.execute("echo $PATH");
+            LOGGER.info("ERR: {}", IOUtils.toString(worker_process.getErrorStream()));
+            LOGGER.info("OUT: {}", IOUtils.toString(worker_process.getInputStream()));
 
-            worker = new DefaultWorkerWrapper(network, worker_remote, null, new InetSocketAddress("192.168.1.3", 52398));
+            //            remoteHost = new SSHHost("localhost", new SSHPasswordCredentials(Input.readPassword("Enter Password")));
+            //            //            remoteHost = new LocalHost();
+            network = new WorkerNetwork();
+            network.add(remoteHost);
+            network.deployAll();
+            network.awaitAnyOfStates(ApplicationState.RUNNING);
+            worker = network.iterator().next().getApplicationReference();
 
             System.out.println("submitting job to the remote worker");
             final Future<UUID> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());
