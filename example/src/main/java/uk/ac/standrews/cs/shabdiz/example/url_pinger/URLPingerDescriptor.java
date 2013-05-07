@@ -22,13 +22,13 @@ import java.net.URL;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 
-class UrlPingerDescriptor extends ApplicationDescriptor {
+class URLPingerDescriptor extends ApplicationDescriptor {
 
-    private static final UrlPingerManager URL_PINGER_MANAGER = new UrlPingerManager();
+    private static final URLPingerManager URL_PINGER_MANAGER = new URLPingerManager();
 
     private final URL target;
 
-    public UrlPingerDescriptor(final URL target) {
+    public URLPingerDescriptor(final URL target) {
 
         super(null, URL_PINGER_MANAGER);
         validateTarget(target);
@@ -44,7 +44,6 @@ class UrlPingerDescriptor extends ApplicationDescriptor {
 
         return target;
     }
-
 
     @Override
     public String toString() {

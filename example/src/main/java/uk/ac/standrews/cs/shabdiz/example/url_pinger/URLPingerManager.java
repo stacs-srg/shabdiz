@@ -21,23 +21,42 @@ package uk.ac.standrews.cs.shabdiz.example.url_pinger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
-class UrlPingerManager implements ApplicationManager {
+/**
+ * Performs pinging of a given URL by sending a {@code GET} request.
+ * This manager does not support application instance termination and deployment.
+ * This manager only supports HTTP URLs.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
+public class URLPingerManager implements ApplicationManager {
 
+    private static final String REQUEST_METHOD = "GET";
+    private static final Logger LOGGER = LoggerFactory.getLogger(URLPingerManager.class);
+
+    /**
+     * Sends a {@code GET} request to a {@link URLPingerDescriptor#getTarget() target} URL in order to discover its state.
+     * The URL is considered to be in {@link ApplicationState#RUNNING} state if the connection results in a response code of {@link HttpURLConnection#HTTP_OK}.
+     * 
+     * @param descriptor the descriptor that is assumed to be an instance of {@link URLPingerDescriptor}
+     * @return {@inheritDoc}
+     */
     @Override
     public ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) {
 
-        final URL target = ((UrlPingerDescriptor) descriptor).getTarget();
-        System.out.println("probing state of " + target);
+        final URL target = ((URLPingerDescriptor) descriptor).getTarget();
+        LOGGER.info("probing state of {}", target);
 
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) target.openConnection();
-            connection.setRequestMethod("GET");
-
+            connection.setRequestMethod(REQUEST_METHOD);
             connection.connect();
             final int response_code = connection.getResponseCode();
             switch (response_code) {
@@ -48,6 +67,8 @@ class UrlPingerManager implements ApplicationManager {
             }
         }
         catch (final Exception e) {
+            LOGGER.debug("failed to probe the state of {}", target);
+            LOGGER.debug("failure while probing state", e);
             return ApplicationState.UNREACHABLE;
         }
         finally {
@@ -60,14 +81,12 @@ class UrlPingerManager implements ApplicationManager {
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
-        throw new UnsupportedOperationException();
-
+        throw new UnsupportedOperationException("instance termination is not supported");
     }
 
     @Override
     public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
 
-        throw new UnsupportedOperationException();
-
+        throw new UnsupportedOperationException("instance deployment is not supported");
     }
 }
