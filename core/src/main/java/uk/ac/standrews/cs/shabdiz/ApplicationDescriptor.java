@@ -21,14 +21,17 @@ package uk.ac.standrews.cs.shabdiz;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.SelfRemovingStateChangeListener;
 
 /**
@@ -48,9 +51,10 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     private final AtomicReference<Object> application_reference;
-    private final ConcurrentSkipListSet<Process> processes;
+    private final Set<Process> processes;
     private final ApplicationManager application_manager;
     protected final PropertyChangeSupport property_change_support;
+    private final ConcurrentSkipListMap<AttributeKey<?>, Object> attributes;
 
     /**
      * Instantiates a new application descriptor with the given {@link ApplicationManager manager} and {@code null} as {@link #getHost() host}.
@@ -75,10 +79,53 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         this.application_manager = application_manager;
         this.host = createHostWrapper(host);
         id = generateId();
-        processes = new ConcurrentSkipListSet<Process>(new ProcessHashcodeComparator());
+        processes = new HashSet<Process>();
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         application_reference = new AtomicReference<Object>();
         property_change_support = new PropertyChangeSupport(this);
+        attributes = new ConcurrentSkipListMap<AttributeKey<?>, Object>();
+    }
+
+    /**
+     * Returns {@code true} if the attributes of this descriptor contains the given {@code key}.
+     * 
+     * @param key the key whose presence to be tested
+     * @return {@code true} if the attributes of this descriptor contains the given {@code key}
+     * @see ConcurrentSkipListMap#containsKey(Object)
+     */
+    public boolean containsAttributeKey(final AttributeKey<?> key) {
+
+        return attributes.containsKey(key);
+    }
+
+    /**
+     * Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
+     * 
+     * @param <Value> the type of the value
+     * @param key the key whose associated value is to be returned
+     * @return Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
+     * @see ConcurrentSkipListMap#get(Object)
+     */
+    @SuppressWarnings("unchecked")
+    public <Value> Value getAttribute(final AttributeKey<Value> key) {
+
+        return (Value) attributes.get(key);
+    }
+
+    /**
+     * Associates the specified value with the specified key in this descriptor's attributes.
+     * If the attributes previously contained a mapping for the key, the old value is replaced.
+     * 
+     * @param <Value> the type of the value
+     * @param key the key with which the specified value is to be associated
+     * @param value the value to be associated with the specified key
+     * @return the previous value associated with the specified key, or {@code null} if there was no mapping for the key
+     * @see ConcurrentSkipListMap#put(Object, Object)
+     */
+    @SuppressWarnings("unchecked")
+    public <Value> Value setAttribute(final AttributeKey<Value> key, final Value value) {
+
+        return (Value) attributes.put(key, value);
     }
 
     /**
@@ -107,14 +154,19 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      * 
      * @return the set of processes that are {@link Host#execute(String...) started} using this descrptor's {@link #getHost() host}
      */
-    public ConcurrentSkipListSet<Process> getProcesses() {
+    public Set<Process> getProcesses() {
 
-        return processes;
+        return new CopyOnWriteArraySet<Process>(processes);
     }
 
     protected boolean addProcess(final Process process) {
 
         return processes.add(process);
+    }
+
+    protected void clearProcesses() {
+
+        processes.clear();
     }
 
     /**
@@ -209,6 +261,12 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     @Override
+    public String toString() {
+
+        return "HOST" + (host == null ? "UNSPECIFIED" : host.getName());
+    }
+
+    @Override
     public int compareTo(final ApplicationDescriptor other) {
 
         return id.compareTo(other.id);
@@ -238,15 +296,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
             final Process process = getUnwrappedHost().execute(working_directory, command);
             addProcess(process);
             return process;
-        }
-    }
-
-    private static final class ProcessHashcodeComparator implements Comparator<Process> {
-
-        @Override
-        public int compare(final Process o1, final Process o2) {
-
-            return Integer.valueOf(o1.hashCode()).compareTo(o2.hashCode());
         }
     }
 }

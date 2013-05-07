@@ -20,9 +20,9 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.util.regex.Pattern;
 
-public final class KillCommand {
+public final class KillByProcessCommandCommandBuilder {
 
-    private KillCommand() {
+    private KillByProcessCommandCommandBuilder() {
 
         // TODO Auto-generated constructor stub
     }

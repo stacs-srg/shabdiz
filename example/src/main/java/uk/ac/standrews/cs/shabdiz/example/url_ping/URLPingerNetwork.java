@@ -16,19 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.example.url_pinger;
+package uk.ac.standrews.cs.shabdiz.example.url_ping;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 
 /**
- * A network for checking the availability of number of remotely running web services.
+ * A network for checking the availability of a number of remotely running web services.
+ * This is an example of an application that has minimal access to a remotely running application instance.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -36,11 +35,13 @@ public class URLPingerNetwork extends ApplicationNetwork {
 
     private static final long serialVersionUID = 7479140206927524085L;
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
+    private final URLPingManager manager;
 
-    /** Instantiates a new URL pinger network. */
+    /** Instantiates a new URL ping network. */
     public URLPingerNetwork() {
 
-        super("URL Pinger Network");
+        super("URL Ping Network");
+        manager = new URLPingManager();
     }
 
     /**
@@ -52,26 +53,16 @@ public class URLPingerNetwork extends ApplicationNetwork {
     public static void main(final String[] args) throws MalformedURLException {
 
         final URLPingerNetwork network = new URLPingerNetwork();
-        final List<URL> targets = new ArrayList<URL>();
-        targets.add(new URL("http://www.google.co.uk"));
-        targets.add(new URL("http://www.cs.st-andrews.ac.uk"));
-        targets.add(new URL("http://www.bbc.co.uk/"));
-        targets.add(new URL("http://quicksilver.hg.cs.st-andrews.ac.uk"));
-        configureUrlPingerNetwork(network, targets);
+        network.add(new URL("http://www.google.co.uk"));
+        network.add(new URL("http://www.cs.st-andrews.ac.uk"));
+        network.add(new URL("http://www.bbc.co.uk/"));
     }
 
-    private static void configureUrlPingerNetwork(final URLPingerNetwork network, final Collection<URL> targets) throws MalformedURLException {
+    boolean add(final URL url) throws MalformedURLException {
 
-        for (final URL url : targets) {
-            final URLPingerDescriptor descriptor = createUrlPingerDescriptor(url);
-            network.add(descriptor);
-        }
-    }
-
-    private static URLPingerDescriptor createUrlPingerDescriptor(final URL url) throws MalformedURLException {
-
-        final URLPingerDescriptor descriptor = new URLPingerDescriptor(url);
+        final ApplicationDescriptor descriptor = new ApplicationDescriptor(manager);
+        manager.setTarget(descriptor, url);
         descriptor.addStateChangeListener(PRINT_LISTENER);
-        return descriptor;
+        return add(descriptor);
     }
 }

@@ -21,11 +21,10 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 
 /**
  * Presents a network of Echo service instances.
@@ -39,51 +38,25 @@ public class EchoNetwork extends ApplicationNetwork {
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoNetwork.class);
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
 
+    private final EchoApplicationManager manager;
+
     EchoNetwork() {
 
         super("Echo Service Network");
+        manager = new EchoApplicationManager();
     }
 
     /**
-     * Starts an Echo network of four instances all running on a single {@link LocalHost local hosts}.
-     * All four instances are managed by a single instance of {@link EchoApplicationManager}.
+     * Adds a new {@link ApplicationDescriptor} with the given {@code host} as its host, and {@link EchoApplicationManager} as its manager, to this network.
      * 
-     * @param args the arguments are ignored
-     * @throws Exception if failure occurs during the deployment of the network
+     * @param host the host of the descriptor to be added
+     * @return true, if successfully added
      */
-    public static void main(final String[] args) throws Exception {
+    public boolean add(final Host host) {
 
-        final EchoNetwork network = new EchoNetwork();
-        final EchoApplicationManager application_manager = new EchoApplicationManager();
-        final LocalHost local_host = new LocalHost();
-        addEchoServiceDescriptor(network, local_host, application_manager);
-        final EchoApplicationDescriptor kill_candidate = addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
-        addEchoServiceDescriptor(network, local_host, application_manager);
-
-        network.deployAll();
-        LOGGER.info("Awaiting RUNNING state...");
-        network.awaitAnyOfStates(ApplicationState.RUNNING);
-        LOGGER.info("All instances are in RUNNING state");
-        LOGGER.info("Killing a member");
-        network.kill(kill_candidate);
-        kill_candidate.awaitAnyOfStates(ApplicationState.AUTH);
-
-        LOGGER.info("About to kill all..");
-        network.killAll();
-        LOGGER.info("Awaiting AUTH state...");
-        network.awaitAnyOfStates(ApplicationState.AUTH);
-
-        LOGGER.info("All done, shutting down");
-        network.shutdown();
-    }
-
-    protected static EchoApplicationDescriptor addEchoServiceDescriptor(final EchoNetwork network, final Host host, final EchoApplicationManager application_manager) {
-
-        final EchoApplicationDescriptor descriptor = new EchoApplicationDescriptor(host, application_manager);
+        LOGGER.debug("adding an instance descriptor on host: {}", host);
+        final ApplicationDescriptor descriptor = new ApplicationDescriptor(host, manager);
         descriptor.addStateChangeListener(PRINT_LISTENER);
-        network.add(descriptor);
-        return descriptor;
+        return add(descriptor);
     }
-
 }

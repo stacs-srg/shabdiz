@@ -30,22 +30,25 @@ import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.staticiser.jetson.ClientFactory;
-import com.staticiser.jetson.exception.JsonRpcException;
 
 class EchoApplicationManager extends AbstractApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoApplicationManager.class);
-    private static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new ClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new ClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
+    private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
+
     private final Random random;
     private final JavaProcessBuilder process_builder;
-
-    private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     EchoApplicationManager() {
 
@@ -58,13 +61,16 @@ class EchoApplicationManager extends AbstractApplicationManager {
     @Override
     public Echo deploy(final ApplicationDescriptor descriptor) throws Exception {
 
-        final EchoApplicationDescriptor echo_descriptor = (EchoApplicationDescriptor) descriptor;
-        final Host host = echo_descriptor.getHost();
+        final Host host = descriptor.getHost();
         final Process echo_service_process = process_builder.start(host);
         final String address_as_string = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
         final InetSocketAddress address = Marshaller.getAddress(address_as_string);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
-        echo_descriptor.setAddress(address);
+        descriptor.setAttribute(ADDRESS_KEY, address);
+        descriptor.setAttribute(PID_KEY, pid);
+
         return echo_proxy;
     }
 
@@ -82,11 +88,15 @@ class EchoApplicationManager extends AbstractApplicationManager {
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         try {
-            final Echo echo_service = descriptor.getApplicationReference();
-            echo_service.shutdown();
+            final Integer pid = descriptor.getAttribute(PID_KEY);
+            final Host host = descriptor.getHost();
+            final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
+            final Process kill = host.execute(kill_command);
+            kill.waitFor();
+            kill.destroy();
         }
-        catch (final JsonRpcException e) {
-            LOGGER.trace("expected rpc error occured as a result of echo service shutdown", e);
+        catch (final Exception e) {
+            LOGGER.debug("failed to kill echo applciation instance", e);
         }
         finally {
             super.kill(descriptor);

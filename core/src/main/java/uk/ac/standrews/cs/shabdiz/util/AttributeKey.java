@@ -16,38 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.example.url_pinger;
+package uk.ac.standrews.cs.shabdiz.util;
 
-import java.net.URL;
+import java.util.concurrent.atomic.AtomicLong;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 
-class URLPingerDescriptor extends ApplicationDescriptor {
+/**
+ * Presents the key to an attribute that may be stored in an {@link ApplicationDescriptor}.
+ * 
+ * @param <Value> the type the value that is represented by this key
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ * @see ApplicationDescriptor#getAttribute(AttributeKey)
+ * @see ApplicationDescriptor#setAttribute(AttributeKey, Object)
+ */
+public final class AttributeKey<Value> implements Comparable<AttributeKey<?>> {
 
-    private static final URLPingerManager URL_PINGER_MANAGER = new URLPingerManager();
+    private static final AtomicLong NEXT_ID = new AtomicLong();
 
-    private final URL target;
+    private final Long id;
 
-    public URLPingerDescriptor(final URL target) {
+    /** Instantiates a new attribute key. */
+    public AttributeKey() {
 
-        super(null, URL_PINGER_MANAGER);
-        validateTarget(target);
-        this.target = target;
-    }
-
-    private void validateTarget(final URL target) {
-
-        if (!target.getProtocol().toLowerCase().equals("http")) { throw new IllegalArgumentException("HTTP urls only"); }
-    }
-
-    public URL getTarget() {
-
-        return target;
+        id = NEXT_ID.getAndIncrement();
     }
 
     @Override
-    public String toString() {
+    public int compareTo(final AttributeKey<?> other) {
 
-        return target.toString();
+        return other.id.compareTo(id);
     }
 }

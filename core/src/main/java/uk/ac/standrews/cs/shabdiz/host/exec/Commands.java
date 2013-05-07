@@ -18,7 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
+import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 /**
  * A utility class containing common {@link CommandBuilder command builders}.
@@ -26,6 +30,8 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class Commands {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
 
     private Commands() {
 
@@ -37,11 +43,27 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return "cd" + concatinatePrams(params);
+            return "cd" + concatinate(params);
         }
     };
 
-    static String concatinatePrams(final String... params) {
+    /** The kill by PID command builder. */
+    public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
+
+        /**
+         * Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command.
+         */
+        @Override
+        public String get(final Platform platform, final String... parameters) {
+
+            if (parameters.length != 1) { throw new IllegalArgumentException("Only the pid is expected as the first parameter"); }
+            final Integer pid = Integer.parseInt(parameters[0]);
+            LOGGER.debug("generating kill command for pid: {}", pid);
+            return concatinate(Platforms.isUnixBased(platform) ? "kill -9 " : "taskkill /PID ", String.valueOf(pid));
+        }
+    };
+
+    static String concatinate(final String... params) {
 
         final StringBuilder string_builder = new StringBuilder();
         if (params != null) {

@@ -19,6 +19,7 @@
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ public class DefaultEcho implements Echo {
     private final InetSocketAddress local_address;
     private final Server server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
+    static final String RUNTIME_MXBEAN_NAME_KEY = "RUNTIME_MXBEAN_NAME";
     private static final ServerFactory<Echo> SERVER_FACTORY = new ServerFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
 
     /**
@@ -58,6 +60,7 @@ public class DefaultEcho implements Echo {
         final InetSocketAddress local_address = NetworkUtil.getLocalIPv4InetSocketAddress(Integer.parseInt(port_as_string));
         final DefaultEcho echo_service = new DefaultEcho(local_address);
         ProcessUtil.printKeyValue(System.out, ECHO_SERVICE_ADDRESS_KEY, echo_service.getAddress());
+        ProcessUtil.printKeyValue(System.out, RUNTIME_MXBEAN_NAME_KEY, ManagementFactory.getRuntimeMXBean().getName());
     }
 
     /**

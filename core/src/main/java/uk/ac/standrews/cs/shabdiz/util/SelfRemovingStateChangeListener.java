@@ -27,7 +27,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /**
  * Given an {@link ApplicationDescriptor}, a {@link CountDownLatch} and a collection of {@link ApplicationState states} listens for the change of state in the given application descriptor.
- * If the new state matches one of the given {@code states}, {@link CountDownLatch#countDown() counts down} the given {@code latch}, and finally removes itself from the application descriptor's property change listeners.
+ * If the new state matches one of the given {@code states}, {@link CountDownLatch#countDown() counts down} the given {@code latch}, and removes itself from the application descriptor's property change listeners.
+ * This class is thread-safe.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.example.url_pinger;
+package uk.ac.standrews.cs.shabdiz.example.url_ping;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,32 +27,43 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
 /**
  * Performs pinging of a given URL by sending a {@code GET} request.
  * This manager does not support application instance termination and deployment.
- * This manager only supports HTTP URLs.
+ * The pinging is limited to HTTP URLs only.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class URLPingerManager implements ApplicationManager {
+public class URLPingManager implements ApplicationManager {
 
     private static final String REQUEST_METHOD = "GET";
-    private static final Logger LOGGER = LoggerFactory.getLogger(URLPingerManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(URLPingManager.class);
+    private static final AttributeKey<URL> TARGET_KEY = new AttributeKey<URL>();
 
     /**
-     * Sends a {@code GET} request to a {@link URLPingerDescriptor#getTarget() target} URL in order to discover its state.
+     * Sends a {@code GET} request to a target URL in order to discover its state.
      * The URL is considered to be in {@link ApplicationState#RUNNING} state if the connection results in a response code of {@link HttpURLConnection#HTTP_OK}.
      * 
-     * @param descriptor the descriptor that is assumed to be an instance of {@link URLPingerDescriptor}
+     * @param descriptor the descriptor
      * @return {@inheritDoc}
      */
     @Override
     public ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) {
 
-        final URL target = ((URLPingerDescriptor) descriptor).getTarget();
-        LOGGER.info("probing state of {}", target);
+        final URL target = descriptor.getAttribute(TARGET_KEY);
+        if (target == null) {
+            LOGGER.debug("unspecified target url in application descriptor: {}", descriptor);
+            return ApplicationState.UNKNOWN;
+        }
 
+        return probeApplicationStateViaHttpConnection(target);
+    }
+
+    private ApplicationState probeApplicationStateViaHttpConnection(final URL target) {
+
+        LOGGER.info("probing state of {}", target);
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) target.openConnection();
@@ -76,6 +87,18 @@ public class URLPingerManager implements ApplicationManager {
                 connection.disconnect();
             }
         }
+    }
+
+    /**
+     * Sets the target URL for a given descriptor.
+     * 
+     * @param descriptor the descriptor to set the targer URL of
+     * @param url the target URL
+     * @return the previous target URL of the given descriptor
+     */
+    public URL setTarget(final ApplicationDescriptor descriptor, final URL url) {
+
+        return descriptor.setAttribute(TARGET_KEY, url);
     }
 
     @Override
