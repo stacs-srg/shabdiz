@@ -29,8 +29,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.staticiser.jetson.exception.JsonRpcException;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-
 /**
  * Presents a proxy to the pending result of a remote computation.
  * 
@@ -218,7 +216,7 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
 
         if (exception instanceof InterruptedException) { throw (InterruptedException) exception; }
         if (exception instanceof ExecutionException) { throw (ExecutionException) exception; }
-        if (exception instanceof RPCException) { throw new ExecutionException(exception); }
+        if (exception instanceof JsonRpcException) { throw new ExecutionException(exception); }
         if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
 
         throw new ExecutionException("unexpected exception was notified by the worker : " + exception.getClass(), exception);

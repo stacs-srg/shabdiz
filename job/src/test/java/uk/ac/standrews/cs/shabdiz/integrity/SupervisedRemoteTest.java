@@ -28,7 +28,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -38,6 +37,7 @@ import uk.ac.standrews.cs.shabdiz.job.JobRemote;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 public class SupervisedRemoteTest {
 

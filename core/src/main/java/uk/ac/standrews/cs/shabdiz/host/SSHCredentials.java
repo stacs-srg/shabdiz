@@ -21,6 +21,8 @@ package uk.ac.standrews.cs.shabdiz.host;
 import java.io.File;
 import java.io.IOException;
 
+import uk.ac.standrews.cs.shabdiz.platform.Platforms;
+
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
@@ -37,7 +39,7 @@ public abstract class SSHCredentials {
 
     protected SSHCredentials() {
 
-        this(Credentials.getCurrentUser());
+        this(Platforms.getCurrentUser());
     }
 
     protected SSHCredentials(final String username) {

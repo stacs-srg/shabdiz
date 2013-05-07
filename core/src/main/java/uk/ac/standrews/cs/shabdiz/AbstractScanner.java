@@ -22,7 +22,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
  * Provides common {@link Scanner} functionality.

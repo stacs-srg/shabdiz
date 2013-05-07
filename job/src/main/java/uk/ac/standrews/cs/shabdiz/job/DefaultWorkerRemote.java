@@ -26,16 +26,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.staticiser.jetson.Server;
 import com.staticiser.jetson.ServerFactory;
 import com.staticiser.jetson.exception.JsonRpcException;
-
-import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
+import com.staticiser.jetson.util.NamingThreadFactory;
 
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
@@ -51,7 +49,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private final Server server;
     private final WorkerCallback callback;
 
-    private static final Logger LOGGER = Logger.getLogger(DefaultWorkerRemote.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
 
     DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
@@ -97,7 +95,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
             unexpose();
         }
         catch (final IOException e) {
-            Diagnostic.trace(DiagnosticLevel.NONE, "Unable to unexpose the worker server, because: ", e.getMessage(), e);
+            LOGGER.debug("Unable to unexpose the worker server", e);
         }
     }
 
@@ -127,7 +125,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         }
         catch (final JsonRpcException e) {
             // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
-            LOGGER.log(Level.SEVERE, "failed to notify job completion with the ID " + job_id, e);
+            LOGGER.error("failed to notify job completion", e);
         }
     }
 
@@ -139,7 +137,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         }
         catch (final JsonRpcException e) {
             // TODO use some sort of error manager  which handles the launcher callback rpc exception
-            LOGGER.log(Level.SEVERE, "failed to notify job exception with the ID " + job_id, e);
+            LOGGER.error("failed to notify job exception", e);
         }
     }
 

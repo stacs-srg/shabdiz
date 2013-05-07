@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,16 +33,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-
-import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
-import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.TransportException;
 
 /**
  * Deploys workers on hosts.
@@ -179,7 +179,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     private void releaseAllPendingFutures() {
 
-        final RPCException unexposed_launcher_exception = new RPCException("Launcher is been shut down, no longer can receive notifications from workers");
+        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
 
         for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
 

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,15 +30,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.standrews.cs.nds.registry.AlreadyBoundException;
-import uk.ac.standrews.cs.nds.registry.RegistryUnavailableException;
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-import uk.ac.standrews.cs.nds.rpc.stream.StreamProxy;
-import uk.ac.standrews.cs.nds.util.CommandLineArgs;
-import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.ErrorHandling;
-import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.nds.util.UndefinedDiagnosticLevelException;
+import uk.ac.standrews.cs.shabdiz.util.CommandLineArgs;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
@@ -69,7 +64,7 @@ public class WorkerMain {
      * @throws UnknownHostException the unknown host exception
      * @throws NumberFormatException if the given thread pool size cannot be converted to an integer value
      */
-    public WorkerMain(final String[] args) throws UndefinedDiagnosticLevelException, UnknownHostException {
+    public WorkerMain(final String[] args) throws UnknownHostException {
 
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
         configureLocalAddress(arguments);
@@ -100,7 +95,7 @@ public class WorkerMain {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public static void main(final String[] args) throws RPCException, UndefinedDiagnosticLevelException, IOException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public static void main(final String[] args) throws IOException, AlreadyBoundException, InterruptedException, TimeoutException {
 
         final WorkerMain server = new WorkerMain(args);
         try {
@@ -149,7 +144,7 @@ public class WorkerMain {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public DefaultWorkerRemote createNode() throws IOException, RPCException, AlreadyBoundException, RegistryUnavailableException, InterruptedException, TimeoutException {
+    public DefaultWorkerRemote createNode() throws IOException, AlreadyBoundException, InterruptedException, TimeoutException {
 
         return new DefaultWorkerRemote(local_address, launcher_callback_address);
     }
@@ -158,7 +153,8 @@ public class WorkerMain {
 
     private void usage() {
 
-        ErrorHandling.hardError("Usage: -Chost:port [-Shost:port -Tthread_pool_size]");
+        System.err.println("Usage: -Chost:port [-Shost:port -Tthread_pool_size]");
+        System.exit(1);
     }
 
     private void configureLocalAddress(final Map<String, String> arguments) throws UnknownHostException {
@@ -190,7 +186,6 @@ public class WorkerMain {
 
         final String socket_read_timeout = arguments.get(CALLBACK_ADDRESS_KEY);
         if (socket_read_timeout != null) {
-            StreamProxy.CONNECTION_POOL.setSocketReadTimeout(Duration.valueOf(socket_read_timeout));
         }
     }
 }

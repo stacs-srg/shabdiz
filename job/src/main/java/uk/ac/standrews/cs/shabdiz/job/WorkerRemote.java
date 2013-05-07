@@ -23,8 +23,6 @@ import java.util.concurrent.ExecutorService;
 
 import com.staticiser.jetson.exception.JsonRpcException;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-
 /**
  * Presents a special type of worker which is deployed by {@link WorkerNetwork}.
  * 

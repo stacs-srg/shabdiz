@@ -26,8 +26,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.ac.standrews.cs.nds.util.Diagnostic;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -55,8 +53,6 @@ public class NormalOperationTest {
      */
     @BeforeClass
     public static void setUp() throws Exception {
-
-        Diagnostic.setLevel(DiagnosticLevel.NONE);
 
         //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
         localhost = new LocalHost();

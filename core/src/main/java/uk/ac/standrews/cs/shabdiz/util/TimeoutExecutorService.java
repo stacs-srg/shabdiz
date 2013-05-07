@@ -26,8 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.NamingThreadFactory;
+import com.staticiser.jetson.util.NamingThreadFactory;
 
 public class TimeoutExecutorService extends ThreadPoolExecutor {
 

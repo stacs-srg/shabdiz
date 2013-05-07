@@ -23,8 +23,6 @@ import java.util.UUID;
 
 import com.staticiser.jetson.exception.JsonRpcException;
 
-import uk.ac.standrews.cs.nds.rpc.RPCException;
-
 /**
  * Receives notifications from workers about the outcome of a submitted job.
  * 
@@ -37,7 +35,7 @@ public interface WorkerCallback {
      * 
      * @param job_id the globally unique id of the submitted job
      * @param result the result of the completed job
-     * @throws RPCException if unable to contact the correspondence
+     * @throws JsonRpcException if unable to contact the correspondence
      */
 
     void notifyCompletion(UUID job_id, Serializable result) throws JsonRpcException;
@@ -47,7 +45,7 @@ public interface WorkerCallback {
      * 
      * @param job_id the globally unique id of the submitted job
      * @param exception the exception which occurred when trying to execute a job
-     * @throws RPCException if unable to contact the correspondence
+     * @throws JsonRpcException if unable to contact the correspondence
      */
     void notifyException(UUID job_id, Exception exception) throws JsonRpcException;
 }

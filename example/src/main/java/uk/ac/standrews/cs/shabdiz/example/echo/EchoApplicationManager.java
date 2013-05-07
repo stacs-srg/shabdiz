@@ -25,14 +25,14 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.standrews.cs.nds.rpc.stream.Marshaller;
-import uk.ac.standrews.cs.nds.util.Duration;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -66,7 +66,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
         final String address_as_string = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
-        final InetSocketAddress address = Marshaller.getAddress(address_as_string);
+        final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
         descriptor.setAttribute(ADDRESS_KEY, address);
         descriptor.setAttribute(PID_KEY, pid);

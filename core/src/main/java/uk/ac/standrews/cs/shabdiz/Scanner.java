@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
  * Scans a {@link ApplicationNetwork network} for an application-specific change. Scanners are executed periodically.

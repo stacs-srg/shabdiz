@@ -24,7 +24,8 @@ import java.net.InetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.standrews.cs.nds.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+
 
 /**
  * Provides the common functionality for a {@link Host}.

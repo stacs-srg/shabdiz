@@ -20,13 +20,15 @@ package uk.ac.standrews.cs.shabdiz.job.util;
 
 import java.io.Serializable;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import uk.ac.standrews.cs.nds.util.Duration;
-import uk.ac.standrews.cs.nds.util.TimeoutExecutor;
 import uk.ac.standrews.cs.shabdiz.job.JobRemote;
 import uk.ac.standrews.cs.shabdiz.job.wrapper.JobRemoteSequentialWrapper;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
 /**
  * Utility to manage pending result of {@link JobRemote}.
@@ -43,7 +45,7 @@ public final class JobRemoteUtil {
 
     /**
      * Blocks until all the given futures are done, either in a result or exception.
-     *
+     * 
      * @param <Result> the type of pending result
      * @param futures the futures to wait for
      */
@@ -61,36 +63,31 @@ public final class JobRemoteUtil {
 
     /**
      * Blocks until either the given timeout duration has elapsed or all the given futures are done.
-     *
+     * 
      * @param <Result> the type of pending result
      * @param futures the futures to wait for
      * @param timeout the timeout
      * @throws TimeoutException if the timeout duration has elapsed before all the futures are done
      * @throws InterruptedException if the blocking was interrupted
+     * @throws ExecutionException the execution exception
      */
-    public static <Result> void blockUntilFuturesAreDone(final Set<Future<Result>> futures, final Duration timeout) throws TimeoutException, InterruptedException {
+    public static <Result> void blockUntilFuturesAreDone(final Set<Future<Result>> futures, final Duration timeout) throws TimeoutException, InterruptedException, ExecutionException {
 
-        final TimeoutExecutor timeout_executor = TimeoutExecutor.makeTimeoutExecutor(1, timeout, true, true, JobRemoteUtil.class.getSimpleName());
+        TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
-        try {
-            timeout_executor.executeWithTimeout(new Runnable() {
+            @Override
+            public Void call() throws Exception {
 
-                @Override
-                public void run() {
-
-                    blockUntilFuturesAreDone(futures);
-                }
-            });
-        }
-        finally {
-            timeout_executor.shutdown();
-        }
+                blockUntilFuturesAreDone(futures);
+                return null;
+            }
+        }, timeout);
     }
 
     /**
      * Wraps a list of given jobs into a single job which executes the given jobs sequentially and returns their results in an array containing the result of each of the jobs.
      * The list of results is in the same oder as the given jobs to wrap.
-     *
+     * 
      * @param squential_jobs the jobs to execute sequentially
      * @return the single job which executes the given jobs sequentially
      */

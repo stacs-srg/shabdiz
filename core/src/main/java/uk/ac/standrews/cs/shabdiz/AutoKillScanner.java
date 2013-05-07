@@ -20,7 +20,9 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
 
-import uk.ac.standrews.cs.nds.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+
+
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that

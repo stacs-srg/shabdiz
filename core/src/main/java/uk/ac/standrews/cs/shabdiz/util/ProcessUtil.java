@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 
-import uk.ac.standrews.cs.nds.util.Duration;
+
 
 public final class ProcessUtil {
 

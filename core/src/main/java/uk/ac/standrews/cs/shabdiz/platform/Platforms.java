@@ -32,9 +32,7 @@ import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
 
-import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 
@@ -52,6 +50,17 @@ public final class Platforms {
 
     private Platforms() {
 
+    }
+
+    /**
+     * Gets the current user from system properties.
+     * 
+     * @return the current user
+     * @see System#getProperty(String)
+     */
+    public static String getCurrentUser() {
+
+        return System.getProperty("user.name");
     }
 
     /**
@@ -152,24 +161,6 @@ public final class Platforms {
     public static boolean isUnixBased(final Platform target) {
 
         return target.getPathSeparator() == Platform.UNIX_PATH_SEPARATOR && target.getSeparator() == Platform.UNIX_SEPARATOR;
-    }
-
-    /**
-     * Instantiates an instance of Platform from a JSON representation of a platform.
-     * 
-     * @param json the JSON representation of a platform
-     * @return the deserialised platform
-     * @throws JSONException if the given serialised JSON object is not deserialisable
-     * @see #toJSON()
-     */
-    public static Platform fromJSON(final JSONObject json) throws JSONException {
-
-        final char path_separator = (char) json.getInt("path_separator");
-        final char separator = (char) json.getInt("separator");
-        final String temp_dir = json.getString("temp_dir");
-        final String os_name = json.getString("os_name");
-        json.put("os_name", os_name);
-        return new SimplePlatform(os_name, path_separator, separator, temp_dir);
     }
 
     private static synchronized File getPlatformDetectorJar() throws IOException {

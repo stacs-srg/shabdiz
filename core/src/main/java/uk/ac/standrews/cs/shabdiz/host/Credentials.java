@@ -21,10 +21,7 @@ package uk.ac.standrews.cs.shabdiz.host;
 import java.io.File;
 import java.io.IOException;
 
-import org.json.JSONException;
-
-import uk.ac.standrews.cs.nds.rpc.nostream.json.JSONObject;
-import uk.ac.standrews.cs.nds.util.Input;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 /**
  * Factory for {@link SSHPasswordCredentials}, {@link SSHPublicKeyCredentials} and utility methods for JSON serialisation and deserialisation of {@link SSHCredentials credentials}.
@@ -33,24 +30,8 @@ import uk.ac.standrews.cs.nds.util.Input;
  */
 public final class Credentials {
 
-    private static final String USERNAME_KEY = "user_name";
-    private static final String PASSWORD_KEY = "password";
-    private static final String PRIVATE_KEY_FILE_KEY = "key_file";
-    private static final String PASSPHRASE_KEY = "key_passphrase";
-
     private Credentials() {
 
-    }
-
-    /**
-     * Gets the current user from system properties.
-     * 
-     * @return the current user
-     * @see System#getProperty(String)
-     */
-    public static String getCurrentUser() {
-
-        return System.getProperty("user.name");
     }
 
     /**
@@ -77,80 +58,5 @@ public final class Credentials {
 
         final char[] password = Input.readPassword("enter password:");
         return new SSHPasswordCredentials(username, password);
-    }
-
-    /**
-     * Serialises the given {@link SSHCredentials SSH credential} to {@link JSONObject JSON}.
-     * 
-     * @param credential the credential to serialise
-     * @return the serialised SSH credentials
-     * @throws JSONException if the given {@code credential} type is unknown
-     * @see #fromJSONObject(JSONObject)
-     */
-    public static JSONObject toJSONObject(final SSHCredentials credential) throws JSONException {
-
-        final JSONObject serialized_credentials;
-        if (credential == null) {
-            serialized_credentials = JSONObject.NULL;
-        }
-        else if (SSHPasswordCredentials.class.isInstance(credential)) {
-            serialized_credentials = toJSONObject(SSHPasswordCredentials.class.cast(credential));
-        }
-        else if (SSHPublicKeyCredentials.class.isInstance(credential)) {
-            serialized_credentials = toJSONObject(SSHPublicKeyCredentials.class.cast(credential));
-        }
-        else {
-            throw new JSONException("unable to serialize credentials to JSON object; unknown credential type");
-        }
-
-        return serialized_credentials;
-    }
-
-    /**
-     * Deserialises a {@link JSONObject} to either a {@link SSHPasswordCredentials} or a {@link SSHPublicKeyCredentials}.
-     * 
-     * @param serialized_credential the serialised credentials
-     * @return the deserialised credentials
-     * @throws JSONException if an error occurs during deserialisation, or the given serialisation format is unknown
-     * @see #toJSONObject(SSHCredentials)
-     * @see #toJSONObject(SSHPasswordCredentials)
-     * @see #toJSONObject(SSHPublicKeyCredentials)
-     */
-    public static SSHCredentials fromJSONObject(final JSONObject serialized_credential) throws JSONException {
-
-        final String username = serialized_credential.getString(USERNAME_KEY);
-        if (isSerializedSSHPasswordCredential(serialized_credential)) {
-            return deserializeSSHPasswordCredential(serialized_credential, username);
-        }
-        else if (isSerializedSSHPublicKeyCredential(serialized_credential)) {
-            return deserialiseSSHPublicKeyCredential(serialized_credential, username);
-        }
-        else {
-            throw new JSONException("Unknown serialized credentials type");
-        }
-    }
-
-    private static SSHCredentials deserialiseSSHPublicKeyCredential(final JSONObject serialized_credential, final String username) throws JSONException {
-
-        final String passphrase = serialized_credential.getString(PASSPHRASE_KEY);
-        final String file_path = serialized_credential.getString(PRIVATE_KEY_FILE_KEY);
-        final File private_key_file = file_path != null ? new File(file_path) : null;
-        return new SSHPublicKeyCredentials(username, private_key_file, passphrase.toCharArray());
-    }
-
-    private static SSHCredentials deserializeSSHPasswordCredential(final JSONObject serialized_credential, final String username) throws JSONException {
-
-        final String password = serialized_credential.getString(PASSWORD_KEY);
-        return new SSHPasswordCredentials(username, password.toCharArray());
-    }
-
-    private static boolean isSerializedSSHPasswordCredential(final JSONObject serialized_credential) {
-
-        return serialized_credential.has(USERNAME_KEY) && serialized_credential.has(PASSWORD_KEY) && !serialized_credential.has(PASSPHRASE_KEY) && !serialized_credential.has(PRIVATE_KEY_FILE_KEY);
-    }
-
-    private static boolean isSerializedSSHPublicKeyCredential(final JSONObject serialized_credential) {
-
-        return serialized_credential.has(USERNAME_KEY) && !serialized_credential.has(PASSWORD_KEY) && serialized_credential.has(PASSPHRASE_KEY) && serialized_credential.has(PRIVATE_KEY_FILE_KEY);
     }
 }
