@@ -20,9 +20,10 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-
-
 
 /**
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
@@ -37,6 +38,8 @@ public class StatusScanner extends AbstractConcurrentScanner {
     /** The default timeout for attempted status checks. */
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final boolean ENABLED_BY_DEFAULT = true;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusScanner.class);
 
     protected StatusScanner(final Duration cycle_delay) {
 
@@ -53,7 +56,11 @@ public class StatusScanner extends AbstractConcurrentScanner {
 
         if (isEnabled()) {
             final ApplicationState new_state = descriptor.getApplicationManager().probeApplicationState(descriptor);
+            LOGGER.debug("new state {}", new_state);
             descriptor.setCachedApplicationState(new_state);
+        }
+        else {
+            LOGGER.debug("status scan is disabled");
         }
     }
 }

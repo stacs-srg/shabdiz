@@ -55,9 +55,12 @@ public final class SelfRemovingStateChangeListener implements PropertyChangeList
     @Override
     public synchronized void propertyChange(final PropertyChangeEvent evt) {
 
-        if (application_descriptor.isInState(states)) {
-            latch.countDown();
-            application_descriptor.removeStateChangeListener(this);
+        final ApplicationState cached_state = (ApplicationState) evt.getNewValue();
+        for (final ApplicationState state : states) {
+            if (cached_state.equals(state)) {
+                latch.countDown();
+                application_descriptor.removeStateChangeListener(this);
+            }
         }
     }
 }
