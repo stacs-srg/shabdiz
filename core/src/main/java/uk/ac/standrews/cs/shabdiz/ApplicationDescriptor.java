@@ -254,7 +254,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
         //FIXME inefficient
         final CountDownLatch latch = new CountDownLatch(1);
-        synchronized (property_change_support) {
+        synchronized (state) {
             if (!isInAnyOfStates(states)) {
                 final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
                 addStateChangeListener(state_change);
