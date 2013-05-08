@@ -29,6 +29,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
@@ -45,6 +48,7 @@ import uk.ac.standrews.cs.shabdiz.util.SelfRemovingStateChangeListener;
  */
 public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationDescriptor.class);
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final String STATE_PROPERTY_NAME = "state";
     private final Long id; // used to resolve ties when comparing descriptors
@@ -199,7 +203,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         application_reference.set(reference);
     }
 
-    protected void setCachedApplicationState(final ApplicationState new_state) {
+    protected synchronized void setCachedApplicationState(final ApplicationState new_state) {
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
@@ -245,17 +249,17 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
+     * Causes the current thread to wait until this descriptor reaches one of the given {@code states}, unless the thread is {@link Thread#interrupt() interrupted}.
      * 
-     * @param states the states which application instances must reach at least once
+     * @param states the states which this application instance must reach
      * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        //FIXME inefficient
         final CountDownLatch latch = new CountDownLatch(1);
-        synchronized (state) {
+        synchronized (this) {
             if (!isInAnyOfStates(states)) {
+
                 final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
                 addStateChangeListener(state_change);
             }
@@ -269,7 +273,12 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     @Override
     public String toString() {
 
-        return "HOST" + (host == null ? "UNSPECIFIED" : host.getName());
+        final StringBuilder builder = new StringBuilder();
+        builder.append("HOST ");
+        builder.append((host == null ? "UNSPECIFIED" : host.getName()));
+        builder.append(", ATTRIBUTES ");
+        builder.append(attributes);
+        return builder.toString();
     }
 
     @Override

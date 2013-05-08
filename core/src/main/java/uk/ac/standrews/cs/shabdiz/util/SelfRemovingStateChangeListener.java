@@ -20,7 +20,11 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -34,6 +38,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
  */
 public final class SelfRemovingStateChangeListener implements PropertyChangeListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SelfRemovingStateChangeListener.class);
     private final ApplicationDescriptor application_descriptor;
     private final ApplicationState[] states;
     private final CountDownLatch latch;
@@ -55,6 +60,7 @@ public final class SelfRemovingStateChangeListener implements PropertyChangeList
     @Override
     public synchronized void propertyChange(final PropertyChangeEvent evt) {
 
+        LOGGER.info("state chaged to {} on {}", evt.getNewValue(), evt.getSource());
         final ApplicationState cached_state = (ApplicationState) evt.getNewValue();
         for (final ApplicationState state : states) {
             if (cached_state.equals(state)) {
@@ -63,4 +69,35 @@ public final class SelfRemovingStateChangeListener implements PropertyChangeList
             }
         }
     }
+
+    @Override
+    public int hashCode() {
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((application_descriptor == null) ? 0 : application_descriptor.hashCode());
+        result = prime * result + ((latch == null) ? 0 : latch.hashCode());
+        result = prime * result + Arrays.hashCode(states);
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        final SelfRemovingStateChangeListener other = (SelfRemovingStateChangeListener) obj;
+        if (application_descriptor == null) {
+            if (other.application_descriptor != null) { return false; }
+        }
+        else if (!application_descriptor.equals(other.application_descriptor)) { return false; }
+        if (latch == null) {
+            if (other.latch != null) { return false; }
+        }
+        else if (!latch.equals(other.latch)) { return false; }
+        if (!Arrays.equals(states, other.states)) { return false; }
+        return true;
+    }
+
 }
