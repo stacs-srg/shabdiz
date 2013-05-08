@@ -21,13 +21,11 @@ package uk.ac.standrews.cs.shabdiz;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -254,16 +252,18 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        if (!isInAnyOfStates(states)) {
-            final CountDownLatch latch = new CountDownLatch(1);
-            final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
-            addStateChangeListener(state_change);
-            if (!latch.await(10, TimeUnit.SECONDS)) {
-                System.out.println("STATE " + getCachedApplicationState());
-                System.out.println("STATES " + Arrays.toString(states));
+        //FIXME inefficient
+        final CountDownLatch latch = new CountDownLatch(1);
+        synchronized (property_change_support) {
+            if (!isInAnyOfStates(states)) {
+                final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
+                addStateChangeListener(state_change);
             }
-
+            else {
+                latch.countDown();
+            }
         }
+        latch.await();
     }
 
     @Override
