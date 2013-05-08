@@ -21,11 +21,13 @@ package uk.ac.standrews.cs.shabdiz;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -235,7 +237,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      * @param states the states to check for
      * @return {@code true} if the {@link ApplicationDescriptor#getCachedApplicationState() cached state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
      */
-    public boolean isInState(final ApplicationState... states) {
+    public boolean isInAnyOfStates(final ApplicationState... states) {
 
         final ApplicationState cached_state = getCachedApplicationState();
         for (final ApplicationState state : states) {
@@ -252,11 +254,15 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        if (!isInState(states)) {
+        if (!isInAnyOfStates(states)) {
             final CountDownLatch latch = new CountDownLatch(1);
             final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
             addStateChangeListener(state_change);
-            latch.await();
+            if (!latch.await(10, TimeUnit.SECONDS)) {
+                System.out.println("STATE " + getCachedApplicationState());
+                System.out.println("STATES " + Arrays.toString(states));
+            }
+
         }
     }
 
