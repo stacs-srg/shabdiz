@@ -18,11 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -30,58 +28,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
 import com.jcraft.jsch.JSchException;
 
 /**
- * Provides default implementations of {@link ApplicationDescriptor} termination and state probe.
- * This class executes the SSH command '{@code cd /}' to determine the state of an {@link ApplicationDescriptor application descriptor's} host if the application call attempt fails.
- * The application-specific call is defined by {@link #attemptApplicationCall(ApplicationDescriptor)}. The application call is considered to have failed if the execution of this method results in {@link Exception}.
- * This class terminates a given {@link ApplicationDescriptor} by {@link Process#destroy() destroying} all of its {@link ApplicationDescriptor#getProcesses() processes}.
- * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
-    private static final Duration SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
-    // A minimal shell command that will be attempted in order to check ssh connectivity. Chosen to have minimal dependency on execution environment, so doesn't rely on anything specific to a user.
-    private static final String MINIMAL_COMMAND = "cd /"; // FIXME is this platform dependent?
-    private final Duration ssh_timeout;
+    private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    private final Duration command_execution_timeout;
 
     /**
      * Instantiates a new application manager with the default timeout of {@code 5 seconds} for executing a minimal SSH command.
      */
     protected AbstractApplicationManager() {
 
-        this(SSH_MINIMAL_COMMAND_EXECUTION_TIMEOUT);
+        this(DEFAULT_COMMAND_EXECUTION_TIMEOUT);
     }
 
     /**
-     * Instantiates a new application manager and sets the SSH timeout to the given {@code ssh_timeout}.
+     * Instantiates a new application manager and sets the command execution timeout to the given {@code command_execution_timeout}.
      * 
-     * @param ssh_timeout the ssh_timeout
+     * @param command_execution_timeout the command execution timeout
      */
-    protected AbstractApplicationManager(final Duration ssh_timeout) {
+    protected AbstractApplicationManager(final Duration command_execution_timeout) {
 
-        this.ssh_timeout = ssh_timeout;
+        this.command_execution_timeout = command_execution_timeout;
     }
 
     @Override
-    public ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) {
+    public ApplicationState probeState(final ApplicationDescriptor descriptor) {
 
         try {
-            return probeStateByApplicationCall(descriptor);
+            return probeApplicationState(descriptor);
         }
         catch (final Exception e) {
             LOGGER.debug("state probe using application call failed", e);
-            return probeStateBySshCommandExecution(descriptor);
+            final Host host = descriptor.getHost();
+            return probeHostState(host);
         }
     }
 
-    protected ApplicationState probeStateByApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
+    protected ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
 
         attemptApplicationCall(descriptor);
         return ApplicationState.RUNNING;
@@ -89,73 +82,76 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     protected abstract void attemptApplicationCall(ApplicationDescriptor descriptor) throws Exception;
 
-    private ApplicationState probeStateBySshCommandExecution(final ApplicationDescriptor descriptor) {
+    private ApplicationState probeHostState(final Host host) {
 
-        LOGGER.debug("attempting SSH-based state probe on descriptor {}", descriptor);
-
-        final Host host = descriptor.getHost();
-        try {
-            attemptAddressResolution(host.getAddress().getHostName());
-            attemptMinimalSshCommandExecution(host);
-            return ApplicationState.AUTH;
+        ApplicationState state;
+        if (host == null) {
+            state = ApplicationState.UNKNOWN;
         }
-        catch (final UnknownHostException e) {
-
-            return ApplicationState.INVALID; // Machine address couldn't be resolved.
+        else {
+            try {
+                attemptAddressResolution(host.getName());
+                attemptCommandExecution(host);
+                state = ApplicationState.AUTH;
+            }
+            catch (final Throwable e) {
+                state = resolveStateFromThrowable(e);
+            }
         }
-        catch (final JSchException e) {
-
-            return ApplicationState.NO_AUTH; // Couldn't make SSH connection with specified credentials.
-        }
-        catch (final IOException e) {
-
-            return ApplicationState.UNREACHABLE; // Network error trying to make SSH connection.
-        }
-        catch (final TimeoutException e) {
-
-            return ApplicationState.UNREACHABLE; // SSH connection timed out.
-        }
-        catch (final InterruptedException e) {
-
-            return ApplicationState.UNREACHABLE; // SSH connection was interrupted while waiting for completion.
-        }
-        catch (final Throwable e) {
-
-            return ApplicationState.UNREACHABLE; // Treat any other exception as unreachable state
-        }
+        assert state != null;
+        return state;
     }
 
-    private void attemptMinimalSshCommandExecution(final Host host) throws Throwable {
+    protected ApplicationState resolveStateFromThrowable(final Throwable throwable) {
 
-        // Try to execute a 'cd /' shell command on the machine.
-        // This is selected as a command that produces no output and doesn't require a functioning home directory.
-        try {
-            TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+        final ApplicationState state;
+        if (throwable == null) {
+            state = ApplicationState.UNKNOWN;
+        }
+        else if (throwable instanceof UnknownHostException) {
+            state = ApplicationState.INVALID;
+        }
+        else if (throwable instanceof JSchException) {
+            state = ApplicationState.NO_AUTH;
+        }
+        else if (throwable instanceof TimeoutException) {
+            state = ApplicationState.UNREACHABLE;
+        }
+        else if (throwable instanceof InterruptedException) {
+            state = ApplicationState.UNKNOWN;
+        }
+        else {
+            final Throwable cause = throwable.getCause();
+            state = cause == null ? ApplicationState.UNREACHABLE : resolveStateFromThrowable(cause);
+        }
+        return state;
+    }
 
-                @Override
-                public Void call() throws Exception {
+    private void attemptCommandExecution(final Host host) throws Throwable {
 
-                    Process ssh_test_process = null;
-                    try {
-                        ssh_test_process = host.execute(MINIMAL_COMMAND);
-                        ssh_test_process.waitFor();
-                    }
-                    finally {
-                        if (ssh_test_process != null) {
-                            ssh_test_process.destroy();
-                        }
-                    }
-                    return null; // Void task.
+        TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+
+            @Override
+            public Void call() throws Exception {
+
+                Process cd_process = null;
+                try {
+                    cd_process = host.execute(Commands.CHANGE_DIRECTORY.get(host.getPlatform()));
+                    cd_process.waitFor();
                 }
-            }, ssh_timeout);
-        }
-        catch (final ExecutionException e) {
-            throw e.getCause();
-        }
+                finally {
+                    if (cd_process != null) {
+                        cd_process.destroy();
+                    }
+                }
+                return null; // Void task.
+            }
+        }, command_execution_timeout);
     }
 
     private void attemptAddressResolution(final String host_name) throws UnknownHostException {
 
+        LOGGER.trace("attempting to resolve adderess from host name {}", host_name);
         InetAddress.getByName(host_name);
     }
 

@@ -50,7 +50,7 @@ public class URLPingManager implements ApplicationManager {
      * @return {@inheritDoc}
      */
     @Override
-    public ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) {
+    public ApplicationState probeState(final ApplicationDescriptor descriptor) {
 
         final URL target = descriptor.getAttribute(TARGET_KEY);
         if (target == null) {
@@ -78,7 +78,7 @@ public class URLPingManager implements ApplicationManager {
             }
         }
         catch (final Exception e) {
-            LOGGER.debug("failed to probe the state of {}", target);
+            LOGGER.info("failed to probe the state of {}", target);
             LOGGER.debug("failure while probing state", e);
             return ApplicationState.UNREACHABLE;
         }
@@ -92,7 +92,7 @@ public class URLPingManager implements ApplicationManager {
     /**
      * Sets the target URL for a given descriptor.
      * 
-     * @param descriptor the descriptor to set the targer URL of
+     * @param descriptor the descriptor to set the target URL of
      * @param url the target URL
      * @return the previous target URL of the given descriptor
      */

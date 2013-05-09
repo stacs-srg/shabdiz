@@ -55,7 +55,7 @@ public class StatusScanner extends AbstractConcurrentScanner {
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
         if (isEnabled()) {
-            final ApplicationState new_state = descriptor.getApplicationManager().probeApplicationState(descriptor);
+            final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
             LOGGER.debug("new state {}", new_state);
             descriptor.setCachedApplicationState(new_state);
         }

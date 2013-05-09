@@ -32,7 +32,7 @@ public interface ApplicationManager {
      * @return the state that the application instance is believed to be in
      * @see ApplicationState
      */
-    ApplicationState probeApplicationState(ApplicationDescriptor descriptor);
+    ApplicationState probeState(ApplicationDescriptor descriptor);
 
     /**
      * Attempts to deploy a new instance of the application that is described by the given {@code descriptor}, and returns a reference to the deployed instance.
