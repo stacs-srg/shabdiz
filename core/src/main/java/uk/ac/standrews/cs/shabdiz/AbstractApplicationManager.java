@@ -86,7 +86,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
     }
 
-    private ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
+    protected ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
 
         attemptApplicationCall(descriptor);
         return ApplicationState.RUNNING;
