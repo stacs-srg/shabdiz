@@ -41,7 +41,7 @@ public class AutoRemoveScanner extends AbstractConcurrentScanner {
 
     protected boolean isRemovable(final ApplicationDescriptor application_descriptor) {
 
-        final ApplicationState state = application_descriptor.getCachedApplicationState();
+        final ApplicationState state = application_descriptor.getApplicationState();
         return state == ApplicationState.UNREACHABLE || state == ApplicationState.INVALID;
     }
 

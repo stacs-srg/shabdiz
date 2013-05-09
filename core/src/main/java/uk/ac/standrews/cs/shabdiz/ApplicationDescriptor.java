@@ -25,20 +25,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.HostWrapper;
+import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
-import uk.ac.standrews.cs.shabdiz.util.SelfRemovingStateChangeListener;
+import uk.ac.standrews.cs.shabdiz.util.LatchedStateChangeListener;
 
 /**
- * Describes an application instance that is managed by an {@link ApplicationNetwork application network}.
+ * Presents an application instance that is running on a {@link Host host}.
  * Instances of this class are in one-to-one correspondence to the application instances within an {@link ApplicationNetwork application network}.
  * However, a {@link Host} and/or an {@link ApplicationManager} may be associated to multiple {@link ApplicationDescriptor application descriptors}.
  * The {@link #getHost() host} of an application descriptor may be {@code null}.
@@ -48,10 +45,9 @@ import uk.ac.standrews.cs.shabdiz.util.SelfRemovingStateChangeListener;
  */
 public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationDescriptor.class);
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final String STATE_PROPERTY_NAME = "state";
-    private final Long id; // used to resolve ties when comparing descriptors
+    private final Long id; // used to break ties when comparing descriptors
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     private final AtomicReference<Object> application_reference;
@@ -62,7 +58,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Instantiates a new application descriptor with the given {@link ApplicationManager manager} and {@code null} as {@link #getHost() host}.
-     * The initial {@link #getCachedApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
+     * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
      * 
      * @param application_manager the manager of the application instance
      */
@@ -73,7 +69,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Instantiates a new application descriptor with the given {@link Host host} and {@link ApplicationManager manager}.
-     * The initial {@link #getCachedApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
+     * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
      * 
      * @param host the host of the application instance that is described by this descriptor
      * @param application_manager the manager of the application instance
@@ -178,7 +174,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      * 
      * @return the cached state of the application instance that is described by this descriptor
      */
-    public ApplicationState getCachedApplicationState() {
+    public ApplicationState getApplicationState() {
 
         return state.get();
     }
@@ -210,7 +206,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Adds a {@link PropertyChangeListener} for the {@link #getCachedApplicationState() cached state} property.
+     * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
      * If listener is {@code null} no exception is thrown and no action is taken.
      * 
      * @param listener the listener to be added
@@ -222,7 +218,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Removes a {@link PropertyChangeListener} for the {@link #getCachedApplicationState() cached state} property.
+     * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
      * 
      * @param listener the listener to be removed
@@ -234,18 +230,14 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Checks if the {@link ApplicationDescriptor#getCachedApplicationState() cached state} of this descriptor is equal to one of the given {@code states}.
+     * Checks if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}.
      * 
      * @param states the states to check for
-     * @return {@code true} if the {@link ApplicationDescriptor#getCachedApplicationState() cached state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
+     * @return {@code true} if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
      */
     public boolean isInAnyOfStates(final ApplicationState... states) {
 
-        final ApplicationState cached_state = getCachedApplicationState();
-        for (final ApplicationState state : states) {
-            if (cached_state.equals(state)) { return true; }
-        }
-        return false;
+        return ArrayUtil.contains(getApplicationState(), states);
     }
 
     /**
@@ -256,18 +248,22 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        final CountDownLatch latch = new CountDownLatch(1);
-        synchronized (this) {
+        LatchedStateChangeListener latched_listener = null;
+        synchronized (this) { // lock on this to prevent the state from changing between checking the current state and adding the listener
             if (!isInAnyOfStates(states)) {
-
-                final PropertyChangeListener state_change = new SelfRemovingStateChangeListener(this, states, latch);
-                addStateChangeListener(state_change);
-            }
-            else {
-                latch.countDown();
+                latched_listener = new LatchedStateChangeListener(states);
+                addStateChangeListener(latched_listener);
             }
         }
-        latch.await();
+
+        if (latched_listener != null) {
+            try {
+                latched_listener.await();
+            }
+            finally {
+                removeStateChangeListener(latched_listener);
+            }
+        }
     }
 
     @Override

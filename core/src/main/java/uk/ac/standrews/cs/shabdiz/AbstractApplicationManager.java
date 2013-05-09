@@ -35,6 +35,11 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import com.jcraft.jsch.JSchException;
 
 /**
+ * Implements common state probe and termination functionality.
+ * This class probes the state of a given {@link ApplicationDescriptor descriptor} by attempting an application-specific call.
+ * If the call fails, attempts to probe the state of the descriptor's {@link ApplicationDescriptor#getHost() host} by executing a {@code change directory} command.
+ * This class kills a given {@link ApplicationDescriptor descriptor} by {@link Process#destroy() destroying} all its {@link ApplicationDescriptor#getProcesses() processes}.
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
@@ -43,9 +48,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
     private final Duration command_execution_timeout;
 
-    /**
-     * Instantiates a new application manager with the default timeout of {@code 5 seconds} for executing a minimal SSH command.
-     */
+    /** Instantiates a new application manager with the default command execution timeout of {@code 5} seconds. */
     protected AbstractApplicationManager() {
 
         this(DEFAULT_COMMAND_EXECUTION_TIMEOUT);
@@ -62,6 +65,15 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     }
 
     @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+
+        for (final Process process : descriptor.getProcesses()) {
+            process.destroy();
+        }
+        descriptor.clearProcesses();
+    }
+
+    @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {
 
         try {
@@ -74,7 +86,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
     }
 
-    protected ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
+    private ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
 
         attemptApplicationCall(descriptor);
         return ApplicationState.RUNNING;
@@ -153,14 +165,5 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
         LOGGER.trace("attempting to resolve adderess from host name {}", host_name);
         InetAddress.getByName(host_name);
-    }
-
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        for (final Process process : descriptor.getProcesses()) {
-            process.destroy();
-        }
-        descriptor.clearProcesses();
     }
 }

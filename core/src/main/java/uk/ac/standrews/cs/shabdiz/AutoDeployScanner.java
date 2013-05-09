@@ -40,7 +40,7 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
 
     protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
 
-        return ApplicationState.AUTH.equals(application_descriptor.getCachedApplicationState());
+        return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
     }
 
     @Override
