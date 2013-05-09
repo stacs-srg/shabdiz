@@ -199,7 +199,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         application_reference.set(reference);
     }
 
-    protected synchronized void setCachedApplicationState(final ApplicationState new_state) {
+    protected synchronized void setApplicationState(final ApplicationState new_state) {
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);

@@ -57,7 +57,7 @@ public class StatusScanner extends AbstractConcurrentScanner {
         if (isEnabled()) {
             final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
             LOGGER.debug("new state {}", new_state);
-            descriptor.setCachedApplicationState(new_state);
+            descriptor.setApplicationState(new_state);
         }
         else {
             LOGGER.debug("status scan is disabled");
