@@ -76,7 +76,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
 
         final String remote_working_directory = getRemoteWorkingDirectory(host);
         LOGGER.debug("remote working directory: {}", remote_working_directory);
-        final File compressed_classpath = File.createTempFile("compressed_classpath", ".zip");
+        final File compressed_classpath = File.createTempFile("shabdiz_compressed_classpath", ".zip");
         LOGGER.debug("compressed classpath: {}", compressed_classpath);
         CompressionUtil.compress(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);

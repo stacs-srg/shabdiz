@@ -160,7 +160,7 @@ public final class Platforms {
      */
     public static boolean isUnixBased(final Platform target) {
 
-        return target.getPathSeparator() == Platform.UNIX_PATH_SEPARATOR && target.getSeparator() == Platform.UNIX_SEPARATOR;
+        return !(target instanceof WindowsPlatform);
     }
 
     private static synchronized File getPlatformDetectorJar() throws IOException {
