@@ -31,6 +31,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  */
 public final class Commands {
 
+    private static final String SPACE = " ";
     private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
 
     private Commands() {
@@ -84,7 +85,32 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return CD + concatinate(params);
+            return CD + concatinateWithSpace(params);
+        }
+    };
+
+    /** The CD command builder. */
+    public static final CommandBuilder APPENDER = new CommandBuilder() {
+
+        private static final String AND_AND = " && ";
+        private static final String SEMICOLON = "; ";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            final String appender = Platforms.isUnixBased(platform) ? SEMICOLON : AND_AND;
+            final StringBuilder builder = new StringBuilder();
+            if (params != null) {
+
+                final int params_length = params.length;
+                for (int i = 0; i < params_length; i++) {
+                    builder.append(params[i]);
+                    if (i < params_length) {
+                        builder.append(appender);
+                    }
+                }
+            }
+            return builder.toString();
         }
     };
 
@@ -101,16 +127,17 @@ public final class Commands {
             if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
             final Integer pid = Integer.parseInt(parameters[0]);
             LOGGER.debug("generating kill command for pid: {}", pid);
-            return concatinate(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
 
-    static String concatinate(final String... params) {
+    static String concatinateWithSpace(final String... params) {
 
         final StringBuilder string_builder = new StringBuilder();
         if (params != null) {
+
             for (final String param : params) {
-                string_builder.append(" ");
+                string_builder.append(SPACE);
                 string_builder.append(param);
             }
         }
