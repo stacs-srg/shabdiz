@@ -64,7 +64,7 @@ public final class Commands {
         }
     };
 
-    /** Gets Username. */
+    /** Gets user name. */
     public static final CommandBuilder USER_NAME = new CommandBuilder() {
 
         private static final String WHOAMI = "whoami";
@@ -74,6 +74,19 @@ public final class Commands {
         public String get(final Platform platform, final String... params) {
 
             return Platforms.isUnixBased(platform) ? WHOAMI : ECHO_USERNAME;
+        }
+    };
+
+    /** Gets operating system name. */
+    public static final CommandBuilder OS_NAME = new CommandBuilder() {
+
+        private static final String UNAME = "uname";
+        private static final String VER = "ver";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return Platforms.isUnixBased(platform) ? UNAME : VER;
         }
     };
 

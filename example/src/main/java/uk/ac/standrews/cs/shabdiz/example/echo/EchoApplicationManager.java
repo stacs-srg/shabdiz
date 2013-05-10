@@ -92,8 +92,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
             final Host host = descriptor.getHost();
             final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
             final Process kill = host.execute(kill_command);
-            kill.waitFor();
-            kill.destroy();
+            ProcessUtil.waitForNormalTerminationAndGetOutput(kill);
         }
         catch (final Exception e) {
             LOGGER.debug("failed to kill echo applciation instance", e);

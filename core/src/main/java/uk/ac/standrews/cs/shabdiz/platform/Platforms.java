@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
-import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -34,7 +33,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * Factory for {@link Platform} and {@link SimplePlatform}, and utility methods to detect {@link Platform platform} from {@link Host host} by executing {@code uname} command or a Java-based platform detector.
@@ -122,16 +123,15 @@ public final class Platforms {
     private static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
 
         // See: http://en.wikipedia.org/wiki/Uname#Examples
-        final Process uname_process = host.execute(UNAME_COMMAND);
-        final Scanner scanner = new Scanner(uname_process.getInputStream(), PLATFORM_DETECTOR_OUTPUT_CHARSET);
+        final Process uname_process = host.execute(Commands.OS_NAME.get(host.getPlatform()));
+        final String uname_output;
         try {
-            final String uname_output = scanner.nextLine();
-            return fromUnameOutput(uname_output);
+            uname_output = ProcessUtil.waitForNormalTerminationAndGetOutput(uname_process);
         }
-        finally {
-            scanner.close();
-            uname_process.destroy();
+        catch (final InterruptedException e) {
+            throw new IOException(e);
         }
+        return fromUnameOutput(uname_output);
     }
 
     /**

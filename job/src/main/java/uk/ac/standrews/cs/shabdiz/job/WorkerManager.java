@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -88,17 +90,20 @@ class WorkerManager extends AbstractApplicationManager {
         try {
             final DefaultWorkerWrapper worker = descriptor.getApplicationReference();
             if (worker != null) {
-                final Integer processId = worker.getWorkerProcessId();
-                if (processId != null) {
-                    final Process process = descriptor.getHost().execute("kill -9 " + processId);
-                    process.waitFor();
-                    process.destroy();
+                final Integer process_id = worker.getWorkerProcessId();
+                if (process_id != null) {
+                    final Platform platform = descriptor.getHost().getPlatform();
+                    final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
+                    final Process kill = descriptor.getHost().execute(kill_command);
+                    ProcessUtil.waitForNormalTerminationAndGetOutput(kill);
                 }
-                worker.shutdown();
+                try {
+                    worker.shutdown();
+                }
+                catch (final JsonRpcException e) {
+                    //ignore; expected.
+                }
             }
-        }
-        catch (final JsonRpcException e) {
-            //ignore; expected.
         }
         finally {
             super.kill(descriptor);

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
 import com.jcraft.jsch.JSchException;
@@ -146,16 +147,8 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             @Override
             public Void call() throws Exception {
 
-                Process cd_process = null;
-                try {
-                    cd_process = host.execute(Commands.CHANGE_DIRECTORY.get(host.getPlatform()));
-                    cd_process.waitFor();
-                }
-                finally {
-                    if (cd_process != null) {
-                        cd_process.destroy();
-                    }
-                }
+                final Process cd_process = host.execute(Commands.CHANGE_DIRECTORY.get(host.getPlatform()));
+                ProcessUtil.waitForNormalTerminationAndGetOutput(cd_process);
                 return null; // Void task.
             }
         }, command_execution_timeout);
