@@ -25,17 +25,20 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-
+import com.staticiser.jetson.util.NamingThreadFactory;
 
 public final class ProcessUtil {
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessUtil.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtil.class);
     private static final String UTF_8 = "UTF-8";
     private static final String DELIMITER = "=";
     private static final int NORMAL_TERMINATION = 0;
@@ -44,19 +47,47 @@ public final class ProcessUtil {
 
     }
 
-    public static String waitForAndReadOutput(final Process process) throws IOException, InterruptedException {
+    public static String waitForNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
-        final int exit_value = process.waitFor();
+        final ExecutorService error_reader_executor = Executors.newFixedThreadPool(2, new NamingThreadFactory("process_util_"));
         try {
-            switch (exit_value) {
-                case NORMAL_TERMINATION:
+            final Future<Void> future_error = error_reader_executor.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws IOException {
+
+                    final String error = IOUtils.toString(process.getErrorStream());
+                    if (error != null && !error.equals("")) { throw new IOException(error); }
+                    return null; // Void task
+                }
+            });
+            final Future<String> future_result = error_reader_executor.submit(new Callable<String>() {
+
+                @Override
+                public String call() throws IOException {
+
                     return IOUtils.toString(process.getInputStream());
-                default:
-                    throw new IOException();
+                }
+            });
+
+            try {
+                final int exit_value = process.waitFor();
+                LOGGER.info("done waiting for process, exit value: {}", exit_value);
+                future_error.get();
+                if (exit_value != NORMAL_TERMINATION) {
+                    LOGGER.warn("No error occured while executing the process but the exit value is non zero: {}", exit_value);
+                }
+                return future_result.get().trim();
+            }
+            catch (final ExecutionException e) {
+                LOGGER.debug("error occured on process execution", e);
+                final Throwable cause = e.getCause();
+                throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
             }
         }
         finally {
             process.destroy();
+            error_reader_executor.shutdownNow();
         }
     }
 
@@ -90,7 +121,7 @@ public final class ProcessUtil {
                 pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
             }
             catch (final NumberFormatException e) {
-                LOGGER.log(Level.FINE, "failed to extract pid from runtime MXBean name", e);
+                LOGGER.debug("failed to extract pid from runtime MXBean name", e);
             }
         }
         return pid;

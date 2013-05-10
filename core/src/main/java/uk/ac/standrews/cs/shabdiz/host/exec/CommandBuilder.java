@@ -32,7 +32,7 @@ public interface CommandBuilder {
      * 
      * @param platform the platform
      * @param parameters the command parameters
-     * @return the command
+     * @return the platform-specific command
      */
     String get(Platform platform, String... parameters);
 }

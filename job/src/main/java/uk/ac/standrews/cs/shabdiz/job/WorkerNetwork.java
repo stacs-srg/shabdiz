@@ -31,7 +31,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
@@ -52,14 +54,14 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     private static final long serialVersionUID = -8888064138251583848L;
 
-    private static final Logger LOGGER = Logger.getLogger(WorkerNetwork.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
 
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
     private final Server callback_server; // The server which listens to the callbacks  from workers
     private final Map<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final WorkerManager worker_manager;
-    private static final ServerFactory<WorkerCallback> CALLBACK_SERVER_FACTORY = new ServerFactory<WorkerCallback>(WorkerCallback.class, WorkerJsonFactory.getInstance());
+    private final ServerFactory<WorkerCallback> callback_server_factory;
 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
@@ -102,8 +104,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
-
-        callback_server = CALLBACK_SERVER_FACTORY.createServer(this);
+        callback_server_factory = new ServerFactory<WorkerCallback>(WorkerCallback.class, WorkerJsonFactory.getInstance());
+        callback_server = callback_server_factory.createServer(this);
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
@@ -158,8 +160,10 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
                 callback_server.unexpose();
             }
             catch (final IOException e) {
-                e.printStackTrace();
+                LOGGER.debug("failed to unexpose callback server", e);
             }
+            callback_server_factory.shutdown();
+            worker_manager.shutdown();
             releaseAllPendingFutures(); // Release the futures which are still pending for notification
         }
         finally {

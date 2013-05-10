@@ -25,6 +25,8 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.util.SerializableVoid;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 
+import com.staticiser.jetson.util.NamingThreadFactory;
+
 public class Main {
 
     private static final char[] EMPTY_PASSWORD = new String().toCharArray();
@@ -43,6 +45,7 @@ public class Main {
     public static void main(final String[] args) throws Exception {
 
         final WorkerNetwork worker_network = new WorkerNetwork();
+        final ExecutorService executorService = Executors.newCachedThreadPool(new NamingThreadFactory("process reader"));
         try {
             final SSHPublicKeyCredentials credentials = SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Please enter the public key passphrase"));
             final SSHHost blub_head = new SSHHost(BLUB_HEAD_NODE_HOST_NAME, credentials);
@@ -51,7 +54,6 @@ public class Main {
             worker_network.awaitAnyOfStates(ApplicationState.RUNNING);
 
             final ApplicationDescriptor worker_descriptor = worker_network.first();
-            final ExecutorService executorService = Executors.newCachedThreadPool();
             for (final Process process : worker_descriptor.getProcesses()) {
                 executorService.submit(new Runnable() {
 
@@ -61,7 +63,7 @@ public class Main {
                         try {
                             final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                             String line;
-                            while ((line = reader.readLine()) != null) {
+                            while (!Thread.currentThread().isInterrupted() && (line = reader.readLine()) != null) {
                                 System.out.println(line);
                             }
                         }
@@ -78,7 +80,7 @@ public class Main {
                         try {
                             final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                             String line;
-                            while ((line = reader.readLine()) != null) {
+                            while (!Thread.currentThread().isInterrupted() && (line = reader.readLine()) != null) {
                                 System.out.println(line);
                             }
                         }
@@ -96,7 +98,12 @@ public class Main {
             submit.get();
         }
         finally {
+            final ApplicationDescriptor worker_descriptor = worker_network.first();
+            for (final Process process : worker_descriptor.getProcesses()) {
+                process.destroy();
+            }
             worker_network.shutdown();
+            executorService.shutdownNow();
         }
     }
 
@@ -117,7 +124,7 @@ public class Main {
 
             System.out.println(">>>>>>>>>>>>>>>>>>> ALL ARE IN AUTH");
 
-            Thread.sleep(50000);
+            //            Thread.sleep(50000);
             return null;
         }
 

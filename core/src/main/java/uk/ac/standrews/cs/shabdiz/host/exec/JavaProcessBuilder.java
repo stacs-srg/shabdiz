@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * The Class RemoteJavaProcessBuilder.
@@ -87,21 +88,18 @@ public class JavaProcessBuilder implements HostProcessBuilder {
 
         //FIXME use tar.gz instead; comes with cygwin where as unzip package needs to be installed
 
-        final Process unzip = host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName() + ";");
+        final Process unzip_process = host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName() + ";");
         try {
-            unzip.waitFor();
+            ProcessUtil.waitForNormalTerminationAndGetOutput(unzip_process);
         }
         catch (final InterruptedException e) {
             throw new IOException(e);
-        }
-        finally {
-            unzip.destroy();
         }
     }
 
     private String getRemoteWorkingDirectory(final Host host) throws IOException {
 
-        return host.getPlatform().getTempDirectory() + UUID.randomUUID().toString();
+        return host.getPlatform().getTempDirectory() + "shabdiz_" + UUID.randomUUID().toString();
     }
 
     private String assembleRemoteJavaCommand(final Host host) throws IOException {

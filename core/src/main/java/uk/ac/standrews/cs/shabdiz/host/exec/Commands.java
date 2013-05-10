@@ -37,29 +37,71 @@ public final class Commands {
 
     }
 
-    /** The CD command builder. */
-    public static final CommandBuilder CHANGE_DIRECTORY = new CommandBuilder() {
+    /** Gets the current working directory. */
+    public static final CommandBuilder CURRENT_WORKING_DIRECTORY = new CommandBuilder() {
+
+        private static final String PWD = "pwd";
+        private static final String ECHO_CD = "echo %cd%";
 
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return "cd" + concatinate(params);
+            return Platforms.isUnixBased(platform) ? PWD : ECHO_CD;
+        }
+    };
+
+    /** Gets user home directory. */
+    public static final CommandBuilder USER_HOME = new CommandBuilder() {
+
+        private static final String ECHO_HOME = "echo $HOME";
+        private static final String ECHO_USERPROFILE = "echo %USERPROFILE%";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE;
+        }
+    };
+
+    /** Gets Username. */
+    public static final CommandBuilder USER_NAME = new CommandBuilder() {
+
+        private static final String WHOAMI = "whoami";
+        private static final String ECHO_USERNAME = "echo %USERNAME%";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return Platforms.isUnixBased(platform) ? WHOAMI : ECHO_USERNAME;
+        }
+    };
+
+    /** The CD command builder. */
+    public static final CommandBuilder CHANGE_DIRECTORY = new CommandBuilder() {
+
+        private static final String CD = "cd";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return CD + concatinate(params);
         }
     };
 
     /** The kill by PID command builder. */
     public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
 
-        /**
-         * Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command.
-         */
+        private static final String TASKKILL_PID = "taskkill /PID ";
+        private static final String KILL_9 = "kill -9 ";
+
+        /** Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command. */
         @Override
         public String get(final Platform platform, final String... parameters) {
 
-            if (parameters.length != 1) { throw new IllegalArgumentException("Only the pid is expected as the first parameter"); }
+            if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
             final Integer pid = Integer.parseInt(parameters[0]);
             LOGGER.debug("generating kill command for pid: {}", pid);
-            return concatinate(Platforms.isUnixBased(platform) ? "kill -9 " : "taskkill /PID ", String.valueOf(pid));
+            return concatinate(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
 

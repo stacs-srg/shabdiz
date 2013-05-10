@@ -24,11 +24,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,11 +52,13 @@ class WorkerManager extends AbstractApplicationManager {
     private final JavaProcessBuilder worker_process_builder;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
     private final WorkerNetwork network;
+    private final WorkerRemoteProxyFactory proxy_factory;
 
     public WorkerManager(final WorkerNetwork network, final Set<File> classpath) {
 
         this.network = network;
         worker_process_builder = createRemoteJavaProcessBuiler(classpath, network.getCallbackAddress());
+        proxy_factory = new WorkerRemoteProxyFactory();
     }
 
     @Override
@@ -76,26 +76,9 @@ class WorkerManager extends AbstractApplicationManager {
 
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
-        final WorkerRemote worker_remote = WorkerRemoteProxyFactory.getProxy(worker_address);
+        final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
         worker_wrapper.setWorkerProcessId(ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name));
-        Executors.newFixedThreadPool(1).execute(new Runnable() {
-
-            @Override
-            public void run() {
-
-                try {
-                    while (!Thread.currentThread().isInterrupted()) {
-                        LOGGER.info(IOUtils.toString(worker_process.getErrorStream()));
-                    }
-                }
-                catch (final IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-        });
         return worker_wrapper;
     }
 
@@ -160,6 +143,11 @@ class WorkerManager extends AbstractApplicationManager {
     public void setWorkerJVMArguments(final String jvm_arguments) {
 
         worker_process_builder.replaceJVMArguments(jvm_arguments.trim());
+    }
+
+    void shutdown() {
+
+        proxy_factory.shutdown();
     }
 
 }

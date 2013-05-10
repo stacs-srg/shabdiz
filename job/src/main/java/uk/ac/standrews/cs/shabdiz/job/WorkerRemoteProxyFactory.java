@@ -18,28 +18,24 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import com.staticiser.jetson.ClientFactory;
 
+final class WorkerRemoteProxyFactory extends ClientFactory<WorkerRemote> {
 
-public final class WorkerRemoteProxyFactory extends ClientFactory<WorkerRemote> {
+    //    private final WorkerRemoteProxyFactory WORKER_REMOTE_PROXY_FACTORY_INSTANCE = new WorkerRemoteProxyFactory();
 
-    private static final WorkerRemoteProxyFactory WORKER_REMOTE_PROXY_FACTORY_INSTANCE = new WorkerRemoteProxyFactory();
-
-    private WorkerRemoteProxyFactory() {
+    WorkerRemoteProxyFactory() {
 
         super(WorkerRemote.class, WorkerJsonFactory.getInstance());
     }
 
-    public static WorkerRemote getProxy(final InetSocketAddress address) throws IllegalArgumentException, IOException {
-
-        return WORKER_REMOTE_PROXY_FACTORY_INSTANCE.get(address);
-    }
-
-    public static WorkerRemoteProxyFactory getInstance() {
-
-        return WORKER_REMOTE_PROXY_FACTORY_INSTANCE;
-    }
+    //    public WorkerRemote getProxy(final InetSocketAddress address) throws IllegalArgumentException, IOException {
+    //
+    //        return WORKER_REMOTE_PROXY_FACTORY_INSTANCE.get(address);
+    //    }
+    //
+    //    public WorkerRemoteProxyFactory getInstance() {
+    //
+    //        return WORKER_REMOTE_PROXY_FACTORY_INSTANCE;
+    //    }
 }
