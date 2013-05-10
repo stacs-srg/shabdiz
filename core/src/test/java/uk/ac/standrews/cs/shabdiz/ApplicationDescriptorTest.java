@@ -30,6 +30,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link ApplicationDescriptor} tests.
@@ -38,10 +40,8 @@ import org.junit.Test;
  */
 public class ApplicationDescriptorTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationDescriptorTest.class);
     private static final int CONCURRENCY_TEST_TIMEOUT_IN_SECONDS = 5;
-    private static final int DESCRIPTORS_COUNT = 100;
-
-    private List<ApplicationDescriptor> descriptors;
     private ExecutorService executor;
 
     /** Prepares the environment for a test. */
@@ -49,31 +49,47 @@ public class ApplicationDescriptorTest {
     public void setUp() {
 
         executor = Executors.newCachedThreadPool();
-        descriptors = new ArrayList<ApplicationDescriptor>();
-        for (int i = 0; i < DESCRIPTORS_COUNT; i++) {
-            descriptors.add(new ApplicationDescriptor(null));
-        }
     }
 
     /** Cleans up after a test. */
     @After
     public void tearDown() {
 
-        descriptors.clear();
         executor.shutdownNow();
     }
 
     /**
-     * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} when concurrent state changes occur.
+     * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} for when many concurrent state changes occur.
+     * 
+     * @throws InterruptedException if interrupted while waiting for the test to complete
+     */
+    @Test
+    public void testAwaitAnyOfStatesForStress() throws InterruptedException {
+
+        final List<ApplicationDescriptor> descriptors = createDescriptors(100);
+        awaitStateChanges(descriptors, ApplicationState.RUNNING);
+    }
+
+    /**
+     * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} for when concurrent state changes occur.
      * 
      * @throws InterruptedException if interrupted while waiting for the test to complete
      */
     @Test
     public void testAwaitAnyOfStatesWithConcurrentStateChange() throws InterruptedException {
 
-        final CountDownLatch start_latch = new CountDownLatch(1);
-        final CountDownLatch end_latch = new CountDownLatch(DESCRIPTORS_COUNT * 2);
+        final List<ApplicationDescriptor> descriptors = createDescriptors(2);
+        awaitStateChanges(descriptors, ApplicationState.RUNNING);
+    }
 
+    private void awaitStateChanges(final List<ApplicationDescriptor> descriptors, final ApplicationState target_state) throws InterruptedException {
+
+        final int descriptors_size = descriptors.size();
+        final CountDownLatch start_latch = new CountDownLatch(1);
+        final CountDownLatch state_update_end_latch = new CountDownLatch(descriptors_size);
+        final CountDownLatch listeners_end_latch = new CountDownLatch(descriptors_size);
+
+        LOGGER.info("Attempting to await sate changes of {} descriptors...", descriptors_size);
         for (final ApplicationDescriptor descriptor : descriptors) {
             executor.submit(new Callable<Void>() {
 
@@ -81,8 +97,8 @@ public class ApplicationDescriptorTest {
                 public Void call() throws Exception {
 
                     start_latch.await();
-                    descriptor.awaitAnyOfStates(ApplicationState.RUNNING);
-                    end_latch.countDown();
+                    descriptor.awaitAnyOfStates(target_state);
+                    listeners_end_latch.countDown();
                     return null;
                 }
             });
@@ -93,15 +109,32 @@ public class ApplicationDescriptorTest {
                 public Void call() throws Exception {
 
                     start_latch.await();
-                    descriptor.setApplicationState(ApplicationState.RUNNING);
-                    end_latch.countDown();
+                    descriptor.setApplicationState(target_state);
+                    state_update_end_latch.countDown();
                     return null;
                 }
             });
         }
+        LOGGER.info("Submitted 'setApplicationState' and 'awaitAnyOfStates' jobs");
+        LOGGER.info("Releasing start latch...");
         start_latch.countDown();
-        if (!end_latch.await(CONCURRENCY_TEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+        LOGGER.info("Awaiting 'setApplicationState' jobs to compelete...");
+        state_update_end_latch.await(); // Await until all states have been updated to the target_state
+
+        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs to compelete...");
+        if (!listeners_end_latch.await(CONCURRENCY_TEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+            LOGGER.error("The 'awaitAnyOfStates' jobs did not compelete after {} seconds waiting", CONCURRENCY_TEST_TIMEOUT_IN_SECONDS);
             Assert.fail();
         }
+        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs is compelete. \n");
+    }
+
+    private List<ApplicationDescriptor> createDescriptors(final int descriptors_count) {
+
+        final List<ApplicationDescriptor> descriptors = new ArrayList<ApplicationDescriptor>();
+        for (int i = 0; i < descriptors_count; i++) {
+            descriptors.add(new ApplicationDescriptor(null));
+        }
+        return descriptors;
     }
 }
