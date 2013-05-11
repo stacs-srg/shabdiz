@@ -142,7 +142,7 @@ public final class Commands {
     /** The kill by PID command builder. */
     public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
 
-        private static final String TASKKILL_PID = "taskkill /PID ";
+        private static final String TASKKILL_PID = "taskkill /F /PID ";
         private static final String KILL_9 = "kill -9 ";
 
         /** Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command. */
