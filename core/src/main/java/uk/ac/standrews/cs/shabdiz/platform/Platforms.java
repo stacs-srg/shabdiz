@@ -33,7 +33,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -44,8 +43,8 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
  */
 public final class Platforms {
 
-    private static final String PLATFORM_DETECTOR_OUTPUT_CHARSET = "UTF-8";
     private static final String UNAME_COMMAND = "uname";
+    private static final String VER_COMMAND = "ver";
     private static final String PLATFORM_DETECTOR_JAR_VERSION = "1.0";
     private static File cached_platform_detector_jar;
 
@@ -122,16 +121,19 @@ public final class Platforms {
 
     private static Platform detectRemotePlatformUsingUname(final Host host) throws IOException {
 
-        // See: http://en.wikipedia.org/wiki/Uname#Examples
-        final Process uname_process = host.execute(Commands.OS_NAME.get(host.getPlatform()));
-        final String uname_output;
+        String os_name;
         try {
-            uname_output = ProcessUtil.waitForNormalTerminationAndGetOutput(uname_process);
+            try {
+                os_name = ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(UNAME_COMMAND));
+            }
+            catch (final IOException e) {
+                os_name = ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(VER_COMMAND));
+            }
         }
         catch (final InterruptedException e) {
             throw new IOException(e);
         }
-        return fromUnameOutput(uname_output);
+        return fromOSName(os_name);
     }
 
     /**
@@ -144,7 +146,7 @@ public final class Platforms {
      * @param uname_output the output produced by the execution of {@code uname} commad
      * @return an isntance of {@link SimplePlatform} that represents Windowns, Cygwin or Unix platform
      */
-    public static SimplePlatform fromUnameOutput(final String uname_output) {
+    public static SimplePlatform fromOSName(final String uname_output) {
 
         final String output = uname_output.toLowerCase().trim();
         if (output.contains(CygwinPlatform.CYGWIN_OS_NAME_KEY)) { return new CygwinPlatform(output); }
@@ -213,7 +215,6 @@ public final class Platforms {
 
         return type.getName().replace(type.getPackage().getName() + ".", "") + ".class";
     }
-
 }
 
 final class PlatformDetector {

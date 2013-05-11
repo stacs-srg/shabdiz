@@ -22,7 +22,7 @@ import java.io.File;
 
 /**
  * A singleton presentation of the local platform. The only instance of this class is retrieved using {@link #getInstance()}.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class LocalPlatform extends SimplePlatform {
@@ -38,7 +38,7 @@ public final class LocalPlatform extends SimplePlatform {
 
     /**
      * Gets the single instance of the {@link LocalPlatform local platform}.
-     *
+     * 
      * @return single instance of the {@link LocalPlatform local platform}
      */
     public static LocalPlatform getInstance() {

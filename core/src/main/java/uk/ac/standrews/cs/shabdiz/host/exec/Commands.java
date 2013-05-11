@@ -39,6 +39,18 @@ public final class Commands {
     }
 
     /** Gets the current working directory. */
+    public static final CommandBuilder ECHO = new CommandBuilder() {
+
+        private static final String ECHO = "echo";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return ECHO + concatinateWithSpace(params);
+        }
+    };
+
+    /** Gets the current working directory. */
     public static final CommandBuilder CURRENT_WORKING_DIRECTORY = new CommandBuilder() {
 
         private static final String PWD = "pwd";
@@ -80,8 +92,8 @@ public final class Commands {
     /** Gets operating system name. */
     public static final CommandBuilder OS_NAME = new CommandBuilder() {
 
-        private static final String UNAME = "uname";
-        private static final String VER = "ver";
+        public static final String UNAME = "uname";
+        public static final String VER = "ver";
 
         @Override
         public String get(final Platform platform, final String... params) {

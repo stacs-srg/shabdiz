@@ -95,11 +95,9 @@ public class ProcessUtilTest {
     public void testWaitForSuccessWithVaildCommand() throws IOException, InterruptedException {
 
         final Platform local_platform = local_host.getPlatform();
-        final Process username_process = local_host.execute(Commands.USER_NAME.get(local_platform));
-        Assert.assertEquals(System.getProperty("user.name"), ProcessUtil.waitForNormalTerminationAndGetOutput(username_process));
-        final Process userhome_process = local_host.execute(Commands.USER_HOME.get(local_platform));
-        Assert.assertEquals(System.getProperty("user.home"), ProcessUtil.waitForNormalTerminationAndGetOutput(userhome_process));
-        final Process pwd_process = local_host.execute(Commands.CURRENT_WORKING_DIRECTORY.get(local_platform));
-        Assert.assertEquals(System.getProperty("user.dir"), ProcessUtil.waitForNormalTerminationAndGetOutput(pwd_process));
+        LOGGER.info("Platform {}", local_platform);
+        final String test_message = "testing successful command execution";
+        final Process username_process = local_host.execute(Commands.ECHO.get(local_platform, test_message));
+        Assert.assertEquals(test_message, ProcessUtil.waitForNormalTerminationAndGetOutput(username_process));
     }
 }
