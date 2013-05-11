@@ -86,11 +86,15 @@ public class JavaProcessBuilder implements HostProcessBuilder {
 
     private void uncompress(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
 
-        //FIXME use tar.gz instead; comes with cygwin where as unzip package needs to be installed
+        //FIXME use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
 
-        final Process unzip_process = host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName());
         try {
-            ProcessUtil.waitForNormalTerminationAndGetOutput(unzip_process);
+            try {
+                ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName()));
+            }
+            catch (final IOException e) {
+                ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName()));
+            }
         }
         catch (final InterruptedException e) {
             throw new IOException(e);
