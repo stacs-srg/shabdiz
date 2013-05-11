@@ -73,7 +73,7 @@ public class LocalHost extends AbstractHost {
 
         final ProcessBuilder process_builder = createProcessBuilder(command);
         process_builder.directory(new File(working_directory));
-        LOGGER.info(command);
+        LOGGER.info("working dir: {}, command: {}", working_directory, process_builder.command());
         return process_builder.start();
     }
 
