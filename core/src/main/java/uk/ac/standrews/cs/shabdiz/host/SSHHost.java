@@ -326,8 +326,7 @@ public class SSHHost extends AbstractHost {
         final StringBuilder sb = new StringBuilder();
         sb.append("cd ");
         sb.append(working_directory);
-        sb.append(";");
-        sb.append(" ");
+        sb.append("; ");
         sb.append(command);
 
         return execute(sb.toString());

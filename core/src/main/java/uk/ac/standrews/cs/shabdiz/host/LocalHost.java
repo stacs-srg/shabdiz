@@ -22,9 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
@@ -35,7 +36,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  */
 public class LocalHost extends AbstractHost {
 
-    private static final Logger LOGGER = Logger.getLogger(LocalHost.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalHost.class);
 
     /**
      * Instantiates a new local host.
@@ -83,7 +84,7 @@ public class LocalHost extends AbstractHost {
 
     private void copy(final File source, final File destination) throws IOException {
 
-        LOGGER.fine("copying: " + source.getName() + "\tto: " + destination.getPath());
+        LOGGER.debug("copying: {}, to {}", source.getName(), destination.getPath());
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }

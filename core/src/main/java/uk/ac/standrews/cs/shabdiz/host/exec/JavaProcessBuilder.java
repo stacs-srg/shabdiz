@@ -75,9 +75,9 @@ public class JavaProcessBuilder implements HostProcessBuilder {
     private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
 
         final String remote_working_directory = getRemoteWorkingDirectory(host);
-        LOGGER.debug("remote working directory: {}", remote_working_directory);
-        final File compressed_classpath = File.createTempFile("shabdiz_compressed_classpath", ".zip");
-        LOGGER.debug("compressed classpath: {}", compressed_classpath);
+        LOGGER.info("remote working directory: {}", remote_working_directory);
+        final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
+        LOGGER.info("compressed classpath: {}", compressed_classpath);
         CompressionUtil.compress(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);
         uncompress(host, remote_working_directory, compressed_classpath);
@@ -88,7 +88,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
 
         //FIXME use tar.gz instead; comes with cygwin where as unzip package needs to be installed
 
-        final Process unzip_process = host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName() + ";");
+        final Process unzip_process = host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName());
         try {
             ProcessUtil.waitForNormalTerminationAndGetOutput(unzip_process);
         }
