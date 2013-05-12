@@ -23,7 +23,7 @@ import org.junit.runners.Suite;
 
 /**
  * Suite containing all Madface manager tests.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 @RunWith(Suite.class)

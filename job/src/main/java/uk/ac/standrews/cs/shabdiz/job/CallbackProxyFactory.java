@@ -23,7 +23,6 @@ import java.net.InetSocketAddress;
 
 import com.staticiser.jetson.ClientFactory;
 
-
 public final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
 
     private static final CallbackProxyFactory CALLBACK_PROXY_FACTORY_INSTANCE = new CallbackProxyFactory();

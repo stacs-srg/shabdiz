@@ -79,7 +79,6 @@ final class ThrowExceptionRemoteJob implements JobRemote<String> {
 
     public Exception exception_to_throw;
 
-
     public ThrowExceptionRemoteJob() {
 
     }

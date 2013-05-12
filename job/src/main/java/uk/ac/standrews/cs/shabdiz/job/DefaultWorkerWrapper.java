@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 
 import com.staticiser.jetson.exception.JsonRpcException;
 
-
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.
  * 
@@ -46,7 +45,7 @@ public class DefaultWorkerWrapper implements Worker {
      * @param network the launcher by which the remote correspondence of this worker is launched
      * @param worker_process
      */
-    public  DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
+    public DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
 
         this.network = network;
         this.proxy = proxy;
@@ -54,7 +53,8 @@ public class DefaultWorkerWrapper implements Worker {
         this.worker_address = worker_address;
     }
 
-    void setWorkerProcessId(final Integer id){
+    void setWorkerProcessId(final Integer id) {
+
         worker_process_id = id;
     }
 

@@ -20,7 +20,7 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
  * Provides platform-specific settings such as path separator and separator.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SimplePlatform implements Platform {
@@ -32,7 +32,7 @@ public class SimplePlatform implements Platform {
 
     /**
      * Instantiates a new platform.
-     *
+     * 
      * @param os_name the operating system name
      * @param path_separator the path separator
      * @param separator the separator
@@ -77,6 +77,7 @@ public class SimplePlatform implements Platform {
 
     @Override
     public String toString() {
+
         return new StringBuilder().append("SimplePlatform{").append("path_separator=").append(path_separator).append(", separator=").append(separator).append(", temp_dir='").append(temp_dir).append('\'').append(", os_name='").append(os_name).append('\'').append('}').toString();
     }
 }

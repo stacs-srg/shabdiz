@@ -28,9 +28,11 @@ import org.junit.Test;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 /**
  * Tests whether a deployed job returns expected result.
@@ -55,10 +57,10 @@ public class NormalOperationTest {
     public static void setUp() throws Exception {
 
         //        localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
-        localhost = new LocalHost();
+        //        localhost = new LocalHost();
 
-        //        final SSHPublicKeyCredential credentials = SSHPublicKeyCredential.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
-        //        localhost = new SSHHost("blub.cs.st-andrews.ac.uk", credentials);
+        final SSHPublicKeyCredentials credentials = SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
+        localhost = new SSHHost("project07.cs.st-andrews.ac.uk", credentials);
 
         network = new WorkerNetwork();
         network.add(localhost);

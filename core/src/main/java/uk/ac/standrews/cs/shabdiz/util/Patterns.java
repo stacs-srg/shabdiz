@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * Provides host address pattern parsing.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public final class Patterns {
@@ -38,14 +38,15 @@ public final class Patterns {
     }
 
     /**
-     * <p>Resolves patterns of two forms into lists of host addresses.</p>
-     * 
-     * <p>The first form represents an address range by the start and end addresses separated by the string " - ". The non-common parts of the start and end addresses
-     * must be parseable as integers; the resulting list enumerates all the intermediate addresses and includes the specified start and end addresses. For example,
-     * the pattern "compute-0-3 - compute-0-735" yields a list of 733 addresses including "compute-0-3", "compute-0-4", ..., "compute-0-734", "compute-0-735".</p>
-     * 
-     * <p>The second form represents a range of 256 IPv4 addresses by a dotted-quad wild-carded in the least significant quad. For example, the pattern "138.251.195.*"
-     * yields a list of 256 addresses including "138.251.195.0", "138.251.195.1", ..., "138.251.195.254", "138.251.195.255".</p>
+     * <p>
+     * Resolves patterns of two forms into lists of host addresses.
+     * </p>
+     * <p>
+     * The first form represents an address range by the start and end addresses separated by the string " - ". The non-common parts of the start and end addresses must be parseable as integers; the resulting list enumerates all the intermediate addresses and includes the specified start and end addresses. For example, the pattern "compute-0-3 - compute-0-735" yields a list of 733 addresses including "compute-0-3", "compute-0-4", ..., "compute-0-734", "compute-0-735".
+     * </p>
+     * <p>
+     * The second form represents a range of 256 IPv4 addresses by a dotted-quad wild-carded in the least significant quad. For example, the pattern "138.251.195.*" yields a list of 256 addresses including "138.251.195.0", "138.251.195.1", ..., "138.251.195.254", "138.251.195.255".
+     * </p>
      * 
      * @param host_pattern a host pattern
      * @return a list of host addresses matching the pattern, or the original pattern if the pattern cannot be parsed
@@ -56,14 +57,15 @@ public final class Patterns {
     }
 
     /**
-     * <p>Resolves patterns of two forms into lists of host addresses.</p>
-     * 
-     * <p>The first form represents an address range by the start and end addresses separated by the string " - ". The non-common parts of the start and end addresses
-     * must be parseable as integers; the resulting list enumerates all the intermediate addresses and includes the specified start and end addresses. For example,
-     * the pattern "compute-0-3 - compute-0-735" yields a list of 733 addresses including "compute-0-3", "compute-0-4", ..., "compute-0-734", "compute-0-735".</p>
-     * 
-     * <p>The second form represents a range of 256 IPv4 addresses by a dotted-quad wild-carded in the least significant quad. For example, the pattern "138.251.195.*"
-     * yields a list of 256 addresses including "138.251.195.0", "138.251.195.1", ..., "138.251.195.254", "138.251.195.255".</p>
+     * <p>
+     * Resolves patterns of two forms into lists of host addresses.
+     * </p>
+     * <p>
+     * The first form represents an address range by the start and end addresses separated by the string " - ". The non-common parts of the start and end addresses must be parseable as integers; the resulting list enumerates all the intermediate addresses and includes the specified start and end addresses. For example, the pattern "compute-0-3 - compute-0-735" yields a list of 733 addresses including "compute-0-3", "compute-0-4", ..., "compute-0-734", "compute-0-735".
+     * </p>
+     * <p>
+     * The second form represents a range of 256 IPv4 addresses by a dotted-quad wild-carded in the least significant quad. For example, the pattern "138.251.195.*" yields a list of 256 addresses including "138.251.195.0", "138.251.195.1", ..., "138.251.195.254", "138.251.195.255".
+     * </p>
      * 
      * @param host_pattern a host pattern
      * @param range_limit the maximum number of hosts to be returned

@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 
 import com.staticiser.jetson.exception.JsonRpcException;
 
-
 /**
  * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
  * 

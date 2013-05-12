@@ -22,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-
-
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
  * are in state RUNNING. For such machines an attempt is made to kill the application.

@@ -20,7 +20,9 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.util.regex.Pattern;
 
-public final class KillByProcessCommandCommandBuilder {
+final class KillByProcessCommandCommandBuilder {
+
+    //FIXME This is unix specific; implement platform independent command builder
 
     private KillByProcessCommandCommandBuilder() {
 

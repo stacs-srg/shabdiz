@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
-
 /**
  * Provides the common functionality for a {@link Host}.
  * 

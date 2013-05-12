@@ -26,8 +26,8 @@ package uk.ac.standrews.cs.shabdiz.active;
 public final class TestClassShortLived {
 
     /**
-    * Prevent instantiation of utility class.
-    */
+     * Prevent instantiation of utility class.
+     */
     private TestClassShortLived() {
 
     }

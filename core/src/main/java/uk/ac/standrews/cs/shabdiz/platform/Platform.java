@@ -22,7 +22,7 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * Presents the platform-specific settings of a {@link Host host}.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see Host#getPlatform()
  * @see Platforms
@@ -40,28 +40,28 @@ public interface Platform {
 
     /**
      * Gets the path separator.
-     *
+     * 
      * @return the path separator
      */
     char getPathSeparator();
 
     /**
      * Gets the separator.
-     *
+     * 
      * @return the separator
      */
     char getSeparator();
 
     /**
      * Gets the path to this platform's {@code temp} directory.
-     *
+     * 
      * @return the temporary directory
      */
     String getTempDirectory();
 
     /**
      * Gets the operating system name.
-     *
+     * 
      * @return the operating system name
      */
     String getOperatingSystemName();

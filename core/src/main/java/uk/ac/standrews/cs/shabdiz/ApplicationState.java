@@ -18,6 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
+import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * The possible states of an application.

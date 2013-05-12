@@ -28,7 +28,7 @@ public class UnixPlatform extends SimplePlatform {
     static final String TEMP_DIR = "/tmp/";
 
     /**
-     * Instantiates a new  platform.
+     * Instantiates a new platform.
      * 
      * @param os_name the os_name
      */

@@ -21,7 +21,6 @@ package uk.ac.standrews.cs.shabdiz.job;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-
 /**
  * Presents a computation to be performed on a {@link Worker worker}.
  * 

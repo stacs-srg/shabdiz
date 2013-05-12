@@ -38,8 +38,8 @@ public final class LauncherUtil {
     }
 
     /**
-     * Waits for a collection of given futures until all have a result available. If one of the futures results  in exception, this method throws the exception immediately.
-     *
+     * Waits for a collection of given futures until all have a result available. If one of the futures results in exception, this method throws the exception immediately.
+     * 
      * @param <T> the generic type
      * @param futures the futures to wait for
      * @throws InterruptedException if one of the futures has interrupted
@@ -54,8 +54,8 @@ public final class LauncherUtil {
     }
 
     /**
-     * Gets the results of a collection of given futures. If one of the futures results  in exception, this method throws the exception immediately.
-     *
+     * Gets the results of a collection of given futures. If one of the futures results in exception, this method throws the exception immediately.
+     * 
      * @param <T> the generic type
      * @param futures the futures to wait for
      * @return the results of the given futures

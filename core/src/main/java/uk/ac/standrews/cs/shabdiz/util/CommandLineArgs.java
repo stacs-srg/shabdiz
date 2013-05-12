@@ -28,7 +28,7 @@ import java.util.Map;
 
 /**
  * Utility for manipulating command line arguments.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
 public final class CommandLineArgs {
@@ -43,11 +43,9 @@ public final class CommandLineArgs {
     /**
      * Parses the given command line arguments into a map from flags to values.
      * Each argument is assumed to be of the form
-     *
-     *   -xvalue
-     *
+     * -xvalue
      * which would result in a map entry from "-x" to "value"
-     *
+     * 
      * @param args the command line arguments
      * @return a map from flags to values
      */
@@ -69,7 +67,7 @@ public final class CommandLineArgs {
 
     /**
      * Extracts the argument value for the given flag from the given command line arguments.
-     *
+     * 
      * @param args the command line arguments
      * @param flag the required flag
      * @return the value for the given flag, or null if not found
@@ -81,7 +79,7 @@ public final class CommandLineArgs {
 
     /**
      * Checks for the presence of the given flag in the command line arguments.
-     *
+     * 
      * @param args the command line arguments
      * @param flag the required flag
      * @return true if the given flag is found
@@ -93,7 +91,7 @@ public final class CommandLineArgs {
 
     /**
      * Extracts an integer value for the given flag from the given command line arguments.
-     *
+     * 
      * @param args the command line arguments
      * @param flag the required flag
      * @param default_value the value to be returned if the flag is not found

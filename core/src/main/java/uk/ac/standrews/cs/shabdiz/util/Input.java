@@ -40,7 +40,7 @@ import javax.swing.event.AncestorListener;
 
 /**
  * Utility that provides input readers.
- *
+ * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -55,7 +55,7 @@ public final class Input {
 
     /**
      * Returns the next line from the console.
-     *
+     * 
      * @param prompt the message to be prompted to the user
      * @return the next line from the console
      * @throws IOException if an I/O error occurs
@@ -68,7 +68,7 @@ public final class Input {
 
     /**
      * Reads an integer from the command line.
-     *
+     * 
      * @param prompt the message to be prompted
      * @return the integer
      * @throws IOException if an I/O error occurs
@@ -83,7 +83,7 @@ public final class Input {
 
     /**
      * Gets a masked string, from the console if {@code System.console() != null}, otherwise using a Swing dialog.
-     *
+     * 
      * @param prompt the user prompt
      * @return the string entered
      * @see #readPassword(String)
@@ -110,7 +110,7 @@ public final class Input {
 
     /**
      * Converts a chars to bytes.
-     *
+     * 
      * @param chars the chars to convert
      * @return the chars as bytes
      */

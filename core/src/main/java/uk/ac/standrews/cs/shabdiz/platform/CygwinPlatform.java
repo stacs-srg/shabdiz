@@ -20,7 +20,7 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
  * Presents a <a href="http://cygwin.com/">Cygwin</a> platform.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class CygwinPlatform extends SimplePlatform {
@@ -29,7 +29,7 @@ public class CygwinPlatform extends SimplePlatform {
 
     /**
      * Instantiates a new Cygwin platform.
-     *
+     * 
      * @param os_name the os_name
      */
     public CygwinPlatform(final String os_name) {

@@ -22,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-
-
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
  * 
