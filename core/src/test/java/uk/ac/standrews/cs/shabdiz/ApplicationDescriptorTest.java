@@ -18,6 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -32,6 +33,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
 /**
  * {@link ApplicationDescriptor} tests.
@@ -56,6 +63,42 @@ public class ApplicationDescriptorTest {
     public void tearDown() {
 
         executor.shutdownNow();
+    }
+
+    /**
+     * Tests {@link ApplicationDescriptor#getProcesses()}.
+     * The set of {@link ApplicationDescriptor} processes must be updated automatically as the process are executed on its host.
+     * 
+     * @throws IOException if failure occurs while resolving local address
+     */
+    @Test
+    public void testGetProcesses() throws IOException {
+
+        final ApplicationDescriptor descriptor = new ApplicationDescriptor(new LocalHost(), null);
+        final Host local_host = descriptor.getHost();
+        final Platform local_platform = local_host.getPlatform();
+        Assert.assertTrue(descriptor.getProcesses().isEmpty());
+
+        final Process process = local_host.execute(Commands.ECHO.get(local_platform));
+        Assert.assertTrue(descriptor.getProcesses().contains(process));
+        Assert.assertTrue(descriptor.removeProcess(process));
+        Assert.assertTrue(descriptor.getProcesses().isEmpty());
+
+        process.destroy();
+        local_host.close();
+    }
+
+    /** Tests {@link ApplicationDescriptor#getAttribute(AttributeKey)} and {@link ApplicationDescriptor#setAttribute(AttributeKey, Object)}. */
+    @Test
+    public void testGetSetAttribute() {
+
+        final AttributeKey<String> key = new AttributeKey<String>();
+        final String value = "QWERTYUIOP{}\":LKJHGFDSXCVBNM<>";
+        final ApplicationDescriptor descriptor = newApplicationDescriptor();
+        Assert.assertNull(descriptor.setAttribute(key, value));
+        Assert.assertEquals(value, descriptor.getAttribute(key));
+        Assert.assertEquals(value, descriptor.setAttribute(key, null));
+        Assert.assertNull(descriptor.getAttribute(key));
     }
 
     /**
@@ -133,8 +176,13 @@ public class ApplicationDescriptorTest {
 
         final List<ApplicationDescriptor> descriptors = new ArrayList<ApplicationDescriptor>();
         for (int i = 0; i < descriptors_count; i++) {
-            descriptors.add(new ApplicationDescriptor(null));
+            descriptors.add(newApplicationDescriptor());
         }
         return descriptors;
+    }
+
+    private ApplicationDescriptor newApplicationDescriptor() {
+
+        return new ApplicationDescriptor(null);
     }
 }

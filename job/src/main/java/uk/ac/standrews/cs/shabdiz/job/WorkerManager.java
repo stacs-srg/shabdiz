@@ -79,8 +79,11 @@ class WorkerManager extends AbstractApplicationManager {
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
-        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, new InetSocketAddress(host.getAddress(), worker_address.getPort()));
-        worker_wrapper.setWorkerProcessId(ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name));
+        final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
+        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, worker_remote_address);
+        final Integer worker_pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
+        worker_wrapper.setWorkerProcessId(worker_pid);
+        LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, worker_pid);
         return worker_wrapper;
     }
 

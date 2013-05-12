@@ -36,6 +36,9 @@ import org.apache.commons.io.IOUtils;
 
 public final class CompressionUtil {
 
+    //FIXME use jar to make jar files of directories in classpath
+    // e.g. jar cf aaa.jar -C /Users/masih/Documents/PhD/Code/P2P\ Workspace/shabdiz/target/classes .
+
     private static final Logger LOGGER = Logger.getLogger(CompressionUtil.class.getName());
 
     private CompressionUtil() {

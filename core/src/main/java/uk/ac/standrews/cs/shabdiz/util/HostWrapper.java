@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.host;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 
+import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
