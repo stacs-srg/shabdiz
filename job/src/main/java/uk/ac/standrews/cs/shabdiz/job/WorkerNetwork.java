@@ -56,7 +56,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
+    private final transient ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final transient Server callback_server; // The server which listens to the callbacks  from workers
     private final transient WorkerManager worker_manager;
     private final transient ServerFactory<WorkerCallback> callback_server_factory;
