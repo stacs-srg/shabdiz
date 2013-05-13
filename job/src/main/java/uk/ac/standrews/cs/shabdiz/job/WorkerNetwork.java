@@ -55,9 +55,9 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final long serialVersionUID = -8888064138251583848L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
-    private final transient InetSocketAddress callback_address; // The address on which the callback server is exposed
+    private final InetSocketAddress callback_address; // The address on which the callback server is exposed
+    private final ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final transient Server callback_server; // The server which listens to the callbacks  from workers
-    private final transient Map<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final transient WorkerManager worker_manager;
     private final transient ServerFactory<WorkerCallback> callback_server_factory;
 
@@ -168,6 +168,18 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         }
     }
 
+    private void releaseAllPendingFutures() {
+
+        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
+
+        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
+
+            if (!future_remote.isDone()) { // Check whether the result is pending
+                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+            }
+        }
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
@@ -199,18 +211,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         result = 31 * result + (worker_manager != null ? worker_manager.hashCode() : 0);
         result = 31 * result + (callback_server_factory != null ? callback_server_factory.hashCode() : 0);
         return result;
-    }
-
-    private void releaseAllPendingFutures() {
-
-        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
-
-        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
-
-            if (!future_remote.isDone()) { // Check whether the result is pending
-                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
-            }
-        }
     }
 
     <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {

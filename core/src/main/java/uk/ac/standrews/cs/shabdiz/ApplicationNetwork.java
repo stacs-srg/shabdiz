@@ -47,7 +47,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final String application_name;
-    private final Map<Scanner, ScheduledFuture<?>> scheduled_scanners;
+    private final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
     private final transient ScheduledExecutorService scanner_scheduler;
     private final transient ExecutorService concurrent_scanner_executor;
     private final transient AutoKillScanner auto_kill_scanner;
