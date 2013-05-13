@@ -28,17 +28,15 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * Presents a network of Echo service instances.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class EchoNetwork extends ApplicationNetwork {
 
     private static final long serialVersionUID = 1218798936967429750L;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoNetwork.class);
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
-
-    private final EchoApplicationManager manager;
+    private final transient EchoApplicationManager manager;
 
     EchoNetwork() {
 
@@ -48,7 +46,7 @@ public class EchoNetwork extends ApplicationNetwork {
 
     /**
      * Adds a new {@link ApplicationDescriptor} with the given {@code host} as its host, and {@link EchoApplicationManager} as its manager, to this network.
-     * 
+     *
      * @param host the host of the descriptor to be added
      * @return true, if successfully added
      */
@@ -58,5 +56,25 @@ public class EchoNetwork extends ApplicationNetwork {
         final ApplicationDescriptor descriptor = new ApplicationDescriptor(host, manager);
         descriptor.addStateChangeListener(PRINT_LISTENER);
         return add(descriptor);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EchoNetwork)) return false;
+        if (!super.equals(o)) return false;
+
+        final EchoNetwork that = (EchoNetwork) o;
+
+        if (manager != null ? !manager.equals(that.manager) : that.manager != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (manager != null ? manager.hashCode() : 0);
+        return result;
     }
 }
