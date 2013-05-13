@@ -43,8 +43,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     private final ReentrantLock check_lock;
     private final List<Future<?>> scheduled_checks;
     private volatile ExecutorService executor;
-
-    private long cycle_start_time;
+    private volatile long cycle_start_time;
 
     protected AbstractConcurrentScanner(final Duration min_cycle_time, final Duration check_timeout, final boolean enabled) {
 

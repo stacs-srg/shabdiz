@@ -51,17 +51,15 @@ import com.staticiser.jetson.util.CloseableUtil;
 
 /**
  * Implements a {@link Host} that uses SSH2 to upload, download and execute commands.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SSHHost extends AbstractHost {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSHHost.class);
-
     /** The Constant DEFAULT_SSH_PORT. */
     public static final int DEFAULT_SSH_PORT = 22;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSHHost.class);
     private static final int DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS = (int) TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES);
-
     private final JSch ssh_session_factory;
     private final ReentrantLock platform_lock;
     private final String username;
@@ -72,7 +70,7 @@ public class SSHHost extends AbstractHost {
 
     /**
      * Instantiates a new SSH-managed host.
-     * 
+     *
      * @param host_name the host name
      * @param credentials the credentials
      * @throws IOException Signals that an I/O exception has occurred.
@@ -84,7 +82,7 @@ public class SSHHost extends AbstractHost {
 
     /**
      * Instantiates a new SSH-managed host.
-     * 
+     *
      * @param host_address the host address
      * @param credentials the credentials
      * @throws IOException Signals that an I/O exception has occurred.
@@ -99,9 +97,20 @@ public class SSHHost extends AbstractHost {
         configure();
     }
 
+    private void configure() throws IOException {
+
+        try {
+            ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
+        } catch (final JSchException e) {
+            throw new IOException(e);
+        }
+        ssh_port = DEFAULT_SSH_PORT;
+        ssh_connection_timeout_in_millis = DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS;
+    }
+
     /**
      * Sets the port number that is used for SSH connection. The default port is set to {@value #DEFAULT_SSH_PORT}.
-     * 
+     *
      * @param ssh_port the new sSH port
      */
     public void setSSHPort(final int ssh_port) {
@@ -111,7 +120,7 @@ public class SSHHost extends AbstractHost {
 
     /**
      * Sets the SSH connection timeout.
-     * 
+     *
      * @param timeout the timeout
      * @param unit the unit of the specified timeout
      */
@@ -120,18 +129,6 @@ public class SSHHost extends AbstractHost {
         final long timeout_in_millis = TimeUnit.MILLISECONDS.convert(timeout, unit);
         //cast to integer to cope with the JSch's mad bad API
         this.ssh_connection_timeout_in_millis = new Long(timeout_in_millis).intValue();
-    }
-
-    private void configure() throws IOException {
-
-        try {
-            ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
-        }
-        catch (final JSchException e) {
-            throw new IOException(e);
-        }
-        ssh_port = DEFAULT_SSH_PORT;
-        ssh_connection_timeout_in_millis = DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS;
     }
 
     @Override
@@ -148,12 +145,63 @@ public class SSHHost extends AbstractHost {
         try {
             prepareRemoteDestination(destination, sftp);
             uploadRecursively(sftp, sources);
-        }
-        catch (final SftpException e) {
+        } catch (final SftpException e) {
             throw new IOException(e);
-        }
-        finally {
+        } finally {
             disconnect(session, sftp);
+        }
+    }
+
+    @Override
+    public void download(final String source, final File destination) throws IOException {
+
+        final Session session = createSession();
+        final ChannelSftp sftp = openSftpChannel(session);
+        prepareLocalDestination(destination);
+        try {
+            final SftpATTRS stat = sftp.stat(source);
+            downloadRecursively(sftp, source, destination, stat);
+        } catch (final SftpException e) {
+            throw new IOException(e);
+        } finally {
+            disconnect(session, sftp);
+        }
+    }
+
+    @Override
+    public Process execute(final String command) throws IOException {
+
+        LOGGER.info("executing {}", command);
+        return new SSHManagedRemoteProcess(command);
+    }
+
+    @Override
+    public Process execute(final String working_directory, final String command) throws IOException {
+
+        if (working_directory == null) {
+            return execute(command);
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("cd ");
+        sb.append(working_directory);
+        sb.append("; ");
+        sb.append(command);
+        return execute(sb.toString());
+    }
+
+    @Override
+    public Platform getPlatform() throws IOException {
+
+        platform_lock.lock();
+        try {
+            if (platform == null) {
+                platform = Platforms.detectPlatform(this);
+            }
+
+            return platform;
+        } finally {
+            platform_lock.unlock();
         }
     }
 
@@ -182,8 +230,7 @@ public class SSHHost extends AbstractHost {
             LOGGER.debug("Uploading {}", file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
-            }
-            else {
+            } else {
                 uploadFile(sftp, file);
             }
         }
@@ -215,27 +262,11 @@ public class SSHHost extends AbstractHost {
         @SuppressWarnings("unchecked")
         final List<LsEntry> list = sftp.ls(".");
         for (final LsEntry entry : list) {
-            if (entry.getFilename().equals(name)) { return true; }
+            if (entry.getFilename().equals(name)) {
+                return true;
+            }
         }
         return false;
-    }
-
-    @Override
-    public void download(final String source, final File destination) throws IOException {
-
-        final Session session = createSession();
-        final ChannelSftp sftp = openSftpChannel(session);
-        prepareLocalDestination(destination);
-        try {
-            final SftpATTRS stat = sftp.stat(source);
-            downloadRecursively(sftp, source, destination, stat);
-        }
-        catch (final SftpException e) {
-            throw new IOException(e);
-        }
-        finally {
-            disconnect(session, sftp);
-        }
     }
 
     private Session createSession() throws IOException {
@@ -245,8 +276,7 @@ public class SSHHost extends AbstractHost {
             credentials.authenticate(ssh_session_factory, session);
             session.connect(ssh_connection_timeout_in_millis);
             return session;
-        }
-        catch (final JSchException e) {
+        } catch (final JSchException e) {
             throw new IOException(e);
         }
     }
@@ -257,8 +287,7 @@ public class SSHHost extends AbstractHost {
             final ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
             sftp.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
             return sftp;
-        }
-        catch (final JSchException e) {
+        } catch (final JSchException e) {
             throw new IOException(e);
         }
     }
@@ -277,8 +306,7 @@ public class SSHHost extends AbstractHost {
 
         if (stat.isDir()) {
             downloadDirectory(sftp, source, destination);
-        }
-        else {
+        } else {
             downloadFile(sftp, source, destination);
         }
 
@@ -311,42 +339,6 @@ public class SSHHost extends AbstractHost {
         destination.mkdirs();
     }
 
-    @Override
-    public Process execute(final String command) throws IOException {
-
-        LOGGER.info("executing {}", command);
-        return new SSHManagedRemoteProcess(command);
-    }
-
-    @Override
-    public Process execute(final String working_directory, final String command) throws IOException {
-
-        if (working_directory == null) { return execute(command); }
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append("cd ");
-        sb.append(working_directory);
-        sb.append("; ");
-        sb.append(command);
-        return execute(sb.toString());
-    }
-
-    @Override
-    public Platform getPlatform() throws IOException {
-
-        platform_lock.lock();
-        try {
-            if (platform == null) {
-                platform = Platforms.detectPlatform(this);
-            }
-
-            return platform;
-        }
-        finally {
-            platform_lock.unlock();
-        }
-    }
-
     private final class SSHManagedRemoteProcess extends Process {
 
         private final ChannelExec channel;
@@ -377,11 +369,19 @@ public class SSHHost extends AbstractHost {
             channel.setCommand(command);
             try {
                 channel.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
-            }
-            catch (final JSchException e) {
+            } catch (final JSchException e) {
                 throw new IOException(e);
             }
             return channel;
+        }
+
+        private ChannelExec openExecChannel() throws IOException {
+
+            try {
+                return (ChannelExec) session.openChannel("exec");
+            } catch (final JSchException e) {
+                throw new IOException(e);
+            }
         }
 
         private PipedInputStream createTerminationAwareInputStreamWrapper() {
@@ -395,23 +395,6 @@ public class SSHHost extends AbstractHost {
                     super.close();
                 }
             };
-        }
-
-        private ChannelExec openExecChannel() throws IOException {
-
-            try {
-                return (ChannelExec) session.openChannel("exec");
-            }
-            catch (final JSchException e) {
-                throw new IOException(e);
-            }
-        }
-
-        @Override
-        public int waitFor() throws InterruptedException {
-
-            termination_latch.await();
-            return exitValue();
         }
 
         @Override
@@ -430,6 +413,13 @@ public class SSHHost extends AbstractHost {
         public InputStream getErrorStream() {
 
             return err;
+        }
+
+        @Override
+        public int waitFor() throws InterruptedException {
+
+            termination_latch.await();
+            return exitValue();
         }
 
         @Override

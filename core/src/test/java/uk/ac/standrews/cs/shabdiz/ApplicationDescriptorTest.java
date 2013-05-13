@@ -42,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
 /**
  * Tests {@link ApplicationDescriptor}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class ApplicationDescriptorTest {
@@ -75,10 +75,15 @@ public class ApplicationDescriptorTest {
         Assert.assertTrue(one.compareTo(other) != 0);
     }
 
+    private ApplicationDescriptor newApplicationDescriptor() {
+
+        return new ApplicationDescriptor(null);
+    }
+
     /**
      * Tests {@link ApplicationDescriptor#getProcesses()}.
      * The set of {@link ApplicationDescriptor} processes must be updated automatically as the process are executed on its host.
-     * 
+     *
      * @throws IOException if failure occurs while resolving local address
      */
     @Test
@@ -113,25 +118,13 @@ public class ApplicationDescriptorTest {
 
     /**
      * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} for when many concurrent state changes occur.
-     * 
+     *
      * @throws InterruptedException if interrupted while waiting for the test to complete
      */
     @Test
     public void testAwaitAnyOfStatesForStress() throws InterruptedException {
 
         final List<ApplicationDescriptor> descriptors = createDescriptors(100);
-        awaitStateChanges(descriptors, ApplicationState.RUNNING);
-    }
-
-    /**
-     * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} for when concurrent state changes occur.
-     * 
-     * @throws InterruptedException if interrupted while waiting for the test to complete
-     */
-    @Test
-    public void testAwaitAnyOfStatesWithConcurrentStateChange() throws InterruptedException {
-
-        final List<ApplicationDescriptor> descriptors = createDescriptors(2);
         awaitStateChanges(descriptors, ApplicationState.RUNNING);
     }
 
@@ -191,8 +184,15 @@ public class ApplicationDescriptorTest {
         return descriptors;
     }
 
-    private ApplicationDescriptor newApplicationDescriptor() {
+    /**
+     * Tests {@link ApplicationDescriptor#awaitAnyOfStates(ApplicationState...)} for when concurrent state changes occur.
+     *
+     * @throws InterruptedException if interrupted while waiting for the test to complete
+     */
+    @Test
+    public void testAwaitAnyOfStatesWithConcurrentStateChange() throws InterruptedException {
 
-        return new ApplicationDescriptor(null);
+        final List<ApplicationDescriptor> descriptors = createDescriptors(2);
+        awaitStateChanges(descriptors, ApplicationState.RUNNING);
     }
 }
