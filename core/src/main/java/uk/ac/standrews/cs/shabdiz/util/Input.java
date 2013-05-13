@@ -40,13 +40,13 @@ import javax.swing.event.AncestorListener;
 
 /**
  * Utility that provides input readers.
- * 
+ *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class Input {
 
-    private static final BufferedReader SYSTEM_READER = new BufferedReader(new InputStreamReader(System.in));
+    public static final String DEFAULT_CHARACTER_ENCODING = "UTF8";
 
     /** Prevent instantiation of utility class. */
     private Input() {
@@ -55,7 +55,7 @@ public final class Input {
 
     /**
      * Returns the next line from the console.
-     * 
+     *
      * @param prompt the message to be prompted to the user
      * @return the next line from the console
      * @throws IOException if an I/O error occurs
@@ -63,41 +63,14 @@ public final class Input {
     public static String readLine(final String prompt) throws IOException {
 
         System.out.print(prompt);
-        return SYSTEM_READER.readLine();
-    }
-
-    /**
-     * Reads an integer from the command line.
-     * 
-     * @param prompt the message to be prompted
-     * @return the integer
-     * @throws IOException if an I/O error occurs
-     * @throws NumberFormatException if user input cannot be parsed as integer
-     * @see Integer#parseInt(String)
-     * @see #readLine(String)
-     */
-    public static int readInt(final String prompt) throws NumberFormatException, IOException {
-
-        return Integer.parseInt(readLine(prompt));
-    }
-
-    /**
-     * Gets a masked string, from the console if {@code System.console() != null}, otherwise using a Swing dialog.
-     * 
-     * @param prompt the user prompt
-     * @return the string entered
-     * @see #readPassword(String)
-     */
-    public static String readMaskedLine(final String prompt) {
-
-        final char[] password = readPassword(prompt);
-        return password == null ? null : new String(password);
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, DEFAULT_CHARACTER_ENCODING));
+        return reader.readLine();
     }
 
     /**
      * Prompts the given message and reads a password or passphrase.
      * If {@code System.console() != null}, the string is read via command-line with echoing disabled; otherwise using a GUI with masked input.
-     * 
+     *
      * @param prompt the message to be prompted to the user
      * @return A character array containing the password or passphrase, not including any line-termination characters, or {@code null} if an end of stream has been reached.
      * @see Console#readPassword()
@@ -106,27 +79,6 @@ public final class Input {
 
         final Console console = System.console();
         return console != null ? console.readPassword(prompt) : readPasswordViaGUI(prompt);
-    }
-
-    /**
-     * Converts a chars to bytes.
-     * 
-     * @param chars the chars to convert
-     * @return the chars as bytes
-     */
-    public static byte[] toBytes(final char[] chars) {
-
-        final byte[] bytes;
-        if (chars == null) {
-            bytes = null;
-        }
-        else {
-            bytes = new byte[chars.length];
-            for (int i = 0; i < bytes.length; i++) {
-                bytes[i] = (byte) chars[i];
-            }
-        }
-        return bytes;
     }
 
     private static char[] readPasswordViaGUI(final String prompt) {
@@ -164,8 +116,7 @@ public final class Input {
 
             dialog.setVisible(true);
             return !option_pane.getValue().equals(JOptionPane.OK_OPTION) ? null : password_field.getPassword();
-        }
-        finally {
+        } finally {
             dialog.dispose();
         }
     }
