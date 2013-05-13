@@ -46,6 +46,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
+
     private final String application_name;
     private final Map<Scanner, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledExecutorService scanner_scheduler;
@@ -120,13 +121,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     public void deployAll() throws Exception {
 
         for (final ApplicationDescriptor applciation_descriptor : this) {
-            try {
-                deploy(applciation_descriptor);
-            }
-            catch (final Exception e) {
-                e.printStackTrace();
-                throw e;
-            }
+            deploy(applciation_descriptor);
         }
     }
 
@@ -152,6 +147,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
      */
     public void killAll() throws Exception {
 
+        //FIXME implement concurrent kill
         for (final ApplicationDescriptor applciation_descriptor : this) {
             kill(applciation_descriptor);
         }

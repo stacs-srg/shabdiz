@@ -91,7 +91,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
                 beforeScan();
                 prepareForChecks();
                 scheduleConcurrentChecks(network);
-                awaitCheckCompletion();
+                awaitCheckCompletionUntilTimeoutIsElapsed();
                 cancelLingeringChecks();
                 afterScan();
             }
@@ -127,7 +127,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
         });
     }
 
-    private void awaitCheckCompletion() {
+    private void awaitCheckCompletionUntilTimeoutIsElapsed() {
 
         for (final Future<?> scheduled_check : scheduled_checks) {
 
@@ -153,8 +153,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     private Duration getRemainingTime() {
 
         final Duration elapsed_time = Duration.elapsedNano(cycle_start_time);
-        final Duration remaining_time = getScanTimeout().subtract(elapsed_time);
-        return remaining_time;
+        return getScanTimeout().subtract(elapsed_time);
     }
 
     private void cancelLingeringChecks() {

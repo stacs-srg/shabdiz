@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
 /**
- * {@link ApplicationDescriptor} tests.
+ * Tests {@link ApplicationDescriptor}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -63,6 +63,16 @@ public class ApplicationDescriptorTest {
     public void tearDown() {
 
         executor.shutdownNow();
+    }
+
+    /** Tests {@link ApplicationDescriptor#compareTo(ApplicationDescriptor)}. */
+    @Test
+    public void testCompareTo() {
+
+        final ApplicationDescriptor one = newApplicationDescriptor();
+        final ApplicationDescriptor other = newApplicationDescriptor();
+        Assert.assertTrue(one.compareTo(one) == 0);
+        Assert.assertTrue(one.compareTo(other) != 0);
     }
 
     /**

@@ -28,7 +28,7 @@ import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
 /**
  * Provides the common functionality for a {@link Host}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractHost implements Host {
@@ -51,15 +51,15 @@ public abstract class AbstractHost implements Host {
     }
 
     @Override
-    public String getName() {
-
-        return name;
-    }
-
-    @Override
     public InetAddress getAddress() {
 
         return address;
+    }
+
+    @Override
+    public String getName() {
+
+        return name;
     }
 
     @Override
@@ -68,6 +68,11 @@ public abstract class AbstractHost implements Host {
         return local;
     }
 
+    /**
+     * Logs the closure of this host.
+     *
+     * @throws IOException {@inheritDoc}
+     */
     @Override
     public void close() throws IOException {
 

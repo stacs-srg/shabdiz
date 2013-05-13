@@ -32,16 +32,19 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 /**
- * The Class LocalHost.
+ * Implements upload, download and command execution on the local machine.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class LocalHost extends AbstractHost {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalHost.class);
 
     /**
-     * Instantiates a new local host.
+     * Instantiates a new host that presents the local machine.
      * 
-     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws IOException if failed to resolve the local address
+     * @see InetAddress#getLocalHost()
      */
     public LocalHost() throws IOException {
 
@@ -65,26 +68,29 @@ public class LocalHost extends AbstractHost {
     @Override
     public Process execute(final String command) throws IOException {
 
-        return execute(".", command);
+        return execute(null, command);
     }
 
     @Override
     public Process execute(final String working_directory, final String command) throws IOException {
 
-        final ProcessBuilder process_builder = createProcessBuilder(command);
-        process_builder.directory(new File(working_directory));
-        LOGGER.info("platform: {}, working dir: {}, command: {}", getPlatform(), working_directory, process_builder.command());
+        final ProcessBuilder process_builder = createProcessBuilder(command, working_directory);
+        LOGGER.info("executing command: {}, at the working dir: {}, on platform: {}", process_builder.command(), working_directory, getPlatform());
         return process_builder.start();
     }
 
-    private ProcessBuilder createProcessBuilder(final String command) {
+    private ProcessBuilder createProcessBuilder(final String command, final String working_directory) {
 
-        return Platforms.isUnixBased(getPlatform()) ? new ProcessBuilder("bash", "-c", command) : new ProcessBuilder("cmd.exe", "/c", command);
+        final ProcessBuilder process_builder = Platforms.isUnixBased(getPlatform()) ? new ProcessBuilder("bash", "-c", command) : new ProcessBuilder("cmd.exe", "/c", command);
+        if (working_directory != null) {
+            process_builder.directory(new File(working_directory));
+        }
+        return process_builder;
     }
 
     private void copy(final File source, final File destination) throws IOException {
 
-        LOGGER.debug("copying: {}, to {}", source.getName(), destination.getPath());
+        LOGGER.debug("copying: {}, to {}", source, destination);
         if (source.isFile()) {
             FileUtils.copyFile(source, new File(destination, source.getName()));
         }

@@ -53,9 +53,10 @@ public abstract class SSHCredentials {
     }
 
     /**
-     * Authenticates a given {@link SSHClient}.
+     * Authenticates a given a {@link JSch} and a {@link Session}.
      * 
      * @param ssh_client the SSH client to authenticate
+     * @param ssh_session the ssh session to authenticate
      * @throws IOException Signals that an I/O exception has occurred.
      */
     abstract void authenticate(JSch ssh_client, Session ssh_session) throws IOException;

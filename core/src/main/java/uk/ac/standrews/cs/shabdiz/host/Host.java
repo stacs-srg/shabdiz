@@ -81,8 +81,9 @@ public interface Host extends Closeable {
 
     /**
      * Executes the given command in a new process on this host at the given working directory.
+     * The given working directory is ignored if it is {@code null}.
      * 
-     * @param working_directory the working directory
+     * @param working_directory the working directory that may be {@code null}
      * @param command the command
      * @return the process that was started as the result of executing this command
      * @throws IOException Signals that an I/O exception has occurred.

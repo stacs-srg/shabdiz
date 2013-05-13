@@ -321,12 +321,13 @@ public class SSHHost extends AbstractHost {
     @Override
     public Process execute(final String working_directory, final String command) throws IOException {
 
+        if (working_directory == null) { return execute(command); }
+
         final StringBuilder sb = new StringBuilder();
         sb.append("cd ");
         sb.append(working_directory);
         sb.append("; ");
         sb.append(command);
-
         return execute(sb.toString());
     }
 
