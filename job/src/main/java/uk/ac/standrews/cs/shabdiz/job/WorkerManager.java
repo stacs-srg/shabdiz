@@ -48,8 +48,6 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-    private static final Integer DEFAULT_THREAD_POOL_SIZE = 5;
-    private static final Duration DEFAULT_WORKER_SOCKET_READ_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
 
     private final JavaProcessBuilder worker_process_builder;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
@@ -122,7 +120,7 @@ class WorkerManager extends AbstractApplicationManager {
     private JavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
 
         final JavaProcessBuilder process_builder = new JavaProcessBuilder(WorkerMain.class);
-        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT, DEFAULT_THREAD_POOL_SIZE, DEFAULT_WORKER_SOCKET_READ_TIMEOUT);
+        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
         process_builder.addCommandLineArguments(arguments);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addClasspath(classpath);

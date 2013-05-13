@@ -46,7 +46,19 @@ import com.staticiser.jetson.util.CloseableUtil;
 
 class WorkerModule extends SimpleModule {
 
-    public static final class JsonSerializableDeserializer extends StdDeserializer<Serializable> {
+    WorkerModule() {
+
+        super("Shabdiz Worker Module");
+
+        addDeserializer(Serializable.class, new JsonSerializableDeserializer());
+        setMixInAnnotation(JobRemote.class, SerializableMixIn.class);
+        setMixInAnnotation(Throwable.class, SerializableMixIn.class);
+        final ShabdizWorkerSerializers serializers = new ShabdizWorkerSerializers();
+        serializers.addSerializer(Serializable.class, new JsonSerializableSerializer());
+        setSerializers(serializers);
+    }
+
+    static final class JsonSerializableDeserializer extends StdDeserializer<Serializable> {
 
         protected JsonSerializableDeserializer() {
 
@@ -60,24 +72,24 @@ class WorkerModule extends SimpleModule {
 
             try {
                 final byte[] object_as_bytes = parser.getBinaryValue();
-                if (object_as_bytes == null) { return null; }
+                if (object_as_bytes == null) {
+                    return null;
+                }
                 final ByteArrayInputStream bytes_input_stream = new ByteArrayInputStream(object_as_bytes);
                 object_input_stream = new ObjectInputStream(bytes_input_stream);
 
                 final Serializable deserialized_object = (Serializable) object_input_stream.readObject();
 
                 return deserialized_object;
-            }
-            catch (final ClassNotFoundException e) {
+            } catch (final ClassNotFoundException e) {
                 throw new JsonMappingException("unable to deserialize Java object", e);
-            }
-            finally {
+            } finally {
                 CloseableUtil.closeQuietly(object_input_stream);
             }
         }
     }
 
-    public static final class JsonSerializableSerializer extends StdSerializer<Serializable> {
+    static final class JsonSerializableSerializer extends StdSerializer<Serializable> {
 
         protected JsonSerializableSerializer() {
 
@@ -89,8 +101,7 @@ class WorkerModule extends SimpleModule {
 
             if (isEmpty(object)) {
                 generator.writeNull();
-            }
-            else {
+            } else {
 
                 ObjectOutputStream object_output_stream = null;
 
@@ -101,27 +112,14 @@ class WorkerModule extends SimpleModule {
 
                     final byte[] object_as_bytes = bytes_output_stream.toByteArray();
                     generator.writeBinary(object_as_bytes);
-                }
-                finally {
+                } finally {
                     CloseableUtil.closeQuietly(object_output_stream);
                 }
             }
         }
     }
 
-    public WorkerModule() {
-
-        super("Shabdiz Worker Module");
-
-        addDeserializer(Serializable.class, new JsonSerializableDeserializer());
-        setMixInAnnotation(JobRemote.class, SerializableMixIn.class);
-        setMixInAnnotation(Throwable.class, SerializableMixIn.class);
-        final ShabdizWorkerSerializers serializers = new ShabdizWorkerSerializers();
-        serializers.addSerializer(Serializable.class, new JsonSerializableSerializer());
-        setSerializers(serializers);
-    }
-
-    public class ShabdizWorkerSerializers extends SimpleSerializers {
+    static class ShabdizWorkerSerializers extends SimpleSerializers {
 
         private static final long serialVersionUID = 679723185864882365L;
 
@@ -132,10 +130,13 @@ class WorkerModule extends SimpleModule {
             final ClassKey key = new ClassKey(cls);
 
             if (cls.isInterface()) {
-                if (_interfaceMappings != null) { return _interfaceMappings.get(key); }
-            }
-            else {
-                if (_classMappings != null) { return _classMappings.get(key); }
+                if (_interfaceMappings != null) {
+                    return _interfaceMappings.get(key);
+                }
+            } else {
+                if (_classMappings != null) {
+                    return _classMappings.get(key);
+                }
             }
             return null;
         }
@@ -143,7 +144,7 @@ class WorkerModule extends SimpleModule {
 
     @JsonSerialize(using = JsonSerializableSerializer.class)
     @JsonDeserialize(using = JsonSerializableDeserializer.class)
-    abstract class SerializableMixIn {
+    abstract static class SerializableMixIn {
 
     }
 }

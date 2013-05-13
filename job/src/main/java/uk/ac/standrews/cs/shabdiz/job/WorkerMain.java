@@ -42,13 +42,11 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
  */
 public class WorkerMain {
 
+    private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     public static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
     public static final String RUNTIME_MXBEAN_NAME_KEY = "runtimeMXBeanName";
-    private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
-    private static final String THREAD_POOL_SIZE_KEY = "-t";
-    private static final String SOCKET_READ_TIMEOUT = "-p";
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
@@ -60,7 +58,6 @@ public class WorkerMain {
      * Instantiates a new worker node server.
      * 
      * @param args the startup arguments
-     * @throws UndefinedDiagnosticLevelException the undefined diagnostic level exception
      * @throws UnknownHostException the unknown host exception
      * @throws NumberFormatException if the given thread pool size cannot be converted to an integer value
      */
@@ -69,8 +66,6 @@ public class WorkerMain {
         final Map<String, String> arguments = CommandLineArgs.parseCommandLineArgs(args);
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
-        //        configureThreadPoolSize(arguments);
-        //        configureSocketReadTimeout(arguments);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -87,11 +82,8 @@ public class WorkerMain {
      * </dl>
      * 
      * @param args see above
-     * @throws RPCException if an error occurs binding the node to the registry
-     * @throws UndefinedDiagnosticLevelException if the specified diagnostic level is not valid
      * @throws IOException if a node cannot be created using the given local address
      * @throws AlreadyBoundException if another node is already bound in the registry
-     * @throws RegistryUnavailableException if the registry is unavailable
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
@@ -116,19 +108,13 @@ public class WorkerMain {
         ProcessUtil.printKeyValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
     }
 
-    public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port, final Integer thread_pool_size, final Duration socket_read_timeout) {
+    public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port) {
 
         final List<String> arguments = new ArrayList<String>();
         arguments.add(CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
 
         if (port != null) {
             arguments.add(LOCAL_ADDRESS_KEY + NetworkUtil.formatHostAddress("", port));
-        }
-        if (thread_pool_size != null) {
-            arguments.add(THREAD_POOL_SIZE_KEY + thread_pool_size);
-        }
-        if (socket_read_timeout != null) {
-            arguments.add(SOCKET_READ_TIMEOUT + socket_read_timeout);
         }
         return arguments;
     }
@@ -138,9 +124,7 @@ public class WorkerMain {
      * 
      * @return the created worker node
      * @throws IOException Signals that an I/O exception has occurred.
-     * @throws RPCException the rPC exception
      * @throws AlreadyBoundException the already bound exception
-     * @throws RegistryUnavailableException the registry unavailable exception
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
@@ -153,8 +137,7 @@ public class WorkerMain {
 
     private void usage() {
 
-        System.err.println("Usage: -Chost:port [-Shost:port -Tthread_pool_size]");
-        System.exit(1);
+        System.err.println("Usage: -Chost:port [-Shost:port]");
     }
 
     private void configureLocalAddress(final Map<String, String> arguments) throws UnknownHostException {
@@ -171,21 +154,5 @@ public class WorkerMain {
             usage();
         }
         launcher_callback_address = NetworkUtil.extractInetSocketAddress(known_address_parameter, 0);
-
-    }
-
-    private void configureThreadPoolSize(final Map<String, String> arguments) throws UnknownHostException {
-
-        final String size_as_string = arguments.get(THREAD_POOL_SIZE_KEY);
-        if (size_as_string != null) {
-            thread_pool_size = Integer.parseInt(size_as_string);
-        }
-    }
-
-    private void configureSocketReadTimeout(final Map<String, String> arguments) throws UnknownHostException {
-
-        final String socket_read_timeout = arguments.get(CALLBACK_ADDRESS_KEY);
-        if (socket_read_timeout != null) {
-        }
     }
 }
