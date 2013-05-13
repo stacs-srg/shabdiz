@@ -26,36 +26,36 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 
 /**
- * A network for checking the availability of a number of remotely running web services.
- * This is an example of an application that has minimal access to a remotely running application instance.
- * 
+ * The entry point to the URL pinger example.
+ * Constructs a network for checking the availability of a number of remotely running web services.
+ * This is an example of an application network that has minimal access to a remotely running application instance.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class URLPingerNetwork extends ApplicationNetwork {
+public class URLPingerMain {
 
-    private static final long serialVersionUID = 7479140206927524085L;
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
     private final URLPingManager manager;
+    private final ApplicationNetwork network;
 
-    /** Instantiates a new URL ping network. */
-    public URLPingerNetwork() {
+    URLPingerMain() {
 
-        super("URL Ping Network");
+        network = new ApplicationNetwork("URL Ping Network");
         manager = new URLPingManager();
     }
 
     /**
-     * Instantiates a new {@link URLPingerNetwork} that periodically pings a number of web services.
-     * 
-     * @param args the arguments are ignored.
-     * @throws MalformedURLException if a given URL is invalid
+     * Instantiates a new {@link URLPingerMain} that periodically pings a number of web services.
+     *
+     * @param args the arguments are ignored
+     * @throws MalformedURLException if a sample URL is invalid
      */
     public static void main(final String[] args) throws MalformedURLException {
 
-        final URLPingerNetwork network = new URLPingerNetwork();
-        network.add(new URL("http://www.google.co.uk"));
-        network.add(new URL("http://www.cs.st-andrews.ac.uk"));
-        network.add(new URL("http://www.bbc.co.uk/"));
+        final URLPingerMain url_pinger = new URLPingerMain();
+        url_pinger.add(new URL("http://www.google.co.uk"));
+        url_pinger.add(new URL("http://www.cs.st-andrews.ac.uk"));
+        url_pinger.add(new URL("http://www.bbc.co.uk/"));
     }
 
     boolean add(final URL url) throws MalformedURLException {
@@ -63,6 +63,6 @@ public class URLPingerNetwork extends ApplicationNetwork {
         final ApplicationDescriptor descriptor = new ApplicationDescriptor(manager);
         manager.setTarget(descriptor, url);
         descriptor.addStateChangeListener(PRINT_LISTENER);
-        return add(descriptor);
+        return network.add(descriptor);
     }
 }
