@@ -7,5 +7,3 @@ syntax: regexp
 ^target$
 syntax: regexp
 .DS_Store$
-syntax: regexp
-/target$
