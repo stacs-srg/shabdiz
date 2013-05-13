@@ -42,26 +42,26 @@ import uk.ac.standrews.cs.shabdiz.util.LatchedStateChangeListener;
  * However, a {@link Host} and/or an {@link ApplicationManager} may be associated to multiple {@link ApplicationDescriptor application descriptors}.
  * The {@link #getHost() host} of an application descriptor may be {@code null}.
  * However, the {@link #getApplicationManager() manager} must not be {@code null}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final String STATE_PROPERTY_NAME = "state";
+    protected final PropertyChangeSupport property_change_support;
     private final Long id; // used to break ties when comparing descriptors
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     private final AtomicReference<Object> application_reference;
     private final Set<Process> processes;
     private final ApplicationManager application_manager;
-    protected final PropertyChangeSupport property_change_support;
     private final ConcurrentHashMap<AttributeKey<?>, Object> attributes;
 
     /**
      * Instantiates a new application descriptor with the given {@link ApplicationManager manager} and {@code null} as {@link #getHost() host}.
      * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
-     * 
+     *
      * @param application_manager the manager of the application instance
      */
     public ApplicationDescriptor(final ApplicationManager application_manager) {
@@ -72,7 +72,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Instantiates a new application descriptor with the given {@link Host host} and {@link ApplicationManager manager}.
      * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
-     * 
+     *
      * @param host the host of the application instance that is described by this descriptor
      * @param application_manager the manager of the application instance
      */
@@ -88,9 +88,20 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         attributes = new ConcurrentHashMap<AttributeKey<?>, Object>();
     }
 
+    @SuppressWarnings("resource")
+    private ApplicationDescriptorHostWrapper createHostWrapper(final Host host) {
+
+        return host != null ? new ApplicationDescriptorHostWrapper(host) : null;
+    }
+
+    private static Long generateId() {
+
+        return NEXT_ID.getAndIncrement();
+    }
+
     /**
      * Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
-     * 
+     *
      * @param <Value> the type of the value
      * @param key the key whose associated value is to be returned
      * @return Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
@@ -105,7 +116,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Associates the specified value with the specified key in this descriptor's attributes.
      * If the attributes previously contained a mapping for the key, the old value is replaced.
-     * 
+     *
      * @param <Value> the type of the value
      * @param key the key with which the specified value is to be associated
      * @param value the value to be associated with the specified key
@@ -120,7 +131,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Gets the manager of application instance that is described by this descriptor.
-     * 
+     *
      * @return the manager of application instance that is described by this descriptor
      */
     public ApplicationManager getApplicationManager() {
@@ -130,7 +141,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Gets the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor.
-     * 
+     *
      * @return the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor
      */
     public Host getHost() {
@@ -141,7 +152,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Gets the set of processes that are started using this descrptor's {@link #getHost() host}.
      * The collection of processes are updated automatically when a command is {@link Host#execute(String...) executed} by this descriptor's {@link #getHost() host}.
-     * 
+     *
      * @return the set of processes that are {@link Host#execute(String...) started} using this descrptor's {@link #getHost() host}
      */
     public Set<Process> getProcesses() {
@@ -165,21 +176,11 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
-     * Gets the cached state of the application instance that is described by this descriptor.
-     * 
-     * @return the cached state of the application instance that is described by this descriptor
-     */
-    public ApplicationState getApplicationState() {
-
-        return state.get();
-    }
-
-    /**
      * Gets a reference to the application instance that is {@link ApplicationManager#deploy(ApplicationDescriptor) deployed} by the {@link #getApplicationManager() manager} of this descriptor.
      * The application reference is casted to the type of the variable, which stores the returned value of this method.
      * This may cause {@link ClassCastException} if the application reference cannot be cased to the variable type.
      * This method may return {@code null} if no instance was {@link ApplicationManager#deploy(ApplicationDescriptor) deployed} by this descriptor's {@link #getApplicationManager() manager}.
-     * 
+     *
      * @param <ApplicationReference> the type of application reference to which the application reference is casted
      * @return a reference to the application instance that is described by this descriptor, or {@code null} if no instance was deployed by this descriptor's {@link #getApplicationManager() manager}
      */
@@ -194,50 +195,9 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         application_reference.set(reference);
     }
 
-    protected synchronized void setApplicationState(final ApplicationState new_state) {
-
-        final ApplicationState old_state = state.getAndSet(new_state);
-        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
-    }
-
-    /**
-     * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
-     * If listener is {@code null} no exception is thrown and no action is taken.
-     * 
-     * @param listener the listener to be added
-     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
-     */
-    public void addStateChangeListener(final PropertyChangeListener listener) {
-
-        property_change_support.addPropertyChangeListener(STATE_PROPERTY_NAME, listener);
-    }
-
-    /**
-     * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
-     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
-     * 
-     * @param listener the listener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
-     */
-    public void removeStateChangeListener(final PropertyChangeListener listener) {
-
-        property_change_support.removePropertyChangeListener(STATE_PROPERTY_NAME, listener);
-    }
-
-    /**
-     * Checks if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}.
-     * 
-     * @param states the states to check for
-     * @return {@code true} if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
-     */
-    public boolean isInAnyOfStates(final ApplicationState... states) {
-
-        return ArrayUtil.contains(getApplicationState(), states);
-    }
-
     /**
      * Causes the current thread to wait until this descriptor reaches one of the given {@code states}, unless the thread is {@link Thread#interrupt() interrupted}.
-     * 
+     *
      * @param states the states which this application instance must reach
      * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
      */
@@ -254,11 +214,81 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         if (latched_listener != null) {
             try {
                 latched_listener.await();
-            }
-            finally {
+            } finally {
                 removeStateChangeListener(latched_listener);
             }
         }
+    }
+
+    /**
+     * Checks if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}.
+     *
+     * @param states the states to check for
+     * @return {@code true} if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
+     */
+    public boolean isInAnyOfStates(final ApplicationState... states) {
+
+        return ArrayUtil.contains(getApplicationState(), states);
+    }
+
+    /**
+     * Gets the cached state of the application instance that is described by this descriptor.
+     *
+     * @return the cached state of the application instance that is described by this descriptor
+     */
+    public synchronized ApplicationState getApplicationState() {
+
+        return state.get();
+    }
+
+    protected synchronized void setApplicationState(final ApplicationState new_state) {
+
+        final ApplicationState old_state = state.getAndSet(new_state);
+        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
+    }
+
+    /**
+     * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
+     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
+     *
+     * @param listener the listener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
+     */
+    public void removeStateChangeListener(final PropertyChangeListener listener) {
+
+        property_change_support.removePropertyChangeListener(STATE_PROPERTY_NAME, listener);
+    }
+
+    /**
+     * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
+     * If listener is {@code null} no exception is thrown and no action is taken.
+     *
+     * @param listener the listener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
+     */
+    public void addStateChangeListener(final PropertyChangeListener listener) {
+
+        property_change_support.addPropertyChangeListener(STATE_PROPERTY_NAME, listener);
+    }
+
+    @Override
+    public int compareTo(final ApplicationDescriptor other) {
+
+        return id.compareTo(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApplicationDescriptor)) return false;
+        final ApplicationDescriptor that = (ApplicationDescriptor) o;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        return true;
     }
 
     @Override
@@ -270,23 +300,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         builder.append(", ATTRIBUTES ");
         builder.append(attributes);
         return builder.toString();
-    }
-
-    @Override
-    public int compareTo(final ApplicationDescriptor other) {
-
-        return id.compareTo(other.id);
-    }
-
-    private static Long generateId() {
-
-        return NEXT_ID.getAndIncrement();
-    }
-
-    @SuppressWarnings("resource")
-    private ApplicationDescriptorHostWrapper createHostWrapper(final Host host) {
-
-        return host != null ? new ApplicationDescriptorHostWrapper(host) : null;
     }
 
     private final class ApplicationDescriptorHostWrapper extends HostWrapper {

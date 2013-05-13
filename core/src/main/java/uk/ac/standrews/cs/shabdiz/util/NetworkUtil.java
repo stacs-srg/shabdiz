@@ -37,7 +37,7 @@ import java.util.Enumeration;
 
 /**
  * Various network utilities.
- * 
+ *
  * @author Stuart Norcross (stuart@cs.st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -45,7 +45,6 @@ public final class NetworkUtil {
 
     /** The maximum number that can be specified as port number. */
     public static final int MAX_PORT_NUMBER = 0xFFFF;
-
     /** The undefined port. */
     public static final int UNDEFINED_PORT = -1;
 
@@ -55,11 +54,49 @@ public final class NetworkUtil {
     }
 
     /**
+     * Extracts an InetSocketAddress from a string of the form "host:port". If the host part is empty, the local
+     * loopback address is used. If the port part is empty, the specified default port is used.
+     *
+     * @param host_and_port a string of the form "host:port"
+     * @param default_port the default port to be used if the port is not specified
+     * @return a corresponding InetSocketAddress
+     * @throws UnknownHostException if the specified host cannot be resolved
+     */
+    public static InetSocketAddress extractInetSocketAddress(final String host_and_port, final int default_port) throws UnknownHostException {
+
+        final String host_name = extractHostName(host_and_port);
+        final int port = extractPortNumber(host_and_port);
+
+        if (host_name.equals("") ) {
+            if (port == UNDEFINED_PORT) { return getLocalIPv4InetSocketAddress(default_port); }
+            return getLocalIPv4InetSocketAddress(port);
+        }
+        else if (port == UNDEFINED_PORT) {
+            return getInetSocketAddress(host_name, default_port);
+        }
+        else {
+            return getInetSocketAddress(host_name, port);
+        }
+    }
+
+    /**
+     * Returns an InetSocketAddress corresponding to a local non-loopback IPv4 address.
+     *
+     * @param port the port
+     * @return the corresponding local address
+     * @throws UnknownHostException if no IPv4 address can be found
+     */
+    public static InetSocketAddress getLocalIPv4InetSocketAddress(final int port) throws UnknownHostException {
+
+        return new InetSocketAddress(getLocalIPv4Address(), port);
+    }
+
+    /**
      * Returns the first non-loopback IPv4 address (Inet4Address) that can be found for an interface on the local host.
      * This method should be used in place of InetAddress.getLocalHost(), which may return an Inet6Address object
      * corresponding to the IPv6 address of a local interface. The bind operation is not supported by this
      * address family.
-     * 
+     *
      * @return the first IPv4 address found
      * @throws UnknownHostException if no IPv4 address can be found
      */
@@ -99,59 +136,8 @@ public final class NetworkUtil {
     }
 
     /**
-     * Returns an InetSocketAddress corresponding to a local non-loopback IPv4 address.
-     * 
-     * @param port the port
-     * @return the corresponding local address
-     * @throws UnknownHostException if no IPv4 address can be found
-     */
-    public static InetSocketAddress getLocalIPv4InetSocketAddress(final int port) throws UnknownHostException {
-
-        return new InetSocketAddress(getLocalIPv4Address(), port);
-    }
-
-    /**
-     * Extracts an InetSocketAddress from a string of the form "host:port". If the host part is empty, the local
-     * loopback address is used. If the port part is empty, the specified default port is used.
-     * 
-     * @param host_and_port a string of the form "host:port"
-     * @param default_port the default port to be used if the port is not specified
-     * @return a corresponding InetSocketAddress
-     * @throws UnknownHostException if the specified host cannot be resolved
-     */
-    public static InetSocketAddress extractInetSocketAddress(final String host_and_port, final int default_port) throws UnknownHostException {
-
-        final String host_name = extractHostName(host_and_port);
-        final int port = extractPortNumber(host_and_port);
-
-        if (host_name == "") {
-            if (port == UNDEFINED_PORT) { return getLocalIPv4InetSocketAddress(default_port); }
-            return getLocalIPv4InetSocketAddress(port);
-        }
-        else if (port == UNDEFINED_PORT) {
-            return getInetSocketAddress(host_name, default_port);
-        }
-        else {
-            return getInetSocketAddress(host_name, port);
-        }
-    }
-
-    /**
      * Creates an InetSocketAddress for a given host and port.
-     * 
-     * @param host the host
-     * @param port the port
-     * @return a corresponding InetSocketAddress
-     * @throws UnknownHostException if the specified host cannot be resolved
-     */
-    public static InetSocketAddress getInetSocketAddress(final InetAddress host, final int port) throws UnknownHostException {
-
-        return new InetSocketAddress(host, port);
-    }
-
-    /**
-     * Creates an InetSocketAddress for a given host and port.
-     * 
+     *
      * @param host_name the host
      * @param port the port
      * @return a corresponding InetSocketAddress
@@ -163,9 +149,22 @@ public final class NetworkUtil {
     }
 
     /**
+     * Creates an InetSocketAddress for a given host and port.
+     *
+     * @param host the host
+     * @param port the port
+     * @return a corresponding InetSocketAddress
+     * @throws UnknownHostException if the specified host cannot be resolved
+     */
+    public static InetSocketAddress getInetSocketAddress(final InetAddress host, final int port) throws UnknownHostException {
+
+        return new InetSocketAddress(host, port);
+    }
+
+    /**
      * Extracts a host name from a string of the form "[host][:][port]". If the
      * host part is empty, the empty string is returned.
-     * 
+     *
      * @param host_and_port a string of the form "host:port", "host", "host:", ":port"
      * @return the host name
      */
@@ -180,9 +179,26 @@ public final class NetworkUtil {
     }
 
     /**
+     * Extracts a port number from a string of the form "[host][:][port]". If
+     * the port part is empty {@link #UNDEFINED_PORT} is returned.
+     *
+     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
+     * @return the port number
+     */
+    public static int extractPortNumber(final String host_and_port) {
+
+        try {
+            return Integer.parseInt(extractPortNumberAsString(host_and_port));
+        }
+        catch (final NumberFormatException e) {
+            return UNDEFINED_PORT;
+        }
+    }
+
+    /**
      * Extracts a port number as a string from a string of the form "[host][:][port]". If
      * the port part is empty, the string representation of {@link #UNDEFINED_PORT} is returned.
-     * 
+     *
      * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
      * @return the port number as a string
      */
@@ -199,25 +215,8 @@ public final class NetworkUtil {
     }
 
     /**
-     * Extracts a port number from a string of the form "[host][:][port]". If
-     * the port part is empty {@link #UNDEFINED_PORT} is returned.
-     * 
-     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
-     * @return the port number
-     */
-    public static int extractPortNumber(final String host_and_port) {
-
-        try {
-            return Integer.parseInt(extractPortNumberAsString(host_and_port));
-        }
-        catch (final NumberFormatException e) {
-            return UNDEFINED_PORT;
-        }
-    }
-
-    /**
      * Tests whether a given address is a valid local address.
-     * 
+     *
      * @param address an address
      * @return true if the address is a valid local address
      */
@@ -237,7 +236,7 @@ public final class NetworkUtil {
 
     /**
      * Returns a description of a given host address.
-     * 
+     *
      * @param address an address
      * @return a description of the address
      */
@@ -255,7 +254,7 @@ public final class NetworkUtil {
 
     /**
      * Returns a description of a given host address.
-     * 
+     *
      * @param host an IP address
      * @param port a port
      * @return a description of the address
@@ -266,19 +265,8 @@ public final class NetworkUtil {
     }
 
     /**
-     * Returns a description of a given socket.
-     * 
-     * @param socket a socket
-     * @return a description of the socket's address
-     */
-    public static String formatHostAddress(final Socket socket) {
-
-        return formatHostAddress(socket.getInetAddress(), socket.getPort());
-    }
-
-    /**
      * Returns a description of a given host address.
-     * 
+     *
      * @param address an address
      * @param port a port
      * @return a description of the address
@@ -289,70 +277,8 @@ public final class NetworkUtil {
     }
 
     /**
-     * Alternative to {@link ServerSocket} constructors that calls {@link ServerSocket#setReuseAddress(boolean)} to enable reuse of the fixed
-     * local port even when there is a previous connection to that port in the timeout state.
-     * 
-     * @param local_port the local port
-     * @return a socket bound to the given local port
-     * @throws IOException if the new socket can't be connected to
-     */
-    public static ServerSocket makeReusableServerSocket(final int local_port) throws IOException {
-
-        final ServerSocket socket = new ServerSocket();
-        socket.setReuseAddress(true);
-
-        socket.bind(new InetSocketAddress(local_port));
-
-        return socket;
-    }
-
-    /**
-     * Alternative to {@link ServerSocket} constructors that calls {@link ServerSocket#setReuseAddress(boolean)} to enable reuse of the fixed
-     * local port even when there is a previous connection to that port in the timeout state.
-     * 
-     * @param local_address the address to which the socket should be bound
-     * @param local_port the local port
-     * @return a socket bound to the given local port
-     * @throws IOException if the new socket can't be connected to
-     */
-    public static ServerSocket makeReusableServerSocket(final InetAddress local_address, final int local_port) throws IOException {
-
-        final ServerSocket socket = new ServerSocket();
-        socket.setReuseAddress(true);
-
-        socket.bind(new InetSocketAddress(local_address, local_port));
-
-        return socket;
-    }
-
-    /**
-     * finds a free TCP port on the local machine.
-     * 
-     * @return a free port on the local machine
-     * @throws IOException if unable to check for free port
-     */
-    public static synchronized int findFreeLocalTCPPort() throws IOException {
-
-        ServerSocket server_socket = null;
-        try {
-
-            server_socket = makeReusableServerSocket(0);
-            return server_socket.getLocalPort();
-        }
-        finally {
-
-            try {
-                server_socket.close();
-            }
-            catch (final IOException e) {
-                // ignore
-            }
-        }
-    }
-
-    /**
      * Constructs an {@link InetSocketAddress address} from an String representation of an address that is produced by {@link InetSocketAddress#toString()}.
-     * 
+     *
      * @param address_in_string the address in string
      * @return the address
      * @throws UnknownHostException if host is unknown
@@ -360,9 +286,8 @@ public final class NetworkUtil {
      */
     public static InetSocketAddress getAddressFromString(final String address_in_string) throws UnknownHostException {
 
-        final String serialized_inet_socket_address = address_in_string;
-        if (serialized_inet_socket_address == null || serialized_inet_socket_address.equals("null")) { return null; }
-        final String[] components = serialized_inet_socket_address.split(":", -1);
+        if (address_in_string == null || address_in_string.equals("null")) { return null; }
+        final String[] components = address_in_string.split(":", -1);
         final String host = components[0];
         final int port = Integer.parseInt(components[1]);
         final String name = getName(host);

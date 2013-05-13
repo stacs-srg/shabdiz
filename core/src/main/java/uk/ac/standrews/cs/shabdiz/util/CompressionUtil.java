@@ -60,11 +60,6 @@ public final class CompressionUtil {
         zip.close();
     }
 
-    public static void main(final String[] args) throws IOException {
-
-        compress(Arrays.asList(new File("."), new File("/Users/masih/Documents/student_card.jpg")), new File("/Users/masih/Desktop/mm.zip"));
-    }
-
     private static void copy(final File file, final ZipOutputStream zip, final URI base) throws IOException {
 
         if (file.exists()) {
@@ -74,15 +69,12 @@ public final class CompressionUtil {
                 try {
                     zip.putNextEntry(entry);
                     IOUtils.copy(in, zip);
-                }
-                catch (final ZipException e) {
+                } catch (final ZipException e) {
                     LOGGER.severe(e.getMessage());
-                }
-                finally {
+                } finally {
                     in.close();
                 }
-            }
-            else {
+            } else {
                 for (final File sub_file : file.listFiles()) {
                     copy(sub_file, zip, base);
                 }

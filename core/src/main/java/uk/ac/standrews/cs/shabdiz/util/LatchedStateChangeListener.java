@@ -46,7 +46,7 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
      */
     public LatchedStateChangeListener(final ApplicationState[] states) {
 
-        this.states = states;
+        this.states = states.clone();
         this.latch = new CountDownLatch(1);
     }
 

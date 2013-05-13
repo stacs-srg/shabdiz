@@ -24,7 +24,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 
 /**
  * Presents the key to an attribute that may be stored in an {@link ApplicationDescriptor}.
- * 
+ *
  * @param <Value> the type the value that is represented by this key
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see ApplicationDescriptor#getAttribute(AttributeKey)
@@ -33,7 +33,6 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 public final class AttributeKey<Value> implements Comparable<AttributeKey<?>> {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
-
     private final Long id;
 
     /** Instantiates a new attribute key. */
@@ -46,5 +45,19 @@ public final class AttributeKey<Value> implements Comparable<AttributeKey<?>> {
     public int compareTo(final AttributeKey<?> other) {
 
         return other.id.compareTo(id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AttributeKey)) return false;
+        final AttributeKey that = (AttributeKey) o;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        return true;
     }
 }

@@ -128,7 +128,7 @@ public class SSHHost extends AbstractHost {
 
         final long timeout_in_millis = TimeUnit.MILLISECONDS.convert(timeout, unit);
         //cast to integer to cope with the JSch's mad bad API
-        this.ssh_connection_timeout_in_millis = new Long(timeout_in_millis).intValue();
+        this.ssh_connection_timeout_in_millis = (int) timeout_in_millis;
     }
 
     @Override
@@ -316,7 +316,8 @@ public class SSHHost extends AbstractHost {
 
         final String directory_name = FilenameUtils.getName(source);
         final File sub_destination = new File(destination, directory_name);
-        sub_destination.mkdirs();
+        makeDirectoriesIfNeeded(sub_destination);
+
         sftp.cd(source);
         @SuppressWarnings("unchecked")
         final List<LsEntry> ls_entries = sftp.ls(".");
@@ -329,6 +330,15 @@ public class SSHHost extends AbstractHost {
         sftp.cd("../");
     }
 
+    private void makeDirectoriesIfNeeded(final File sub_destination) {
+        if (!sub_destination.exists() || !sub_destination.isDirectory()) {
+            final boolean created_sub_destination = sub_destination.mkdirs();
+            if (!created_sub_destination) {
+                LOGGER.warn("did not create directories {}", sub_destination);
+            }
+        }
+    }
+
     private void downloadFile(final ChannelSftp sftp, final String source, final File destination) throws SftpException {
 
         sftp.get(source, destination.getAbsolutePath());
@@ -336,7 +346,7 @@ public class SSHHost extends AbstractHost {
 
     private void prepareLocalDestination(final File destination) {
 
-        destination.mkdirs();
+        makeDirectoriesIfNeeded(destination);
     }
 
     private final class SSHManagedRemoteProcess extends Process {
