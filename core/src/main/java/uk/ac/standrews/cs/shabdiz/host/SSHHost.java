@@ -314,14 +314,12 @@ public class SSHHost extends AbstractHost {
     @Override
     public Process execute(final String command) throws IOException {
 
+        LOGGER.info("executing {}", command);
         return new SSHManagedRemoteProcess(command);
     }
 
     @Override
     public Process execute(final String working_directory, final String command) throws IOException {
-
-        LOGGER.info(working_directory);
-        LOGGER.info(command);
 
         final StringBuilder sb = new StringBuilder();
         sb.append("cd ");

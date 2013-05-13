@@ -80,7 +80,7 @@ public final class ProcessUtil {
                 return future_result.get().trim();
             }
             catch (final ExecutionException e) {
-                LOGGER.debug("error occured on process execution", e);
+                LOGGER.info("error occured on process execution", e);
                 final Throwable cause = e.getCause();
                 throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
             }
