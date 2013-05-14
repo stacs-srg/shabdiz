@@ -20,7 +20,6 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +35,7 @@ import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.shabdiz.job.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.job.util.Attributes;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 
@@ -57,7 +56,7 @@ public class SupervisedRemoteTest {
         @Override
         public Boolean call() throws Exception {
 
-            final File temp_file = ObjectStore.get(key_of_job_result);
+            final File temp_file = Attributes.get(key_of_job_result);
             try {
                 return temp_file.exists();
             }
@@ -76,7 +75,7 @@ public class SupervisedRemoteTest {
 
             final File temp_file = File.createTempFile("test_shabdiz_temp", ".tmp");
             final AttributeKey<File> key = new AttributeKey<File>();
-            ObjectStore.put(key, temp_file);
+            Attributes.put(key, temp_file);
             return key;
         }
     }
@@ -108,7 +107,7 @@ public class SupervisedRemoteTest {
             System.out.println("Await Result");
             final AttributeKey<File> remotely_sotored_object_key = test_dir_job_result.get(20, TimeUnit.SECONDS);
 
-            System.out.println("An object is stored in the remore JVM ObjectStore with the key of: " + remotely_sotored_object_key);
+            System.out.println("An object is stored in the remore JVM Attributes with the key of: " + remotely_sotored_object_key);
             System.out.println("submitting the second job to retrieve the associated value with the key");
             final Future<Boolean> file_test_result = worker.submit(new VerifyStoredTestDirJob(remotely_sotored_object_key));
 

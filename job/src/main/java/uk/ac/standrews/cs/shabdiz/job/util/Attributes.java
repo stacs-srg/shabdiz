@@ -20,9 +20,7 @@ package uk.ac.standrews.cs.shabdiz.job.util;
 
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * A utility class for storing key-value paris in the current JVM.
@@ -31,11 +29,11 @@ import java.util.concurrent.ConcurrentSkipListMap;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public final class ObjectStore {
+public final class Attributes {
 
     private static final ConcurrentHashMap<AttributeKey<?>, Object> STORE = new ConcurrentHashMap<AttributeKey<?>, Object>();
 
-    private ObjectStore() {
+    private Attributes() {
 
     }
 
