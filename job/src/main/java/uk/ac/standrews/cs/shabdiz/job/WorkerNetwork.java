@@ -163,18 +163,18 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
+    public boolean equals(final Object other) {
+        if (this == other) {
             return true;
         }
-        if (!(o instanceof WorkerNetwork)) {
+        if (!(other instanceof WorkerNetwork)) {
             return false;
         }
-        if (!super.equals(o)) {
+        if (!super.equals(other)) {
             return false;
         }
 
-        final WorkerNetwork that = (WorkerNetwork) o;
+        final WorkerNetwork that = (WorkerNetwork) other;
 
         if (callback_address != null ? !callback_address.equals(that.callback_address) : that.callback_address != null) {
             return false;

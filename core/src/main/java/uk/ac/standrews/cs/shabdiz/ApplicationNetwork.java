@@ -21,10 +21,17 @@ package uk.ac.standrews.cs.shabdiz;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Maintains a set of {@link ApplicationDescriptor application descriptors}.
@@ -244,11 +251,17 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         clear();
     }
 
-    private void cancelScheduledScanners() {
+    private void closeHosts() {
 
-        synchronized (scheduled_scanners) {
-            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
-                scheduled_scanner.cancel(true);
+        for (final ApplicationDescriptor application_descriptor : this) {
+
+            final Host host = application_descriptor.getHost();
+            if (host != null) {
+                try {
+                    host.close();
+                } catch (final IOException e) {
+                    LOGGER.warn("failed to close host", e);
+                }
             }
         }
     }
@@ -270,67 +283,32 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     public void killAll() throws Exception {
 
         //FIXME implement concurrent kill
-        for (final ApplicationDescriptor applciation_descriptor : this) {
-            kill(applciation_descriptor);
+        for (final ApplicationDescriptor application_descriptor : this) {
+            kill(application_descriptor);
         }
     }
 
-    private void closeHosts() {
+    private void cancelScheduledScanners() {
 
-        for (final ApplicationDescriptor application_descriptor : this) {
-
-            final Host host = application_descriptor.getHost();
-            if (host != null) {
-                try {
-                    host.close();
-                } catch (final IOException e) {
-                    LOGGER.warn("failed to close host", e);
-                }
+        synchronized (scheduled_scanners) {
+            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
+                scheduled_scanner.cancel(true);
             }
         }
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final Object other) {
 
-        if (this == o) return true;
-        if (!(o instanceof ApplicationNetwork)) return false;
-        if (!super.equals(o)) return false;
-
-        final ApplicationNetwork that = (ApplicationNetwork) o;
-
-        if (application_name != null ? !application_name.equals(that.application_name) : that.application_name != null)
-            return false;
-        if (auto_deploy_scanner != null ? !auto_deploy_scanner.equals(that.auto_deploy_scanner) : that.auto_deploy_scanner != null)
-            return false;
-        if (auto_kill_scanner != null ? !auto_kill_scanner.equals(that.auto_kill_scanner) : that.auto_kill_scanner != null)
-            return false;
-        if (auto_remove_scanner != null ? !auto_remove_scanner.equals(that.auto_remove_scanner) : that.auto_remove_scanner != null)
-            return false;
-        if (concurrent_scanner_executor != null ? !concurrent_scanner_executor.equals(that.concurrent_scanner_executor) : that.concurrent_scanner_executor != null)
-            return false;
-        if (scanner_scheduler != null ? !scanner_scheduler.equals(that.scanner_scheduler) : that.scanner_scheduler != null)
-            return false;
-        if (scheduled_scanners != null ? !scheduled_scanners.equals(that.scheduled_scanners) : that.scheduled_scanners != null)
-            return false;
-        if (status_scanner != null ? !status_scanner.equals(that.status_scanner) : that.status_scanner != null)
-            return false;
-
-        return true;
+        if (this == other) { return true; }
+        if (!(other instanceof ApplicationNetwork) || !super.equals(other)) { return false; }
+        final ApplicationNetwork that = (ApplicationNetwork) other;
+        return application_name.equals(that.application_name) && scheduled_scanners.equals(that.scheduled_scanners);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (application_name != null ? application_name.hashCode() : 0);
-        result = 31 * result + (scheduled_scanners != null ? scheduled_scanners.hashCode() : 0);
-        result = 31 * result + (scanner_scheduler != null ? scanner_scheduler.hashCode() : 0);
-        result = 31 * result + (concurrent_scanner_executor != null ? concurrent_scanner_executor.hashCode() : 0);
-        result = 31 * result + (auto_kill_scanner != null ? auto_kill_scanner.hashCode() : 0);
-        result = 31 * result + (auto_deploy_scanner != null ? auto_deploy_scanner.hashCode() : 0);
-        result = 31 * result + (auto_remove_scanner != null ? auto_remove_scanner.hashCode() : 0);
-        result = 31 * result + (status_scanner != null ? status_scanner.hashCode() : 0);
-        return result;
+        return HashCodeUtil.generate(super.hashCode(), application_name.hashCode(), scheduled_scanners.hashCode());
     }
 
     private boolean injectExecutorAndAdd(final Scanner scanner) {

@@ -283,12 +283,15 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ApplicationDescriptor)) return false;
-        final ApplicationDescriptor that = (ApplicationDescriptor) o;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        return true;
+    public boolean equals(final Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ApplicationDescriptor)) {
+            return false;
+        }
+        final ApplicationDescriptor that = (ApplicationDescriptor) other;
+        return id.equals(that.id);
     }
 
     @Override
