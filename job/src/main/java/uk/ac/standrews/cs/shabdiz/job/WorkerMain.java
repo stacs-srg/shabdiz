@@ -18,6 +18,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import uk.ac.standrews.cs.shabdiz.util.CommandLineArgs;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
@@ -29,11 +33,6 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import uk.ac.standrews.cs.shabdiz.util.CommandLineArgs;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * THe entry point to start up a new worker.
@@ -50,7 +49,6 @@ public class WorkerMain {
 
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
-    private int thread_pool_size;
 
     // -------------------------------------------------------------------------------------------------------
 

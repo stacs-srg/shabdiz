@@ -18,49 +18,44 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.io.IOUtils;
 
 public final class CompressionUtil {
 
     //FIXME use jar to make jar files of directories in classpath
     // e.g. jar cf aaa.jar -C /Users/masih/Documents/PhD/Code/P2P\ Workspace/shabdiz/target/classes .
 
-    private static final Logger LOGGER = Logger.getLogger(CompressionUtil.class.getName());
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CompressionUtil.class);
 
     private CompressionUtil() {
 
     }
 
-    public static final void compress(final File source, final File destination) throws IOException {
+    public static void compress(final File source, final File destination) throws IOException {
 
         compress(Arrays.asList(source), destination);
     }
 
-    public static final void compress(final Collection<File> sources, final File destination) throws IOException {
+    public static void compress(final Collection<File> sources, final File destination) throws IOException {
 
         final ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(destination)));
         for (final File file : sources) {
             final URI base = file.getCanonicalFile().getParentFile().toURI();
-            copy(file, zip, base);
+            copyToZipOutputStream(file, zip, base);
         }
         zip.close();
     }
 
-    private static void copy(final File file, final ZipOutputStream zip, final URI base) throws IOException {
+    private static void copyToZipOutputStream(final File file, final ZipOutputStream zip, final URI base) throws IOException {
 
         if (file.exists()) {
             if (file.isFile()) {
@@ -70,13 +65,17 @@ public final class CompressionUtil {
                     zip.putNextEntry(entry);
                     IOUtils.copy(in, zip);
                 } catch (final ZipException e) {
-                    LOGGER.severe(e.getMessage());
+                    LOGGER.warn("failed to put entry to zip stream", e);
                 } finally {
                     in.close();
                 }
-            } else {
-                for (final File sub_file : file.listFiles()) {
-                    copy(sub_file, zip, base);
+            }
+            else {
+                final File[] files_list = file.listFiles();
+                if (files_list != null) {
+                    for (final File sub_file : files_list) {
+                        copyToZipOutputStream(sub_file, zip, base);
+                    }
                 }
             }
         }

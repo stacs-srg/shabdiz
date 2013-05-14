@@ -18,18 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import com.staticiser.jetson.exception.JsonRpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -40,7 +31,14 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 class WorkerManager extends AbstractApplicationManager {
 
@@ -48,24 +46,27 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-
     private final JavaProcessBuilder worker_process_builder;
-    private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
     private final WorkerNetwork network;
     private final WorkerRemoteProxyFactory proxy_factory;
+    private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
 
     public WorkerManager(final WorkerNetwork network, final Set<File> classpath) {
 
         this.network = network;
-        worker_process_builder = createRemoteJavaProcessBuiler(classpath, network.getCallbackAddress());
+        worker_process_builder = createRemoteJavaProcessBuiler(classpath, network.§getCallbackAddress());
         proxy_factory = new WorkerRemoteProxyFactory();
     }
 
-    @Override
-    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
+    private JavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
 
-        final Worker worker = descriptor.getApplicationReference();
-        worker.getAddress(); // makes a remote call
+        final JavaProcessBuilder process_builder = new JavaProcessBuilder(WorkerMain.class);
+        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
+        process_builder.addCommandLineArguments(arguments);
+        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
+        process_builder.addClasspath(classpath);
+        process_builder.addCurrentJVMClasspath();
+        return process_builder;
     }
 
     @Override
@@ -85,6 +86,12 @@ class WorkerManager extends AbstractApplicationManager {
         return worker_wrapper;
     }
 
+    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
+
+        final String address_as_string = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
+        return NetworkUtil.getAddressFromString(address_as_string);
+    }
+
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
@@ -100,49 +107,39 @@ class WorkerManager extends AbstractApplicationManager {
                 }
                 try {
                     worker.shutdown();
-                }
-                catch (final JsonRpcException e) {
-                    //ignore; expected.
+                } catch (final JsonRpcException e) {
+                    LOGGER.trace("ignoring expected error at the time of kill", e);
                 }
             }
-        }
-        finally {
+        } finally {
             super.kill(descriptor);
         }
     }
 
-    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
+    @Override
+    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
-        final String address_as_string = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
-        return NetworkUtil.getAddressFromString(address_as_string);
-    }
-
-    private JavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
-
-        final JavaProcessBuilder process_builder = new JavaProcessBuilder(WorkerMain.class);
-        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
-        process_builder.addCommandLineArguments(arguments);
-        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addClasspath(classpath);
-        process_builder.addCurrentJVMClasspath();
-        return process_builder;
+        final Worker worker = descriptor.getApplicationReference();
+        worker.getAddress(); // makes a remote call
     }
 
     /**
      * Sets the worker deployment timeout.
-     * 
+     *
      * @param duration the new worker deployment timeout
      * @throws NullPointerException if the given timeout is {@code null}
      */
     public void setWorkerDeploymentTimeout(final Duration duration) {
 
-        if (duration == null) { throw new NullPointerException(); }
+        if (duration == null) {
+            throw new NullPointerException();
+        }
         worker_deployment_timeout = duration;
     }
 
     /**
      * Sets the worker JVM arguments.
-     * 
+     *
      * @param jvm_arguments the new worker JVM arguments
      * @throws NullPointerException if the given arguments is {@code null}
      */
@@ -155,5 +152,4 @@ class WorkerManager extends AbstractApplicationManager {
 
         proxy_factory.shutdown();
     }
-
 }

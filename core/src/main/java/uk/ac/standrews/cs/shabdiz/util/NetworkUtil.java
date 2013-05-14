@@ -23,15 +23,10 @@
  ***************************************************************************/
 package uk.ac.standrews.cs.shabdiz.util;
 
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
 
@@ -47,6 +42,7 @@ public final class NetworkUtil {
     public static final int MAX_PORT_NUMBER = 0xFFFF;
     /** The undefined port. */
     public static final int UNDEFINED_PORT = -1;
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetworkUtil.class);
 
     /** Prevent instantiation of utility class. */
     private NetworkUtil() {
@@ -67,8 +63,10 @@ public final class NetworkUtil {
         final String host_name = extractHostName(host_and_port);
         final int port = extractPortNumber(host_and_port);
 
-        if (host_name.equals("") ) {
-            if (port == UNDEFINED_PORT) { return getLocalIPv4InetSocketAddress(default_port); }
+        if (host_name.equals("")) {
+            if (port == UNDEFINED_PORT) {
+                return getLocalIPv4InetSocketAddress(default_port);
+            }
             return getLocalIPv4InetSocketAddress(port);
         }
         else if (port == UNDEFINED_PORT) {
@@ -80,59 +78,63 @@ public final class NetworkUtil {
     }
 
     /**
-     * Returns an InetSocketAddress corresponding to a local non-loopback IPv4 address.
+     * Extracts a port number from a string of the form "[host][:][port]". If
+     * the port part is empty {@link #UNDEFINED_PORT} is returned.
      *
-     * @param port the port
-     * @return the corresponding local address
-     * @throws UnknownHostException if no IPv4 address can be found
+     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
+     * @return the port number
      */
-    public static InetSocketAddress getLocalIPv4InetSocketAddress(final int port) throws UnknownHostException {
+    public static int extractPortNumber(final String host_and_port) {
 
-        return new InetSocketAddress(getLocalIPv4Address(), port);
+        try {
+            return Integer.parseInt(extractPortNumberAsString(host_and_port));
+        } catch (final NumberFormatException e) {
+            return UNDEFINED_PORT;
+        }
     }
 
     /**
-     * Returns the first non-loopback IPv4 address (Inet4Address) that can be found for an interface on the local host.
-     * This method should be used in place of InetAddress.getLocalHost(), which may return an Inet6Address object
-     * corresponding to the IPv6 address of a local interface. The bind operation is not supported by this
-     * address family.
+     * Extracts a port number as a string from a string of the form "[host][:][port]". If
+     * the port part is empty, the string representation of {@link #UNDEFINED_PORT} is returned.
      *
-     * @return the first IPv4 address found
-     * @throws UnknownHostException if no IPv4 address can be found
+     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
+     * @return the port number as a string
      */
-    public static InetAddress getLocalIPv4Address() throws UnknownHostException {
+    public static String extractPortNumberAsString(final String host_and_port) {
 
-        final InetAddress default_local_address = InetAddress.getLocalHost();
-
-        // Return the default local address if it's an IPv4 address and isn't the loopback address. This will work in most cases.
-        if (default_local_address instanceof Inet4Address && !default_local_address.isLoopbackAddress()) { return default_local_address; }
-
-        // Otherwise, look for an IPv4 address among the other interfaces.
-        InetAddress loopback_address = null;
-
-        try {
-            final Enumeration<NetworkInterface> interfaces_enumeration = NetworkInterface.getNetworkInterfaces();
-
-            if (interfaces_enumeration != null) {
-                for (final NetworkInterface network_interface : Collections.list(interfaces_enumeration)) {
-                    for (final InetAddress address : Collections.list(network_interface.getInetAddresses())) {
-                        if (address instanceof Inet4Address) {
-                            // Found an IPv4 address. Return it if it's not loopback, otherwise remember it.
-                            if (!address.isLoopbackAddress()) { return address; }
-                            loopback_address = address;
-                        }
-                    }
-                }
-            }
-
-            // Haven't found any non-loopback IPv4 address, so return loopback if available.
-            if (loopback_address != null) { return loopback_address; }
-        }
-        catch (final SocketException e) {
-            // Ignore.
+        if (host_and_port == null) {
+            return String.valueOf(UNDEFINED_PORT);
         }
 
-        throw new UnknownHostException("local host has no interface with an IPv4 address");
+        final int separator_index = host_and_port.indexOf(":");
+
+        // Check for "<host>", "<host>:" and ":"
+        if (separator_index == -1 || separator_index == host_and_port.length() - 1) {
+            return String.valueOf(UNDEFINED_PORT);
+        }
+
+        return host_and_port.substring(separator_index + 1);
+    }
+
+    /**
+     * Extracts a host name from a string of the form "[host][:][port]". If the
+     * host part is empty, the empty string is returned.
+     *
+     * @param host_and_port a string of the form "host:port", "host", "host:", ":port"
+     * @return the host name
+     */
+    public static String extractHostName(final String host_and_port) {
+
+        if (host_and_port == null) {
+            return "";
+        }
+
+        final int separator_index = host_and_port.indexOf(":");
+
+        if (separator_index != -1) {
+            return host_and_port.substring(0, separator_index);
+        }
+        return host_and_port; // No port was specified.
     }
 
     /**
@@ -162,56 +164,64 @@ public final class NetworkUtil {
     }
 
     /**
-     * Extracts a host name from a string of the form "[host][:][port]". If the
-     * host part is empty, the empty string is returned.
+     * Returns an InetSocketAddress corresponding to a local non-loopback IPv4 address.
      *
-     * @param host_and_port a string of the form "host:port", "host", "host:", ":port"
-     * @return the host name
+     * @param port the port
+     * @return the corresponding local address
+     * @throws UnknownHostException if no IPv4 address can be found
      */
-    public static String extractHostName(final String host_and_port) {
+    public static InetSocketAddress getLocalIPv4InetSocketAddress(final int port) throws UnknownHostException {
 
-        if (host_and_port == null) { return ""; }
-
-        final int separator_index = host_and_port.indexOf(":");
-
-        if (separator_index != -1) { return host_and_port.substring(0, separator_index); }
-        return host_and_port; // No port was specified.
+        return new InetSocketAddress(getLocalIPv4Address(), port);
     }
 
     /**
-     * Extracts a port number from a string of the form "[host][:][port]". If
-     * the port part is empty {@link #UNDEFINED_PORT} is returned.
+     * Returns the first non-loopback IPv4 address (Inet4Address) that can be found for an interface on the local host.
+     * This method should be used in place of InetAddress.getLocalHost(), which may return an Inet6Address object
+     * corresponding to the IPv6 address of a local interface. The bind operation is not supported by this
+     * address family.
      *
-     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
-     * @return the port number
+     * @return the first IPv4 address found
+     * @throws UnknownHostException if no IPv4 address can be found
      */
-    public static int extractPortNumber(final String host_and_port) {
+    public static InetAddress getLocalIPv4Address() throws UnknownHostException {
+
+        final InetAddress default_local_address = InetAddress.getLocalHost();
+
+        // Return the default local address if it's an IPv4 address and isn't the loopback address. This will work in most cases.
+        if (default_local_address instanceof Inet4Address && !default_local_address.isLoopbackAddress()) {
+            return default_local_address;
+        }
+
+        // Otherwise, look for an IPv4 address among the other interfaces.
+        InetAddress loopback_address = null;
 
         try {
-            return Integer.parseInt(extractPortNumberAsString(host_and_port));
+            final Enumeration<NetworkInterface> interfaces_enumeration = NetworkInterface.getNetworkInterfaces();
+
+            if (interfaces_enumeration != null) {
+                for (final NetworkInterface network_interface : Collections.list(interfaces_enumeration)) {
+                    for (final InetAddress address : Collections.list(network_interface.getInetAddresses())) {
+                        if (address instanceof Inet4Address) {
+                            // Found an IPv4 address. Return it if it's not loopback, otherwise remember it.
+                            if (!address.isLoopbackAddress()) {
+                                return address;
+                            }
+                            loopback_address = address;
+                        }
+                    }
+                }
+            }
+
+            // Haven't found any non-loopback IPv4 address, so return loopback if available.
+            if (loopback_address != null) {
+                return loopback_address;
+            }
+        } catch (final SocketException e) {
+            LOGGER.trace("ignoring error", e);
         }
-        catch (final NumberFormatException e) {
-            return UNDEFINED_PORT;
-        }
-    }
 
-    /**
-     * Extracts a port number as a string from a string of the form "[host][:][port]". If
-     * the port part is empty, the string representation of {@link #UNDEFINED_PORT} is returned.
-     *
-     * @param host_and_port a string of the form "host:port", "host", "host:" or ":port"
-     * @return the port number as a string
-     */
-    public static String extractPortNumberAsString(final String host_and_port) {
-
-        if (host_and_port == null) { return String.valueOf(UNDEFINED_PORT); }
-
-        final int separator_index = host_and_port.indexOf(":");
-
-        // Check for "<host>", "<host>:" and ":"
-        if (separator_index == -1 || separator_index == host_and_port.length() - 1) { return String.valueOf(UNDEFINED_PORT); }
-
-        return host_and_port.substring(separator_index + 1);
+        throw new UnknownHostException("local host has no interface with an IPv4 address");
     }
 
     /**
@@ -226,8 +236,7 @@ public final class NetworkUtil {
         if (!local) {
             try {
                 local = NetworkInterface.getByInetAddress(address) != null;
-            }
-            catch (final SocketException e) {
+            } catch (final SocketException e) {
                 local = false;
             }
         }
@@ -286,7 +295,9 @@ public final class NetworkUtil {
      */
     public static InetSocketAddress getAddressFromString(final String address_in_string) throws UnknownHostException {
 
-        if (address_in_string == null || address_in_string.equals("null")) { return null; }
+        if (address_in_string == null || address_in_string.equals("null")) {
+            return null;
+        }
         final String[] components = address_in_string.split(":", -1);
         final String host = components[0];
         final int port = Integer.parseInt(components[1]);
@@ -297,12 +308,6 @@ public final class NetworkUtil {
     }
 
     //---------------------------------------------------------
-
-    private static String getName(final String host) {
-
-        final String[] name_address = host.split("/", -1);
-        return name_address[0];
-    }
 
     private static byte[] getBytes(final String host) {
 
@@ -316,5 +321,11 @@ public final class NetworkUtil {
         }
 
         return bytes;
+    }
+
+    private static String getName(final String host) {
+
+        final String[] name_address = host.split("/", -1);
+        return name_address[0];
     }
 }

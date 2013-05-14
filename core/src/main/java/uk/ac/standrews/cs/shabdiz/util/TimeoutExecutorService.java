@@ -18,21 +18,17 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import com.staticiser.jetson.util.NamingThreadFactory;
 
+import java.util.concurrent.*;
+
 /**
- * The Class TimeoutExecutorService.
+ * A utility {@link ThreadPoolExecutor} that is used to execute tasks with timeout.
+ * This class automatically terminates its idle threads and does not need to be shut down.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class TimeoutExecutorService extends ThreadPoolExecutor {
+public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private static final TimeoutExecutorService TIMEOUT_EXECUTOR_SERVICE_INSTANCE = new TimeoutExecutorService();
 
@@ -42,12 +38,12 @@ public class TimeoutExecutorService extends ThreadPoolExecutor {
     }
 
     /**
-     * Await completion.
+     * Await completion of a given task for a given timeout.
      * 
-     * @param <Result> the generic type
-     * @param task the task
-     * @param timeout the timeout
-     * @return the result
+     * @param <Result> the type of the result that is returned by the task
+     * @param task the task to await its completion
+     * @param timeout the duration to wait for the task completion
+     * @return the result of the task
      * @throws InterruptedException the interrupted exception
      * @throws ExecutionException the execution exception
      * @throws TimeoutException the timeout exception
@@ -58,13 +54,13 @@ public class TimeoutExecutorService extends ThreadPoolExecutor {
     }
 
     /**
-     * Await completion.
+     * Await completion of a given task for a given timeout.
      * 
-     * @param <Result> the generic type
-     * @param task the task
-     * @param time the time
-     * @param time_unit the time_unit
-     * @return the result
+     * @param <Result> the type of the result that is returned by the task
+     * @param task the task to await its execution
+     * @param time the duration to wait for the task completion
+     * @param time_unit the time unit of the duration to wait for the task completion
+     * @return the result of the task
      * @throws InterruptedException the interrupted exception
      * @throws ExecutionException the execution exception
      * @throws TimeoutException the timeout exception

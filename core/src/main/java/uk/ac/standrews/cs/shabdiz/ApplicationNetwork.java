@@ -18,21 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.*;
 
 /**
  * Maintains a set of {@link ApplicationDescriptor application descriptors}.
@@ -42,7 +34,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescriptor> {
 
     private static final long serialVersionUID = 6709443520736431534L;
-    private static final Logger LOGGER = Logger.getLogger(ApplicationNetwork.class.getName());
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
@@ -173,7 +165,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     public boolean addScanner(final Scanner scanner) {
 
         synchronized (scheduled_scanners) {
-            return isAddable(scanner) ? (scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner)) : false;
+            return isAddable(scanner) ? scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner) : false;
         }
     }
 
@@ -252,17 +244,11 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         clear();
     }
 
-    private void closeHosts() {
+    private void cancelScheduledScanners() {
 
-        for (final ApplicationDescriptor application_descriptor : this) {
-
-            final Host host = application_descriptor.getHost();
-            if (host != null) {
-                try {
-                    host.close();
-                } catch (final IOException e) {
-                    LOGGER.log(Level.WARNING, "failed to close host", e);
-                }
+        synchronized (scheduled_scanners) {
+            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
+                scheduled_scanner.cancel(true);
             }
         }
     }
@@ -272,8 +258,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         try {
             killAll();
         } catch (final Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.WARNING, "failed to kill all managed application descriptors", e);
+            LOGGER.warn("failed to kill all managed application descriptors", e);
         }
     }
 
@@ -290,11 +275,17 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         }
     }
 
-    private void cancelScheduledScanners() {
+    private void closeHosts() {
 
-        synchronized (scheduled_scanners) {
-            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
-                scheduled_scanner.cancel(true);
+        for (final ApplicationDescriptor application_descriptor : this) {
+
+            final Host host = application_descriptor.getHost();
+            if (host != null) {
+                try {
+                    host.close();
+                } catch (final IOException e) {
+                    LOGGER.warn("failed to close host", e);
+                }
             }
         }
     }

@@ -88,15 +88,15 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         attributes = new ConcurrentHashMap<AttributeKey<?>, Object>();
     }
 
+    private static Long generateId() {
+
+        return NEXT_ID.getAndIncrement();
+    }
+
     @SuppressWarnings("resource")
     private ApplicationDescriptorHostWrapper createHostWrapper(final Host host) {
 
         return host != null ? new ApplicationDescriptorHostWrapper(host) : null;
-    }
-
-    private static Long generateId() {
-
-        return NEXT_ID.getAndIncrement();
     }
 
     /**
@@ -221,6 +221,30 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     }
 
     /**
+     * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
+     * If listener is {@code null} no exception is thrown and no action is taken.
+     *
+     * @param listener the listener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
+     */
+    public void addStateChangeListener(final PropertyChangeListener listener) {
+
+        property_change_support.addPropertyChangeListener(STATE_PROPERTY_NAME, listener);
+    }
+
+    /**
+     * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
+     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
+     *
+     * @param listener the listener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
+     */
+    public void removeStateChangeListener(final PropertyChangeListener listener) {
+
+        property_change_support.removePropertyChangeListener(STATE_PROPERTY_NAME, listener);
+    }
+
+    /**
      * Checks if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}.
      *
      * @param states the states to check for
@@ -245,30 +269,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
-    }
-
-    /**
-     * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
-     * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
-     *
-     * @param listener the listener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
-     */
-    public void removeStateChangeListener(final PropertyChangeListener listener) {
-
-        property_change_support.removePropertyChangeListener(STATE_PROPERTY_NAME, listener);
-    }
-
-    /**
-     * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
-     * If listener is {@code null} no exception is thrown and no action is taken.
-     *
-     * @param listener the listener to be added
-     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
-     */
-    public void addStateChangeListener(final PropertyChangeListener listener) {
-
-        property_change_support.addPropertyChangeListener(STATE_PROPERTY_NAME, listener);
     }
 
     @Override
@@ -296,7 +296,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
         final StringBuilder builder = new StringBuilder();
         builder.append("HOST ");
-        builder.append((host == null ? "UNSPECIFIED" : host.getName()));
+        builder.append(host == null ? "UNSPECIFIED" : host.getName());
         builder.append(", ATTRIBUTES ");
         builder.append(attributes);
         return builder.toString();

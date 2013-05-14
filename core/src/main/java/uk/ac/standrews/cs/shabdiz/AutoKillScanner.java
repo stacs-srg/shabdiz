@@ -18,30 +18,23 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import java.util.concurrent.TimeUnit;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
  * Thread that continually checks the given list for machines that are currently running the given application, i.e. that
  * are in state RUNNING. For such machines an attempt is made to kill the application.
- * 
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class AutoKillScanner extends AbstractConcurrentScanner {
 
-    /** The timeout for attempted kill checks. */
-    public static final Duration DEFAULT_KILL_CHECK_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutoKillScanner.class);
 
     protected AutoKillScanner(final Duration min_cycle_time, final Duration kill_check_timeout) {
 
-        super(min_cycle_time, DEFAULT_KILL_CHECK_TIMEOUT, false);
-    }
-
-    private boolean isKillable(final ApplicationDescriptor application_descriptor) {
-
-        return application_descriptor.getApplicationState() == ApplicationState.RUNNING;
+        super(min_cycle_time, kill_check_timeout, false);
     }
 
     @Override
@@ -50,11 +43,14 @@ public class AutoKillScanner extends AbstractConcurrentScanner {
         if (isEnabled() && isKillable(descriptor)) {
             try {
                 descriptor.getApplicationManager().kill(descriptor);
-            }
-            catch (final Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (final Exception e) {
+                LOGGER.warn("failed to terminate descriptor", e);
             }
         }
+    }
+
+    private boolean isKillable(final ApplicationDescriptor application_descriptor) {
+
+        return application_descriptor.getApplicationState() == ApplicationState.RUNNING;
     }
 }

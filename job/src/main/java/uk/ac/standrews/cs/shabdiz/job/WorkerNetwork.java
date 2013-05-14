@@ -18,6 +18,17 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.TransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -25,25 +36,11 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
-
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-import com.staticiser.jetson.exception.JsonRpcException;
-import com.staticiser.jetson.exception.TransportException;
 
 /**
  * Deploys workers on hosts.
