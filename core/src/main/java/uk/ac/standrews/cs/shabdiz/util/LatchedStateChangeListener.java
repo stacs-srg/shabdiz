@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 /**
  * Given a collection of {@link ApplicationState states} listens for the change of state and {@link CountDownLatch#countDown() counts down} a latch for each state change that matches one of the given states.
  * This class is thread-safe.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class LatchedStateChangeListener implements PropertyChangeListener {
@@ -41,8 +41,8 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
 
     /**
      * Instantiates a new latched state change listener.
-     * 
-     * @param states the states
+     *
+     * @param states the states to match
      */
     public LatchedStateChangeListener(final ApplicationState[] states) {
 
@@ -53,7 +53,8 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
     @Override
     public synchronized void propertyChange(final PropertyChangeEvent evt) {
 
-        LOGGER.trace("state chaged to {} on {}", evt.getNewValue(), evt.getSource());
+        LOGGER.trace("state changed to {} on {}", evt.getNewValue(), evt.getSource());
+
         final ApplicationState new_state = (ApplicationState) evt.getNewValue();
         if (ArrayUtil.contains(new_state, states)) {
             latch.countDown();
@@ -61,6 +62,11 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
         }
     }
 
+    /**
+     * Awaits until a state change event is fired, which its new value matches one of this listeners states.
+     *
+     * @throws InterruptedException if interrupted while waiting
+     */
     public void await() throws InterruptedException {
 
         latch.await();

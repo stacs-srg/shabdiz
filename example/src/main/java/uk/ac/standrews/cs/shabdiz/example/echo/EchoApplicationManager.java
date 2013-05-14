@@ -63,8 +63,8 @@ class EchoApplicationManager extends AbstractApplicationManager {
 
         final Host host = descriptor.getHost();
         final Process echo_service_process = process_builder.start(host);
-        final String address_as_string = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
-        final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final String address_as_string = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
@@ -92,7 +92,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
             final Host host = descriptor.getHost();
             final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
             final Process kill = host.execute(kill_command);
-            ProcessUtil.waitForNormalTerminationAndGetOutput(kill);
+            ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
         }
         catch (final Exception e) {
             LOGGER.debug("failed to kill echo applciation instance", e);

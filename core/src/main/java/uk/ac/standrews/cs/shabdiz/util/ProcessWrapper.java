@@ -21,10 +21,20 @@ package uk.ac.standrews.cs.shabdiz.util;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * A convenience wrapper around {@link Process}.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class ProcessWrapper extends Process {
 
     private final Process unwrapped_process;
 
+    /**
+     * Instantiates a new wrapper around the given process.
+     *
+     * @param unwrapped_process the process to wrap
+     */
     public ProcessWrapper(final Process unwrapped_process) {
 
         this.unwrapped_process = unwrapped_process;
@@ -66,9 +76,13 @@ public class ProcessWrapper extends Process {
         unwrapped_process.destroy();
     }
 
+    /**
+     * Gets the unwrapped process.
+     *
+     * @return the unwrapped process
+     */
     public Process getUnwrappedProcess() {
 
         return unwrapped_process;
     }
-
 }

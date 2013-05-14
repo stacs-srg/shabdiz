@@ -37,9 +37,8 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * Starts a Java process on a {@link Host} from a class, which contains {@code main} method.
- * The Java classpath is to be specified as if the process is start on the local machine.
  * The classpath may be specified as a combination of {@link File}, {@link URL} or the current JVM classpath.
- * If a given {@link Host} is not local, the classpath files are collected on the local machine and are uploaded to the remote host.
+ * If a given {@link Host} is not local, the classpath files are collected on the local machine and are uploaded from the local host to the remote host.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -91,7 +90,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         LOGGER.info("remote working directory: {}", remote_working_directory);
         final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
         LOGGER.info("compressed classpath: {}", compressed_classpath);
-        CompressionUtil.compress(classpath, compressed_classpath);
+        CompressionUtil.toZip(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);
         decompressOnHost(host, remote_working_directory, compressed_classpath);
         return remote_working_directory;
@@ -102,9 +101,9 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         //TODO use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
         try {
             try {
-                ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName()));
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName()));
             } catch (final IOException e) {
-                ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName()));
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName()));
             }
         } catch (final InterruptedException e) {
             throw new IOException(e);

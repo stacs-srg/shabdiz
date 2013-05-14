@@ -148,7 +148,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             public Void call() throws Exception {
 
                 final Process cd_process = host.execute(Commands.CHANGE_DIRECTORY.get(host.getPlatform()));
-                ProcessUtil.waitForNormalTerminationAndGetOutput(cd_process);
+                ProcessUtil.awaitNormalTerminationAndGetOutput(cd_process);
                 return null; // Void task.
             }
         }, command_execution_timeout);

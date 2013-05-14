@@ -31,15 +31,16 @@ import java.util.concurrent.*;
 public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private static final TimeoutExecutorService TIMEOUT_EXECUTOR_SERVICE_INSTANCE = new TimeoutExecutorService();
+    private static final long IDLE_THREAD_TIMEOUT_IN_MILLISECONDS = 500L;
 
     private TimeoutExecutorService() {
 
-        super(0, Integer.MAX_VALUE, 500L, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamingThreadFactory("TimeoutExecutorService_"));
+        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamingThreadFactory("TimeoutExecutorService_"));
     }
 
     /**
      * Await completion of a given task for a given timeout.
-     * 
+     *
      * @param <Result> the type of the result that is returned by the task
      * @param task the task to await its completion
      * @param timeout the duration to wait for the task completion
@@ -55,7 +56,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     /**
      * Await completion of a given task for a given timeout.
-     * 
+     *
      * @param <Result> the type of the result that is returned by the task
      * @param task the task to await its execution
      * @param time the duration to wait for the task completion
@@ -71,8 +72,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
         final Future<Result> future_result = TIMEOUT_EXECUTOR_SERVICE_INSTANCE.submit(task);
         try {
             return future_result.get(time, time_unit);
-        }
-        finally {
+        } finally {
             future_result.cancel(true);
             TIMEOUT_EXECUTOR_SERVICE_INSTANCE.purge();
         }

@@ -28,7 +28,7 @@ public final class HashCodeUtil {
 
     private static final int PRIME = 31;
 
-    private HashCodeUtil() {}
+    private HashCodeUtil() { }
 
     /**
      * Generates hash code from a given collection of hash codes.
@@ -37,7 +37,7 @@ public final class HashCodeUtil {
      * @param member_hash_codes the hash codes to generate hash code from
      * @return a new hash code generated from the given collection of hash codes
      */
-    public static int generate(int... member_hash_codes) {
+    public static int generate(final int... member_hash_codes) {
 
         if (member_hash_codes == null) { throw new NullPointerException("members hash codes must not be null"); }
         if (member_hash_codes.length < 1) { throw new IllegalArgumentException("at lease one hash code must be specified"); }

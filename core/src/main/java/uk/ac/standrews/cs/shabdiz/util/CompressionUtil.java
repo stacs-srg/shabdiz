@@ -21,7 +21,12 @@ package uk.ac.standrews.cs.shabdiz.util;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,9 +34,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * A utility class for compressing files.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public final class CompressionUtil {
 
-    //FIXME use jar to make jar files of directories in classpath
+    //TODO use jar to make jar files of directories in classpath
     // e.g. jar cf aaa.jar -C /Users/masih/Documents/PhD/Code/P2P\ Workspace/shabdiz/target/classes .
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CompressionUtil.class);
@@ -40,45 +50,73 @@ public final class CompressionUtil {
 
     }
 
-    public static void compress(final File source, final File destination) throws IOException {
+    /**
+     * Compresses the given {@code source} into a {@code zip} file located at the given {@code destination}.
+     *
+     * @param source the file to zip
+     * @param destination the zipped file
+     * @throws IOException if an IO error occurs
+     */
+    public static void toZip(final File source, final File destination) throws IOException {
 
-        compress(Arrays.asList(source), destination);
+        toZip(Arrays.asList(source), destination);
     }
 
-    public static void compress(final Collection<File> sources, final File destination) throws IOException {
+    /**
+     * Compresses the given {@code sources} into a {@code zip} file located at the given {@code destination}.
+     *
+     * @param sources the files to zip
+     * @param destination the zipped file
+     * @throws IOException if an IO error occurs
+     */
+    public static void toZip(final Collection<File> sources, final File destination) throws IOException {
 
         final ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(destination)));
-        for (final File file : sources) {
-            final URI base = file.getCanonicalFile().getParentFile().toURI();
-            copyToZipOutputStream(file, zip, base);
+        try {
+            for (final File file : sources) {
+                final URI base = file.getCanonicalFile().getParentFile().toURI();
+                copyToZipStream(file, zip, base);
+            }
+        } finally {
+            zip.close();
         }
-        zip.close();
     }
 
-    private static void copyToZipOutputStream(final File file, final ZipOutputStream zip, final URI base) throws IOException {
+    private static void copyToZipStream(final File file, final ZipOutputStream zip, final URI base) throws IOException {
 
         if (file.exists()) {
             if (file.isFile()) {
-                final BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-                final ZipEntry entry = new ZipEntry(base.relativize(file.getCanonicalFile().toURI()).getPath());
-                try {
-                    zip.putNextEntry(entry);
-                    IOUtils.copy(in, zip);
-                } catch (final ZipException e) {
-                    LOGGER.warn("failed to put entry to zip stream", e);
-                } finally {
-                    in.close();
-                }
+                copyFileToZipStream(file, zip, base);
             }
             else {
-                final File[] files_list = file.listFiles();
-                if (files_list != null) {
-                    for (final File sub_file : files_list) {
-                        copyToZipOutputStream(sub_file, zip, base);
-                    }
-                }
+                copyDirectoryToZipStream(file, zip, base);
             }
         }
+    }
 
+    private static void copyDirectoryToZipStream(final File file, final ZipOutputStream zip, final URI base) throws IOException {
+        final File[] files_list = file.listFiles();
+        if (files_list != null) {
+            for (final File sub_file : files_list) {
+                copyToZipStream(sub_file, zip, base);
+            }
+        }
+    }
+
+    private static void copyFileToZipStream(final File file, final ZipOutputStream zip, final URI base) throws IOException {
+        final BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+        final ZipEntry entry = new ZipEntry(base.relativize(file.getCanonicalFile().toURI()).getPath());
+        putZipEntry(zip, in, entry);
+    }
+
+    private static void putZipEntry(final ZipOutputStream zip, final BufferedInputStream in, final ZipEntry entry) throws IOException {
+        try {
+            zip.putNextEntry(entry);
+            IOUtils.copy(in, zip);
+        } catch (final ZipException e) {
+            LOGGER.warn("failed to put entry to zip stream", e);
+        } finally {
+            in.close();
+        }
     }
 }

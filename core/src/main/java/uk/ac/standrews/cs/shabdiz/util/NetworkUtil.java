@@ -21,7 +21,12 @@ package uk.ac.standrews.cs.shabdiz.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 
@@ -269,18 +274,6 @@ public final class NetworkUtil {
     }
 
     /**
-     * Returns a description of a given host address.
-     *
-     * @param address an address
-     * @param port a port
-     * @return a description of the address
-     */
-    public static String formatHostAddress(final InetAddress address, final int port) {
-
-        return formatHostAddress(address.getHostAddress(), port);
-    }
-
-    /**
      * Constructs an {@link InetSocketAddress address} from an String representation of an address that is produced by {@link InetSocketAddress#toString()}.
      *
      * @param address_in_string the address in string
@@ -301,8 +294,6 @@ public final class NetworkUtil {
         final InetAddress addr = name.equals("") ? InetAddress.getByAddress(address_bytes) : InetAddress.getByAddress(name, address_bytes);
         return new InetSocketAddress(addr, port);
     }
-
-    //---------------------------------------------------------
 
     private static byte[] getBytes(final String host) {
 

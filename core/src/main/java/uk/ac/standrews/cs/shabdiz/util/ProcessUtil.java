@@ -21,6 +21,7 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.management.RuntimeMXBean;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -36,6 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import com.staticiser.jetson.util.NamingThreadFactory;
 
+/**
+ * A utility class for awaiting {@link Process} termination and parsing {@link Process} outputs.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public final class ProcessUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtil.class);
@@ -47,7 +53,17 @@ public final class ProcessUtil {
 
     }
 
-    public static String waitForNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
+    /**
+     * Awaits normal termination of a given {@code process} and returns its output from {@link Process#getInputStream()}.
+     * A process is considered to have terminated normally when: its exit value is equal to {@code 0}, or on output was produced from its {@link Process#getErrorStream()}.
+     * The output produced by the process's {@link Process#getErrorStream()} is wrapped around an {@link IOException} and thrown.
+     *
+     * @param process the process to wait for its normal termination
+     * @return the output produced by the process's {@link Process#getInputStream()}
+     * @throws InterruptedException if interrupted while waiting for process termination
+     * @throws IOException if the process terminates with some output in its error stream
+     */
+    public static String awaitNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
         final ExecutorService error_reader_executor = Executors.newFixedThreadPool(2, new NamingThreadFactory("process_util_"));
         try {
@@ -75,23 +91,32 @@ public final class ProcessUtil {
                 LOGGER.info("done waiting for process, exit value: {}", exit_value);
                 future_error.get();
                 if (exit_value != NORMAL_TERMINATION) {
-                    LOGGER.warn("No error occured while executing the process but the exit value is non zero: {}", exit_value);
+                    LOGGER.warn("No error occurred while executing the process but the exit value is non zero: {}", exit_value);
                 }
                 return future_result.get().trim();
-            }
-            catch (final ExecutionException e) {
-                LOGGER.info("error occured on process execution", e);
+            } catch (final ExecutionException e) {
+                LOGGER.info("error occurred on process execution", e);
                 final Throwable cause = e.getCause();
                 throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
             }
-        }
-        finally {
+        } finally {
             process.destroy();
             error_reader_executor.shutdownNow();
         }
     }
 
-    public static String getValueFromProcessOutput(final Process process, final String key, final Duration timeout) throws InterruptedException, TimeoutException, IOException {
+    /**
+     * Scans the process output for a value that is specified with the give {@code key}.
+     *
+     * @param process the process to scan its output
+     * @param key the key of the value to scan for
+     * @param timeout the maximum time to wait for the value
+     * @return the value associated to the given key in the process output stream
+     * @throws InterruptedException if interrupted while waiting
+     * @throws TimeoutException if the timeout has elapsed before a result is produced
+     * @throws IOException if an IO error occurs
+     */
+    public static String scanProcessOutput(final Process process, final String key, final Duration timeout) throws InterruptedException, TimeoutException, IOException {
 
         boolean scan_succeeded = false;
         final Callable<String> scan_task = createProcessOutputScanTask(process, key);
@@ -99,32 +124,14 @@ public final class ProcessUtil {
             final String value = TimeoutExecutorService.awaitCompletion(scan_task, timeout);
             scan_succeeded = true;
             return value;
-        }
-        catch (final ExecutionException e) {
+        } catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
-            throw IOException.class.isInstance(cause) ? IOException.class.cast(cause) : new IOException(cause);
-        }
-        finally {
+            throw IOException.class.isInstance(cause) ? (IOException) cause : new IOException(cause);
+        } finally {
             if (!scan_succeeded) {
                 process.destroy();
             }
         }
-    }
-
-    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
-
-        Integer pid = null;
-        final int index_of_at = runtime_mxbean_name.indexOf("@");
-
-        if (index_of_at != -1) {
-            try {
-                pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
-            }
-            catch (final NumberFormatException e) {
-                LOGGER.debug("failed to extract pid from runtime MXBean name", e);
-            }
-        }
-        return pid;
     }
 
     private static Callable<String> createProcessOutputScanTask(final Process process, final String key) {
@@ -139,23 +146,54 @@ public final class ProcessUtil {
                 do {
                     final String output_line = scanner.nextLine();
                     worker_address = findValueInLine(output_line, key);
-                }
-                while (worker_address == null && !Thread.currentThread().isInterrupted());
+                } while (worker_address == null && !Thread.currentThread().isInterrupted());
                 // Scanner is not closed on purpose. The stream belongs to Process instance.
                 return worker_address;
             }
         };
     }
 
+    private static String findValueInLine(final String line, final String key) throws UnknownHostException {
+
+        return line != null && line.startsWith(key + DELIMITER) ? line.split(DELIMITER)[1] : null;
+    }
+
+    /**
+     * Attempts to get a PID from a given runtime MXBean name.
+     * The expected format is {@code <pid>@<machine_name>}.
+     * Returns {@code null} if the given MXBean name does not match the above pattern.
+     *
+     * @param runtime_mxbean_name a runtime MXBean name
+     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
+     * @see RuntimeMXBean#getName()
+     */
+    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
+
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+
+        if (index_of_at != -1) {
+            try {
+                pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+            } catch (final NumberFormatException e) {
+                LOGGER.debug("failed to extract pid from runtime MXBean name", e);
+            }
+        }
+        return pid;
+    }
+
+    /**
+     * Prints a line containing the given {@code key value} pair to the given stream.
+     * This method is thread-safe.
+     *
+     * @param out the stream to write to
+     * @param key the key
+     * @param value the value
+     */
     public static void printKeyValue(final PrintStream out, final String key, final Object value) {
 
         synchronized (out) {
             out.println(key + DELIMITER + value);
         }
-    }
-
-    private static String findValueInLine(final String line, final String key) throws UnknownHostException {
-
-        return line != null && line.startsWith(key + DELIMITER) ? line.split(DELIMITER)[1] : null;
     }
 }

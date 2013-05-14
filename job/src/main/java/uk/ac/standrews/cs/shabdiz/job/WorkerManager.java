@@ -76,7 +76,7 @@ class WorkerManager extends AbstractApplicationManager {
         final Process worker_process = worker_process_builder.start(host);
 
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
-        final String runtime_mxbean_name = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
+        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
         final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, worker_remote_address);
@@ -88,7 +88,7 @@ class WorkerManager extends AbstractApplicationManager {
 
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
 
-        final String address_as_string = ProcessUtil.getValueFromProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
+        final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
         return NetworkUtil.getAddressFromString(address_as_string);
     }
 
@@ -103,7 +103,7 @@ class WorkerManager extends AbstractApplicationManager {
                     final Platform platform = descriptor.getHost().getPlatform();
                     final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
                     final Process kill = descriptor.getHost().execute(kill_command);
-                    ProcessUtil.waitForNormalTerminationAndGetOutput(kill);
+                    ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
                 }
                 try {
                     worker.shutdown();

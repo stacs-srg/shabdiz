@@ -124,10 +124,10 @@ public final class Platforms {
         String os_name;
         try {
             try {
-                os_name = ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(UNAME_COMMAND));
+                os_name = ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(UNAME_COMMAND));
             }
             catch (final IOException e) {
-                os_name = ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(VER_COMMAND));
+                os_name = ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(VER_COMMAND));
             }
         }
         catch (final InterruptedException e) {

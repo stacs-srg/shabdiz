@@ -20,11 +20,8 @@
 package uk.ac.standrews.cs.shabdiz.host;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -72,7 +69,7 @@ public class LocalHostTest {
     public void testExecuteWithWorkingDirectory() throws Exception {
         final File root = new File(new File(".").getCanonicalPath()).getParentFile();
         final Process pwd_process = local_host.execute("../", Commands.CURRENT_WORKING_DIRECTORY.get(local_host.getPlatform()));
-        final String pwd_process_output = ProcessUtil.waitForNormalTerminationAndGetOutput(pwd_process);
+        final String pwd_process_output = ProcessUtil.awaitNormalTerminationAndGetOutput(pwd_process);
         assertEquals(root.getAbsolutePath(), pwd_process_output);
     }
 
@@ -80,7 +77,7 @@ public class LocalHostTest {
     public void testExecuteWithoutWorkingDirectory() throws Exception {
         final File root = new File(".");
         final Process pwd_process = local_host.execute(Commands.CURRENT_WORKING_DIRECTORY.get(local_host.getPlatform()));
-        final String pwd_process_output = ProcessUtil.waitForNormalTerminationAndGetOutput(pwd_process);
+        final String pwd_process_output = ProcessUtil.awaitNormalTerminationAndGetOutput(pwd_process);
         assertEquals(root.getCanonicalPath(), pwd_process_output);
     }
 

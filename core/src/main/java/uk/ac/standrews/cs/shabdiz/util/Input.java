@@ -41,7 +41,7 @@ import javax.swing.event.AncestorListener;
  */
 public final class Input {
 
-    public static final String DEFAULT_CHARACTER_ENCODING = "UTF8";
+    private static final String DEFAULT_CHARACTER_ENCODING = "UTF8";
 
     /** Prevent instantiation of utility class. */
     private Input() {

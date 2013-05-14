@@ -77,7 +77,7 @@ public class ProcessUtilTest {
 
         final Process process = local_host.execute("the command that is not.");
         try {
-            ProcessUtil.waitForNormalTerminationAndGetOutput(process);
+            ProcessUtil.awaitNormalTerminationAndGetOutput(process);
             fail("expected exception");
         }
         catch (final IOException e) {
@@ -98,6 +98,6 @@ public class ProcessUtilTest {
         LOGGER.info("Platform {}", local_platform);
         final String test_message = "testing successful command execution";
         final Process username_process = local_host.execute(Commands.ECHO.get(local_platform, test_message));
-        Assert.assertEquals(test_message, ProcessUtil.waitForNormalTerminationAndGetOutput(username_process));
+        Assert.assertEquals(test_message, ProcessUtil.awaitNormalTerminationAndGetOutput(username_process));
     }
 }

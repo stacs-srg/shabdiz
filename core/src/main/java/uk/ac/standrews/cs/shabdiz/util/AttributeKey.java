@@ -49,15 +49,14 @@ public final class AttributeKey<Value> implements Comparable<AttributeKey<?>> {
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return id.hashCode();
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AttributeKey)) return false;
-        final AttributeKey that = (AttributeKey) o;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        return true;
+    public boolean equals(final Object other) {
+        if (this == other) { return true; }
+        if (!(other instanceof AttributeKey)) { return false; }
+        final AttributeKey that = (AttributeKey) other;
+        return id.equals(that.id);
     }
 }

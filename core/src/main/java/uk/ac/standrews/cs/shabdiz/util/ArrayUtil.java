@@ -18,26 +18,24 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class ArrayUtil.
+ * A utility class for array search and manipulation.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class ArrayUtil {
 
-    /**
-     * Instantiates a new array util.
-     */
     private ArrayUtil() {
 
     }
 
     /**
-     * Contains.
-     * 
-     * @param <Element> the generic type
-     * @param target the element
-     * @param elements the elements
-     * @return true, if successful
+     * Checks if the given {@code elements} contain the given {@code target}.
+     *
+     * @param <Element> the type of elements
+     * @param target the element to check the presence of
+     * @param elements the elements to look for the target in
+     * @return {@code true}, {@code elements} contain the {@code target}
      */
     public static <Element> boolean contains(final Element target, final Element[] elements) {
 
