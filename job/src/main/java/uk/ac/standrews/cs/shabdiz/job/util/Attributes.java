@@ -40,6 +40,7 @@ public final class Attributes {
     /**
      * Gets the mapped value to the given key or {@code null} if no such mapping exists.
      *
+     * @param <Value> The type of the value that is mapped to the given key
      * @param key the key of the value to be retrieved
      * @return the value mapped to the given key, or {@code null} if no such mapping exists
      * @see ConcurrentHashMap#get(Object)
@@ -53,6 +54,7 @@ public final class Attributes {
      * Stores the given key/value pair.
      * Both key and value must be {@code non-null}.
      *
+     * @param <Value> The type of the value that is mapped to the given key
      * @param key the key to which the value is associated
      * @param value the value to store
      * @see ConcurrentHashMap#put(Object, Object)
@@ -67,6 +69,7 @@ public final class Attributes {
     /**
      * Removes the key/value pair from this store to which the given key is mapped.
      *
+     * @param <Value> The type of the value that is mapped to the given key
      * @param key the key of the value to be removed
      * @return previous value associated to the given key, or {@code null} if no such mapping found
      * @see ConcurrentHashMap#remove(Object)
