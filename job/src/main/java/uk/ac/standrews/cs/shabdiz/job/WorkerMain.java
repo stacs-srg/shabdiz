@@ -41,9 +41,10 @@ import java.util.logging.Logger;
  */
 public class WorkerMain {
 
+    static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
+    static final String RUNTIME_MX_BEAN_NAME_KEY = "runtimeMXBeanName";
+
     private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
-    public static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
-    public static final String RUNTIME_MXBEAN_NAME_KEY = "runtimeMXBeanName";
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
 
@@ -75,8 +76,6 @@ public class WorkerMain {
      * <dd>Specifies the local address and port at which the worker service should be made available.</dd>
      * <dt>-chost:port (required)</dt>
      * <dd>Specifies the address and port of an existing launcher callback server.</dd>
-     * <dt>-Dlevel (optional)</dt>
-     * <dd>Specifies a diagnostic level from 0 (most detailed) to 6 (least detailed).</dd>
      * </dl>
      * 
      * @param args see above
@@ -91,7 +90,7 @@ public class WorkerMain {
         try {
             final DefaultWorkerRemote worker = server.createNode();
             printWorkerAddress(worker);
-            ProcessUtil.printKeyValue(System.out, RUNTIME_MXBEAN_NAME_KEY, ManagementFactory.getRuntimeMXBean().getName());
+            ProcessUtil.printKeyValue(System.out, RUNTIME_MX_BEAN_NAME_KEY, ManagementFactory.getRuntimeMXBean().getName());
             LOGGER.info("Started Shabdiz worker at " + worker.getAddress());
         }
         catch (final IOException e) {
@@ -106,7 +105,7 @@ public class WorkerMain {
         ProcessUtil.printKeyValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
     }
 
-    public static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port) {
+    static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port) {
 
         final List<String> arguments = new ArrayList<String>();
         arguments.add(CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
@@ -126,7 +125,7 @@ public class WorkerMain {
      * @throws InterruptedException the interrupted exception
      * @throws TimeoutException the timeout exception
      */
-    public DefaultWorkerRemote createNode() throws IOException, AlreadyBoundException, InterruptedException, TimeoutException {
+    DefaultWorkerRemote createNode() throws IOException, AlreadyBoundException, InterruptedException, TimeoutException {
 
         return new DefaultWorkerRemote(local_address, launcher_callback_address);
     }

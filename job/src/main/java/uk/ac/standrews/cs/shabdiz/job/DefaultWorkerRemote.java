@@ -37,66 +37,62 @@ import com.staticiser.jetson.util.NamingThreadFactory;
 
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class DefaultWorkerRemote implements WorkerRemote {
 
-    private final InetSocketAddress local_address;
-    private final ExecutorService exexcutor;
-    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new ServerFactory<WorkerRemote>(WorkerRemote.class, WorkerJsonFactory.getInstance());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
+    private final InetSocketAddress local_address;
+    private final ExecutorService executor;
+    private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final Server server;
     private final WorkerCallback callback;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
-
-    DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
+    protected DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
         callback = CallbackProxyFactory.getProxy(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
-        exexcutor = createExecutorService();
+        executor = createExecutorService();
         server = SERVER_FACTORY.createServer(this);
         server.setBindAddress(local_address);
         expose();
         this.local_address = server.getLocalSocketAddress();
     }
 
+    protected ExecutorService createExecutorService() {
+
+        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_"));
+    }
+
+    private void expose() throws IOException {
+
+        server.expose();
+    }
+
     @Override
     public UUID submitJob(final JobRemote job) {
 
         final UUID job_id = generateJobId();
-        exexcutor.execute(new Runnable() {
+        executor.execute(new Runnable() {
 
             @Override
             public void run() {
 
-                final Future<? extends Serializable> real_future = exexcutor.submit(job);
+                final Future<? extends Serializable> real_future = executor.submit(job);
                 submitted_jobs.put(job_id, real_future);
 
                 try {
-                    //FIXME this blocks until the job is complete; Could be written nicer so that it runs after completion.
+                    //TODO this blocks until the job is complete; Could be written nicer so that it runs after completion.
                     handleCompletion(job_id, real_future.get());
-                }
-                catch (final Exception e) {
+                } catch (final Exception e) {
                     handleException(job_id, e);
                 }
             }
         });
 
         return job_id;
-    }
-
-    @Override
-    public synchronized void shutdown() {
-
-        exexcutor.shutdownNow();
-        try {
-            unexpose();
-        }
-        catch (final IOException e) {
-            LOGGER.debug("Unable to unexpose the worker server", e);
-        }
     }
 
     @Override
@@ -112,20 +108,14 @@ public class DefaultWorkerRemote implements WorkerRemote {
         throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
     }
 
-    private ExecutorService createExecutorService() {
+    @Override
+    public synchronized void shutdown() {
 
-        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_"));
-    }
-
-    private void handleCompletion(final UUID job_id, final Serializable result) {
-
+        executor.shutdownNow();
         try {
-            callback.notifyCompletion(job_id, result);
-            submitted_jobs.remove(job_id);
-        }
-        catch (final JsonRpcException e) {
-            // XXX discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
-            LOGGER.error("failed to notify job completion", e);
+            unexpose();
+        } catch (final IOException e) {
+            LOGGER.debug("Unable to unexpose the worker server", e);
         }
     }
 
@@ -134,16 +124,10 @@ public class DefaultWorkerRemote implements WorkerRemote {
         try {
             callback.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
-        }
-        catch (final JsonRpcException e) {
-            // TODO use some sort of error manager  which handles the launcher callback rpc exception
+        } catch (final JsonRpcException e) {
+            //TODO use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.error("failed to notify job exception", e);
         }
-    }
-
-    private void expose() throws IOException {
-
-        server.expose();
     }
 
     private void unexpose() throws IOException {
@@ -151,14 +135,29 @@ public class DefaultWorkerRemote implements WorkerRemote {
         server.unexpose();
     }
 
+    private void handleCompletion(final UUID job_id, final Serializable result) {
+
+        try {
+            callback.notifyCompletion(job_id, result);
+            submitted_jobs.remove(job_id);
+        } catch (final JsonRpcException e) {
+            //TODO discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
+            LOGGER.error("failed to notify job completion", e);
+        }
+    }
+
     private static synchronized UUID generateJobId() {
 
         return UUID.randomUUID();
     }
 
+    /**
+     * Gets the address on which this worker is exposed.
+     *
+     * @return the address on which this worker is exposed
+     */
     public InetSocketAddress getAddress() {
 
         return local_address;
     }
-
 }

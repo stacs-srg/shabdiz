@@ -16,24 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * Provides the main job execution functionality.
+ */
 package uk.ac.standrews.cs.shabdiz.job;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-import com.staticiser.jetson.ClientFactory;
-
-final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
-
-    private static final CallbackProxyFactory CALLBACK_PROXY_FACTORY_INSTANCE = new CallbackProxyFactory();
-
-    private CallbackProxyFactory() {
-
-        super(WorkerCallback.class, WorkerJsonFactory.getInstance());
-    }
-
-    static WorkerCallback getProxy(final InetSocketAddress address) throws IllegalArgumentException, IOException {
-
-        return CALLBACK_PROXY_FACTORY_INSTANCE.get(address);
-    }
-}

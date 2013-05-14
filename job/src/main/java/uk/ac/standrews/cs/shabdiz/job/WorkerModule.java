@@ -60,13 +60,15 @@ class WorkerModule extends SimpleModule {
 
     static final class JsonSerializableDeserializer extends StdDeserializer<Serializable> {
 
+        private static final long serialVersionUID = -6145287140616343053L;
+
         protected JsonSerializableDeserializer() {
 
             super(Serializable.class);
         }
 
         @Override
-        public Serializable deserialize(final JsonParser parser, final DeserializationContext context) throws IOException, JsonProcessingException {
+        public Serializable deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
 
             ObjectInputStream object_input_stream = null;
 
@@ -78,9 +80,7 @@ class WorkerModule extends SimpleModule {
                 final ByteArrayInputStream bytes_input_stream = new ByteArrayInputStream(object_as_bytes);
                 object_input_stream = new ObjectInputStream(bytes_input_stream);
 
-                final Serializable deserialized_object = (Serializable) object_input_stream.readObject();
-
-                return deserialized_object;
+                return (Serializable) object_input_stream.readObject();
             } catch (final ClassNotFoundException e) {
                 throw new JsonMappingException("unable to deserialize Java object", e);
             } finally {
@@ -97,11 +97,12 @@ class WorkerModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(final Serializable object, final JsonGenerator generator, final SerializerProvider provider) throws IOException, JsonProcessingException {
+        public void serialize(final Serializable object, final JsonGenerator generator, final SerializerProvider provider) throws IOException {
 
             if (isEmpty(object)) {
                 generator.writeNull();
-            } else {
+            }
+            else {
 
                 ObjectOutputStream object_output_stream = null;
 
@@ -133,7 +134,8 @@ class WorkerModule extends SimpleModule {
                 if (_interfaceMappings != null) {
                     return _interfaceMappings.get(key);
                 }
-            } else {
+            }
+            else {
                 if (_classMappings != null) {
                     return _classMappings.get(key);
                 }

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public final class WorkerJsonFactory extends JsonFactory {
+final class WorkerJsonFactory extends JsonFactory {
 
     private static final long serialVersionUID = 15401382709188608L;
     private static ObjectMapper worker_object_mapper;
@@ -39,7 +39,7 @@ public final class WorkerJsonFactory extends JsonFactory {
         super(worker_object_mapper);
     }
 
-    public static WorkerJsonFactory getInstance() {
+    static WorkerJsonFactory getInstance() {
 
         return WORKER_JSON_FACTORY_INSTANCE;
     }

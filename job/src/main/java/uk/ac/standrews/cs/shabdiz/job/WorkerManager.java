@@ -76,7 +76,7 @@ class WorkerManager extends AbstractApplicationManager {
         final Process worker_process = worker_process_builder.start(host);
 
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
-        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
+        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
         final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, worker_remote_address);

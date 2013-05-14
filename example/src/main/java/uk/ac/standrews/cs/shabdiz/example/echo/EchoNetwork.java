@@ -25,6 +25,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
  * Presents a network of Echo service instances.
@@ -60,21 +61,16 @@ public class EchoNetwork extends ApplicationNetwork {
 
     @Override
     public boolean equals(final Object other) {
-        if (this == other) return true;
-        if (!(other instanceof EchoNetwork)) return false;
-        if (!super.equals(other)) return false;
 
+        if (this == other) { return true; }
+        if (!(other instanceof EchoNetwork) || !super.equals(other)) { return false; }
         final EchoNetwork that = (EchoNetwork) other;
-
-        if (manager != null ? !manager.equals(that.manager) : that.manager != null) return false;
-
-        return true;
+        return manager.equals(that.manager);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (manager != null ? manager.hashCode() : 0);
-        return result;
+
+        return HashCodeUtil.generate(super.hashCode(), manager.hashCode());
     }
 }
