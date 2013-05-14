@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
 import java.io.File;
@@ -41,7 +42,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 
 /**
- * Deploys workers on hosts.
+ * Presents a network of {@link Worker workers}.
+ * {@link Host Hosts} are added using {@link #add(Host)}.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -59,7 +61,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      *
-     * @throws InterruptedException the interrupted exception
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public WorkerNetwork() throws IOException {
@@ -111,6 +112,12 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         return callback_address;
     }
 
+    /**
+     * Adds a host to this worker network.
+     *
+     * @param host the host to add
+     * @return the ApplicationDescriptor associated with the added host, or {@code null} if the host was not added
+     */
     public ApplicationDescriptor add(final Host host) {
 
         final ApplicationDescriptor descriptor = new ApplicationDescriptor(host, worker_manager);
@@ -162,50 +169,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         }
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (!(other instanceof WorkerNetwork)) {
-            return false;
-        }
-        if (!super.equals(other)) {
-            return false;
-        }
-
-        final WorkerNetwork that = (WorkerNetwork) other;
-
-        if (callback_address != null ? !callback_address.equals(that.callback_address) : that.callback_address != null) {
-            return false;
-        }
-        if (callback_server != null ? !callback_server.equals(that.callback_server) : that.callback_server != null) {
-            return false;
-        }
-        if (callback_server_factory != null ? !callback_server_factory.equals(that.callback_server_factory) : that.callback_server_factory != null) {
-            return false;
-        }
-        if (id_future_map != null ? !id_future_map.equals(that.id_future_map) : that.id_future_map != null) {
-            return false;
-        }
-        if (worker_manager != null ? !worker_manager.equals(that.worker_manager) : that.worker_manager != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (callback_address != null ? callback_address.hashCode() : 0);
-        result = 31 * result + (callback_server != null ? callback_server.hashCode() : 0);
-        result = 31 * result + (id_future_map != null ? id_future_map.hashCode() : 0);
-        result = 31 * result + (worker_manager != null ? worker_manager.hashCode() : 0);
-        result = 31 * result + (callback_server_factory != null ? callback_server_factory.hashCode() : 0);
-        return result;
-    }
-
     private void releaseAllPendingFutures() {
 
         final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
@@ -216,6 +179,29 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
             }
         }
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        if (this == other) { return true; }
+        if (!(other instanceof WorkerNetwork)) { return false; }
+        if (!super.equals(other)) { return false; }
+
+        final WorkerNetwork that = (WorkerNetwork) other;
+
+        if (!callback_address.equals(that.callback_address)) { return false; }
+        if (!callback_server.equals(that.callback_server)) { return false; }
+        if (!callback_server_factory.equals(that.callback_server_factory)) { return false; }
+        if (!id_future_map.equals(that.id_future_map)) { return false; }
+        if (!worker_manager.equals(that.worker_manager)) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+
+        return HashCodeUtil.generate(super.hashCode(), callback_address.hashCode(), id_future_map.hashCode(), callback_server.hashCode(), worker_manager.hashCode(), callback_server_factory.hashCode());
     }
 
     <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {

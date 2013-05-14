@@ -18,10 +18,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.exception.JsonRpcException;
+
 import java.io.Serializable;
 import java.util.UUID;
-
-import com.staticiser.jetson.exception.JsonRpcException;
 
 /**
  * Receives notifications from workers about the outcome of a submitted job.

@@ -18,9 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job.util;
 
-import java.io.Serializable;
-
 import uk.ac.standrews.cs.shabdiz.job.JobRemote;
+
+import java.io.Serializable;
 
 /**
  * Similar to the class {@link Void}, with the difference that this class is {@link Serializable}.

@@ -18,12 +18,12 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.exception.JsonRpcException;
+
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-
-import com.staticiser.jetson.exception.JsonRpcException;
 
 /**
  * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.

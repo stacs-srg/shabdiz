@@ -18,19 +18,19 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.exception.JsonRpcException;
+
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Future;
-
-import com.staticiser.jetson.exception.JsonRpcException;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DefaultWorkerWrapper implements Worker {
+class DefaultWorkerWrapper implements Worker {
 
     private final WorkerNetwork network;
     private final Process worker_process;
@@ -38,14 +38,7 @@ public class DefaultWorkerWrapper implements Worker {
     private final InetSocketAddress worker_address;
     private volatile Integer worker_process_id;
 
-    /**
-     * Instantiates a new worker which is contacted passively.
-     * 
-     * @param proxy the worker remote to wrap
-     * @param network the launcher by which the remote correspondence of this worker is launched
-     * @param worker_process
-     */
-    public DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
+    DefaultWorkerWrapper(final WorkerNetwork network, final WorkerRemote proxy, final Process worker_process, final InetSocketAddress worker_address) {
 
         this.network = network;
         this.proxy = proxy;

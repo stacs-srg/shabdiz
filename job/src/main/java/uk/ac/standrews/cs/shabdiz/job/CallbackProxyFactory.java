@@ -18,10 +18,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.ClientFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
-import com.staticiser.jetson.ClientFactory;
 
 final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
 
@@ -32,7 +32,7 @@ final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
         super(WorkerCallback.class, WorkerJsonFactory.getInstance());
     }
 
-    static WorkerCallback getProxy(final InetSocketAddress address) throws IllegalArgumentException, IOException {
+    static WorkerCallback getProxy(final InetSocketAddress address) throws IOException {
 
         return CALLBACK_PROXY_FACTORY_INSTANCE.get(address);
     }

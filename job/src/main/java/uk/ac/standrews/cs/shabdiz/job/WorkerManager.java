@@ -34,7 +34,6 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +85,7 @@ class WorkerManager extends AbstractApplicationManager {
         return worker_wrapper;
     }
 
-    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws UnknownHostException, IOException, InterruptedException, TimeoutException {
+    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws IOException, InterruptedException, TimeoutException {
 
         final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
         return NetworkUtil.getAddressFromString(address_as_string);
