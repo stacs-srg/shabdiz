@@ -18,6 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -30,7 +31,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
  * @see ApplicationDescriptor#getAttribute(AttributeKey)
  * @see ApplicationDescriptor#setAttribute(AttributeKey, Object)
  */
-public final class AttributeKey<Value> implements Comparable<AttributeKey<?>> {
+public final class AttributeKey<Value> implements Comparable<AttributeKey<?>>, Serializable {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private final Long id;

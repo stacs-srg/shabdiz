@@ -16,9 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.standrews.cs.shabdiz.job;
+
+import java.io.Serializable;
+import java.util.concurrent.Callable;
 
 /**
- * Provides wrappers for {@link uk.ac.standrews.cs.shabdiz.job.JobRemote}.
+ * Presents a computation to be performed on a {@link Worker worker}.
+ * 
+ * @param <Result> the type of result returned by this job
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-package uk.ac.standrews.cs.shabdiz.job.wrapper;
+public interface Job<Result extends Serializable> extends Callable<Result>, Serializable {
 
+}

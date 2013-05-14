@@ -71,7 +71,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     }
 
     @Override
-    public UUID submitJob(final JobRemote job) {
+    public UUID submitJob(final Job job) {
 
         final UUID job_id = generateJobId();
         executor.execute(new Runnable() {

@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 /**
- * Provides a service to execute one or more asynchronous {@link JobRemote jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
+ * Provides a service to execute one or more asynchronous {@link Job jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -49,7 +49,7 @@ public interface Worker extends Comparable<Worker> {
      * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    <Result extends Serializable> Future<Result> submit(JobRemote<Result> job) throws JsonRpcException;
+    <Result extends Serializable> Future<Result> submit(Job<Result> job) throws JsonRpcException;
 
     /**
      * Attempts to {@link Thread#interrupt() interrupt} any executing jobs. After this method is called any future job submission with be rejected.

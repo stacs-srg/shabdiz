@@ -33,22 +33,23 @@ import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
-import uk.ac.standrews.cs.shabdiz.job.JobRemote;
+import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.util.ObjectStore;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 
 public class SupervisedRemoteTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedRemoteTest.class);
 
-    private static final class VerifyStoredTestDirJob implements JobRemote<Boolean> {
+    private static final class VerifyStoredTestDirJob implements Job<Boolean> {
 
-        private final UUID key_of_job_result;
+        private final AttributeKey<File> key_of_job_result;
         private static final long serialVersionUID = -914929899418405919L;
 
-        private VerifyStoredTestDirJob(final UUID key_of_job_result) {
+        private VerifyStoredTestDirJob(final AttributeKey<File> key_of_job_result) {
 
             this.key_of_job_result = key_of_job_result;
         }
@@ -56,7 +57,7 @@ public class SupervisedRemoteTest {
         @Override
         public Boolean call() throws Exception {
 
-            final File temp_file = (File) ObjectStore.STORE.get(key_of_job_result);
+            final File temp_file = ObjectStore.get(key_of_job_result);
             try {
                 return temp_file.exists();
             }
@@ -66,16 +67,16 @@ public class SupervisedRemoteTest {
         }
     }
 
-    private static final class StoreTestDirectoryJob implements JobRemote<UUID> {
+    private static final class StoreTestDirectoryJob implements Job<AttributeKey<File>> {
 
         private static final long serialVersionUID = 7824880921808363822L;
 
         @Override
-        public UUID call() throws Exception {
+        public AttributeKey<File> call() throws Exception {
 
             final File temp_file = File.createTempFile("test_shabdiz_temp", ".tmp");
-            final UUID key = UUID.randomUUID();
-            ObjectStore.STORE.put(key, temp_file);
+            final AttributeKey<File> key = new AttributeKey<File>();
+            ObjectStore.put(key, temp_file);
             return key;
         }
     }
@@ -102,10 +103,10 @@ public class SupervisedRemoteTest {
             worker = network.iterator().next().getApplicationReference();
 
             System.out.println("submitting job to the remote worker");
-            final Future<UUID> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());
+            final Future<AttributeKey<File>> test_dir_job_result = worker.submit(new StoreTestDirectoryJob());
 
             System.out.println("Await Result");
-            final UUID remotely_sotored_object_key = test_dir_job_result.get(20, TimeUnit.SECONDS);
+            final AttributeKey<File> remotely_sotored_object_key = test_dir_job_result.get(20, TimeUnit.SECONDS);
 
             System.out.println("An object is stored in the remore JVM ObjectStore with the key of: " + remotely_sotored_object_key);
             System.out.println("submitting the second job to retrieve the associated value with the key");

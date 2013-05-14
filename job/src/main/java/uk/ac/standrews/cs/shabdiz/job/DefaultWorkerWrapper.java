@@ -63,7 +63,7 @@ class DefaultWorkerWrapper implements Worker {
     }
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final JobRemote<Result> job) throws JsonRpcException {
+    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws JsonRpcException {
 
         synchronized (network) {
             final UUID job_id = proxy.submitJob(job);

@@ -18,13 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz.job.util;
 
-import uk.ac.standrews.cs.shabdiz.job.JobRemote;
+import uk.ac.standrews.cs.shabdiz.job.Job;
 
 import java.io.Serializable;
 
 /**
  * Similar to the class {@link Void}, with the difference that this class is {@link Serializable}.
- * Since {@link Void} is not {@link Serializable}, this class may be used as the return type of a <code>void</code> {@link JobRemote}.
+ * Since {@link Void} is not {@link Serializable}, this class may be used as the return type of a {@code void} {@link Job}.
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

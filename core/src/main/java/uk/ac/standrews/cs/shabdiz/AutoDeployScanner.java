@@ -20,6 +20,8 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
@@ -32,15 +34,11 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public class AutoDeployScanner extends AbstractConcurrentScanner {
 
     private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScanner.class);
 
     protected AutoDeployScanner(final Duration cycle_delay) {
 
         super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
-    }
-
-    protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
-
-        return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
     }
 
     @Override
@@ -50,12 +48,15 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
             try {
                 final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
                 descriptor.setApplicationReference(application_reference);
-            }
-            catch (final Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (final Exception e) {
+                LOGGER.debug("auto deployment failed", e);
             }
         }
+    }
+
+    protected boolean isDeployable(final ApplicationDescriptor application_descriptor) {
+
+        return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
     }
 
 }

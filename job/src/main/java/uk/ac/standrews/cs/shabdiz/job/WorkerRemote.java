@@ -38,7 +38,7 @@ public interface WorkerRemote {
      * @throws JsonRpcException if unable to make the remote call
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    UUID submitJob(JobRemote job) throws JsonRpcException;
+    UUID submitJob(Job job) throws JsonRpcException;
 
     /**
      * Cancels a given job exexuting on this worker.

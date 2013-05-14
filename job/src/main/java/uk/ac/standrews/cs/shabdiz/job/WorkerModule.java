@@ -52,7 +52,7 @@ class WorkerModule extends SimpleModule {
         super("Shabdiz Worker Module");
 
         addDeserializer(Serializable.class, new JsonSerializableDeserializer());
-        setMixInAnnotation(JobRemote.class, SerializableMixIn.class);
+        setMixInAnnotation(Job.class, SerializableMixIn.class);
         setMixInAnnotation(Throwable.class, SerializableMixIn.class);
         final ShabdizWorkerSerializers serializers = new ShabdizWorkerSerializers();
         serializers.addSerializer(Serializable.class, new JsonSerializableSerializer());
