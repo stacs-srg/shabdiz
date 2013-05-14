@@ -284,12 +284,10 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     @Override
     public boolean equals(final Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (!(other instanceof ApplicationDescriptor)) {
-            return false;
-        }
+
+        if (this == other) { return true; }
+        if (!(other instanceof ApplicationDescriptor)) { return false; }
+
         final ApplicationDescriptor that = (ApplicationDescriptor) other;
         return id.equals(that.id);
     }
@@ -297,12 +295,15 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     @Override
     public String toString() {
 
-        final StringBuilder builder = new StringBuilder();
-        builder.append("HOST ");
-        builder.append(host == null ? "UNSPECIFIED" : host.getName());
-        builder.append(", ATTRIBUTES ");
-        builder.append(attributes);
-        return builder.toString();
+        final StringBuilder sb = new StringBuilder("ApplicationDescriptor{");
+        sb.append("id=").append(id);
+        sb.append(", host=").append(host);
+        sb.append(", state=").append(state);
+        sb.append(", application_reference=").append(application_reference);
+        sb.append(", application_manager=").append(application_manager);
+        sb.append(", attributes=").append(attributes);
+        sb.append('}');
+        return sb.toString();
     }
 
     private final class ApplicationDescriptorHostWrapper extends HostWrapper {

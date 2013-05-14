@@ -36,8 +36,11 @@ import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
- * The Class RemoteJavaProcessBuilder.
- * 
+ * Starts a Java process on a {@link Host} from a class, which contains {@code main} method.
+ * The Java classpath is to be specified as if the process is start on the local machine.
+ * The classpath may be specified as a combination of {@link File}, {@link URL} or the current JVM classpath.
+ * If a given {@link Host} is not local, the classpath files are collected on the local machine and are uploaded to the remote host.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class JavaProcessBuilder implements HostProcessBuilder {
@@ -50,14 +53,24 @@ public class JavaProcessBuilder implements HostProcessBuilder {
     private final Set<File> classpath;
     private volatile String java_home;
 
+    /**
+     * Constructs a new Java process builder with the given class as the {@code main} class.
+     *
+     * @param main_class the main class of the Java processes that are started by this process builder
+     */
     public JavaProcessBuilder(final Class<?> main_class) {
 
         this(main_class.getName());
     }
 
-    public JavaProcessBuilder(final String main_class) {
+    /**
+     * Constructs a new Java process builder with the given fully qualified class name as the {@code main} class.
+     *
+     * @param main_class_name the fully qualified class name of the Java processes that are started by this process builder
+     */
+    public JavaProcessBuilder(final String main_class_name) {
 
-        this.main_class = main_class;
+        this.main_class = main_class_name;
         jvm_arguments = new StringBuffer();
         command_line_arguments = new StringBuffer();
         classpath = new HashSet<File>();
@@ -68,7 +81,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host);
-        LOGGER.debug("prepareing to execute command: {}", command);
+        LOGGER.debug("preparing to execute command: {}", command);
         return host.execute(remote_working_directory, command);
     }
 
@@ -80,23 +93,20 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         LOGGER.info("compressed classpath: {}", compressed_classpath);
         CompressionUtil.compress(classpath, compressed_classpath);
         host.upload(compressed_classpath, remote_working_directory);
-        uncompress(host, remote_working_directory, compressed_classpath);
+        decompressOnHost(host, remote_working_directory, compressed_classpath);
         return remote_working_directory;
     }
 
-    private void uncompress(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
+    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
 
-        //FIXME use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
-
+        //TODO use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
         try {
             try {
                 ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName()));
-            }
-            catch (final IOException e) {
+            } catch (final IOException e) {
                 ProcessUtil.waitForNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName()));
             }
-        }
-        catch (final InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new IOException(e);
         }
     }
@@ -174,76 +184,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         command.append(SPACE);
     }
 
-    public boolean addClasspath(final File classpath_file) {
-
-        return classpath.add(classpath_file);
-    }
-
-    public boolean addClasspath(final Set<File> classpath_files) {
-
-        return classpath.addAll(classpath_files);
-    }
-
-    public boolean addClasspath(final URL classpath_url) throws IOException {
-
-        final File downloaded_file = File.createTempFile("downloaded_", classpath_url.getFile());
-        FileUtils.copyURLToFile(classpath_url, downloaded_file);
-        return classpath.add(downloaded_file);
-    }
-
-    public String getMainClass() {
-
-        return main_class;
-    }
-
-    public String getJavaHome() {
-
-        return java_home;
-    }
-
-    public void setJavaHome(final String java_home) {
-
-        this.java_home = java_home;
-    }
-
-    public void addJVMArgument(final String argument) {
-
-        final String arg = tidyArgument(argument);
-        jvm_arguments.append(arg).append(SPACE);
-    }
-
-    public void replaceJVMArguments(final String replacement_arguments) {
-
-        final String arg = tidyArgument(replacement_arguments);
-        jvm_arguments.replace(0, jvm_arguments.length(), arg);
-    }
-
-    public void addJVMArguments(final Collection<String> arguments) {
-
-        for (final String argument : arguments) {
-            addJVMArgument(argument);
-        }
-    }
-
-    private String tidyArgument(final String argument) {
-
-        return argument.trim();
-    }
-
-    public void addCommandLineArgument(final String argument) {
-
-        //FIXME quote the argument based on platform, in case the argument has special characters
-        final String arg = tidyArgument(argument);
-        command_line_arguments.append(arg).append(SPACE);
-    }
-
-    public void addCommandLineArguments(final Collection<String> arguments) {
-
-        for (final String argument : arguments) {
-            addCommandLineArgument(argument);
-        }
-    }
-
+    /** Adds current JVM's classpath to this builder's collection of classpath files. */
     public void addCurrentJVMClasspath() {
 
         final String classpath = System.getProperty("java.class.path");
@@ -252,5 +193,113 @@ public class JavaProcessBuilder implements HostProcessBuilder {
             classpath_files.add(new File(classpath_entry));
         }
         addClasspath(classpath_files);
+    }
+
+    /**
+     * Adds the given files to the collection of this builder's classpath files.
+     *
+     * @param classpath_files the files to be added to this builder's classpath files
+     * @return {@code true}, if this builder's classpath files changed as a result of the call
+     */
+    public boolean addClasspath(final Set<File> classpath_files) {
+
+        return classpath.addAll(classpath_files);
+    }
+
+    /**
+     * Adds the given file to the collection of classpath files.
+     *
+     * @param classpath_file the file to be added to the classpath
+     * @return {@code true}, if successfully added. {@code False} otherwise.
+     */
+    public boolean addClasspath(final File classpath_file) {
+
+        return classpath.add(classpath_file);
+    }
+
+    /**
+     * Attempts to download the given {@code classpath_url}, and adds it to the collection of classpath files.
+     *
+     * @param classpath_url the URL of file to be added to the classpath
+     * @return {@code true}, if successfully added. {@code False} otherwise.
+     * @throws IOException if the source URL cannot be opened or an IO error occurs
+     */
+    public boolean addClasspath(final URL classpath_url) throws IOException {
+
+        final File downloaded_file = File.createTempFile("downloaded_", classpath_url.getFile());
+        FileUtils.copyURLToFile(classpath_url, downloaded_file);
+        return classpath.add(downloaded_file);
+    }
+
+    /**
+     * Gets the name of the class that is used as the main class of the process, which are started by this process builder.
+     *
+     * @return the name of the class that is used as the main class of the process, which are started by this process builder
+     */
+    public String getMainClassName() {
+
+        return main_class;
+    }
+
+    /**
+     * Sets the Java home directory on hosts on which Java processes to be started.
+     *
+     * @param java_home the Java home directory on hosts on which Java processes to be started
+     */
+    public void setJavaHome(final String java_home) {
+
+        this.java_home = java_home;
+    }
+
+    /**
+     * Replaces this builder's JVM arguments with the given {@code replacement_arguments}.
+     *
+     * @param replacement_arguments the arguments to replace this builder's JVM arguments with
+     */
+    public void replaceJVMArguments(final String replacement_arguments) {
+
+        final String arg = tidyArgument(replacement_arguments);
+        jvm_arguments.replace(0, jvm_arguments.length(), arg);
+    }
+
+    private String tidyArgument(final String argument) {
+
+        return argument.trim();
+    }
+
+    /**
+     * Adds the given {@code argument} to this builder's JVM arguments.
+     *
+     * @param argument the argument to add to the collection of this builder's JVM arguments
+     */
+    public void addJVMArgument(final String argument) {
+
+        final String arg = tidyArgument(argument);
+        jvm_arguments.append(arg).append(SPACE);
+    }
+
+    /**
+     * Adds the given {@code arguments} to this builder's command line arguments.
+     *
+     * @param arguments the arguments to add to the collection of this builder's command line arguments
+     * @see #addCommandLineArgument(String)
+     */
+    public void addCommandLineArguments(final Collection<String> arguments) {
+
+        for (final String argument : arguments) {
+            addCommandLineArgument(argument);
+        }
+    }
+
+    /**
+     * Adds the given {@code argument} to this builder's command line arguments.
+     *
+     * @param argument the argument to add to the collection of this builder's command line arguments
+     */
+    public void addCommandLineArgument(final String argument) {
+
+        //FIXME quote the argument based on platform, in case the argument has special characters
+        final String arg = tidyArgument(argument);
+        command_line_arguments.append(arg).append(SPACE);
     }
 }
