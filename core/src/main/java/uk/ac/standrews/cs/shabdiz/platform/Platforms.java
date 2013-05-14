@@ -1,18 +1,18 @@
 /*
  * Copyright 2013 University of St Andrews School of Computer Science
- * 
+ *
  * This file is part of Shabdiz.
- * 
+ *
  * Shabdiz is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Shabdiz is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -139,8 +139,8 @@ public final class Platforms {
     /**
      * Constructs a {@link SimplePlatform} from the output that is produced by the execution of {@code uname} command.
      * Sets the platform operating system name to the given output.
-     * If the given output contains {@link #WINDOWS_OS_NAME} it is assumed the platform is Windows.
-     * If the given output contains {@link #CYGWIN_OS_NAME} it is assumed the platform is Cygwin.
+     * If the given output contains {@link WindowsPlatform#WINDOWS_OS_NAME_KEY} it is assumed the platform is Windows.
+     * If the given output contains {@link CygwinPlatform#CYGWIN_OS_NAME_KEY} it is assumed the platform is Cygwin.
      * Otherwise the platform is assumed to be Unix-based.
      * 
      * @param uname_output the output produced by the execution of {@code uname} commad
