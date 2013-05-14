@@ -34,13 +34,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.rmi.AlreadyBoundException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Deploys workers on hosts.
@@ -61,13 +59,10 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      *
-     * @throws UnknownHostException
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws AlreadyBoundException the already bound exception
      * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
+     * @throws IOException Signals that an I/O exception has occurred.
      */
-    public WorkerNetwork() throws UnknownHostException, IOException {
+    public WorkerNetwork() throws IOException {
 
         this(new HashSet<File>());
     }
@@ -79,7 +74,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public WorkerNetwork(final Set<File> classpath) throws UnknownHostException, IOException {
+    public WorkerNetwork(final Set<File> classpath) throws IOException {
 
         this(EPHEMERAL_PORT, classpath);
     }
@@ -127,7 +122,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setResult(result);
-        } else {
+        }
+        else {
             LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
         }
     }
@@ -137,7 +133,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setException(exception);
-        } else {
+        }
+        else {
             LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
         }
     }
@@ -165,36 +162,35 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         }
     }
 
-    private void releaseAllPendingFutures() {
-
-        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
-
-        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
-
-            if (!future_remote.isDone()) { // Check whether the result is pending
-                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
-            }
-        }
-    }
-
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WorkerNetwork)) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof WorkerNetwork)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         final WorkerNetwork that = (WorkerNetwork) o;
 
-        if (callback_address != null ? !callback_address.equals(that.callback_address) : that.callback_address != null)
+        if (callback_address != null ? !callback_address.equals(that.callback_address) : that.callback_address != null) {
             return false;
-        if (callback_server != null ? !callback_server.equals(that.callback_server) : that.callback_server != null)
+        }
+        if (callback_server != null ? !callback_server.equals(that.callback_server) : that.callback_server != null) {
             return false;
-        if (callback_server_factory != null ? !callback_server_factory.equals(that.callback_server_factory) : that.callback_server_factory != null)
+        }
+        if (callback_server_factory != null ? !callback_server_factory.equals(that.callback_server_factory) : that.callback_server_factory != null) {
             return false;
-        if (id_future_map != null ? !id_future_map.equals(that.id_future_map) : that.id_future_map != null)
+        }
+        if (id_future_map != null ? !id_future_map.equals(that.id_future_map) : that.id_future_map != null) {
             return false;
-        if (worker_manager != null ? !worker_manager.equals(that.worker_manager) : that.worker_manager != null)
+        }
+        if (worker_manager != null ? !worker_manager.equals(that.worker_manager) : that.worker_manager != null) {
             return false;
+        }
 
         return true;
     }
@@ -208,6 +204,18 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         result = 31 * result + (worker_manager != null ? worker_manager.hashCode() : 0);
         result = 31 * result + (callback_server_factory != null ? callback_server_factory.hashCode() : 0);
         return result;
+    }
+
+    private void releaseAllPendingFutures() {
+
+        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
+
+        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) { // For each future
+
+            if (!future_remote.isDone()) { // Check whether the result is pending
+                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+            }
+        }
     }
 
     <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {
