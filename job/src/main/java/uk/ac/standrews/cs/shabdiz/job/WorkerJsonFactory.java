@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 final class WorkerJsonFactory extends JsonFactory {
 
     private static final long serialVersionUID = 15401382709188608L;
-    private static final WorkerJsonFactory WORKER_JSON_FACTORY_INSTANCE = new WorkerJsonFactory();
     private static final ObjectMapper WORKER_OBJECT_MAPPER;
 
     static {
@@ -33,6 +32,8 @@ final class WorkerJsonFactory extends JsonFactory {
         final Module worker_module = new WorkerModule();
         WORKER_OBJECT_MAPPER.registerModule(worker_module);
     }
+
+    private static final WorkerJsonFactory WORKER_JSON_FACTORY_INSTANCE = new WorkerJsonFactory();
 
     private WorkerJsonFactory() {
 

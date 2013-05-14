@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -86,10 +85,9 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
      *
      * @param callback_server_port the port on which the callback server is exposed
      * @param classpath the application library URLs
-     * @throws UnknownHostException
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws UnknownHostException, IOException {
+    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException {
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
@@ -193,9 +191,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         if (!callback_server.equals(that.callback_server)) { return false; }
         if (!callback_server_factory.equals(that.callback_server_factory)) { return false; }
         if (!id_future_map.equals(that.id_future_map)) { return false; }
-        if (!worker_manager.equals(that.worker_manager)) { return false; }
 
-        return true;
+        return worker_manager.equals(that.worker_manager);
     }
 
     @Override

@@ -18,6 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -36,14 +43,9 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.ClassKey;
 import com.staticiser.jetson.util.CloseableUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 class WorkerModule extends SimpleModule {
+
+    private static final long serialVersionUID = -2260235602682130640L;
 
     WorkerModule() {
 
