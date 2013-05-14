@@ -42,7 +42,7 @@ public final class Attributes {
      *
      * @param <Value> The type of the value that is mapped to the given key
      * @param key the key of the value to be retrieved
-     * @return the value mapped to the given key, or {@code null} if no such mapping exists
+     * @return the value mapped to the given key, or {@code null} if no such mapping found
      * @see ConcurrentHashMap#get(Object)
      */
     @SuppressWarnings("unchecked")
@@ -57,6 +57,7 @@ public final class Attributes {
      * @param <Value> The type of the value that is mapped to the given key
      * @param key the key to which the value is associated
      * @param value the value to store
+     * @return previous value associated to the given key, or {@code null} if no such mapping found
      * @see ConcurrentHashMap#put(Object, Object)
      */
 
