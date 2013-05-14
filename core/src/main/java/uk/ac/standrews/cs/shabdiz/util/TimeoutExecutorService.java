@@ -23,7 +23,6 @@ import com.staticiser.jetson.util.NamingThreadFactory;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +71,6 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
      * @throws InterruptedException the interrupted exception
      * @throws ExecutionException the execution exception
      * @throws TimeoutException the timeout exception
-     * @throws RejectedExecutionException the rejected execution exception
      */
     public static <Result> Result awaitCompletion(final Callable<Result> task, final Long time, final TimeUnit time_unit) throws InterruptedException, ExecutionException, TimeoutException {
 
