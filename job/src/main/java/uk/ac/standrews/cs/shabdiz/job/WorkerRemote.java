@@ -18,10 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
-
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+
+import com.staticiser.jetson.exception.JsonRpcException;
 
 /**
  * Presents a special type of worker which is deployed by {@link WorkerNetwork}.
@@ -38,10 +39,10 @@ public interface WorkerRemote {
      * @throws JsonRpcException if unable to make the remote call
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    UUID submitJob(Job job) throws JsonRpcException;
+    UUID submitJob(Job<? extends Serializable> job) throws JsonRpcException;
 
     /**
-     * Cancels a given job exexuting on this worker.
+     * Cancels a given job executing on this worker.
      * 
      * @param job_id the job_id
      * @param may_interrupt the may_interrupt

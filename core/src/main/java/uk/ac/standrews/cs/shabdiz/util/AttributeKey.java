@@ -25,9 +25,9 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 
 /**
  * Presents the key to an attribute that may be stored in an {@link ApplicationDescriptor}.
- *
- * @param <Value> the type the value that is represented by this key
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ * @param <Value> the type the value that is represented by this key
  * @see ApplicationDescriptor#getAttribute(AttributeKey)
  * @see ApplicationDescriptor#setAttribute(AttributeKey, Object)
  */
@@ -50,14 +50,16 @@ public final class AttributeKey<Value> implements Comparable<AttributeKey<?>>, S
 
     @Override
     public int hashCode() {
+
         return id.hashCode();
     }
 
     @Override
     public boolean equals(final Object other) {
+
         if (this == other) { return true; }
         if (!(other instanceof AttributeKey)) { return false; }
-        final AttributeKey that = (AttributeKey) other;
+        final AttributeKey<?> that = (AttributeKey<?>) other;
         return id.equals(that.id);
     }
 }

@@ -18,13 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
-
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,35 +29,43 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.LoggerFactory;
+
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
+
 /**
  * Maintains a set of {@link ApplicationDescriptor application descriptors}.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescriptor> {
+public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
-    private static final long serialVersionUID = 6709443520736431534L;
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
+
     private final String application_name;
-    private final transient HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
-    private final transient ScheduledExecutorService scanner_scheduler;
-    private final transient ExecutorService concurrent_scanner_executor;
-    private final transient AutoKillScanner auto_kill_scanner;
-    private final transient AutoDeployScanner auto_deploy_scanner;
-    private final transient AutoRemoveScanner auto_remove_scanner;
-    private final transient StatusScanner status_scanner;
+    private final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
+    private final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
+    private final ScheduledExecutorService scanner_scheduler;
+    private final ExecutorService concurrent_scanner_executor;
+    private final AutoKillScanner auto_kill_scanner;
+    private final AutoDeployScanner auto_deploy_scanner;
+    private final AutoRemoveScanner auto_remove_scanner;
+    private final StatusScanner status_scanner;
 
     /**
      * Instantiates a new application network.
-     *
+     * 
      * @param application_name the name of the application
      */
     public ApplicationNetwork(final String application_name) {
 
         this.application_name = application_name;
+        application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = createScannerScheduledExecutorService();
         concurrent_scanner_executor = createScannerExecutorService();
@@ -89,7 +93,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Gets the name of this application.
-     *
+     * 
      * @return the name of this application
      */
     public String getApplicationName() {
@@ -99,19 +103,19 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Attempts to sequentially {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
-     *
+     * 
      * @throws Exception if any of the deployments fails
      */
     public void deployAll() throws Exception {
 
-        for (final ApplicationDescriptor applciation_descriptor : this) {
-            deploy(applciation_descriptor);
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+            deploy(application_descriptor);
         }
     }
 
     /**
      * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
-     *
+     * 
      * @param descriptor the application descriptor to deploy
      * @throws Exception if deployment fails
      */
@@ -124,13 +128,13 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
-     *
+     * 
      * @param host the host on which to terminate the application instances
      * @throws Exception the termination fails
      */
     public void killAllOnHost(final Host host) throws Exception {
 
-        for (final ApplicationDescriptor applciation_descriptor : this) {
+        for (final ApplicationDescriptor applciation_descriptor : application_descriptors) {
             if (applciation_descriptor.getHost().equals(host)) {
                 kill(applciation_descriptor);
             }
@@ -139,7 +143,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.
-     *
+     * 
      * @param descriptor the application descriptor to kill
      * @throws Exception the exception
      */
@@ -150,14 +154,14 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
-     *
+     * 
      * @param states the states which application instances must reach at least once
      * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
         // FIXME This implementation checks sequentially; consider checking concurrently
-        for (final ApplicationDescriptor descriptor : this) {
+        for (final ApplicationDescriptor descriptor : application_descriptors) {
             descriptor.awaitAnyOfStates(states);
         }
     }
@@ -165,7 +169,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     /**
      * Adds the given {@code scanner} to the collection of this network's scanners.
      * This method has no effect if the given {@code scanner} has already been added.
-     *
+     * 
      * @param scanner the scanner to add
      * @return true, if successfully added
      */
@@ -179,7 +183,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
     /**
      * Removes the given {@code scanner} from the collection of this network's scanners.
      * This method has no effect if the given {@code scanner} does not exist in the collection of this network's scanners.
-     *
+     * 
      * @param scanner the scanner to remove
      * @return true, if successfully removed
      */
@@ -194,7 +198,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
-     *
+     * 
      * @param enabled if {@code true} enables all the scanners of this network, disables all the scanners otherwise
      */
     public void setScanEnabled(final boolean enabled) {
@@ -208,7 +212,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Sets the auto kill enabled.
-     *
+     * 
      * @param enabled the new auto kill enabled
      */
     public void setAutoKillEnabled(final boolean enabled) {
@@ -218,7 +222,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Sets the auto deploy enabled.
-     *
+     * 
      * @param enabled the new auto deploy enabled
      */
     public void setAutoDeployEnabled(final boolean enabled) {
@@ -228,7 +232,7 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     /**
      * Sets the auto remove enabled.
-     *
+     * 
      * @param enabled the new auto remove enabled
      */
     public void setAutoRemoveEnabled(final boolean enabled) {
@@ -246,55 +250,59 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
         scanner_scheduler.shutdownNow();
         concurrent_scanner_executor.shutdownNow();
         cancelScheduledScanners();
-        killAllScilently();
+        killAllSilently();
         closeHosts();
-        clear();
+        application_descriptors.clear();
     }
 
-    private void closeHosts() {
+    /**
+     * Adds an application descriptor to the set.
+     * 
+     * @param descriptor the descriptor to be added
+     * @return true if the set did not already contain the specified descriptor
+     */
+    public boolean add(ApplicationDescriptor descriptor) {
 
-        for (final ApplicationDescriptor application_descriptor : this) {
-
-            final Host host = application_descriptor.getHost();
-            if (host != null) {
-                try {
-                    host.close();
-                } catch (final IOException e) {
-                    LOGGER.warn("failed to close host", e);
-                }
-            }
-        }
+        return application_descriptors.add(descriptor);
     }
 
-    private void killAllScilently() {
+    /**
+     * Removes the specified application descriptor if it is present.
+     * 
+     * @param descriptor the descriptor to be removed
+     */
+    public void remove(ApplicationDescriptor descriptor) {
 
-        try {
-            killAll();
-        } catch (final Exception e) {
-            LOGGER.warn("failed to kill all managed application descriptors", e);
-        }
+        application_descriptors.remove(descriptor);
+    }
+
+    /**
+     * Returns the first application descriptor to be added.
+     * 
+     * @return the first application descriptor to be added
+     */
+    public ApplicationDescriptor first() {
+
+        return application_descriptors.first();
     }
 
     /**
      * Attempts to terminate all the application instances that are managed by this network.
-     *
+     * 
      * @throws Exception the exception
      */
     public void killAll() throws Exception {
 
         //FIXME implement concurrent kill
-        for (final ApplicationDescriptor application_descriptor : this) {
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             kill(application_descriptor);
         }
     }
 
-    private void cancelScheduledScanners() {
+    @Override
+    public Iterator<ApplicationDescriptor> iterator() {
 
-        synchronized (scheduled_scanners) {
-            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
-                scheduled_scanner.cancel(true);
-            }
-        }
+        return application_descriptors.iterator();
     }
 
     @Override
@@ -308,7 +316,43 @@ public class ApplicationNetwork extends ConcurrentSkipListSet<ApplicationDescrip
 
     @Override
     public int hashCode() {
+
         return HashCodeUtil.generate(super.hashCode(), application_name.hashCode(), scheduled_scanners.hashCode());
+    }
+
+    private void closeHosts() {
+
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+
+            final Host host = application_descriptor.getHost();
+            if (host != null) {
+                try {
+                    host.close();
+                }
+                catch (final IOException e) {
+                    LOGGER.warn("failed to close host", e);
+                }
+            }
+        }
+    }
+
+    private void killAllSilently() {
+
+        try {
+            killAll();
+        }
+        catch (final Exception e) {
+            LOGGER.warn("failed to kill all managed application descriptors", e);
+        }
+    }
+
+    private void cancelScheduledScanners() {
+
+        synchronized (scheduled_scanners) {
+            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
+                scheduled_scanner.cancel(true);
+            }
+        }
     }
 
     private boolean injectExecutorAndAdd(final Scanner scanner) {

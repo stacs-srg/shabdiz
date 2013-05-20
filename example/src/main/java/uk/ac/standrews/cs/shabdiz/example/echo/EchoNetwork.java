@@ -29,12 +29,11 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
  * Presents a network of Echo service instances.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class EchoNetwork extends ApplicationNetwork {
 
-    private static final long serialVersionUID = 1218798936967429750L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoNetwork.class);
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
     private final transient EchoApplicationManager manager;
@@ -47,7 +46,7 @@ public class EchoNetwork extends ApplicationNetwork {
 
     /**
      * Adds a new {@link ApplicationDescriptor} with the given {@code host} as its host, and {@link EchoApplicationManager} as its manager, to this network.
-     *
+     * 
      * @param host the host of the descriptor to be added
      * @return true, if successfully added
      */

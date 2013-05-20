@@ -18,18 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-import com.staticiser.jetson.exception.JsonRpcException;
-import com.staticiser.jetson.exception.TransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
-import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,26 +28,39 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.TransportException;
+
 /**
- * Presents a network of {@link Worker workers}.
- * {@link Host Hosts} are added using {@link #add(Host)}.
- *
+ * Presents a network of {@link Worker workers}. {@link Host Hosts} are added using {@link #add(Host)}.
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback {
 
-    private static final long serialVersionUID = -8888064138251583848L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
+
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final transient ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
-    private final transient Server callback_server; // The server which listens to the callbacks  from workers
-    private final transient WorkerManager worker_manager;
-    private final transient ServerFactory<WorkerCallback> callback_server_factory;
+    private final ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
+    private final Server callback_server; // The server which listens to the callbacks  from workers
+    private final WorkerManager worker_manager;
+    private final ServerFactory<WorkerCallback> callback_server_factory;
 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
-     *
+     * 
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public WorkerNetwork() throws IOException {
@@ -70,7 +71,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     *
+     * 
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      */
@@ -82,7 +83,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher and exposes the launcher callback on local address with the given port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     *
+     * 
      * @param callback_server_port the port on which the callback server is exposed
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
@@ -112,7 +113,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     /**
      * Adds a host to this worker network.
-     *
+     * 
      * @param host the host to add
      * @return the ApplicationDescriptor associated with the added host, or {@code null} if the host was not added
      */
@@ -147,7 +148,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
      * Note that any pending {@link Future} will end in exception.
-     *
+     * 
      * @see WorkerNetwork#shutdown()
      */
     @Override
@@ -156,13 +157,15 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         try {
             try {
                 callback_server.unexpose();
-            } catch (final IOException e) {
+            }
+            catch (final IOException e) {
                 LOGGER.debug("failed to unexpose callback server", e);
             }
             callback_server_factory.shutdown();
             worker_manager.shutdown();
             releaseAllPendingFutures(); // Release the futures which are still pending for notification
-        } finally {
+        }
+        finally {
             super.shutdown();
         }
     }
@@ -181,6 +184,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     @Override
     public boolean equals(final Object other) {
+
         if (this == other) { return true; }
         if (!(other instanceof WorkerNetwork)) { return false; }
         if (!super.equals(other)) { return false; }

@@ -18,13 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-import com.staticiser.jetson.exception.JsonRpcException;
-import com.staticiser.jetson.util.NamingThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -34,9 +27,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.util.NamingThreadFactory;
+
 /**
  * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
- *
+ * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class DefaultWorkerRemote implements WorkerRemote {
@@ -71,7 +72,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     }
 
     @Override
-    public UUID submitJob(final Job job) {
+    public UUID submitJob(final Job<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
         executor.execute(new Runnable() {
@@ -85,7 +86,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
                 try {
                     //TODO this blocks until the job is complete; Could be written nicer so that it runs after completion.
                     handleCompletion(job_id, real_future.get());
-                } catch (final Exception e) {
+                }
+                catch (final Exception e) {
                     handleException(job_id, e);
                 }
             }
@@ -113,7 +115,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
         executor.shutdownNow();
         try {
             unexpose();
-        } catch (final IOException e) {
+        }
+        catch (final IOException e) {
             LOGGER.debug("Unable to unexpose the worker server", e);
         }
     }
@@ -123,7 +126,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
         try {
             callback.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
-        } catch (final JsonRpcException e) {
+        }
+        catch (final JsonRpcException e) {
             //TODO use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.error("failed to notify job exception", e);
         }
@@ -139,7 +143,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
         try {
             callback.notifyCompletion(job_id, result);
             submitted_jobs.remove(job_id);
-        } catch (final JsonRpcException e) {
+        }
+        catch (final JsonRpcException e) {
             //TODO discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.error("failed to notify job completion", e);
         }
@@ -152,7 +157,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
     /**
      * Gets the address on which this worker is exposed.
-     *
+     * 
      * @return the address on which this worker is exposed
      */
     public InetSocketAddress getAddress() {
