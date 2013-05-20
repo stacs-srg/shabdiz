@@ -61,8 +61,8 @@ public class EchoNetwork extends ApplicationNetwork {
     @Override
     public boolean equals(final Object other) {
 
-        if (this == other) { return true; }
-        if (!(other instanceof EchoNetwork) || !super.equals(other)) { return false; }
+        if (this == other) return true;
+        if (!(other instanceof EchoNetwork) || !super.equals(other)) return false;
         final EchoNetwork that = (EchoNetwork) other;
         return manager.equals(that.manager);
     }

@@ -46,8 +46,6 @@ public class AutoRemoveScanner extends AbstractConcurrentScanner {
     @Override
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isRemovable(descriptor)) {
-            network.remove(descriptor);
-        }
+        if (isEnabled() && isRemovable(descriptor)) network.remove(descriptor);
     }
 }

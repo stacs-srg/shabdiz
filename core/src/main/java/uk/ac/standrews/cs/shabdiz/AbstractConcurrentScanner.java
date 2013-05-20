@@ -157,8 +157,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private void cancelLingeringChecks() {
 
-        for (final Future<?> scheduled_check : scheduled_checks) {
+        for (final Future<?> scheduled_check : scheduled_checks)
             scheduled_check.cancel(true);
-        }
     }
 }

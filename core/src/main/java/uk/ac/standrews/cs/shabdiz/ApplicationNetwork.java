@@ -281,6 +281,26 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
+     * Returns the size of the network.
+     * 
+     * @return the size of the network
+     */
+    public int size() {
+
+        return application_descriptors.size();
+    }
+
+    //    /**
+    //     * Returns the set of application descriptors.
+    //     * 
+    //     * @return the application descriptors
+    //     */
+    //    public SortedSet<ApplicationDescriptor> getDescriptors() {
+    //
+    //        return application_descriptors;
+    //    }
+
+    /**
      * Attempts to terminate all the application instances that are managed by this network.
      * 
      * @throws Exception the exception
