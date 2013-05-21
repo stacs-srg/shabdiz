@@ -108,8 +108,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void deployAll() throws Exception {
 
-        for (final ApplicationDescriptor application_descriptor : application_descriptors)
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             deploy(application_descriptor);
+        }
     }
 
     /**
@@ -133,8 +134,11 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void killAllOnHost(final Host host) throws Exception {
 
-        for (final ApplicationDescriptor applciation_descriptor : application_descriptors)
-            if (applciation_descriptor.getHost().equals(host)) kill(applciation_descriptor);
+        for (final ApplicationDescriptor applciation_descriptor : application_descriptors) {
+            if (applciation_descriptor.getHost().equals(host)) {
+                kill(applciation_descriptor);
+            }
+        }
     }
 
     /**
@@ -157,8 +161,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
         // FIXME This implementation checks sequentially; consider checking concurrently
-        for (final ApplicationDescriptor descriptor : application_descriptors)
+        for (final ApplicationDescriptor descriptor : application_descriptors) {
             descriptor.awaitAnyOfStates(states);
+        }
     }
 
     /**
@@ -199,8 +204,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public void setScanEnabled(final boolean enabled) {
 
         synchronized (scheduled_scanners) {
-            for (final Scanner scanner : scheduled_scanners.keySet())
+            for (final Scanner scanner : scheduled_scanners.keySet()) {
                 scanner.setEnabled(enabled);
+            }
         }
     }
 
@@ -308,8 +314,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public void killAll() throws Exception {
 
         //FIXME implement concurrent kill
-        for (final ApplicationDescriptor application_descriptor : application_descriptors)
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             kill(application_descriptor);
+        }
     }
 
     @Override
@@ -321,8 +328,8 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     @Override
     public boolean equals(final Object other) {
 
-        if (this == other) return true;
-        if (!(other instanceof ApplicationNetwork) || !super.equals(other)) return false;
+        if (this == other) { return true; }
+        if (!(other instanceof ApplicationNetwork) || !super.equals(other)) { return false; }
         final ApplicationNetwork that = (ApplicationNetwork) other;
         return application_name.equals(that.application_name) && scheduled_scanners.equals(that.scheduled_scanners);
     }
@@ -338,11 +345,13 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
 
             final Host host = application_descriptor.getHost();
-            if (host != null) try {
-                host.close();
-            }
-            catch (final IOException e) {
-                LOGGER.warn("failed to close host", e);
+            if (host != null) {
+                try {
+                    host.close();
+                }
+                catch (final IOException e) {
+                    LOGGER.warn("failed to close host", e);
+                }
             }
         }
     }
@@ -360,8 +369,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private void cancelScheduledScanners() {
 
         synchronized (scheduled_scanners) {
-            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values())
+            for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
                 scheduled_scanner.cancel(true);
+            }
         }
     }
 
@@ -391,7 +401,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
             @Override
             public void run() {
 
-                if (scanner.isEnabled()) scanner.scan(ApplicationNetwork.this);
+                if (scanner.isEnabled()) {
+                    scanner.scan(ApplicationNetwork.this);
+                }
             }
         }, cycle_delay_length, cycle_delay_length, cycle_delay.getTimeUnit());
     }

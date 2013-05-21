@@ -126,17 +126,23 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     @Override
     public synchronized void notifyCompletion(final UUID job_id, final Serializable result) {
 
-        if (id_future_map.containsKey(job_id))
+        if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setResult(result);
-        else LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
+        }
+        else {
+            LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
+        }
     }
 
     @Override
     public synchronized void notifyException(final UUID job_id, final Exception exception) {
 
-        if (id_future_map.containsKey(job_id))
+        if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setException(exception);
-        else LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
+        }
+        else {
+            LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
+        }
     }
 
     /**
@@ -168,23 +174,26 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
 
-        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values())
-            if (!future_remote.isDone()) future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
+            if (!future_remote.isDone()) {
+                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+            }
+        }
     }
 
     @Override
     public boolean equals(final Object other) {
 
-        if (this == other) return true;
-        if (!(other instanceof WorkerNetwork)) return false;
-        if (!super.equals(other)) return false;
+        if (this == other) { return true; }
+        if (!(other instanceof WorkerNetwork)) { return false; }
+        if (!super.equals(other)) { return false; }
 
         final WorkerNetwork that = (WorkerNetwork) other;
 
-        if (!callback_address.equals(that.callback_address)) return false;
-        if (!callback_server.equals(that.callback_server)) return false;
-        if (!callback_server_factory.equals(that.callback_server_factory)) return false;
-        if (!id_future_map.equals(that.id_future_map)) return false;
+        if (!callback_address.equals(that.callback_address)) { return false; }
+        if (!callback_server.equals(that.callback_server)) { return false; }
+        if (!callback_server_factory.equals(that.callback_server_factory)) { return false; }
+        if (!id_future_map.equals(that.id_future_map)) { return false; }
 
         return worker_manager.equals(that.worker_manager);
     }
