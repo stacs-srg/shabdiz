@@ -33,6 +33,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
  */
 public final class AttributeKey<Value> implements Comparable<AttributeKey<?>>, Serializable {
 
+    private static final long serialVersionUID = -2516740649763692406L;
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private final Long id;
 

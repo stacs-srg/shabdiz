@@ -27,9 +27,8 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>uk.ac.standrews.cs</groupId>
 	<artifactId>shabdiz-core</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
 	<name>shabdiz/core</name>
+	
 </project>
