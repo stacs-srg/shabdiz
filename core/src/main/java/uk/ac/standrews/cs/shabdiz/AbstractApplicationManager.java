@@ -39,8 +39,7 @@ import com.jcraft.jsch.JSchException;
  * Implements common state probe and termination functionality.
  * This class probes the state of a given {@link ApplicationDescriptor descriptor} by attempting an application-specific call.
  * If the call fails, attempts to probe the state of the descriptor's {@link ApplicationDescriptor#getHost() host} by executing a {@code change directory} command.
- * This class kills a given {@link ApplicationDescriptor descriptor} by {@link Process#destroy() destroying} all its {@link ApplicationDescriptor#getProcesses() processes}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
@@ -63,15 +62,6 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     protected AbstractApplicationManager(final Duration command_execution_timeout) {
 
         this.command_execution_timeout = command_execution_timeout;
-    }
-
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        for (final Process process : descriptor.getProcesses()) {
-            process.destroy();
-        }
-        descriptor.clearProcesses();
     }
 
     @Override

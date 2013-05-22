@@ -21,6 +21,7 @@ package uk.ac.standrews.cs.shabdiz;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,14 +49,14 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
 
     private final String application_name;
-    private final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
-    private final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
+    protected final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
+    protected final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
     private final ScheduledExecutorService scanner_scheduler;
     private final ExecutorService concurrent_scanner_executor;
-    private final AutoKillScanner auto_kill_scanner;
-    private final AutoDeployScanner auto_deploy_scanner;
-    private final AutoRemoveScanner auto_remove_scanner;
-    private final StatusScanner status_scanner;
+    protected final AutoKillScanner auto_kill_scanner;
+    protected final AutoDeployScanner auto_deploy_scanner;
+    protected final AutoRemoveScanner auto_remove_scanner;
+    protected final StatusScanner status_scanner;
 
     /**
      * Instantiates a new application network.
@@ -115,7 +116,8 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
-     * 
+     * In the case where the descriptor is not added to this network, this method does not add the given descriptor to this network.
+     *
      * @param descriptor the application descriptor to deploy
      * @throws Exception if deployment fails
      */
@@ -134,15 +136,15 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void killAllOnHost(final Host host) throws Exception {
 
-        for (final ApplicationDescriptor applciation_descriptor : application_descriptors) {
-            if (applciation_descriptor.getHost().equals(host)) {
-                kill(applciation_descriptor);
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+            if (host.equals(application_descriptor.getHost())) {
+                kill(application_descriptor);
             }
         }
     }
 
     /**
-     * Attempts to {@link Process#destroy() terminate} the {@link ApplicationDescriptor#getProcesses() processes} of the given {@code application_descriptor}.
+     * Attempts to terminate the application instance that is described by the given {@code application_descriptor} as defined by its {@link ApplicationDescriptor#getApplicationManager()  manager}.
      * 
      * @param descriptor the application descriptor to kill
      * @throws Exception the exception
@@ -160,7 +162,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        // FIXME This implementation checks sequentially; consider checking concurrently
+        // TODO This implementation checks sequentially; consider checking concurrently
         for (final ApplicationDescriptor descriptor : application_descriptors) {
             descriptor.awaitAnyOfStates(states);
         }
@@ -176,7 +178,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public boolean addScanner(final Scanner scanner) {
 
         synchronized (scheduled_scanners) {
-            return isAddable(scanner) ? scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner) : false;
+            return isAddable(scanner) && (scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner));
         }
     }
 
@@ -239,6 +241,15 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
         auto_remove_scanner.setEnabled(enabled);
     }
+    /**
+     * Sets whether the {@link StatusScanner} of this network should be enabled.
+     *
+     * @param enabled whether the status scanner should be enabled
+     */
+    public void setStatusScannerEnabled(final boolean enabled) {
+
+        status_scanner.setEnabled(enabled);
+    }
 
     /**
      * Attempts to kill all application processes and {@link Host#close() close} the hosts of application instances.
@@ -257,7 +268,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Adds an application descriptor to the set.
-     * 
+     *
      * @param descriptor the descriptor to be added
      * @return true if the set did not already contain the specified descriptor
      */
@@ -268,27 +279,42 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Removes the specified application descriptor if it is present.
-     * 
+     *
      * @param descriptor the descriptor to be removed
+     * @return whether the set of descriptors belonging to this network has changed
      */
-    public void remove(final ApplicationDescriptor descriptor) {
+    public boolean remove(final ApplicationDescriptor descriptor) {
 
-        application_descriptors.remove(descriptor);
+        return application_descriptors.remove(descriptor);
     }
 
     /**
-     * Returns the first application descriptor to be added.
-     * 
-     * @return the first application descriptor to be added
+     * Returns the first application descriptor that has been added to this network, or {@code null} if this network is empty.
+     *
+     * @return the first application descriptor that has been added to this network, or {@code null} if this network is empty
      */
     public ApplicationDescriptor first() {
 
-        return application_descriptors.first();
+        try {
+            return application_descriptors.first();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Checks whether this network contains the given {@code descriptor}.
+     * @param descriptor the descriptor that its presence is checked
+     * @return {@code true} if the given {@code descriptor} is present in this network
+     */
+    public boolean contains(ApplicationDescriptor descriptor){
+
+        return application_descriptors.contains(descriptor);
     }
 
     /**
      * Returns the size of the network.
-     * 
+     *
      * @return the size of the network
      */
     public int size() {
@@ -296,24 +322,14 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return application_descriptors.size();
     }
 
-    //    /**
-    //     * Returns the set of application descriptors.
-    //     * 
-    //     * @return the application descriptors
-    //     */
-    //    public SortedSet<ApplicationDescriptor> getDescriptors() {
-    //
-    //        return application_descriptors;
-    //    }
-
     /**
      * Attempts to terminate all the application instances that are managed by this network.
-     * 
+     *
      * @throws Exception the exception
      */
     public void killAll() throws Exception {
 
-        //FIXME implement concurrent kill
+        // TODO implement concurrent kill
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             kill(application_descriptor);
         }

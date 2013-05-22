@@ -85,41 +85,30 @@ class WorkerManager extends AbstractApplicationManager {
         return worker_wrapper;
     }
 
+    @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+
+        final DefaultWorkerWrapper worker = descriptor.getApplicationReference();
+        if (worker != null) {
+            final Integer process_id = worker.getWorkerProcessId();
+            if (process_id != null) {
+                final Platform platform = descriptor.getHost().getPlatform();
+                final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
+                final Process kill = descriptor.getHost().execute(kill_command);
+                ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
+            }
+            try {
+                worker.shutdown();
+            } catch (final JsonRpcException e) {
+                LOGGER.trace("ignoring expected error at the time of kill", e);
+            }
+        }
+    }
+
     private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws IOException, InterruptedException, TimeoutException {
 
         final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
         return NetworkUtil.getAddressFromString(address_as_string);
-    }
-
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        try {
-            final DefaultWorkerWrapper worker = descriptor.getApplicationReference();
-            if (worker != null) {
-                final Integer process_id = worker.getWorkerProcessId();
-                if (process_id != null) {
-                    final Platform platform = descriptor.getHost().getPlatform();
-                    final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
-                    final Process kill = descriptor.getHost().execute(kill_command);
-                    ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
-                }
-                try {
-                    worker.shutdown();
-                } catch (final JsonRpcException e) {
-                    LOGGER.trace("ignoring expected error at the time of kill", e);
-                }
-            }
-        } finally {
-            super.kill(descriptor);
-        }
-    }
-
-    @Override
-    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
-
-        final Worker worker = descriptor.getApplicationReference();
-        worker.getAddress(); // makes a remote call
     }
 
     /**
@@ -145,6 +134,13 @@ class WorkerManager extends AbstractApplicationManager {
     public void setWorkerJVMArguments(final String jvm_arguments) {
 
         worker_process_builder.replaceJVMArguments(jvm_arguments.trim());
+    }
+
+    @Override
+    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
+
+        final Worker worker = descriptor.getApplicationReference();
+        worker.getAddress(); // makes a remote call
     }
 
     void shutdown() {

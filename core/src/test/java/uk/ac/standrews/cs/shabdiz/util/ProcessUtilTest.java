@@ -81,7 +81,7 @@ public class ProcessUtilTest {
             fail("expected exception");
         }
         catch (final IOException e) {
-            LOGGER.debug("expected exception occured ", e);
+            LOGGER.debug("expected exception occurred ", e);
         }
     }
 

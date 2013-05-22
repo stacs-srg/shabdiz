@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
 /**
@@ -79,4 +80,18 @@ public abstract class AbstractHost implements Host {
         LOGGER.debug("closing host {}", address);
     }
 
+    @Override
+    public int hashCode() {
+
+        return HashCodeUtil.generate(address.hashCode(), name.hashCode(), (local ? 1 : 0));
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+
+        if (this == other) { return true; }
+        if (!(other instanceof Host)) { return false; }
+        final Host that = (Host) other;
+        return local != that.isLocal() && address.equals(that.getAddress()) && name.equals(that.getName());
+    }
 }

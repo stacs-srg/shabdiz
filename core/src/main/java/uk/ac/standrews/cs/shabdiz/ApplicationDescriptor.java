@@ -20,20 +20,13 @@ package uk.ac.standrews.cs.shabdiz;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
-import uk.ac.standrews.cs.shabdiz.util.HostWrapper;
 import uk.ac.standrews.cs.shabdiz.util.LatchedStateChangeListener;
 
 /**
@@ -54,7 +47,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     private final Host host;
     private final AtomicReference<ApplicationState> state;
     private final AtomicReference<Object> application_reference;
-    private final Set<Process> processes;
     private final ApplicationManager application_manager;
     private final ConcurrentHashMap<AttributeKey<?>, Object> attributes;
 
@@ -79,9 +71,8 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     public ApplicationDescriptor(final Host host, final ApplicationManager application_manager) {
 
         this.application_manager = application_manager;
-        this.host = createHostWrapper(host);
+        this.host = host;
         id = generateId();
-        processes = Collections.synchronizedSet(new HashSet<Process>());
         state = new AtomicReference<ApplicationState>(ApplicationState.UNKNOWN);
         application_reference = new AtomicReference<Object>();
         property_change_support = new PropertyChangeSupport(this);
@@ -91,12 +82,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     private static Long generateId() {
 
         return NEXT_ID.getAndIncrement();
-    }
-
-    @SuppressWarnings("resource")
-    private ApplicationDescriptorHostWrapper createHostWrapper(final Host host) {
-
-        return host != null ? new ApplicationDescriptorHostWrapper(host) : null;
     }
 
     /**
@@ -147,32 +132,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     public Host getHost() {
 
         return host;
-    }
-
-    /**
-     * Gets the set of processes that are started using this descrptor's {@link #getHost() host}.
-     * The collection of processes are updated automatically when a command is {@link Host#execute(String) executed} by this descriptor's {@link #getHost() host}.
-     * 
-     * @return the set of processes that are {@link Host#execute(String) started} using this descrptor's {@link #getHost() host}
-     */
-    public Set<Process> getProcesses() {
-
-        return new CopyOnWriteArraySet<Process>(processes);
-    }
-
-    protected boolean addProcess(final Process process) {
-
-        return processes.add(process);
-    }
-
-    protected boolean removeProcess(final Process process) {
-
-        return processes.remove(process);
-    }
-
-    protected void clearProcesses() {
-
-        processes.clear();
     }
 
     /**
@@ -308,27 +267,4 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return sb.toString();
     }
 
-    private final class ApplicationDescriptorHostWrapper extends HostWrapper {
-
-        private ApplicationDescriptorHostWrapper(final Host host) {
-
-            super(host);
-        }
-
-        @Override
-        public Process execute(final String command) throws IOException {
-
-            final Process process = getUnwrappedHost().execute(command);
-            addProcess(process);
-            return process;
-        }
-
-        @Override
-        public Process execute(final String working_directory, final String command) throws IOException {
-
-            final Process process = getUnwrappedHost().execute(working_directory, command);
-            addProcess(process);
-            return process;
-        }
-    }
 }

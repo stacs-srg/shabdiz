@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -26,18 +25,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
-import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 
 /**
@@ -71,8 +65,8 @@ public class ApplicationDescriptorTest {
 
         final ApplicationDescriptor one = newApplicationDescriptor();
         final ApplicationDescriptor other = newApplicationDescriptor();
-        Assert.assertTrue(one.compareTo(one) == 0);
-        Assert.assertTrue(one.compareTo(other) != 0);
+        Assert.assertEquals(0, one.compareTo(one));
+        Assert.assertNotEquals(0, one.compareTo(other));
     }
 
     private ApplicationDescriptor newApplicationDescriptor() {
@@ -80,35 +74,13 @@ public class ApplicationDescriptorTest {
         return new ApplicationDescriptor(null);
     }
 
-    /**
-     * Tests {@link ApplicationDescriptor#getProcesses()}.
-     * The set of {@link ApplicationDescriptor} processes must be updated automatically as the process are executed on its host.
-     *
-     * @throws IOException if failure occurs while resolving local address
-     */
-    @Test
-    public void testGetProcesses() throws IOException {
-
-        final ApplicationDescriptor descriptor = new ApplicationDescriptor(new LocalHost(), null);
-        final Host local_host = descriptor.getHost();
-        final Platform local_platform = local_host.getPlatform();
-        Assert.assertTrue(descriptor.getProcesses().isEmpty());
-
-        final Process process = local_host.execute(Commands.ECHO.get(local_platform));
-        Assert.assertTrue(descriptor.getProcesses().contains(process));
-        Assert.assertTrue(descriptor.removeProcess(process));
-        Assert.assertTrue(descriptor.getProcesses().isEmpty());
-
-        process.destroy();
-        local_host.close();
-    }
 
     /** Tests {@link ApplicationDescriptor#getAttribute(AttributeKey)} and {@link ApplicationDescriptor#setAttribute(AttributeKey, Object)}. */
     @Test
     public void testGetSetAttribute() {
 
         final AttributeKey<String> key = new AttributeKey<String>();
-        final String value = "QWERTYUIOP{}\":LKJHGFDSXCVBNM<>";
+        final String value = "some value";
         final ApplicationDescriptor descriptor = newApplicationDescriptor();
         Assert.assertNull(descriptor.setAttribute(key, value));
         Assert.assertEquals(value, descriptor.getAttribute(key));
@@ -126,6 +98,15 @@ public class ApplicationDescriptorTest {
 
         final List<ApplicationDescriptor> descriptors = createDescriptors(100);
         awaitStateChanges(descriptors, ApplicationState.RUNNING);
+    }
+
+    private List<ApplicationDescriptor> createDescriptors(final int descriptors_count) {
+
+        final List<ApplicationDescriptor> descriptors = new ArrayList<ApplicationDescriptor>();
+        for (int i = 0; i < descriptors_count; i++) {
+            descriptors.add(newApplicationDescriptor());
+        }
+        return descriptors;
     }
 
     private void awaitStateChanges(final List<ApplicationDescriptor> descriptors, final ApplicationState target_state) throws InterruptedException {
@@ -164,24 +145,15 @@ public class ApplicationDescriptorTest {
         LOGGER.info("Submitted 'setApplicationState' and 'awaitAnyOfStates' jobs");
         LOGGER.info("Releasing start latch...");
         start_latch.countDown();
-        LOGGER.info("Awaiting 'setApplicationState' jobs to compelete...");
+        LOGGER.info("Awaiting 'setApplicationState' jobs to complete...");
         state_update_end_latch.await(); // Await until all states have been updated to the target_state
 
-        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs to compelete...");
+        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs to complete...");
         if (!listeners_end_latch.await(CONCURRENCY_TEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
-            LOGGER.error("The 'awaitAnyOfStates' jobs did not compelete after {} seconds waiting", CONCURRENCY_TEST_TIMEOUT_IN_SECONDS);
+            LOGGER.error("The 'awaitAnyOfStates' jobs did not complete after {} seconds waiting", CONCURRENCY_TEST_TIMEOUT_IN_SECONDS);
             Assert.fail();
         }
-        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs is compelete. \n");
-    }
-
-    private List<ApplicationDescriptor> createDescriptors(final int descriptors_count) {
-
-        final List<ApplicationDescriptor> descriptors = new ArrayList<ApplicationDescriptor>();
-        for (int i = 0; i < descriptors_count; i++) {
-            descriptors.add(newApplicationDescriptor());
-        }
-        return descriptors;
+        LOGGER.info("Awaiting 'awaitAnyOfStates' jobs is complete. \n");
     }
 
     /**
@@ -194,5 +166,14 @@ public class ApplicationDescriptorTest {
 
         final List<ApplicationDescriptor> descriptors = createDescriptors(2);
         awaitStateChanges(descriptors, ApplicationState.RUNNING);
+    }
+
+    @Test
+    public void testGetHost() throws Exception {
+        LocalHost local_host = new LocalHost();
+        ApplicationDescriptor descriptor = new ApplicationDescriptor(local_host, null);
+
+        Assert.assertEquals(local_host, descriptor.getHost());
+
     }
 }

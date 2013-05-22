@@ -77,7 +77,8 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
         final Future<Result> future_result = TIMEOUT_EXECUTOR_SERVICE_INSTANCE.submit(task);
         try {
             return future_result.get(time, time_unit);
-        } finally {
+        }
+        finally {
             future_result.cancel(true);
             TIMEOUT_EXECUTOR_SERVICE_INSTANCE.purge();
         }

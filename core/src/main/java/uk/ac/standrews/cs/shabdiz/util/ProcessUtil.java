@@ -88,14 +88,14 @@ public final class ProcessUtil {
 
             try {
                 final int exit_value = process.waitFor();
-                LOGGER.info("done waiting for process, exit value: {}", exit_value);
+                LOGGER.debug("done waiting for process, exit value: {}", exit_value);
                 future_error.get();
                 if (exit_value != NORMAL_TERMINATION) {
                     LOGGER.warn("No error occurred while executing the process but the exit value is non zero: {}", exit_value);
                 }
                 return future_result.get().trim();
             } catch (final ExecutionException e) {
-                LOGGER.info("error occurred on process execution", e);
+                LOGGER.debug("error occurred on process execution", e);
                 final Throwable cause = e.getCause();
                 throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
             }
