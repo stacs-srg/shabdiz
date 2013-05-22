@@ -178,7 +178,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public boolean addScanner(final Scanner scanner) {
 
         synchronized (scheduled_scanners) {
-            return isAddable(scanner) && (scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner));
+            return isAddable(scanner) && scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner);
         }
     }
 
@@ -307,7 +307,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      * @param descriptor the descriptor that its presence is checked
      * @return {@code true} if the given {@code descriptor} is present in this network
      */
-    public boolean contains(ApplicationDescriptor descriptor){
+    public boolean contains(final ApplicationDescriptor descriptor) {
 
         return application_descriptors.contains(descriptor);
     }

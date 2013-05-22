@@ -83,7 +83,7 @@ public abstract class AbstractHost implements Host {
     @Override
     public int hashCode() {
 
-        return HashCodeUtil.generate(address.hashCode(), name.hashCode(), (local ? 1 : 0));
+        return HashCodeUtil.generate(address.hashCode(), name.hashCode(), local ? 1 : 0);
     }
 
     @Override
