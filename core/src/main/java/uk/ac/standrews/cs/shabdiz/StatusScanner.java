@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  * Scanner that monitors machine status. Machines are probed for the presence of a particular application, and for their willingness to accept an SSH connection with specified credentials.
  * The results of these tests are recorded in the corresponding host descriptors.
  * This scanner publishes a new latch after every cycle through the host list. This enables other scanners to synchronize their own operation with this one.
- * 
+ *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -38,7 +38,6 @@ public class StatusScanner extends AbstractConcurrentScanner {
     /** The default timeout for attempted status checks. */
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final boolean ENABLED_BY_DEFAULT = true;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusScanner.class);
 
     protected StatusScanner(final Duration cycle_delay) {
@@ -54,13 +53,8 @@ public class StatusScanner extends AbstractConcurrentScanner {
     @Override
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled()) {
-            final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
-            LOGGER.debug("new state {}", new_state);
-            descriptor.setApplicationState(new_state);
-        }
-        else {
-            LOGGER.debug("status scan is disabled");
-        }
+        final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
+        LOGGER.debug("new state {}", new_state);
+        descriptor.setApplicationState(new_state);
     }
 }

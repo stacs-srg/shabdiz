@@ -40,7 +40,7 @@ public class AutoKillScanner extends AbstractConcurrentScanner {
     @Override
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isKillable(descriptor)) {
+        if (isKillable(descriptor)) {
             try {
                 descriptor.getApplicationManager().kill(descriptor);
             } catch (final Exception e) {

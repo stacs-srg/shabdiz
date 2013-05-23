@@ -44,7 +44,7 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
     @Override
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
-        if (isEnabled() && isDeployable(descriptor)) {
+        if (isDeployable(descriptor)) {
             try {
                 final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
                 descriptor.setApplicationReference(application_reference);
