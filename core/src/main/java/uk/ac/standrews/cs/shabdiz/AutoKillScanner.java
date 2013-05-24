@@ -44,7 +44,7 @@ public class AutoKillScanner extends AbstractConcurrentScanner {
             try {
                 descriptor.getApplicationManager().kill(descriptor);
             } catch (final Exception e) {
-                LOGGER.warn("failed to terminate descriptor", e);
+                LOGGER.debug("failed to terminate descriptor", e);
             }
         }
     }
