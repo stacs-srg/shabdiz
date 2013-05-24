@@ -33,13 +33,12 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
  * A host scanner that concurrently scans each {@link ApplicationDescriptor descriptor} in a given {@link ApplicationNetwork application network}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractConcurrentScanner.class.getName());
-
     private final ReentrantLock check_lock;
     private final List<Future<?>> scheduled_checks;
     private volatile ExecutorService executor;
@@ -50,6 +49,23 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
         super(min_cycle_time, check_timeout, enabled);
         check_lock = new ReentrantLock();
         scheduled_checks = new ArrayList<Future<?>>();
+    }
+
+    @Override
+    public final void scan(final ApplicationNetwork network) {
+
+        check_lock.lock();
+        try {
+            beforeScan();
+            prepareForChecks();
+            scheduleConcurrentChecks(network);
+            awaitCheckCompletionUntilTimeoutIsElapsed();
+            cancelLingeringChecks();
+            afterScan();
+        }
+        finally {
+            check_lock.unlock();
+        }
     }
 
     protected abstract void scan(ApplicationNetwork network, ApplicationDescriptor descriptor);
@@ -63,7 +79,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
      * Method invoked prior to scanning the given network.
      * This implementation does nothing, but may be customised in subclasses.
      * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
-     * 
+     *
      * @see Scanner#scan(ApplicationNetwork)
      */
     protected void beforeScan() {
@@ -74,30 +90,11 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
      * Method invoked upon successful completion of scanning the given network.
      * This implementation does nothing, but may be customised in subclasses.
      * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
-     * 
+     *
      * @see Scanner#scan(ApplicationNetwork)
      */
     protected void afterScan() {
 
-    }
-
-    @Override
-    public final void scan(final ApplicationNetwork network) {
-
-        check_lock.lock();
-        try {
-            if (isEnabled()) {
-                beforeScan();
-                prepareForChecks();
-                scheduleConcurrentChecks(network);
-                awaitCheckCompletionUntilTimeoutIsElapsed();
-                cancelLingeringChecks();
-                afterScan();
-            }
-        }
-        finally {
-            check_lock.unlock();
-        }
     }
 
     private void prepareForChecks() {
