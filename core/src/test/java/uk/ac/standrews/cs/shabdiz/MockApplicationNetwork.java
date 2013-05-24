@@ -59,4 +59,8 @@ public class MockApplicationNetwork extends ApplicationNetwork {
             Assert.assertTrue(descriptor.getApplicationState().equals(expected_state));
         }
     }
+
+    void assertEmptiness() {
+        Assert.assertTrue(application_descriptors.isEmpty());
+    }
 }

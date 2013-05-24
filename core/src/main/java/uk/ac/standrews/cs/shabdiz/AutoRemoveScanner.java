@@ -19,7 +19,6 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
-
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
