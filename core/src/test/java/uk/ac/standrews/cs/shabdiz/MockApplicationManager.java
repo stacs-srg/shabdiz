@@ -9,6 +9,7 @@ public class MockApplicationManager implements ApplicationManager {
     private static final AttributeKey<Boolean> KILLED_ATTRIBUTE = new AttributeKey<Boolean>();
     private volatile ApplicationState probe_state_result = ApplicationState.UNKNOWN;
     private boolean throw_exception_on_kill;
+    private boolean throw_exception_on_deploy;
 
     @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {
@@ -16,19 +17,13 @@ public class MockApplicationManager implements ApplicationManager {
         return isKilled(descriptor) ? ApplicationState.KILLED : isDeployed(descriptor) ? ApplicationState.DEPLOYED : probe_state_result;
     }
 
-    private boolean isDeployed(final ApplicationDescriptor descriptor) {
-        return MOCK_APPLICATION_REFERENCE.equals(descriptor.getApplicationReference());
-    }
-
-    private Boolean isKilled(final ApplicationDescriptor descriptor) {
-
-        final Boolean killed = descriptor.getAttribute(KILLED_ATTRIBUTE);
-        return killed != null && killed;
-    }
-
     @Override
     public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
-        return MOCK_APPLICATION_REFERENCE;
+
+        if (!throw_exception_on_deploy) {
+            return MOCK_APPLICATION_REFERENCE;
+        }
+        throw new Exception();
     }
 
     @Override
@@ -37,6 +32,20 @@ public class MockApplicationManager implements ApplicationManager {
             descriptor.setAttribute(KILLED_ATTRIBUTE, true);
         }
         else { throw new Exception(); }
+    }
+
+    private Boolean isKilled(final ApplicationDescriptor descriptor) {
+
+        final Boolean killed = descriptor.getAttribute(KILLED_ATTRIBUTE);
+        return killed != null && killed;
+    }
+
+    private boolean isDeployed(final ApplicationDescriptor descriptor) {
+        return MOCK_APPLICATION_REFERENCE.equals(descriptor.getApplicationReference());
+    }
+
+    public void setThrowExceptionOnDeploy(final boolean enabled) {
+        throw_exception_on_deploy = enabled;
     }
 
     public void setThrowExceptionOnKill(final boolean enabled) {
@@ -53,6 +62,10 @@ public class MockApplicationManager implements ApplicationManager {
 
     public void assertNotKilled(final ApplicationDescriptor descriptor) {
         Assert.assertFalse(isKilled(descriptor));
+    }
+
+    void assertNotDeployed(final ApplicationDescriptor descriptor) {
+        Assert.assertNotEquals(MOCK_APPLICATION_REFERENCE, descriptor.getApplicationReference());
     }
 
     void setProbeStateResult(ApplicationState probe_state_result) {

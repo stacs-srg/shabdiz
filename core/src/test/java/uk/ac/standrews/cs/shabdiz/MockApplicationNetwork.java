@@ -14,7 +14,6 @@ public class MockApplicationNetwork extends ApplicationNetwork {
         manager = new MockApplicationManager();
     }
 
-
     void populate() {
         populate(DEFAULT_SIZE);
     }
@@ -33,6 +32,12 @@ public class MockApplicationNetwork extends ApplicationNetwork {
     void assertAllDeployed() {
         for (ApplicationDescriptor descriptor : this) {
             manager.assertDeployed(descriptor);
+        }
+    }
+
+    void assertAllNotDeployed() {
+        for (ApplicationDescriptor descriptor : this) {
+            manager.assertNotDeployed(descriptor);
         }
     }
 
