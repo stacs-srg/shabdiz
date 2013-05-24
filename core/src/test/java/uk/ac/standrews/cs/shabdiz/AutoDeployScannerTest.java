@@ -24,9 +24,9 @@ public class AutoDeployScannerTest extends ScannerTest {
     public void testFaultyDeployable() throws Exception {
 
         network.manager.setThrowExceptionOnDeploy(true);
-        network.manager.setProbeStateResult(ApplicationState.RUNNING);
+        network.manager.setProbeStateResult(ApplicationState.AUTH);
         assertAwaitDeployedStateTimeout();
-        network.assertAllInState(ApplicationState.RUNNING);
+        network.assertAllInState(ApplicationState.AUTH);
     }
 
     @Test
