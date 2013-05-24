@@ -18,7 +18,7 @@ public class AbstractScannerTest {
     private static final String TEST_PROPERTY_NAME = "SomeProperty";
     private static final Integer TEST_PROPERTY_OLD_VALUE = null;
     private static final Integer TEST_PROPERTY_NEW_VALUE = 65536;
-    private static final CountDownLatch FIRE_PROPERTY_LATCH = new CountDownLatch(1);
+    private static final CountDownLatch PROPERTY_CHANGE_ASSERTION_LATCH = new CountDownLatch(1);
     private AbstractScanner scanner;
     private Duration delay = new Duration(1, TimeUnit.SECONDS);
     private Duration timeout = new Duration(10, TimeUnit.SECONDS);
@@ -42,7 +42,9 @@ public class AbstractScannerTest {
             public void propertyChange(final PropertyChangeEvent evt) {
 
                 Assert.assertEquals(TEST_PROPERTY_NAME, evt.getPropertyName());
-                FIRE_PROPERTY_LATCH.countDown();
+                Assert.assertEquals(TEST_PROPERTY_OLD_VALUE, evt.getOldValue());
+                Assert.assertEquals(TEST_PROPERTY_NEW_VALUE, evt.getNewValue());
+                PROPERTY_CHANGE_ASSERTION_LATCH.countDown();
             }
         };
     }
@@ -93,6 +95,6 @@ public class AbstractScannerTest {
         scanner.addPropertyChangeListener(TEST_PROPERTY_NAME, listener);
         scanner.firePropertyChange(TEST_PROPERTY_NAME, TEST_PROPERTY_OLD_VALUE, TEST_PROPERTY_NEW_VALUE);
         // The assertion is done in the listener; here we just wait for the listener to signal success
-        FIRE_PROPERTY_LATCH.await();
+        PROPERTY_CHANGE_ASSERTION_LATCH.await();
     }
 }
