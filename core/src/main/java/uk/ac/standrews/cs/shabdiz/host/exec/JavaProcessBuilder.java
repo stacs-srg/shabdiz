@@ -25,11 +25,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
@@ -299,7 +297,7 @@ public class JavaProcessBuilder implements HostProcessBuilder {
      */
     public void addCommandLineArgument(final String argument) {
 
-        //FIXME quote the argument based on platform, in case the argument has special characters
+        // TODO quote the argument based on platform, in case the argument has special characters
         final String arg = tidyArgument(argument);
         command_line_arguments.append(arg).append(SPACE);
     }

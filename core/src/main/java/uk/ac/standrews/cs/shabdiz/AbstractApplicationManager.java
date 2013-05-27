@@ -146,7 +146,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private void attemptAddressResolution(final String host_name) throws UnknownHostException {
 
-        LOGGER.trace("attempting to resolve adderess from host name {}", host_name);
+        LOGGER.trace("attempting to resolve address from host name {}", host_name);
         InetAddress.getByName(host_name);
     }
 }
