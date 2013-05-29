@@ -16,7 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.standrews.cs.shabdiz.active;
+package uk.ac.standrews.cs.shabdiz.util;
+
+import java.util.List;
+import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -24,18 +27,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
-import org.junit.Test;
-
-import uk.ac.standrews.cs.shabdiz.util.Patterns;
-
 /**
  * Tests for pattern resolution logic.
  * 
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  */
-public class PatternResolutionTests {
+public class PatternsTest {
 
     private static final int MAX_BYTE_VALUE = 255;
 
