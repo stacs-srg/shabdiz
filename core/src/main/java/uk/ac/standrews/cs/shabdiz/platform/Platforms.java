@@ -28,17 +28,15 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * Factory for {@link Platform} and {@link SimplePlatform}, and utility methods to detect {@link Platform platform} from {@link Host host} by executing {@code uname} command or a Java-based platform detector.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class Platforms {
@@ -54,7 +52,7 @@ public final class Platforms {
 
     /**
      * Gets the current user from system properties.
-     * 
+     *
      * @return the current user
      * @see System#getProperty(String)
      */
@@ -67,7 +65,7 @@ public final class Platforms {
      * Detects the platform of a given {@link Host host}.
      * If the {@code host} {@link Host#isLocal() is local}, returns an instance of {@link LocalPlatform}.
      * Otherwise, attempts to detect the platform from the output that is produced by executing the {@code uname} command on the host.
-     * 
+     *
      * @param host the host
      * @return the platform
      * @throws IOException Signals that an I/O exception has occurred.
@@ -83,7 +81,7 @@ public final class Platforms {
      * If the {@code host} {@link Host#isLocal() is local}, returns an instance of {@link LocalPlatform}.
      * If the {@code use_java} flag is set to {@code true}, attempts to detect the platform by a Java-based application on the remote host.
      * Otherwise, attempts to detect the platform from the output that is produced by executing the {@code uname} command on the host.
-     * 
+     *
      * @param host the host to detect the platform of
      * @param use_java whether to use a Java-based platform detector
      * @return the detected platform of the given {@code host}
@@ -142,7 +140,7 @@ public final class Platforms {
      * If the given output contains {@link WindowsPlatform#WINDOWS_OS_NAME_KEY} it is assumed the platform is Windows.
      * If the given output contains {@link CygwinPlatform#CYGWIN_OS_NAME_KEY} it is assumed the platform is Cygwin.
      * Otherwise the platform is assumed to be Unix-based.
-     * 
+     *
      * @param uname_output the output produced by the execution of {@code uname} commad
      * @return an isntance of {@link SimplePlatform} that represents Windowns, Cygwin or Unix platform
      */
@@ -156,7 +154,7 @@ public final class Platforms {
 
     /**
      * Checks if a given platform presents a UNIX based platform.
-     * 
+     *
      * @param target the target platform
      * @return true, if the path separator and separator of the target platform are equal to UNIX platform
      */
@@ -201,7 +199,7 @@ public final class Platforms {
 
     private static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws URISyntaxException, IOException {
 
-        final URL resource_url = PlatformDetector.class.getResource(getResourceName(type));
+        final URL resource_url = type.getResource(getResourceName(type));
         final File source = new File(resource_url.toURI());
         final String entry_name = type.getPackage().getName().replaceAll("\\.", "/") + "/" + source.getName();
         final JarEntry entry = new JarEntry(entry_name);

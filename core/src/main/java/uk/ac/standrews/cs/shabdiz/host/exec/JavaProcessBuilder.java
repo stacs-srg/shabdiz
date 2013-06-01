@@ -21,7 +21,6 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -40,17 +39,12 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class JavaProcessBuilder implements HostProcessBuilder {
+public class JavaProcessBuilder extends BaseJavaProcessBuilder {
 
     // TODO Implement caching and removal of uploaded library files
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaProcessBuilder.class);
-    private static final String SPACE = " ";
-    private final StringBuffer jvm_arguments;
-    private final StringBuffer command_line_arguments;
-    private final String main_class;
     private final Set<File> classpath;
-    private volatile String java_home;
 
     /**
      * Constructs a new Java process builder with the given class as the {@code main} class.
@@ -69,9 +63,6 @@ public class JavaProcessBuilder implements HostProcessBuilder {
      */
     public JavaProcessBuilder(final String main_class_name) {
 
-        this.main_class = main_class_name;
-        jvm_arguments = new StringBuffer();
-        command_line_arguments = new StringBuffer();
         classpath = new HashSet<File>();
     }
 
@@ -82,105 +73,6 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         final String command = assembleRemoteJavaCommand(host);
         LOGGER.debug("preparing to execute command: {}", command);
         return host.execute(remote_working_directory, command);
-    }
-
-    private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
-
-        final String remote_working_directory = getRemoteWorkingDirectory(host);
-        LOGGER.info("remote working directory: {}", remote_working_directory);
-        final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
-        LOGGER.info("compressed classpath: {}", compressed_classpath);
-        CompressionUtil.toZip(classpath, compressed_classpath);
-        host.upload(compressed_classpath, remote_working_directory);
-        decompressOnHost(host, remote_working_directory, compressed_classpath);
-        return remote_working_directory;
-    }
-
-    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
-
-        //TODO use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
-        try {
-            try {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath.getName()));
-            } catch (final IOException e) {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath.getName()));
-            }
-        } catch (final InterruptedException e) {
-            throw new IOException(e);
-        }
-    }
-
-    private String getRemoteWorkingDirectory(final Host host) throws IOException {
-
-        return host.getPlatform().getTempDirectory() + "shabdiz_" + UUID.randomUUID().toString();
-    }
-
-    private String assembleRemoteJavaCommand(final Host host) throws IOException {
-
-        final StringBuilder command = new StringBuilder();
-        final Platform platform = host.getPlatform();
-        appendJavaBinPath(command, platform);
-        appendJVMArguments(command, platform);
-        appendMainClass(command);
-        appendCommandLineArguments(command);
-
-        return command.toString();
-    }
-
-    private void appendCommandLineArguments(final StringBuilder command) {
-
-        command.append(command_line_arguments.toString());
-        command.append(SPACE);
-    }
-
-    private void appendMainClass(final StringBuilder command) {
-
-        command.append(main_class);
-        command.append(SPACE);
-    }
-
-    private void appendJVMArguments(final StringBuilder command, final Platform platform) {
-
-        command.append(jvm_arguments.toString());
-        appendClasspath(command, platform);
-    }
-
-    private void appendClasspath(final StringBuilder command, final Platform platform) {
-
-        command.append("-classpath");
-        command.append(SPACE);
-        command.append("\"");
-        command.append(".");
-        command.append(platform.getPathSeparator());
-        appendClasspathDirectoryNames(command, platform);
-        command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
-        command.append("\"");
-        command.append(SPACE);
-    }
-
-    private void appendClasspathDirectoryNames(final StringBuilder command, final Platform platform) {
-
-        final Set<String> classpath_directory_names = new HashSet<String>();
-        for (final File classpath_entry : classpath) {
-            final String name = classpath_entry.getName();
-            if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
-                command.append(name);
-                command.append(platform.getPathSeparator());
-                classpath_directory_names.add(name);
-            }
-        }
-    }
-
-    private void appendJavaBinPath(final StringBuilder command, final Platform platform) {
-
-        if (java_home != null) {
-            command.append(java_home);
-            command.append(platform.getSeparator());
-            command.append("bin");
-            command.append(platform.getSeparator());
-        }
-        command.append("java");
-        command.append(SPACE);
     }
 
     /** Adds current JVM's classpath to this builder's collection of classpath files. */
@@ -230,75 +122,78 @@ public class JavaProcessBuilder implements HostProcessBuilder {
         return classpath.add(downloaded_file);
     }
 
-    /**
-     * Gets the name of the class that is used as the main class of the process, which are started by this process builder.
-     *
-     * @return the name of the class that is used as the main class of the process, which are started by this process builder
-     */
-    public String getMainClassName() {
+    private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
 
-        return main_class;
+        final String remote_working_directory = getRemoteWorkingDirectory(host);
+        LOGGER.info("remote working directory: {}", remote_working_directory);
+        final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
+        LOGGER.info("compressed classpath: {}", compressed_classpath);
+        CompressionUtil.toZip(classpath, compressed_classpath);
+        host.upload(compressed_classpath, remote_working_directory);
+        decompressOnHost(host, remote_working_directory, compressed_classpath);
+        return remote_working_directory;
     }
 
-    /**
-     * Sets the Java home directory on hosts on which Java processes to be started.
-     *
-     * @param java_home the Java home directory on hosts on which Java processes to be started
-     */
-    public void setJavaHome(final String java_home) {
+    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
 
-        this.java_home = java_home;
-    }
+        //TODO use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
+        try {
 
-    /**
-     * Replaces this builder's JVM arguments with the given {@code replacement_arguments}.
-     *
-     * @param replacement_arguments the arguments to replace this builder's JVM arguments with
-     */
-    public void replaceJVMArguments(final String replacement_arguments) {
-
-        final String arg = tidyArgument(replacement_arguments);
-        jvm_arguments.replace(0, jvm_arguments.length(), arg);
-    }
-
-    private String tidyArgument(final String argument) {
-
-        return argument.trim();
-    }
-
-    /**
-     * Adds the given {@code argument} to this builder's JVM arguments.
-     *
-     * @param argument the argument to add to the collection of this builder's JVM arguments
-     */
-    public void addJVMArgument(final String argument) {
-
-        final String arg = tidyArgument(argument);
-        jvm_arguments.append(arg).append(SPACE);
-    }
-
-    /**
-     * Adds the given {@code arguments} to this builder's command line arguments.
-     *
-     * @param arguments the arguments to add to the collection of this builder's command line arguments
-     * @see #addCommandLineArgument(String)
-     */
-    public void addCommandLineArguments(final Collection<String> arguments) {
-
-        for (final String argument : arguments) {
-            addCommandLineArgument(argument);
+            final String compressed_classpath_file_name = compressed_classpath.getName();
+            try {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath_file_name));
+            }
+            catch (final IOException e) {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath_file_name));
+            }
+        }
+        catch (final InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
-    /**
-     * Adds the given {@code argument} to this builder's command line arguments.
-     *
-     * @param argument the argument to add to the collection of this builder's command line arguments
-     */
-    public void addCommandLineArgument(final String argument) {
+    private String getRemoteWorkingDirectory(final Host host) throws IOException {
 
-        // TODO quote the argument based on platform, in case the argument has special characters
-        final String arg = tidyArgument(argument);
-        command_line_arguments.append(arg).append(SPACE);
+        return host.getPlatform().getTempDirectory() + "shabdiz_" + UUID.randomUUID().toString();
     }
+
+    private String assembleRemoteJavaCommand(final Host host) throws IOException {
+
+        final StringBuilder command = new StringBuilder();
+        final Platform platform = host.getPlatform();
+        appendJavaBinPath(command, platform);
+        appendJVMArguments(command);
+        appendClasspath(command, platform);
+        appendMainClass(command);
+        appendCommandLineArguments(command, platform);
+
+        return command.toString();
+    }
+
+    private void appendClasspath(final StringBuilder command, final Platform platform) {
+
+        command.append("-classpath");
+        command.append(SPACE);
+        command.append("\"");
+        command.append(".");
+        command.append(platform.getPathSeparator());
+        appendClasspathDirectoryNames(command, platform);
+        command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
+        command.append("\"");
+        command.append(SPACE);
+    }
+
+    private void appendClasspathDirectoryNames(final StringBuilder command, final Platform platform) {
+
+        final Set<String> classpath_directory_names = new HashSet<String>();
+        for (final File classpath_entry : classpath) {
+            final String name = classpath_entry.getName();
+            if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
+                command.append(name);
+                command.append(platform.getPathSeparator());
+                classpath_directory_names.add(name);
+            }
+        }
+    }
+
 }

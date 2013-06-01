@@ -22,7 +22,7 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * Presents the platform-specific settings of a {@link Host host}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see Host#getPlatform()
  * @see Platforms
@@ -40,29 +40,47 @@ public interface Platform {
 
     /**
      * Gets the path separator.
-     * 
+     *
      * @return the path separator
      */
     char getPathSeparator();
 
     /**
      * Gets the separator.
-     * 
+     *
      * @return the separator
      */
     char getSeparator();
 
     /**
      * Gets the path to this platform's {@code temp} directory.
-     * 
-     * @return the temporary directory
+     * The returned path ends with this platform's {@link #getSeparator() separator}.
+     *
+     * @return the temporary directory that ends with {@link #getSeparator() separator}
      */
     String getTempDirectory();
 
     /**
      * Gets the operating system name.
-     * 
+     *
      * @return the operating system name
      */
     String getOperatingSystemName();
+
+    /**
+     * Gets the path to the directory in which Java is installed.
+     * The Java home directory contains a {@code bin} folder.
+     * The returned path ends with this platform's {@link #getSeparator() separator}.
+     *
+     * @return the directory in which Java is installed, or {@code null} if unspecified
+     */
+    String getJavaHomeDirectory();
+
+    /**
+     * Quotes any platform-dependant special characters in the given {@code value}.
+     *
+     * @param value to be quoted
+     * @return the quoted value, or {@code null} if the given value is {@code null}
+     */
+    String quote(String value);
 }

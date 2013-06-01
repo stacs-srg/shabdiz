@@ -18,9 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -33,6 +30,8 @@ import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for compressing files.
@@ -77,7 +76,8 @@ public final class CompressionUtil {
                 final URI base = file.getCanonicalFile().getParentFile().toURI();
                 copyToZipStream(file, zip, base);
             }
-        } finally {
+        }
+        finally {
             zip.close();
         }
     }
@@ -113,9 +113,11 @@ public final class CompressionUtil {
         try {
             zip.putNextEntry(entry);
             IOUtils.copy(in, zip);
-        } catch (final ZipException e) {
+        }
+        catch (final ZipException e) {
             LOGGER.warn("failed to put entry to zip stream", e);
-        } finally {
+        }
+        finally {
             in.close();
         }
     }

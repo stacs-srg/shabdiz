@@ -20,11 +20,12 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
  * Provides platform-specific settings such as path separator and separator.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SimplePlatform implements Platform {
 
+    private static final String DOUBLE_QUOTE = "\"";
     private final char path_separator;
     private final char separator;
     private final String temp_dir;
@@ -32,7 +33,7 @@ public class SimplePlatform implements Platform {
 
     /**
      * Instantiates a new platform.
-     * 
+     *
      * @param os_name the operating system name
      * @param path_separator the path separator
      * @param separator the separator
@@ -44,11 +45,6 @@ public class SimplePlatform implements Platform {
         this.path_separator = path_separator;
         this.separator = separator;
         this.temp_dir = addTailingSeparator(separator, temp_dir);
-    }
-
-    protected static String addTailingSeparator(final char separator, final String path) {
-
-        return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }
 
     @Override
@@ -76,8 +72,24 @@ public class SimplePlatform implements Platform {
     }
 
     @Override
+    public String getJavaHomeDirectory() {
+        return null;
+    }
+
+    @Override
+    public String quote(final String value) {
+
+        return value != null ? DOUBLE_QUOTE + value + DOUBLE_QUOTE : null;
+    }
+
+    @Override
     public String toString() {
 
-        return new StringBuilder().append("SimplePlatform{").append("path_separator=").append(path_separator).append(", separator=").append(separator).append(", temp_dir='").append(temp_dir).append('\'').append(", os_name='").append(os_name).append('\'').append('}').toString();
+        return "SimplePlatform{" + "path_separator=" + path_separator + ", separator=" + separator + ", temp_dir='" + temp_dir + '\'' + ", os_name='" + os_name + '\'' + '}';
+    }
+
+    protected static String addTailingSeparator(final char separator, final String path) {
+
+        return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }
 }

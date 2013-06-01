@@ -19,6 +19,13 @@
 package uk.ac.standrews.cs.shabdiz.job;
 
 import com.staticiser.jetson.exception.JsonRpcException;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
@@ -30,14 +37,6 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 class WorkerManager extends AbstractApplicationManager {
 
@@ -99,7 +98,8 @@ class WorkerManager extends AbstractApplicationManager {
             }
             try {
                 worker.shutdown();
-            } catch (final JsonRpcException e) {
+            }
+            catch (final JsonRpcException e) {
                 LOGGER.trace("ignoring expected error at the time of kill", e);
             }
         }
@@ -133,7 +133,7 @@ class WorkerManager extends AbstractApplicationManager {
      */
     public void setWorkerJVMArguments(final String jvm_arguments) {
 
-        worker_process_builder.replaceJVMArguments(jvm_arguments.trim());
+        worker_process_builder.setJVMArguments(jvm_arguments);
     }
 
     @Override

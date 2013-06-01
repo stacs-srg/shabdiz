@@ -22,14 +22,14 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
  * Abstracts over platform-specific commands.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface CommandBuilder {
 
     /**
-     * Gets the platform-specific command.
-     * 
+     * Gets a platform-specific command.
+     *
      * @param platform the platform
      * @param parameters the command parameters
      * @return the platform-specific command

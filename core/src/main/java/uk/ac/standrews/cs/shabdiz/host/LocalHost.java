@@ -19,21 +19,20 @@
 package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 /**
  * Implements upload, download and command execution on the local machine.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class LocalHost extends AbstractHost {
@@ -42,7 +41,7 @@ public class LocalHost extends AbstractHost {
 
     /**
      * Instantiates a new host that presents the local machine.
-     * 
+     *
      * @throws IOException if failed to resolve the local address
      * @see InetAddress#getLocalHost()
      */
@@ -56,6 +55,14 @@ public class LocalHost extends AbstractHost {
 
         final File destination_file = new File(destination);
         copy(source, destination_file);
+    }
+
+    @Override
+    public void upload(final Collection<File> sources, final String destination) throws IOException {
+
+        for (final File source : sources) {
+            upload(source, destination);
+        }
     }
 
     @Override
@@ -79,6 +86,12 @@ public class LocalHost extends AbstractHost {
         return process_builder.start();
     }
 
+    @Override
+    public Platform getPlatform() {
+
+        return LocalPlatform.getInstance();
+    }
+
     private ProcessBuilder createProcessBuilder(final String command, final String working_directory) {
 
         final ProcessBuilder process_builder = Platforms.isUnixBased(getPlatform()) ? new ProcessBuilder("bash", "-c", command) : new ProcessBuilder("cmd.exe", "/c", command);
@@ -90,28 +103,16 @@ public class LocalHost extends AbstractHost {
 
     private void copy(final File source, final File destination) throws IOException {
 
-        LOGGER.debug("copying: {}, to {}", source, destination);
-        if (source.isFile()) {
-            FileUtils.copyFile(source, new File(destination, source.getName()));
+        if (!source.exists()) {throw new FileNotFoundException("source " + source + "does not exist"); }
+
+        final String destination_canonical_path = destination.getCanonicalPath();
+        if (source.isFile() && !source.getParentFile().getCanonicalPath().equals(destination_canonical_path)) {
+            LOGGER.debug("copying file {}, to {}", source, destination);
+            FileUtils.copyFileToDirectory(source, destination);
         }
-        else {
+        else if (source.isDirectory() && !source.getCanonicalPath().equals(destination_canonical_path)) {
+            LOGGER.debug("copying directory {}, to {}", source, destination);
             FileUtils.copyDirectory(source, destination);
         }
     }
-
-    @Override
-    public void upload(final Collection<File> sources, final String destination) throws IOException {
-
-        for (final File source : sources) {
-            upload(source, destination);
-        }
-    }
-
-    @Override
-    public Platform getPlatform() {
-
-        return LocalPlatform.getInstance();
-    }
-
-
 }

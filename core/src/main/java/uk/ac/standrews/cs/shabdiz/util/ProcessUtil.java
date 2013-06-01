@@ -19,6 +19,7 @@
 
 package uk.ac.standrews.cs.shabdiz.util;
 
+import com.staticiser.jetson.util.NamingThreadFactory;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.RuntimeMXBean;
@@ -30,12 +31,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.staticiser.jetson.util.NamingThreadFactory;
 
 /**
  * A utility class for awaiting {@link Process} termination and parsing {@link Process} outputs.
@@ -65,9 +63,9 @@ public final class ProcessUtil {
      */
     public static String awaitNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
-        final ExecutorService error_reader_executor = Executors.newFixedThreadPool(2, new NamingThreadFactory("process_util_"));
+        final ExecutorService executor = Executors.newFixedThreadPool(2, new NamingThreadFactory("process_util_"));
         try {
-            final Future<Void> future_error = error_reader_executor.submit(new Callable<Void>() {
+            final Future<Void> future_error = executor.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws IOException {
@@ -77,7 +75,7 @@ public final class ProcessUtil {
                     return null; // Void task
                 }
             });
-            final Future<String> future_result = error_reader_executor.submit(new Callable<String>() {
+            final Future<String> future_result = executor.submit(new Callable<String>() {
 
                 @Override
                 public String call() throws IOException {
@@ -94,14 +92,16 @@ public final class ProcessUtil {
                     LOGGER.warn("No error occurred while executing the process but the exit value is non zero: {}", exit_value);
                 }
                 return future_result.get().trim();
-            } catch (final ExecutionException e) {
+            }
+            catch (final ExecutionException e) {
                 LOGGER.debug("error occurred on process execution", e);
                 final Throwable cause = e.getCause();
                 throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
             }
-        } finally {
+        }
+        finally {
             process.destroy();
-            error_reader_executor.shutdownNow();
+            executor.shutdownNow();
         }
     }
 
@@ -124,10 +124,12 @@ public final class ProcessUtil {
             final String value = TimeoutExecutorService.awaitCompletion(scan_task, timeout);
             scan_succeeded = true;
             return value;
-        } catch (final ExecutionException e) {
+        }
+        catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
             throw IOException.class.isInstance(cause) ? (IOException) cause : new IOException(cause);
-        } finally {
+        }
+        finally {
             if (!scan_succeeded) {
                 process.destroy();
             }
@@ -175,7 +177,8 @@ public final class ProcessUtil {
         if (index_of_at != -1) {
             try {
                 pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
-            } catch (final NumberFormatException e) {
+            }
+            catch (final NumberFormatException e) {
                 LOGGER.debug("failed to extract pid from runtime MXBean name", e);
             }
         }
