@@ -22,7 +22,6 @@ import com.staticiser.jetson.exception.JsonRpcException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -32,7 +31,7 @@ import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.FileBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -44,23 +43,25 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-    private final JavaProcessBuilder worker_process_builder;
+    private final FileBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
     private final WorkerRemoteProxyFactory proxy_factory;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
+    private String[] arguments;
 
     public WorkerManager(final WorkerNetwork network, final Set<File> classpath) {
 
         this.network = network;
-        worker_process_builder = createRemoteJavaProcessBuiler(classpath, network.getCallbackAddress());
+        final InetSocketAddress callback_address = network.getCallbackAddress();
+        arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
+        worker_process_builder = createRemoteJavaProcessBuiler(classpath, callback_address);
         proxy_factory = new WorkerRemoteProxyFactory();
     }
 
-    private JavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
+    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
 
-        final JavaProcessBuilder process_builder = new JavaProcessBuilder(WorkerMain.class);
-        final List<String> arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
-        process_builder.addCommandLineArguments(arguments);
+        final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
+
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addClasspath(classpath);
         process_builder.addCurrentJVMClasspath();
@@ -71,7 +72,7 @@ class WorkerManager extends AbstractApplicationManager {
     public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process worker_process = worker_process_builder.start(host);
+        final Process worker_process = worker_process_builder.start(host, arguments);
         final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
         final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);

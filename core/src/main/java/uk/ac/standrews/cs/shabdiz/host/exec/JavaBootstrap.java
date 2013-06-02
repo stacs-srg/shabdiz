@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -12,6 +13,7 @@ import java.util.List;
 
 class JavaBootstrap {
 
+    public static final String MAVEN_DEPENDENCY_RESOLVER_CLASS_NAME = "uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver";
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final File LOCAL_SHABDIZ_HOME = new File(System.getProperty("java.io.tmpdir"), SHABDIZ_HOME_NAME);
@@ -50,14 +52,16 @@ class JavaBootstrap {
             MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"
     };
     private final String main_class;
-    private final String[] dependencies;
+    private final String[] repositories;
+    private final String[] artifacts;
     private final String[] args;
     private final ClassLoader loader;
 
-    JavaBootstrap(String main_class, String[] dependencies, String[] args) throws ClassNotFoundException, MalformedURLException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, URISyntaxException {
+    JavaBootstrap(String[] repositories, String[] artifacts, String main_class, String[] args) throws ClassNotFoundException, MalformedURLException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, URISyntaxException {
 
+        this.repositories = repositories;
+        this.artifacts = artifacts;
         this.main_class = main_class;
-        this.dependencies = dependencies;
         this.args = args;
         loader = resolveSelfDependencies();
     }
@@ -65,23 +69,59 @@ class JavaBootstrap {
     public static void main(String[] args) throws Exception {
 
         String[] repositories = toArray(args[0]);
-        String[] target_dependencies = toArray(args[1]);
+        String[] artifacts = toArray(args[1]);
         String target_main_class = args[2];
         String[] target_main_args = toArray(args[3]);
-        final JavaBootstrap bootstrap = new JavaBootstrap(target_main_class, target_dependencies, target_main_args);
+        final JavaBootstrap bootstrap = new JavaBootstrap(repositories, artifacts, target_main_class, target_main_args);
         bootstrap.start();
     }
 
     public void start() throws Exception {
-        final Class<?> mavenRepoSystemUtils = loader.loadClass("uk.ac.standrews.cs.shabdiz.host.exec.DependencyResolutionUtils");
-        final Method resolveDependencies = mavenRepoSystemUtils.getMethod("resolveDependencies", String.class);
-        final List<URL> resolved_dependencies = new ArrayList<URL>();
-        for (String dependency : dependencies) {
-            resolved_dependencies.addAll((List<URL>) resolveDependencies.invoke(null, dependency));
-        }
 
-        final URLClassLoader target_loader = URLClassLoader.newInstance(resolved_dependencies.toArray(new URL[resolved_dependencies.size()]), null);
+        final Class<?> maven_dependency_resolver_class = loader.loadClass(MAVEN_DEPENDENCY_RESOLVER_CLASS_NAME);
+        final Constructor<?> constructor = maven_dependency_resolver_class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        final Object maven_dependency_resolver = constructor.newInstance();
+
+        addRepositories(maven_dependency_resolver_class, maven_dependency_resolver);
+        addArtifacts(maven_dependency_resolver_class, maven_dependency_resolver);
+
+        final ClassLoader target_loader = resolve(maven_dependency_resolver_class, maven_dependency_resolver);
+        loadAndInvokeTargetMainMethod(target_loader);
+    }
+
+    private void loadAndInvokeTargetMainMethod(final ClassLoader target_loader) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
+
         target_loader.loadClass(main_class).getMethod("main", String[].class).invoke(null, (Object) args);
+    }
+
+    private void addRepositories(final Class<?> maven_dependency_resolver_class, final Object maven_dependency_resolver) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (repositories != null && repositories.length > 0) {
+            final Method add_repository = maven_dependency_resolver_class.getDeclaredMethod("addRepository", String.class);
+            add_repository.setAccessible(true);
+            for (String repository : repositories) {
+                add_repository.invoke(maven_dependency_resolver, repository);
+            }
+        }
+    }
+
+    private void addArtifacts(final Class<?> maven_dependency_resolver_class, final Object maven_dependency_resolver) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (artifacts != null && artifacts.length > 0) {
+            final Method add_artifact = maven_dependency_resolver_class.getDeclaredMethod("addArtifact", String.class);
+            add_artifact.setAccessible(true);
+            for (String artifact : artifacts) {
+                add_artifact.invoke(maven_dependency_resolver, artifact);
+            }
+        }
+    }
+
+    private ClassLoader resolve(final Class<?> maven_dependency_resolver_class, final Object maven_dependency_resolver) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        final Method resolve = maven_dependency_resolver_class.getDeclaredMethod("resolve");
+        resolve.setAccessible(true);
+        return (ClassLoader) resolve.invoke(maven_dependency_resolver);
     }
 
     static File getBootstrapHome(String tmp_dir) {
@@ -94,7 +134,7 @@ class JavaBootstrap {
 
     private static URLClassLoader resolveSelfDependencies() throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, URISyntaxException {
         final URL commons_io_url = getCommonsIOURL();
-        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[]{commons_io_url}, ClassLoader.getSystemClassLoader());
+        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[] { commons_io_url }, ClassLoader.getSystemClassLoader());
         final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
         final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
         final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);
@@ -146,8 +186,12 @@ class JavaBootstrap {
         return file.toURI().toURL();
     }
 
-    private static String[] toArray(String value) {
+    private static String[] toArray(final String value) {
+        if (value != null) {
+            final String tidied_value = value.trim().replace("[", "").replace("]", "");
+            return !tidied_value.equals("") ? tidied_value.split(", ") : null;
+        }
 
-        return value != null ? value.replace("[", "").replace("]", "").split(", ") : null;
+        return null;
     }
 }

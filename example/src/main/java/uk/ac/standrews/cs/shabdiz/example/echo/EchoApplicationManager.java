@@ -18,26 +18,23 @@
  */
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.staticiser.jetson.ClientFactory;
 import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.FileBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.staticiser.jetson.ClientFactory;
 
 class EchoApplicationManager extends AbstractApplicationManager {
 
@@ -47,14 +44,14 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
+    public static final String ARGUMENTS = ":0";
     private final Random random;
-    private final JavaProcessBuilder process_builder;
+    private final FileBasedJavaProcessBuilder process_builder;
 
     EchoApplicationManager() {
 
         random = new Random();
-        process_builder = new JavaProcessBuilder(DefaultEcho.class);
-        process_builder.addCommandLineArgument(":0");
+        process_builder = new FileBasedJavaProcessBuilder(DefaultEcho.class);
         process_builder.addCurrentJVMClasspath();
     }
 
@@ -62,7 +59,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
     public Echo deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process echo_service_process = process_builder.start(host);
+        final Process echo_service_process = process_builder.start(host, ARGUMENTS);
         final String address_as_string = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
         final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);

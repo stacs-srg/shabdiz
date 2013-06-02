@@ -3,9 +3,11 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -29,37 +31,81 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.VersionResolutionException;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 
-class DependencyResolutionUtils {
-
-    static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build();
-    static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
+class MavenDependencyResolver implements DependencyResolver {
 
     static final File REPOSITORY_HOME = new File(JavaBootstrap.LOCAL_SHABDIZ_HOME, "repository");
-    static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
-    static final RepositorySystemSession REPOSITORY_SYSTEM_SESSION = createRepositorySystemSession(REPOSITORY_SYSTEM, REPOSITORY_HOME);
+    private static final String DEFAULT_REPOSITORY_TYPE = "default";
+    private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build();
+    private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
+    private static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
+    private static final RepositorySystemSession REPOSITORY_SYSTEM_SESSION = createRepositorySystemSession(REPOSITORY_SYSTEM, REPOSITORY_HOME);
+    private final List<RemoteRepository> repositories;
+    private final Set<Artifact> artifacts;
 
-    static List<URL> resolveDependencies(String artifact_coordinates, RemoteRepository... repositories) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
-
-        return resolveDependencies(new DefaultArtifact(artifact_coordinates), repositories);
+    MavenDependencyResolver() {
+        repositories = new ArrayList<RemoteRepository>();
+        artifacts = new HashSet<Artifact>();
+        addDefaultRepositories();
     }
 
-    static List<URL> resolveDependencies(Artifact artifact, RemoteRepository... repositories) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
+    @Override
+    public ClassLoader resolve() throws DependencyCollectionException, VersionResolutionException, DependencyResolutionException, ArtifactResolutionException {
 
-        final CollectResult collect_result = collectDependencies(artifact, Arrays.asList(repositories));
+        final List<URL> dependency_urls = new ArrayList<URL>();
+
+        for (Artifact artifact : artifacts) {
+            dependency_urls.addAll(resolveDependenciesAsURL(artifact));
+        }
+
+        return URLClassLoader.newInstance(dependency_urls.toArray(new URL[dependency_urls.size()]), null);
+    }
+
+    private void addDefaultRepositories() {
+
+        addRepository(MAVEN_CENTRAL_REPOSITORY);
+        addRepository(ST_ANDREWS_CS_MAVEN_REPOSITORY);
+    }
+
+    boolean addArtifact(String coordinates) {
+
+        return addArtifact(new DefaultArtifact(coordinates));
+    }
+
+    private boolean addArtifact(final Artifact artifact) {
+
+        return artifacts.add(artifact);
+    }
+
+    boolean addRepository(String url) throws MalformedURLException {
+
+        return addRepository(new URL(url));
+    }
+
+    boolean addRepository(URL url) {
+
+        return addRepository(toRemoteRepository(url));
+    }
+
+    private boolean addRepository(final RemoteRepository repository) {
+        return repositories.add(repository);
+    }
+
+    private List<URL> resolveDependenciesAsURL(Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
+
+        final CollectResult collect_result = collectDependencies(artifact, repositories);
         final DependencyNode root_dependency = collect_result.getRoot();
         final DependencyRequest dep_request = new DependencyRequest();
+        final URLCollector url_collector = new URLCollector();
         dep_request.setRoot(root_dependency);
         REPOSITORY_SYSTEM.resolveDependencies(REPOSITORY_SYSTEM_SESSION, dep_request);
-
-        final URLCollector url_collector = new URLCollector();
         root_dependency.accept(url_collector);
 
         return url_collector.urls;
     }
 
-    static List<URL> resolveDependencies(String artifact_coordinates) throws Exception {
+    private static RemoteRepository toRemoteRepository(final URL url) {
 
-        return resolveDependencies(artifact_coordinates, MAVEN_CENTRAL_REPOSITORY, ST_ANDREWS_CS_MAVEN_REPOSITORY);
+        return new RemoteRepository.Builder(url.getHost(), DEFAULT_REPOSITORY_TYPE, url.toString()).build();
     }
 
     private static DefaultRepositorySystemSession createRepositorySystemSession(RepositorySystem system, File repository_home) {

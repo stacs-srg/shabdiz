@@ -31,7 +31,7 @@ import java.util.jar.Manifest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.FileBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
@@ -95,7 +95,7 @@ public final class Platforms {
     private static Platform detectRemotePlatformUsingJava(final Host host) throws IOException {
 
         final File platform_detector = getPlatformDetectorJar();
-        final JavaProcessBuilder java_process_builder = new JavaProcessBuilder(PlatformDetector.class);
+        final FileBasedJavaProcessBuilder java_process_builder = new FileBasedJavaProcessBuilder(PlatformDetector.class);
         java_process_builder.addClasspath(platform_detector);
         final Process platform_detector_process = java_process_builder.start(host);
         try {

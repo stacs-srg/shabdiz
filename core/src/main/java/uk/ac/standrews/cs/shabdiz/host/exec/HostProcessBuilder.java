@@ -19,22 +19,22 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.IOException;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /**
  * Starts a {@link Process process} on a given {@link Host host}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface HostProcessBuilder {
 
     /**
      * Starts a {@link Process process} on a given {@code host}.
-     * 
+     *
      * @param host the host on which to start a process
+     * @param parameters the parameters to pass to process
      * @return the process running on the host
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    Process start(Host host) throws IOException;
+    Process start(Host host, String... parameters) throws IOException;
 }

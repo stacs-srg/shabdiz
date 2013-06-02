@@ -18,10 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import uk.ac.standrews.cs.shabdiz.util.CommandLineArgs;
-import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
-
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
@@ -33,10 +29,13 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.standrews.cs.shabdiz.util.CommandLineArgs;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * THe entry point to start up a new worker.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerMain {
@@ -55,7 +54,7 @@ public class WorkerMain {
 
     /**
      * Instantiates a new worker node server.
-     * 
+     *
      * @param args the startup arguments
      * @throws UnknownHostException the unknown host exception
      * @throws NumberFormatException if the given thread pool size cannot be converted to an integer value
@@ -77,7 +76,7 @@ public class WorkerMain {
      * <dt>-chost:port (required)</dt>
      * <dd>Specifies the address and port of an existing launcher callback server.</dd>
      * </dl>
-     * 
+     *
      * @param args see above
      * @throws IOException if a node cannot be created using the given local address
      * @throws AlreadyBoundException if another node is already bound in the registry
@@ -105,7 +104,7 @@ public class WorkerMain {
         ProcessUtil.printKeyValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
     }
 
-    static List<String> constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port) {
+    static String[] constructCommandLineArguments(final InetSocketAddress callback_address, final Integer port) {
 
         final List<String> arguments = new ArrayList<String>();
         arguments.add(CALLBACK_ADDRESS_KEY + NetworkUtil.formatHostAddress(callback_address));
@@ -113,12 +112,12 @@ public class WorkerMain {
         if (port != null) {
             arguments.add(LOCAL_ADDRESS_KEY + NetworkUtil.formatHostAddress("", port));
         }
-        return arguments;
+        return arguments.toArray(new String[arguments.size()]);
     }
 
     /**
      * Creates a new worker node.
-     * 
+     *
      * @return the created worker node
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws AlreadyBoundException the already bound exception

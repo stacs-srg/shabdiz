@@ -29,16 +29,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
  * Maintains a set of {@link ApplicationDescriptor application descriptors}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
@@ -47,20 +45,19 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
-
-    private final String application_name;
     protected final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
     protected final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
-    private final ScheduledExecutorService scanner_scheduler;
-    private final ExecutorService concurrent_scanner_executor;
     protected final AutoKillScanner auto_kill_scanner;
     protected final AutoDeployScanner auto_deploy_scanner;
     protected final AutoRemoveScanner auto_remove_scanner;
     protected final StatusScanner status_scanner;
+    private final String application_name;
+    private final ScheduledExecutorService scanner_scheduler;
+    private final ExecutorService concurrent_scanner_executor;
 
     /**
      * Instantiates a new application network.
-     * 
+     *
      * @param application_name the name of the application
      */
     public ApplicationNetwork(final String application_name) {
@@ -82,19 +79,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         addScanner(status_scanner);
     }
 
-    protected ScheduledExecutorService createScannerScheduledExecutorService() {
-
-        return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
-    }
-
-    protected ExecutorService createScannerExecutorService() {
-
-        return Executors.newCachedThreadPool();
-    }
-
     /**
      * Gets the name of this application.
-     * 
+     *
      * @return the name of this application
      */
     public String getApplicationName() {
@@ -104,7 +91,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Attempts to sequentially {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
-     * 
+     *
      * @throws Exception if any of the deployments fails
      */
     public void deployAll() throws Exception {
@@ -130,7 +117,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
-     * 
+     *
      * @param host the host on which to terminate the application instances
      * @throws Exception the termination fails
      */
@@ -145,7 +132,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Attempts to terminate the application instance that is described by the given {@code application_descriptor} as defined by its {@link ApplicationDescriptor#getApplicationManager()  manager}.
-     * 
+     *
      * @param descriptor the application descriptor to kill
      * @throws Exception the exception
      */
@@ -156,7 +143,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Causes the current thread to wait until all the {@link ApplicationDescriptor instances} managed by this network reach one of the given {@code states} at least once, unless the thread is {@link Thread#interrupt() interrupted}.
-     * 
+     *
      * @param states the states which application instances must reach at least once
      * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
      */
@@ -171,7 +158,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     /**
      * Adds the given {@code scanner} to the collection of this network's scanners.
      * This method has no effect if the given {@code scanner} has already been added.
-     * 
+     *
      * @param scanner the scanner to add
      * @return true, if successfully added
      */
@@ -185,7 +172,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     /**
      * Removes the given {@code scanner} from the collection of this network's scanners.
      * This method has no effect if the given {@code scanner} does not exist in the collection of this network's scanners.
-     * 
+     *
      * @param scanner the scanner to remove
      * @return true, if successfully removed
      */
@@ -200,7 +187,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
-     * 
+     *
      * @param enabled if {@code true} enables all the scanners of this network, disables all the scanners otherwise
      */
     public void setScanEnabled(final boolean enabled) {
@@ -214,7 +201,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Sets the auto kill enabled.
-     * 
+     *
      * @param enabled the new auto kill enabled
      */
     public void setAutoKillEnabled(final boolean enabled) {
@@ -224,7 +211,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Sets the auto deploy enabled.
-     * 
+     *
      * @param enabled the new auto deploy enabled
      */
     public void setAutoDeployEnabled(final boolean enabled) {
@@ -234,13 +221,14 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     /**
      * Sets the auto remove enabled.
-     * 
+     *
      * @param enabled the new auto remove enabled
      */
     public void setAutoRemoveEnabled(final boolean enabled) {
 
         auto_remove_scanner.setEnabled(enabled);
     }
+
     /**
      * Sets whether the {@link StatusScanner} of this network should be enabled.
      *
@@ -297,13 +285,15 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
         try {
             return application_descriptors.first();
-        } catch (NoSuchElementException e) {
+        }
+        catch (NoSuchElementException e) {
             return null;
         }
     }
 
     /**
      * Checks whether this network contains the given {@code descriptor}.
+     *
      * @param descriptor the descriptor that its presence is checked
      * @return {@code true} if the given {@code descriptor} is present in this network
      */
@@ -342,6 +332,12 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     @Override
+    public int hashCode() {
+
+        return HashCodeUtil.generate(super.hashCode(), application_name.hashCode(), scheduled_scanners.hashCode());
+    }
+
+    @Override
     public boolean equals(final Object other) {
 
         if (this == other) { return true; }
@@ -350,10 +346,14 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return application_name.equals(that.application_name) && scheduled_scanners.equals(that.scheduled_scanners);
     }
 
-    @Override
-    public int hashCode() {
+    protected ScheduledExecutorService createScannerScheduledExecutorService() {
 
-        return HashCodeUtil.generate(super.hashCode(), application_name.hashCode(), scheduled_scanners.hashCode());
+        return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
+    }
+
+    protected ExecutorService createScannerExecutorService() {
+
+        return Executors.newCachedThreadPool();
     }
 
     private void closeHosts() {
@@ -373,12 +373,13 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void killAllSilently() {
-
-        try {
-            killAll();
-        }
-        catch (final Exception e) {
-            LOGGER.warn("failed to kill all managed application descriptors", e);
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+            try {
+                kill(application_descriptor);
+            }
+            catch (final Exception e) {
+                LOGGER.debug("failed to kill all managed application descriptors", e);
+            }
         }
     }
 
