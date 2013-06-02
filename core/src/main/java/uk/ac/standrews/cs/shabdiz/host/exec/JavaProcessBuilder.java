@@ -64,6 +64,7 @@ public class JavaProcessBuilder extends BaseJavaProcessBuilder {
     public JavaProcessBuilder(final String main_class_name) {
 
         classpath = new HashSet<File>();
+        setMainClass(main_class_name);
     }
 
     @Override
