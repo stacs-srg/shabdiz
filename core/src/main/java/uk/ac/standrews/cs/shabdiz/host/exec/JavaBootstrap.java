@@ -14,6 +14,10 @@ import java.util.List;
 class JavaBootstrap {
 
     public static final String MAVEN_DEPENDENCY_RESOLVER_CLASS_NAME = "uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver";
+    public static final int REPOSITORIES_INDEX = 0;
+    public static final int ARTIFACTS_INDEX = 1;
+    public static final int MAIN_CLASS_INDEX = 2;
+    public static final int MAIN_ARGS_INDEX = 3;
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final File LOCAL_SHABDIZ_HOME = new File(System.getProperty("java.io.tmpdir"), SHABDIZ_HOME_NAME);
@@ -51,10 +55,6 @@ class JavaBootstrap {
             MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar",
             MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"
     };
-    public static final int REPOSITORIES_INDEX = 0;
-    public static final int ARTIFACTS_INDEX = 1;
-    public static final int MAIN_CLASS_INDEX = 2;
-    public static final int MAIN_ARGS_INDEX = 3;
     private final String main_class;
     private final String[] repositories;
     private final String[] artifacts;
@@ -138,7 +138,7 @@ class JavaBootstrap {
 
     private static URLClassLoader resolveSelfDependencies() throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, URISyntaxException {
         final URL commons_io_url = getCommonsIOURL();
-        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[] { commons_io_url }, ClassLoader.getSystemClassLoader());
+        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[] {commons_io_url}, ClassLoader.getSystemClassLoader());
         final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
         final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
         final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);

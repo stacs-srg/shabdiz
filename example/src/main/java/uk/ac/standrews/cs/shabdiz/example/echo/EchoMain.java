@@ -20,7 +20,6 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -28,7 +27,7 @@ import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 /**
  * The entry point to Echo example.
  * Deploys a network of five Echo instances on the local machine in separate processes and awaits {@link ApplicationState#RUNNING running} state.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class EchoMain {
@@ -42,7 +41,7 @@ public final class EchoMain {
     /**
      * Starts an Echo network of four instances all running on a single {@link LocalHost local hosts}.
      * All four instances are managed by a single instance of {@link EchoApplicationManager}.
-     * 
+     *
      * @param args the arguments are ignored
      * @throws Exception if failure occurs during the deployment of the network
      */

@@ -35,7 +35,7 @@ import uk.ac.standrews.cs.shabdiz.util.LatchedStateChangeListener;
  * However, a {@link Host} and/or an {@link ApplicationManager} may be associated to multiple {@link ApplicationDescriptor application descriptors}.
  * The {@link #getHost() host} of an application descriptor may be {@code null}.
  * However, the {@link #getApplicationManager() manager} must not be {@code null}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> {
@@ -53,7 +53,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Instantiates a new application descriptor with the given {@link ApplicationManager manager} and {@code null} as {@link #getHost() host}.
      * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
-     * 
+     *
      * @param application_manager the manager of the application instance
      */
     public ApplicationDescriptor(final ApplicationManager application_manager) {
@@ -64,7 +64,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Instantiates a new application descriptor with the given {@link Host host} and {@link ApplicationManager manager}.
      * The initial {@link #getApplicationState() state} is set to {@link ApplicationState#UNKNOWN}.
-     * 
+     *
      * @param host the host of the application instance that is described by this descriptor
      * @param application_manager the manager of the application instance
      */
@@ -86,7 +86,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
-     * 
+     *
      * @param <Value> the type of the value
      * @param key the key whose associated value is to be returned
      * @return Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
@@ -101,7 +101,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Associates the specified value with the specified key in this descriptor's attributes.
      * If the attributes previously contained a mapping for the key, the old value is replaced.
-     * 
+     *
      * @param <Value> the type of the value
      * @param key the key with which the specified value is to be associated
      * @param value the value to be associated with the specified key
@@ -116,7 +116,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Gets the manager of application instance that is described by this descriptor.
-     * 
+     *
      * @return the manager of application instance that is described by this descriptor
      */
     public ApplicationManager getApplicationManager() {
@@ -126,7 +126,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Gets the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor.
-     * 
+     *
      * @return the host of the application instance that is associated to this descriptor, or {@code null} if no host is associated to this descriptor
      */
     public Host getHost() {
@@ -139,7 +139,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      * The application reference is casted to the type of the variable, which stores the returned value of this method.
      * This may cause {@link ClassCastException} if the application reference cannot be cased to the variable type.
      * This method may return {@code null} if no instance was {@link ApplicationManager#deploy(ApplicationDescriptor) deployed} by this descriptor's {@link #getApplicationManager() manager}.
-     * 
+     *
      * @param <ApplicationReference> the type of application reference to which the application reference is casted
      * @return a reference to the application instance that is described by this descriptor, or {@code null} if no instance was deployed by this descriptor's {@link #getApplicationManager() manager}
      */
@@ -156,7 +156,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Causes the current thread to wait until this descriptor reaches one of the given {@code states}, unless the thread is {@link Thread#interrupt() interrupted}.
-     * 
+     *
      * @param states the states which this application instance must reach
      * @throws InterruptedException if the current thread is {@link Thread#interrupt() interrupted} while waiting
      */
@@ -183,7 +183,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Adds a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
      * If listener is {@code null} no exception is thrown and no action is taken.
-     * 
+     *
      * @param listener the listener to be added
      * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
      */
@@ -195,7 +195,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     /**
      * Removes a {@link PropertyChangeListener} for the {@link #getApplicationState() cached state} property.
      * If listener is {@code null} or was never added for the specified property, no exception is thrown and no action is taken.
-     * 
+     *
      * @param listener the listener to be removed
      * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
      */
@@ -206,7 +206,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Checks if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}.
-     * 
+     *
      * @param states the states to check for
      * @return {@code true} if the {@link ApplicationDescriptor#getApplicationState() state} of this descriptor is equal to one of the given {@code states}, {@code false} otherwise
      */
@@ -217,7 +217,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
     /**
      * Gets the cached state of the application instance that is described by this descriptor.
-     * 
+     *
      * @return the cached state of the application instance that is described by this descriptor
      */
     public synchronized ApplicationState getApplicationState() {

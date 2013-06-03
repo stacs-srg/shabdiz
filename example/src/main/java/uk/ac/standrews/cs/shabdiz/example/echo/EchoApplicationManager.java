@@ -28,9 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.FileBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.MavenManagedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -46,13 +47,14 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     public static final String ARGUMENTS = ":0";
     private final Random random;
-    private final FileBasedJavaProcessBuilder process_builder;
+    private final MavenManagedJavaProcessBuilder process_builder;
 
     EchoApplicationManager() {
 
         random = new Random();
-        process_builder = new FileBasedJavaProcessBuilder(DefaultEcho.class);
-        process_builder.addCurrentJVMClasspath();
+        process_builder = new MavenManagedJavaProcessBuilder();
+        process_builder.setMainClass(DefaultEcho.class);
+        process_builder.addMavenDependency(Constants.SHABDIZ_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     }
 
     @Override
