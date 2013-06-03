@@ -32,11 +32,11 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenManagedJavaProcessBuilder.class);
     private static final String BOOTSTRAP_JAR_NAME = "bootstrap.jar";
     private static final File BOOTSTRAP_JAR = new File(JavaBootstrap.LOCAL_BOOTSTRAP_HOME, BOOTSTRAP_JAR_NAME);
-    private static String COLON = ":";
+    private static final String COLON = ":";
     private final List<String> dependency_coordinates;
     private final List<String> maven_repositories;
 
-    /** Initialises a new Manven managed Java process builder. */
+    /** Initialises a new Maven managed Java process builder. */
     public MavenManagedJavaProcessBuilder() {
 
         dependency_coordinates = new ArrayList<String>();
@@ -56,7 +56,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     /**
      * Adds a Maven repository to the list of repositories.
-     * The given URL is assumend to be accesible by hosts on which Java processes to be started.
+     * The given URL is assumed to be accessible by hosts on which Java processes to be started.
      *
      * @param repository_url the url of the Maven repository
      */

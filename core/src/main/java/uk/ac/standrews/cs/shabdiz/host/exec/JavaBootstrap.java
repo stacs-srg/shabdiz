@@ -51,6 +51,10 @@ class JavaBootstrap {
             MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar",
             MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"
     };
+    public static final int REPOSITORIES_INDEX = 0;
+    public static final int ARTIFACTS_INDEX = 1;
+    public static final int MAIN_CLASS_INDEX = 2;
+    public static final int MAIN_ARGS_INDEX = 3;
     private final String main_class;
     private final String[] repositories;
     private final String[] artifacts;
@@ -66,12 +70,12 @@ class JavaBootstrap {
         loader = resolveSelfDependencies();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
-        String[] repositories = toArray(args[0]);
-        String[] artifacts = toArray(args[1]);
-        String target_main_class = args[2];
-        String[] target_main_args = toArray(args[3]);
+        final String[] repositories = toArray(args[REPOSITORIES_INDEX]);
+        final String[] artifacts = toArray(args[ARTIFACTS_INDEX]);
+        final String target_main_class = args[MAIN_CLASS_INDEX];
+        final String[] target_main_args = toArray(args[MAIN_ARGS_INDEX]);
         final JavaBootstrap bootstrap = new JavaBootstrap(repositories, artifacts, target_main_class, target_main_args);
         bootstrap.start();
     }
@@ -100,7 +104,7 @@ class JavaBootstrap {
         if (repositories != null && repositories.length > 0) {
             final Method add_repository = maven_dependency_resolver_class.getDeclaredMethod("addRepository", String.class);
             add_repository.setAccessible(true);
-            for (String repository : repositories) {
+            for (final String repository : repositories) {
                 add_repository.invoke(maven_dependency_resolver, repository);
             }
         }
@@ -111,7 +115,7 @@ class JavaBootstrap {
         if (artifacts != null && artifacts.length > 0) {
             final Method add_artifact = maven_dependency_resolver_class.getDeclaredMethod("addArtifact", String.class);
             add_artifact.setAccessible(true);
-            for (String artifact : artifacts) {
+            for (final String artifact : artifacts) {
                 add_artifact.invoke(maven_dependency_resolver, artifact);
             }
         }
@@ -138,7 +142,7 @@ class JavaBootstrap {
         final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
         final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
         final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);
-        for (URL dependency : selfDependencies) {
+        for (final URL dependency : selfDependencies) {
             final File destination = new File(LOCAL_BOOTSTRAP_HOME, getJarFileName(dependency));
             if (!destination.isFile()) {
                 copyURLToFile.invoke(null, dependency, destination);
@@ -162,7 +166,7 @@ class JavaBootstrap {
 
         final List<URL> self_dependencies = new ArrayList<URL>();
         self_dependencies.add(new URL(COMMONS_IO_ON_MAVEN_CENTRAL));
-        for (String aether_dependency : AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL) {
+        for (final String aether_dependency : AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL) {
             self_dependencies.add(new URL(aether_dependency));
         }
         self_dependencies.add(JavaBootstrap.class.getProtectionDomain().getCodeSource().getLocation());
@@ -172,7 +176,7 @@ class JavaBootstrap {
     private static URL[] toURLs(final File... files) throws MalformedURLException {
         URL[] urls = null;
         if (files != null) {
-            int files_count = files.length;
+            final int files_count = files.length;
             urls = new URL[files_count];
 
             for (int i = 0; i < files_count; i++) {
