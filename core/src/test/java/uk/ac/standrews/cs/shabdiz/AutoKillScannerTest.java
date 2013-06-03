@@ -9,6 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
+/**
+ * Tests {@link AutoKillScanner}.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class AutoKillScannerTest extends ScannerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoKillScannerTest.class);

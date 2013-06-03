@@ -18,32 +18,31 @@
  */
 package uk.ac.standrews.cs.shabdiz.host;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
+import java.io.File;
+import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Presents public key credentials of a {@link SSHHost}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHPublicKeyCredentials.class);
     private static final File DEFAULT_SSH_RSA_PRIVATE_KEY = new File(DEFAULT_SSH_HOME, "id_rsa");
+    private static final File DEFAULT_SSH_DSA_PRIVATE_KEY = new File(DEFAULT_SSH_HOME, "id_dsa");
 
     private final File private_key;
 
     /**
      * Instantiates a new SSH public key credentials.
-     * 
+     *
      * @param username the username
      * @param private_key the private_key
      * @param passphrase the passphrase
@@ -56,7 +55,7 @@ public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
 
     /**
      * Instantiates a new sSH public key credentials.
-     * 
+     *
      * @param private_key the private_key
      * @param passphrase the passphrase
      */
@@ -68,13 +67,24 @@ public class SSHPublicKeyCredentials extends SSHPasswordCredentials {
 
     /**
      * Gets the default RSA credentials.
-     * 
+     *
      * @param passphrase the passphrase
      * @return the default rsa credentials
      */
     public static SSHPublicKeyCredentials getDefaultRSACredentials(final char[] passphrase) {
 
         return new SSHPublicKeyCredentials(DEFAULT_SSH_RSA_PRIVATE_KEY, passphrase);
+    }
+
+    /**
+     * Gets the default DSA credentials.
+     *
+     * @param passphrase the passphrase
+     * @return the default dsa credentials
+     */
+    public static SSHPublicKeyCredentials getDefaultDSACredentials(final char[] passphrase) {
+
+        return new SSHPublicKeyCredentials(DEFAULT_SSH_DSA_PRIVATE_KEY, passphrase);
     }
 
     File getPrivateKey() {

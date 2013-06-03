@@ -63,8 +63,8 @@ class EchoApplicationManager extends AbstractApplicationManager {
         final Host host = descriptor.getHost();
         final Process echo_service_process = process_builder.start(host, ARGUMENTS);
         final String address_as_string = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
-        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MXBEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
-        final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
+        final String runtime_mx_bean_name = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mx_bean_name);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
         descriptor.setAttribute(ADDRESS_KEY, address);
@@ -103,7 +103,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
         final String random_message = generateRandomString();
         final Echo echo_service = descriptor.getApplicationReference();
         final String echoed_message = echo_service.echo(random_message);
-        if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but recieved " + echoed_message); }
+        if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but received " + echoed_message); }
 
     }
 

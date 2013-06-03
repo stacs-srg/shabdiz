@@ -18,17 +18,17 @@
  */
 package uk.ac.standrews.cs.shabdiz.host;
 
-import java.io.File;
-import java.io.IOException;
-
-import uk.ac.standrews.cs.shabdiz.platform.Platforms;
-
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import java.io.File;
+import java.io.IOException;
+import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 /**
  * Presents credentials of a {@link SSHHost}.
- * 
+ * The default SSH configuration directory is set to {@code user_home_dir/.ssh}.
+ * By default the known hosts file is assumed to be located at {@code <user_home_dir>/.ssh/known_hosts}, which may be customised by overriding {@link #getKnownHostsFile()}.
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class SSHCredentials {
@@ -37,16 +37,38 @@ public abstract class SSHCredentials {
     static final File DEFAULT_SSH_KNOWN_HOSTS_FILE = new File(DEFAULT_SSH_HOME, "known_hosts");
     private final String username;
 
+    /** Instantiates a new SSH credentials and sets the username to the current user's username. */
     protected SSHCredentials() {
 
         this(Platforms.getCurrentUser());
     }
 
+    /**
+     * Instantiates a new SSH credentials with the given username.
+     *
+     * @param username the username
+     */
     protected SSHCredentials(final String username) {
 
         this.username = username;
     }
 
+    /**
+     * Gets the username.
+     *
+     * @return the username
+     */
+    public String getUsername() {
+
+        return username;
+    }
+
+    /**
+     * Gets the absolute path to the file, which contains the SSH known hosts.
+     * By default the known hosts file is assumed to be located at {@code <user_home_dir>/.ssh/known_hosts}.
+     *
+     * @return the absolute path to the file, which contains the SSH known hosts
+     */
     protected String getKnownHostsFile() {
 
         return DEFAULT_SSH_KNOWN_HOSTS_FILE.getAbsolutePath();
@@ -54,20 +76,10 @@ public abstract class SSHCredentials {
 
     /**
      * Authenticates a given a {@link JSch} and a {@link Session}.
-     * 
+     *
      * @param ssh_client the SSH client to authenticate
      * @param ssh_session the ssh session to authenticate
      * @throws IOException Signals that an I/O exception has occurred.
      */
     abstract void authenticate(JSch ssh_client, Session ssh_session) throws IOException;
-
-    /**
-     * Gets the username.
-     * 
-     * @return the username
-     */
-    public String getUsername() {
-
-        return username;
-    }
 }

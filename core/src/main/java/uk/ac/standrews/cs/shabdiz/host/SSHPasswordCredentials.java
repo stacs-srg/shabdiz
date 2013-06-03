@@ -18,14 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz.host;
 
-import java.io.IOException;
-
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import java.io.IOException;
 
 /**
  * Presents password credentials of a {@link SSHHost}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SSHPasswordCredentials extends SSHCredentials {
@@ -34,7 +33,7 @@ public class SSHPasswordCredentials extends SSHCredentials {
 
     /**
      * Instantiates a new SSH password credentials.
-     * 
+     *
      * @param password the password
      */
     public SSHPasswordCredentials(final char[] password) {
@@ -44,7 +43,7 @@ public class SSHPasswordCredentials extends SSHCredentials {
 
     /**
      * Instantiates a new SSH password credentials.
-     * 
+     *
      * @param password the password
      */
     public SSHPasswordCredentials(final String password) {
@@ -55,7 +54,7 @@ public class SSHPasswordCredentials extends SSHCredentials {
 
     /**
      * Instantiates a new SSH password credentials.
-     * 
+     *
      * @param username the username
      * @param password the password
      */
@@ -66,7 +65,7 @@ public class SSHPasswordCredentials extends SSHCredentials {
 
     /**
      * Instantiates a new SSH password credentials.
-     * 
+     *
      * @param username the username
      * @param password the password
      */
@@ -81,5 +80,4 @@ public class SSHPasswordCredentials extends SSHCredentials {
 
         session.setPassword(password);
     }
-
 }

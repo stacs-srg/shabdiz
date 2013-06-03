@@ -13,6 +13,8 @@ import java.util.List;
 
 class JavaBootstrap {
 
+    // TODO implement a version that uses Java Agents : http://docs.oracle.com/javase/6/docs/api/java/lang/instrument/Instrumentation.html#appendToBootstrapClassLoaderSearch(java.util.jar.JarFile)
+
     public static final String MAVEN_DEPENDENCY_RESOLVER_CLASS_NAME = "uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver";
     public static final int REPOSITORIES_INDEX = 0;
     public static final int ARTIFACTS_INDEX = 1;
