@@ -18,7 +18,15 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * Builds Java process on hosts and resolves any dependencies using Maven.
+ * The process is started by executing a bootstrap jar that constructs a maven repository of any needed dependency.
+ * By fault the Maven central repository and the Maven repository at the school of computer science University of St Andrews are loaded.
+ * Any additional repository may be added using {@link #addMavenRepository(URL)}.
+ * Dependencies are added using {@link #addMavenDependency(String, String, String)}. Please note that any child dependency of an added dependency will be downloaded automatically.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenManagedJavaProcessBuilder.class);
@@ -28,6 +36,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
     private final List<String> dependency_coordinates;
     private final List<String> maven_repositories;
 
+    /** Initialises a new Manven managed Java process builder. */
     public MavenManagedJavaProcessBuilder() {
 
         dependency_coordinates = new ArrayList<String>();
@@ -45,11 +54,25 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         return host.execute(getWorkingDirectory(), command);
     }
 
-    public void addMavenRepository(URL repository_url) {
+    /**
+     * Adds a Maven repository to the list of repositories.
+     * The given URL is assumend to be accesible by hosts on which Java processes to be started.
+     *
+     * @param repository_url the url of the Maven repository
+     */
+    public void addMavenRepository(final URL repository_url) {
         maven_repositories.add(repository_url.toString());
     }
 
-    public void addMavenDependency(String group_id, String artifact_id, String version) {
+    /**
+     * Adds a Maven dependency to the list of dependencies.
+     * Any dependencies of the given dependency are resolved automatically.
+     *
+     * @param group_id the Maven dependency group ID
+     * @param artifact_id the Maven dependency artifact ID
+     * @param version the Maven dependency version
+     */
+    public void addMavenDependency(final String group_id, final String artifact_id, final String version) {
         dependency_coordinates.add(toCoordinate(group_id, artifact_id, version));
     }
 
@@ -76,7 +99,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(SPACE);
     }
 
-    private static String toCoordinate(String group_id, String artifact_id, String version) {
+    private static String toCoordinate(final String group_id, final String artifact_id, final String version) {
 
         return new StringBuilder().append(group_id).append(COLON).append(artifact_id).append(COLON).append(version).toString();
     }
@@ -87,14 +110,13 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(SPACE);
     }
 
-    private void appendBootstrapJar(final StringBuilder command, final Platform platform, String bootstrap_home) {
+    private void appendBootstrapJar(final StringBuilder command, final Platform platform, final String bootstrap_home) {
         final char separator = platform.getSeparator();
 
         command.append("-jar ");
         command.append(bootstrap_home);
         command.append(separator);
         command.append(BOOTSTRAP_JAR_NAME);
-
         command.append(SPACE);
     }
 

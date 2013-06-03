@@ -66,7 +66,7 @@ class MavenDependencyResolver implements DependencyResolver {
         addRepository(ST_ANDREWS_CS_MAVEN_REPOSITORY);
     }
 
-    boolean addArtifact(String coordinates) {
+    boolean addArtifact(final String coordinates) {
 
         return addArtifact(new DefaultArtifact(coordinates));
     }
@@ -76,12 +76,12 @@ class MavenDependencyResolver implements DependencyResolver {
         return artifacts.add(artifact);
     }
 
-    boolean addRepository(String url) throws MalformedURLException {
+    boolean addRepository(final String url) throws MalformedURLException {
 
         return addRepository(new URL(url));
     }
 
-    boolean addRepository(URL url) {
+    boolean addRepository(final URL url) {
 
         return addRepository(toRemoteRepository(url));
     }
@@ -90,7 +90,7 @@ class MavenDependencyResolver implements DependencyResolver {
         return repositories.add(repository);
     }
 
-    private List<URL> resolveDependenciesAsURL(Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
+    private List<URL> resolveDependenciesAsURL(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
 
         final CollectResult collect_result = collectDependencies(artifact, repositories);
         final DependencyNode root_dependency = collect_result.getRoot();
@@ -108,7 +108,7 @@ class MavenDependencyResolver implements DependencyResolver {
         return new RemoteRepository.Builder(url.getHost(), DEFAULT_REPOSITORY_TYPE, url.toString()).build();
     }
 
-    private static DefaultRepositorySystemSession createRepositorySystemSession(RepositorySystem system, File repository_home) {
+    private static DefaultRepositorySystemSession createRepositorySystemSession(final RepositorySystem system, final File repository_home) {
 
         final DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
         final LocalRepository localRepo = new LocalRepository(repository_home);
@@ -142,13 +142,13 @@ class MavenDependencyResolver implements DependencyResolver {
             urls = new ArrayList<URL>();
         }
 
-        public boolean visitEnter(DependencyNode node) {
+        public boolean visitEnter(final DependencyNode node) {
 
             final File artifact_file = node.getArtifact().getFile();
             return urls.add(toURL(artifact_file));
         }
 
-        public boolean visitLeave(DependencyNode node) {
+        public boolean visitLeave(final DependencyNode node) {
             return true;
         }
 

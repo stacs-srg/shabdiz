@@ -57,7 +57,7 @@ class JavaBootstrap {
     private final String[] args;
     private final ClassLoader loader;
 
-    JavaBootstrap(String[] repositories, String[] artifacts, String main_class, String[] args) throws ClassNotFoundException, MalformedURLException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, URISyntaxException {
+    JavaBootstrap(final String[] repositories, final String[] artifacts, final String main_class, final String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, MalformedURLException, ClassNotFoundException {
 
         this.repositories = repositories;
         this.artifacts = artifacts;
@@ -124,7 +124,7 @@ class JavaBootstrap {
         return (ClassLoader) resolve.invoke(maven_dependency_resolver);
     }
 
-    static File getBootstrapHome(String tmp_dir) {
+    static File getBootstrapHome(final String tmp_dir) {
         return new File(getShabdizHome(tmp_dir), BOOTSTRAP_HOME_NAME);
     }
 
@@ -169,7 +169,7 @@ class JavaBootstrap {
         return self_dependencies.toArray(new URL[self_dependencies.size()]);
     }
 
-    private static URL[] toURLs(File... files) throws MalformedURLException {
+    private static URL[] toURLs(final File... files) throws MalformedURLException {
         URL[] urls = null;
         if (files != null) {
             int files_count = files.length;
@@ -182,7 +182,7 @@ class JavaBootstrap {
         return urls;
     }
 
-    private static URL toURL(File file) throws MalformedURLException {
+    private static URL toURL(final File file) throws MalformedURLException {
         return file.toURI().toURL();
     }
 

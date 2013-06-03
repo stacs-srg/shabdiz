@@ -123,7 +123,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
         }
     }
 
-    protected void appendCommandLineArguments(final StringBuilder command, Platform platform, final String[] parameters) {
+    protected void appendCommandLineArguments(final StringBuilder command, final Platform platform, final String[] parameters) {
 
         if (parameters != null && parameters.length > 0) {
             for (String argument : parameters) {
