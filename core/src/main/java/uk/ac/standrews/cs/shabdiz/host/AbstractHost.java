@@ -20,10 +20,8 @@ package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.IOException;
 import java.net.InetAddress;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
@@ -92,6 +90,6 @@ public abstract class AbstractHost implements Host {
         if (this == other) { return true; }
         if (!(other instanceof Host)) { return false; }
         final Host that = (Host) other;
-        return local != that.isLocal() && address.equals(that.getAddress()) && name.equals(that.getName());
+        return local == that.isLocal() && address.equals(that.getAddress()) && name.equals(that.getName());
     }
 }

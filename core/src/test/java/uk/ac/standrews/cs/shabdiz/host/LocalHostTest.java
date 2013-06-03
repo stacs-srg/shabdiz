@@ -19,6 +19,8 @@
 
 package uk.ac.standrews.cs.shabdiz.host;
 
+import java.io.File;
+import java.net.InetAddress;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +28,14 @@ import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.LocalPlatform;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
-import java.io.File;
-import java.net.InetAddress;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
-
+/**
+ * Tests {@link LocalHost}.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class LocalHostTest {
 
     private LocalHost local_host;
@@ -47,22 +52,22 @@ public class LocalHostTest {
 
     @Test
     public void testUploadSingleFile() throws Exception {
-
+        // TODO implement
     }
 
     @Test
     public void testDownloadSingleFile() throws Exception {
-
+        // TODO implement
     }
 
     @Test
     public void testUploadMultipleFiles() throws Exception {
-
+        // TODO implement
     }
 
     @Test
     public void testDownloadMultipleFile() throws Exception {
-
+        // TODO implement
     }
 
     @Test
