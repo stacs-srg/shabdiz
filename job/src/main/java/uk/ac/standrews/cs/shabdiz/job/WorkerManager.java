@@ -54,11 +54,11 @@ class WorkerManager extends AbstractApplicationManager {
         this.network = network;
         final InetSocketAddress callback_address = network.getCallbackAddress();
         arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
-        worker_process_builder = createRemoteJavaProcessBuiler(classpath, callback_address);
+        worker_process_builder = createRemoteJavaProcessBuilder(classpath);
         proxy_factory = new WorkerRemoteProxyFactory();
     }
 
-    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuiler(final Set<File> classpath, final InetSocketAddress callback_address) {
+    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
 
         final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
 
