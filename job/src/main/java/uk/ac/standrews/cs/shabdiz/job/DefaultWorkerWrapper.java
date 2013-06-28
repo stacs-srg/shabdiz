@@ -18,8 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
-
+import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
@@ -27,7 +26,7 @@ import java.util.concurrent.Future;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 class DefaultWorkerWrapper implements Worker {
@@ -63,7 +62,7 @@ class DefaultWorkerWrapper implements Worker {
     }
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws JsonRpcException {
+    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
 
         synchronized (network) {
             final UUID job_id = proxy.submitJob(job);
@@ -74,7 +73,7 @@ class DefaultWorkerWrapper implements Worker {
     }
 
     @Override
-    public void shutdown() throws JsonRpcException {
+    public void shutdown() throws RPCException {
 
         try {
             proxy.shutdown();

@@ -18,12 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.ClientFactory;
-
+import com.staticiser.jetson.json.JsonClientFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-final class CallbackProxyFactory extends ClientFactory<WorkerCallback> {
+final class CallbackProxyFactory extends JsonClientFactory<WorkerCallback> {
 
     private static final CallbackProxyFactory CALLBACK_PROXY_FACTORY_INSTANCE = new CallbackProxyFactory();
 

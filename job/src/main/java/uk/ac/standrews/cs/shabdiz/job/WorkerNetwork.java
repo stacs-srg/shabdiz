@@ -18,6 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.staticiser.jetson.Server;
+import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.exception.RPCException;
+import com.staticiser.jetson.exception.TransportException;
+import com.staticiser.jetson.json.JsonServerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,24 +32,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-import com.staticiser.jetson.exception.JsonRpcException;
-import com.staticiser.jetson.exception.TransportException;
-
 /**
  * Presents a network of {@link Worker workers}. {@link Host Hosts} are added using {@link #add(Host)}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback {
@@ -60,7 +58,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     /**
      * Instantiates a new launcher. Exposes the launcher callback on local address with an <i>ephemeral</i> port number.
-     * 
+     *
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public WorkerNetwork() throws IOException {
@@ -71,7 +69,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     * 
+     *
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      */
@@ -83,7 +81,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Instantiates a new launcher and exposes the launcher callback on local address with the given port number.
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     * 
+     *
      * @param callback_server_port the port on which the callback server is exposed
      * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
@@ -92,7 +90,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
-        callback_server_factory = new ServerFactory<WorkerCallback>(WorkerCallback.class, WorkerJsonFactory.getInstance());
+        callback_server_factory = new JsonServerFactory<WorkerCallback>(WorkerCallback.class, WorkerJsonFactory.getInstance());
         callback_server = callback_server_factory.createServer(this);
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
@@ -113,7 +111,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     /**
      * Adds a host to this worker network.
-     * 
+     *
      * @param host the host to add
      * @return the ApplicationDescriptor associated with the added host, or {@code null} if the host was not added
      */
@@ -148,7 +146,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     /**
      * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
      * Note that any pending {@link Future} will end in exception.
-     * 
+     *
      * @see WorkerNetwork#shutdown()
      */
     @Override
@@ -172,7 +170,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     private void releaseAllPendingFutures() {
 
-        final JsonRpcException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
+        final RPCException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
 
         for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
             if (!future_remote.isDone()) {

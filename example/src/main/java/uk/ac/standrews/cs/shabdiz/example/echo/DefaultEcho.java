@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.staticiser.jetson.Server;
 import com.staticiser.jetson.ServerFactory;
+import com.staticiser.jetson.json.JsonServerFactory;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
@@ -42,7 +43,7 @@ public class DefaultEcho implements Echo {
     private final Server server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
     static final String RUNTIME_MX_BEAN_NAME_KEY = "RUNTIME_MX_BEAN_NAME";
-    private static final ServerFactory<Echo> SERVER_FACTORY = new ServerFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    private static final ServerFactory<Echo> SERVER_FACTORY = new JsonServerFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
 
     /**
      * Starts a new instance of {@link DefaultEcho}.

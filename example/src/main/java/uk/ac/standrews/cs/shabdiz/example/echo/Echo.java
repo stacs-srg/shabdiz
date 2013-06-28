@@ -18,28 +18,28 @@
  */
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.RPCException;
 
 /**
  * Presents the Echo remote interface.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Echo {
 
     /**
      * Echos a given message.
-     * 
+     *
      * @param message the message to echo
      * @return the echoed message
-     * @throws JsonRpcException signals that an RPC exception has occured
+     * @throws RPCException signals that an RPC exception has occured
      */
-    String echo(String message) throws JsonRpcException;
+    String echo(String message) throws RPCException;
 
     /**
      * Shuts down this remote interface.
-     * 
-     * @throws JsonRpcException signals that an RPC exception has occured
+     *
+     * @throws RPCException signals that an RPC exception has occured
      */
-    void shutdown() throws JsonRpcException;
+    void shutdown() throws RPCException;
 }

@@ -18,9 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.ClientFactory;
+import com.staticiser.jetson.json.JsonClientFactory;
 
-final class WorkerRemoteProxyFactory extends ClientFactory<WorkerRemote> {
+final class WorkerRemoteProxyFactory extends JsonClientFactory<WorkerRemote> {
 
     //    private final WorkerRemoteProxyFactory WORKER_REMOTE_PROXY_FACTORY_INSTANCE = new WorkerRemoteProxyFactory();
 

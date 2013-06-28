@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.RPCException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -99,7 +99,7 @@ class WorkerManager extends AbstractApplicationManager {
             try {
                 worker.shutdown();
             }
-            catch (final JsonRpcException e) {
+            catch (final RPCException e) {
                 LOGGER.trace("ignoring expected error at the time of kill", e);
             }
         }

@@ -18,34 +18,33 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
-
+import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * Receives notifications from workers about the outcome of a submitted job.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface WorkerCallback {
 
     /**
      * Notifies the launcher about the result of a completed job.
-     * 
+     *
      * @param job_id the globally unique id of the submitted job
      * @param result the result of the completed job
-     * @throws JsonRpcException if unable to contact the correspondence
+     * @throws RPCException if unable to contact the correspondence
      */
 
-    void notifyCompletion(UUID job_id, Serializable result) throws JsonRpcException;
+    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**
      * Notifies the launcher about the exception resulted by executing a job.
-     * 
+     *
      * @param job_id the globally unique id of the submitted job
      * @param exception the exception which occurred when trying to execute a job
-     * @throws JsonRpcException if unable to contact the correspondence
+     * @throws RPCException if unable to contact the correspondence
      */
-    void notifyException(UUID job_id, Exception exception) throws JsonRpcException;
+    void notifyException(UUID job_id, Exception exception) throws RPCException;
 }

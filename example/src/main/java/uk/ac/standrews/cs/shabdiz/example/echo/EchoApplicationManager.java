@@ -21,6 +21,7 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.staticiser.jetson.ClientFactory;
+import com.staticiser.jetson.json.JsonClientFactory;
 import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,7 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 class EchoApplicationManager extends AbstractApplicationManager {
 
-    static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new ClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoApplicationManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();

@@ -18,8 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
-
+import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
@@ -31,7 +30,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Presents a proxy to the pending result of a remote computation.
- * 
+ *
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -65,7 +64,7 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
 
     /**
      * Instantiates a new proxy to the pending result of a remote computation.
-     * 
+     *
      * @param job_id the id of the remote computation
      * @param proxy worker proxy
      */
@@ -87,7 +86,7 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
         try {
             cancelled = cancelOnRemote(may_interrupt);
         }
-        catch (final JsonRpcException e) {
+        catch (final RPCException e) {
             setException(e); // Since unable to communicate with the remote worker, there is no point to wait for notification.
         }
         finally {
@@ -108,7 +107,7 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
                 return result;
 
             case DONE_WITH_EXCEPTION:
-                launchAppropreateException(exception);
+                launchAppropriatedException(exception);
                 break;
             case CANCELLED:
                 throw new CancellationException();
@@ -198,7 +197,7 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    private boolean cancelOnRemote(final boolean may_interrupt) throws JsonRpcException {
+    private boolean cancelOnRemote(final boolean may_interrupt) throws RPCException {
 
         return proxy.cancel(job_id, may_interrupt);
     }
@@ -212,11 +211,11 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
         }
     }
 
-    private void launchAppropreateException(final Exception exception) throws InterruptedException, ExecutionException {
+    private void launchAppropriatedException(final Exception exception) throws InterruptedException, ExecutionException {
 
         if (exception instanceof InterruptedException) { throw (InterruptedException) exception; }
         if (exception instanceof ExecutionException) { throw (ExecutionException) exception; }
-        if (exception instanceof JsonRpcException) { throw new ExecutionException(exception); }
+        if (exception instanceof RPCException) { throw new ExecutionException(exception); }
         if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
 
         throw new ExecutionException("unexpected exception was notified by the worker : " + exception.getClass(), exception);

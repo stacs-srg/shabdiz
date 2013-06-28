@@ -18,20 +18,19 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.JsonRpcException;
+import com.staticiser.jetson.exception.RPCException;
 
 /**
  * Presents a remote exception on a worker.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class RemoteWorkerException extends JsonRpcException {
+class RemoteWorkerException extends RPCException {
 
-    private static final int CODE = -3999;
     private static final long serialVersionUID = 8032891766959571488L;
 
     RemoteWorkerException(final String message) {
 
-        super(CODE, message);
+        super(message);
     }
 }
