@@ -19,7 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz.util;
 
-import com.staticiser.jetson.util.NamingThreadFactory;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.RuntimeMXBean;
@@ -32,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.io.IOUtils;
+import org.mashti.jetson.util.NamingThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +148,8 @@ public final class ProcessUtil {
                 do {
                     final String output_line = scanner.nextLine();
                     worker_address = findValueInLine(output_line, key);
-                } while (worker_address == null && !Thread.currentThread().isInterrupted());
+                }
+                while (worker_address == null && !Thread.currentThread().isInterrupted());
                 // Scanner is not closed on purpose. The stream belongs to Process instance.
                 return worker_address;
             }

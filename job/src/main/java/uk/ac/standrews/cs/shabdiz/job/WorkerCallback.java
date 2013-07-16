@@ -18,9 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.util.UUID;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Receives notifications from workers about the outcome of a submitted job.

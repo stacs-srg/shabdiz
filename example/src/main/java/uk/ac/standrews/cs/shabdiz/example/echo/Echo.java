@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
-import com.staticiser.jetson.exception.RPCException;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Presents the Echo remote interface.

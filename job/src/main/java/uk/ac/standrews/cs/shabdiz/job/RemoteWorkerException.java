@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Presents a remote exception on a worker.

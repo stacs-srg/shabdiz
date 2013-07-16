@@ -18,9 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.json.JsonClientFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import org.mashti.jetson.json.JsonClientFactory;
 
 final class CallbackProxyFactory extends JsonClientFactory<WorkerCallback> {
 

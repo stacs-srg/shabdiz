@@ -18,11 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Provides a service to execute one or more asynchronous {@link Job jobs}. After {@link #shutdown() shutdown} any job submission with be rejected.

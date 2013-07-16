@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
@@ -27,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Presents a proxy to the pending result of a remote computation.

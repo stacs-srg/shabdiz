@@ -18,8 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import com.staticiser.jetson.util.NamingThreadFactory;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -27,6 +25,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.mashti.jetson.util.NamingThreadFactory;
 
 /**
  * A utility {@link ThreadPoolExecutor} that is used to execute tasks with timeout.

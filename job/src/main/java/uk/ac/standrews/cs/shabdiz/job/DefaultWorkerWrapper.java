@@ -18,11 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.

@@ -18,6 +18,15 @@
  */
 package uk.ac.standrews.cs.shabdiz.host;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,24 +39,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.commons.io.FilenameUtils;
+import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
-
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
-import com.staticiser.jetson.util.CloseableUtil;
 
 /**
  * Implements a {@link Host} that uses SSH2 to upload, download and execute commands.
@@ -101,7 +98,8 @@ public class SSHHost extends AbstractHost {
 
         try {
             ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
-        } catch (final JSchException e) {
+        }
+        catch (final JSchException e) {
             throw new IOException(e);
         }
         ssh_port = DEFAULT_SSH_PORT;
@@ -145,9 +143,11 @@ public class SSHHost extends AbstractHost {
         try {
             prepareRemoteDestination(destination, sftp);
             uploadRecursively(sftp, sources);
-        } catch (final SftpException e) {
+        }
+        catch (final SftpException e) {
             throw new IOException(e);
-        } finally {
+        }
+        finally {
             disconnect(session, sftp);
         }
     }
@@ -161,9 +161,11 @@ public class SSHHost extends AbstractHost {
         try {
             final SftpATTRS stat = sftp.stat(source);
             downloadRecursively(sftp, source, destination, stat);
-        } catch (final SftpException e) {
+        }
+        catch (final SftpException e) {
             throw new IOException(e);
-        } finally {
+        }
+        finally {
             disconnect(session, sftp);
         }
     }
@@ -178,9 +180,7 @@ public class SSHHost extends AbstractHost {
     @Override
     public Process execute(final String working_directory, final String command) throws IOException {
 
-        if (working_directory == null) {
-            return execute(command);
-        }
+        if (working_directory == null) { return execute(command); }
 
         final StringBuilder sb = new StringBuilder();
         sb.append("cd ");
@@ -200,7 +200,8 @@ public class SSHHost extends AbstractHost {
             }
 
             return platform;
-        } finally {
+        }
+        finally {
             platform_lock.unlock();
         }
     }
@@ -230,7 +231,8 @@ public class SSHHost extends AbstractHost {
             LOGGER.debug("Uploading {}", file.getAbsolutePath());
             if (file.isDirectory()) {
                 uploadDirectoryRecursively(sftp, file);
-            } else {
+            }
+            else {
                 uploadFile(sftp, file);
             }
         }
@@ -262,9 +264,7 @@ public class SSHHost extends AbstractHost {
         @SuppressWarnings("unchecked")
         final List<LsEntry> list = sftp.ls(".");
         for (final LsEntry entry : list) {
-            if (entry.getFilename().equals(name)) {
-                return true;
-            }
+            if (entry.getFilename().equals(name)) { return true; }
         }
         return false;
     }
@@ -276,7 +276,8 @@ public class SSHHost extends AbstractHost {
             credentials.authenticate(ssh_session_factory, session);
             session.connect(ssh_connection_timeout_in_millis);
             return session;
-        } catch (final JSchException e) {
+        }
+        catch (final JSchException e) {
             throw new IOException(e);
         }
     }
@@ -287,7 +288,8 @@ public class SSHHost extends AbstractHost {
             final ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
             sftp.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
             return sftp;
-        } catch (final JSchException e) {
+        }
+        catch (final JSchException e) {
             throw new IOException(e);
         }
     }
@@ -306,7 +308,8 @@ public class SSHHost extends AbstractHost {
 
         if (stat.isDir()) {
             downloadDirectory(sftp, source, destination);
-        } else {
+        }
+        else {
             downloadFile(sftp, source, destination);
         }
 
@@ -331,6 +334,7 @@ public class SSHHost extends AbstractHost {
     }
 
     private void makeDirectoriesIfNeeded(final File sub_destination) {
+
         if (!sub_destination.exists() || !sub_destination.isDirectory()) {
             final boolean created_sub_destination = sub_destination.mkdirs();
             if (!created_sub_destination) {
@@ -379,7 +383,8 @@ public class SSHHost extends AbstractHost {
             channel.setCommand(command);
             try {
                 channel.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
-            } catch (final JSchException e) {
+            }
+            catch (final JSchException e) {
                 throw new IOException(e);
             }
             return channel;
@@ -389,7 +394,8 @@ public class SSHHost extends AbstractHost {
 
             try {
                 return (ChannelExec) session.openChannel("exec");
-            } catch (final JSchException e) {
+            }
+            catch (final JSchException e) {
                 throw new IOException(e);
             }
         }

@@ -18,7 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.json.JsonClientFactory;
+import org.mashti.jetson.json.JsonClientFactory;
 
 final class WorkerRemoteProxyFactory extends JsonClientFactory<WorkerRemote> {
 

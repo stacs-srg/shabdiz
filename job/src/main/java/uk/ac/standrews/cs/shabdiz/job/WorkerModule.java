@@ -18,13 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -41,7 +34,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.ClassKey;
-import com.staticiser.jetson.util.CloseableUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import org.mashti.jetson.util.CloseableUtil;
 
 class WorkerModule extends SimpleModule {
 
@@ -75,16 +74,16 @@ class WorkerModule extends SimpleModule {
 
             try {
                 final byte[] object_as_bytes = parser.getBinaryValue();
-                if (object_as_bytes == null) {
-                    return null;
-                }
+                if (object_as_bytes == null) { return null; }
                 final ByteArrayInputStream bytes_input_stream = new ByteArrayInputStream(object_as_bytes);
                 object_input_stream = new ObjectInputStream(bytes_input_stream);
 
                 return (Serializable) object_input_stream.readObject();
-            } catch (final ClassNotFoundException e) {
+            }
+            catch (final ClassNotFoundException e) {
                 throw new JsonMappingException("unable to deserialize Java object", e);
-            } finally {
+            }
+            finally {
                 CloseableUtil.closeQuietly(object_input_stream);
             }
         }
@@ -114,7 +113,8 @@ class WorkerModule extends SimpleModule {
 
                     final byte[] object_as_bytes = bytes_output_stream.toByteArray();
                     generator.writeBinary(object_as_bytes);
-                } finally {
+                }
+                finally {
                     CloseableUtil.closeQuietly(object_output_stream);
                 }
             }
@@ -132,14 +132,10 @@ class WorkerModule extends SimpleModule {
             final ClassKey key = new ClassKey(cls);
 
             if (cls.isInterface()) {
-                if (_interfaceMappings != null) {
-                    return _interfaceMappings.get(key);
-                }
+                if (_interfaceMappings != null) { return _interfaceMappings.get(key); }
             }
             else {
-                if (_classMappings != null) {
-                    return _classMappings.get(key);
-                }
+                if (_classMappings != null) { return _classMappings.get(key); }
             }
             return null;
         }

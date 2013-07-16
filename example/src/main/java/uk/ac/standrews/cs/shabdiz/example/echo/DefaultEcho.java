@@ -20,12 +20,12 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.staticiser.jetson.Server;
-import com.staticiser.jetson.ServerFactory;
-import com.staticiser.jetson.json.JsonServerFactory;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
+import org.mashti.jetson.Server;
+import org.mashti.jetson.ServerFactory;
+import org.mashti.jetson.json.JsonServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;

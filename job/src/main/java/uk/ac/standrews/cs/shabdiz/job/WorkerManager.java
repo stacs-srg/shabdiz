@@ -18,13 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
@@ -119,9 +119,7 @@ class WorkerManager extends AbstractApplicationManager {
      */
     public void setWorkerDeploymentTimeout(final Duration duration) {
 
-        if (duration == null) {
-            throw new NullPointerException();
-        }
+        if (duration == null) { throw new NullPointerException(); }
         worker_deployment_timeout = duration;
     }
 

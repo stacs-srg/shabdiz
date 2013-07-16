@@ -18,10 +18,10 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.staticiser.jetson.exception.RPCException;
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import org.mashti.jetson.exception.RPCException;
 
 /**
  * Presents a special type of worker which is deployed by {@link WorkerNetwork}.
