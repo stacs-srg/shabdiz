@@ -55,6 +55,12 @@ class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFutu
     }
 
     @Override
+    public boolean setException(final Throwable throwable) {
+
+        return super.setException(throwable);
+    }
+
+    @Override
     public int hashCode() {
 
         return job_id.hashCode();
