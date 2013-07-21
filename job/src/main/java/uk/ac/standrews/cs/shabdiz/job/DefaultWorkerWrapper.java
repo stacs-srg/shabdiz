@@ -45,11 +45,6 @@ class DefaultWorkerWrapper implements Worker {
         this.worker_address = worker_address;
     }
 
-    void setWorkerProcessId(final Integer id) {
-
-        worker_process_id = id;
-    }
-
     public Integer getWorkerProcessId() {
 
         return worker_process_id;
@@ -119,5 +114,10 @@ class DefaultWorkerWrapper implements Worker {
     public int compareTo(final Worker other) {
 
         return getAddress().toString().compareTo(other.getAddress().toString());
+    }
+
+    void setWorkerProcessId(final Integer id) {
+
+        worker_process_id = id;
     }
 }

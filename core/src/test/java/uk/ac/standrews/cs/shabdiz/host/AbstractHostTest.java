@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-import junit.framework.Assert;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
@@ -76,6 +76,7 @@ public class AbstractHostTest {
 
     @Test
     public void testEquals() throws Exception {
+
         Assert.assertEquals(remote_host_by_name, remote_host_by_address);
         Assert.assertFalse(local_host_by_name.equals(local_host_by_address));
         Assert.assertEquals(new MockAbstractHost(InetAddress.getByName(LOCAL_HOST_NAME)), local_host_by_name);
@@ -85,40 +86,48 @@ public class AbstractHostTest {
     private static class MockAbstractHost extends AbstractHost {
 
         protected MockAbstractHost(final String name) throws IOException {
+
             super(name);
         }
 
         private MockAbstractHost(final InetAddress address) {
+
             super(address);
         }
 
         @Override
         public void upload(final File source, final String destination) throws IOException {
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public void upload(final Collection<File> sources, final String destination) throws IOException {
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public void download(final String source, final File destination) throws IOException {
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public Process execute(final String command) throws IOException {
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public Process execute(final String working_directory, final String command) throws IOException {
+
             throw new UnsupportedOperationException();
         }
 
         @Override
         public Platform getPlatform() throws IOException {
+
             throw new UnsupportedOperationException();
         }
     }

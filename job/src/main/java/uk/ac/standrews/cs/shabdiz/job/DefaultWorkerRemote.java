@@ -18,12 +18,16 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.mashti.jetson.Server;
@@ -44,7 +48,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new JsonServerFactory<WorkerRemote>(WorkerRemote.class, WorkerJsonFactory.getInstance());
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
     private final InetSocketAddress local_address;
-    private final ExecutorService executor;
+    private final ListeningExecutorService executor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final Server server;
     private final WorkerCallback callback;
@@ -60,38 +64,26 @@ public class DefaultWorkerRemote implements WorkerRemote {
         this.local_address = server.getLocalSocketAddress();
     }
 
-    protected ExecutorService createExecutorService() {
-
-        return Executors.newCachedThreadPool(new NamingThreadFactory("worker_"));
-    }
-
-    private void expose() throws IOException {
-
-        server.expose();
-    }
-
     @Override
     public UUID submitJob(final Job<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
-        executor.execute(new Runnable() {
+
+        final ListenableFuture<? extends Serializable> future = executor.submit(job);
+        Futures.addCallback(future, new FutureCallback<Serializable>() {
 
             @Override
-            public void run() {
+            public void onSuccess(final Serializable result) {
 
-                final Future<? extends Serializable> real_future = executor.submit(job);
-                submitted_jobs.put(job_id, real_future);
-
-                try {
-                    //TODO this blocks until the job is complete; Could be written nicer so that it runs after completion.
-                    handleCompletion(job_id, real_future.get());
-                }
-                catch (final Exception e) {
-                    handleException(job_id, e);
-                }
+                handleCompletion(job_id, result);
             }
-        });
 
+            @Override
+            public void onFailure(final Throwable error) {
+
+                handleException(job_id, error);
+            }
+        }, executor);
         return job_id;
     }
 
@@ -120,14 +112,33 @@ public class DefaultWorkerRemote implements WorkerRemote {
         }
     }
 
-    private void handleException(final UUID job_id, final Exception exception) {
+    /**
+     * Gets the address on which this worker is exposed.
+     *
+     * @return the address on which this worker is exposed
+     */
+    public InetSocketAddress getAddress() {
+
+        return local_address;
+    }
+
+    protected ListeningExecutorService createExecutorService() {
+
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamingThreadFactory("worker_")));
+    }
+
+    private void expose() throws IOException {
+
+        server.expose();
+    }
+
+    private void handleException(final UUID job_id, final Throwable exception) {
 
         try {
             callback.notifyException(job_id, exception);
             submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
-            //TODO use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.error("failed to notify job exception", e);
         }
     }
@@ -144,7 +155,6 @@ public class DefaultWorkerRemote implements WorkerRemote {
             submitted_jobs.remove(job_id);
         }
         catch (final RPCException e) {
-            //TODO discuss whether to use some sort of error manager  which handles the launcher callback rpc exception
             LOGGER.error("failed to notify job completion", e);
         }
     }
@@ -152,15 +162,5 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private static synchronized UUID generateJobId() {
 
         return UUID.randomUUID();
-    }
-
-    /**
-     * Gets the address on which this worker is exposed.
-     *
-     * @return the address on which this worker is exposed
-     */
-    public InetSocketAddress getAddress() {
-
-        return local_address;
     }
 }

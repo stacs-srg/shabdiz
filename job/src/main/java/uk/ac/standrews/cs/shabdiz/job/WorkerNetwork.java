@@ -49,7 +49,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
-
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
     private final ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final Server callback_server; // The server which listens to the callbacks  from workers
@@ -99,16 +98,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         worker_manager = new WorkerManager(this, classpath);
     }
 
-    private void expose() throws IOException {
-
-        callback_server.expose();
-    }
-
-    InetSocketAddress getCallbackAddress() {
-
-        return callback_address;
-    }
-
     /**
      * Adds a host to this worker network.
      *
@@ -125,7 +114,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     public synchronized void notifyCompletion(final UUID job_id, final Serializable result) {
 
         if (id_future_map.containsKey(job_id)) {
-            id_future_map.get(job_id).setResult(result);
+            id_future_map.get(job_id).set(result);
         }
         else {
             LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
@@ -133,7 +122,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     }
 
     @Override
-    public synchronized void notifyException(final UUID job_id, final Exception exception) {
+    public synchronized void notifyException(final UUID job_id, final Throwable exception) {
 
         if (id_future_map.containsKey(job_id)) {
             id_future_map.get(job_id).setException(exception);
@@ -168,15 +157,10 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         }
     }
 
-    private void releaseAllPendingFutures() {
+    @Override
+    public int hashCode() {
 
-        final RPCException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
-
-        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
-            if (!future_remote.isDone()) {
-                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
-            }
-        }
+        return HashCodeUtil.generate(super.hashCode(), callback_address.hashCode(), id_future_map.hashCode(), callback_server.hashCode(), worker_manager.hashCode(), callback_server_factory.hashCode());
     }
 
     @Override
@@ -196,10 +180,25 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         return worker_manager.equals(that.worker_manager);
     }
 
-    @Override
-    public int hashCode() {
+    private void expose() throws IOException {
 
-        return HashCodeUtil.generate(super.hashCode(), callback_address.hashCode(), id_future_map.hashCode(), callback_server.hashCode(), worker_manager.hashCode(), callback_server_factory.hashCode());
+        callback_server.expose();
+    }
+
+    InetSocketAddress getCallbackAddress() {
+
+        return callback_address;
+    }
+
+    private void releaseAllPendingFutures() {
+
+        final RPCException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
+
+        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
+            if (!future_remote.isDone()) {
+                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+            }
+        }
     }
 
     <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {

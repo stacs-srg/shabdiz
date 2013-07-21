@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import org.mashti.jetson.json.JsonClientFactory;
 
@@ -31,7 +30,7 @@ final class CallbackProxyFactory extends JsonClientFactory<WorkerCallback> {
         super(WorkerCallback.class, WorkerJsonFactory.getInstance());
     }
 
-    static WorkerCallback getProxy(final InetSocketAddress address) throws IOException {
+    static WorkerCallback getProxy(final InetSocketAddress address) {
 
         return CALLBACK_PROXY_FACTORY_INSTANCE.get(address);
     }

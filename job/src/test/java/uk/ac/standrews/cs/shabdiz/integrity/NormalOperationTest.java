@@ -20,12 +20,10 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -34,32 +32,26 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 
 /**
  * Tests whether a deployed job returns expected result.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
-
     private static AbstractHost localhost;
     private static WorkerNetwork network;
     private static Worker worker;
 
     /**
      * Sets the up the test.
-     * 
+     *
      * @throws Exception if unable to set up
      */
     @BeforeClass
     public static void setUp() throws Exception {
 
-        //                localhost = new RemoteSSHHost("localhost", new PasswordCredentials(Input.readPassword("Enter password:")));
         localhost = new LocalHost();
-
-        //        final SSHPublicKeyCredentials credentials = SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter public key password"));
-        //        localhost = new SSHHost("project07.cs.st-andrews.ac.uk", credentials);
-
         network = new WorkerNetwork();
         network.add(localhost);
         network.deployAll();
@@ -68,8 +60,20 @@ public class NormalOperationTest {
     }
 
     /**
+     * Cleans up after tests.
+     *
+     * @throws Exception if unable to clean up
+     */
+    @AfterClass
+    public static void tearDown() throws Exception {
+
+        network.shutdown();
+        localhost.close();
+    }
+
+    /**
      * Test.
-     * 
+     *
      * @throws Exception the exception
      */
     @Test
@@ -81,7 +85,7 @@ public class NormalOperationTest {
 
     /**
      * Test.
-     * 
+     *
      * @throws Exception the exception
      */
     @Test
@@ -99,17 +103,5 @@ public class NormalOperationTest {
             Assert.assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
             Assert.assertEquals(NullPointerException.class, cause.getClass());
         }
-    }
-
-    /**
-     * Cleans up after tests.
-     * 
-     * @throws Exception if unable to clean up
-     */
-    @AfterClass
-    public static void tearDown() throws Exception {
-
-        network.shutdown();
-        localhost.close();
     }
 }

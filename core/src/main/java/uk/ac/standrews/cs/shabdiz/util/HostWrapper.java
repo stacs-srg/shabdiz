@@ -22,13 +22,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
  * Implements a wrapper around a given {@link Host host}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public abstract class HostWrapper implements Host {
@@ -37,18 +36,7 @@ public abstract class HostWrapper implements Host {
 
     protected HostWrapper(final Host host) {
 
-        this.unwrapped_host = host;
-    }
-
-    protected Host getUnwrappedHost() {
-
-        return unwrapped_host;
-    }
-
-    @Override
-    public void upload(final Collection<File> sources, final String destination) throws IOException {
-
-        unwrapped_host.upload(sources, destination);
+        unwrapped_host = host;
     }
 
     @Override
@@ -58,33 +46,15 @@ public abstract class HostWrapper implements Host {
     }
 
     @Override
-    public void close() throws IOException {
+    public void upload(final Collection<File> sources, final String destination) throws IOException {
 
-        unwrapped_host.close();
+        unwrapped_host.upload(sources, destination);
     }
 
     @Override
-    public boolean isLocal() {
+    public void download(final String source, final File destination) throws IOException {
 
-        return unwrapped_host.isLocal();
-    }
-
-    @Override
-    public Platform getPlatform() throws IOException {
-
-        return unwrapped_host.getPlatform();
-    }
-
-    @Override
-    public String getName() {
-
-        return unwrapped_host.getName();
-    }
-
-    @Override
-    public InetAddress getAddress() {
-
-        return unwrapped_host.getAddress();
+        unwrapped_host.download(source, destination);
     }
 
     @Override
@@ -100,8 +70,37 @@ public abstract class HostWrapper implements Host {
     }
 
     @Override
-    public void download(final String source, final File destination) throws IOException {
+    public Platform getPlatform() throws IOException {
 
-        unwrapped_host.download(source, destination);
+        return unwrapped_host.getPlatform();
+    }
+
+    @Override
+    public InetAddress getAddress() {
+
+        return unwrapped_host.getAddress();
+    }
+
+    @Override
+    public String getName() {
+
+        return unwrapped_host.getName();
+    }
+
+    @Override
+    public boolean isLocal() {
+
+        return unwrapped_host.isLocal();
+    }
+
+    @Override
+    public void close() throws IOException {
+
+        unwrapped_host.close();
+    }
+
+    protected Host getUnwrappedHost() {
+
+        return unwrapped_host;
     }
 }

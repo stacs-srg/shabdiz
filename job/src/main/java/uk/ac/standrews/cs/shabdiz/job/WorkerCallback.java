@@ -46,5 +46,5 @@ public interface WorkerCallback {
      * @param exception the exception which occurred when trying to execute a job
      * @throws RPCException if unable to contact the correspondence
      */
-    void notifyException(UUID job_id, Exception exception) throws RPCException;
+    void notifyException(UUID job_id, Throwable exception) throws RPCException;
 }

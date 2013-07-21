@@ -18,15 +18,13 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import com.google.common.util.concurrent.AbstractFuture;
 import java.io.Serializable;
 import java.util.UUID;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.mashti.jetson.exception.RPCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Presents a proxy to the pending result of a remote computation.
@@ -34,133 +32,33 @@ import org.mashti.jetson.exception.RPCException;
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Result> {
+class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Result> {
 
-    private static final int LATCH_COUNT = 1; // The latch count is one because there is only one notification is needed to be received from the remote worker to release this pending result
-
-    private enum State {
-
-        /** Indicates that this future is pending for the notification from the remote worker. */
-        PENDING,
-
-        /** Indicates that pending has ended in a result. */
-        DONE_WITH_RESULT,
-
-        /** Indicates that pending has ended in an exception. */
-        DONE_WITH_EXCEPTION,
-
-        /** Indicates that pending has ended in cancellation of the job. */
-        CANCELLED;
-    }
-
-    private final UUID job_id; // The globally unique ID of the job
-    private final CountDownLatch job_done_latch; // Allows this thread to wait until the remote computation is complete
-
-    private Exception exception; // Placeholder of the exception which is produced as the outcome of the remote job execution
-    private Result result; // Placeholder of the result which is produced as the outcome of the remote job execution
-    private State current_state; // Current state of this future remote
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassiveFutureRemoteProxy.class);
+    private final UUID job_id;
     private final WorkerRemote proxy;
 
-    /**
-     * Instantiates a new proxy to the pending result of a remote computation.
-     *
-     * @param job_id the id of the remote computation
-     * @param proxy worker proxy
-     */
     PassiveFutureRemoteProxy(final UUID job_id, final WorkerRemote proxy) {
 
         this.job_id = job_id;
         this.proxy = proxy;
-
-        current_state = State.PENDING;
-        job_done_latch = new CountDownLatch(LATCH_COUNT);
     }
 
     @Override
     public boolean cancel(final boolean may_interrupt) {
 
-        if (isDone()) { return false; } // Check whether the job is done; if so, cannot be cancelled
+        return super.cancel(may_interrupt) && cancelOnRemote(may_interrupt);
+    }
 
-        boolean cancelled = false;
-        try {
-            cancelled = cancelOnRemote(may_interrupt);
-        }
-        catch (final RPCException e) {
-            setException(e); // Since unable to communicate with the remote worker, there is no point to wait for notification.
-        }
-        finally {
-            if (cancelled) {
-                updateState(State.CANCELLED);
-            }
-        }
-        return cancelled;
+    public boolean set(final Serializable result) {
+
+        return super.set((Result) result);
     }
 
     @Override
-    public Result get() throws InterruptedException, ExecutionException {
+    public boolean setException(final Throwable throwable) {
 
-        job_done_latch.await(); // Wait until the job is done
-
-        switch (current_state) {
-            case DONE_WITH_RESULT:
-                return result;
-
-            case DONE_WITH_EXCEPTION:
-                launchAppropriatedException(exception);
-                break;
-            case CANCELLED:
-                throw new CancellationException();
-
-            default:
-                break;
-        }
-
-        throw new IllegalStateException("The latch count is zero when the job is not done");
-    }
-
-    @Override
-    public Result get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-
-        if (job_done_latch.await(timeout, unit)) { return get(); }
-
-        throw new TimeoutException();
-    }
-
-    @Override
-    public boolean isCancelled() {
-
-        return current_state == State.CANCELLED;
-    }
-
-    @Override
-    public boolean isDone() {
-
-        return current_state != State.PENDING;
-    }
-
-    UUID getJobID() {
-
-        return job_id;
-    }
-
-    void setException(final Exception exception) {
-
-        this.exception = exception;
-        updateState(State.DONE_WITH_EXCEPTION);
-    }
-
-    @SuppressWarnings("unchecked")
-    void setResult(final Serializable result) {
-
-        try {
-
-            this.result = (Result) result;
-            updateState(State.DONE_WITH_RESULT);
-        }
-        catch (final ClassCastException e) {
-            setException(new ExecutionException("Unable to cast the notified result to the appropriate type", e));
-        }
+        return super.setException(throwable);
     }
 
     @Override
@@ -169,45 +67,19 @@ class PassiveFutureRemoteProxy<Result extends Serializable> implements Future<Re
         return job_id.hashCode();
     }
 
-    @Override
-    public boolean equals(final Object obj) {
+    protected UUID getJobID() {
 
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-        final PassiveFutureRemoteProxy<?> other = (PassiveFutureRemoteProxy<?>) obj;
-        if (current_state != other.current_state) { return false; }
-        if (exception == null) {
-            if (other.exception != null) { return false; }
+        return job_id;
+    }
+
+    private boolean cancelOnRemote(final boolean may_interrupt) {
+
+        try {
+            return proxy.cancel(job_id, may_interrupt);
         }
-        else if (!exception.equals(other.exception)) { return false; }
-        if (job_done_latch == null) {
-            if (other.job_done_latch != null) { return false; }
-        }
-        else if (!job_done_latch.equals(other.job_done_latch)) { return false; }
-        if (job_id == null) {
-            if (other.job_id != null) { return false; }
-        }
-        else if (!job_id.equals(other.job_id)) {
+        catch (final RPCException e) {
+            LOGGER.warn("failed to cancel job: {}, due to {}", job_id, e);
             return false;
-        }
-        else if (!result.equals(other.result)) { return false; }
-        return true;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    private boolean cancelOnRemote(final boolean may_interrupt) throws RPCException {
-
-        return proxy.cancel(job_id, may_interrupt);
-    }
-
-    private void updateState(final State new_state) {
-
-        current_state = new_state;
-
-        if (current_state != State.PENDING) { // Check whether this future is no longer pending
-            job_done_latch.countDown(); // Release the waiting latch
         }
     }
 

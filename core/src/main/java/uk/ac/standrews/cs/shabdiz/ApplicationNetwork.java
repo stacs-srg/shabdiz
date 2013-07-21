@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -41,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
  */
 public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 5;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(2, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
@@ -373,6 +374,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void killAllSilently() {
+
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             try {
                 kill(application_descriptor);

@@ -94,18 +94,6 @@ public class SSHHost extends AbstractHost {
         configure();
     }
 
-    private void configure() throws IOException {
-
-        try {
-            ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
-        }
-        catch (final JSchException e) {
-            throw new IOException(e);
-        }
-        ssh_port = DEFAULT_SSH_PORT;
-        ssh_connection_timeout_in_millis = DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS;
-    }
-
     /**
      * Sets the port number that is used for SSH connection. The default port is set to {@value #DEFAULT_SSH_PORT}.
      *
@@ -204,6 +192,18 @@ public class SSHHost extends AbstractHost {
         finally {
             platform_lock.unlock();
         }
+    }
+
+    private void configure() throws IOException {
+
+        try {
+            ssh_session_factory.setKnownHosts(credentials.getKnownHostsFile());
+        }
+        catch (final JSchException e) {
+            throw new IOException(e);
+        }
+        ssh_port = DEFAULT_SSH_PORT;
+        ssh_connection_timeout_in_millis = DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS;
     }
 
     private void prepareRemoteDestination(final String destination, final ChannelSftp sftp) throws SftpException, IOException {
@@ -375,44 +375,6 @@ public class SSHHost extends AbstractHost {
             out = channel.getOutputStream();
         }
 
-        private ChannelExec createChannel() throws IOException {
-
-            final ChannelExec channel = openExecChannel();
-            final PipedInputStream termination_aware_in = createTerminationAwareInputStreamWrapper();
-            channel.setInputStream(termination_aware_in);
-            channel.setCommand(command);
-            try {
-                channel.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
-            }
-            catch (final JSchException e) {
-                throw new IOException(e);
-            }
-            return channel;
-        }
-
-        private ChannelExec openExecChannel() throws IOException {
-
-            try {
-                return (ChannelExec) session.openChannel("exec");
-            }
-            catch (final JSchException e) {
-                throw new IOException(e);
-            }
-        }
-
-        private PipedInputStream createTerminationAwareInputStreamWrapper() {
-
-            return new PipedInputStream() {
-
-                @Override
-                public void close() throws IOException {
-
-                    termination_latch.countDown();
-                    super.close();
-                }
-            };
-        }
-
         @Override
         public OutputStream getOutputStream() {
 
@@ -449,6 +411,44 @@ public class SSHHost extends AbstractHost {
 
             CloseableUtil.closeQuietly(in, out, err);
             disconnect(session, channel);
+        }
+
+        private ChannelExec createChannel() throws IOException {
+
+            final ChannelExec channel = openExecChannel();
+            final PipedInputStream termination_aware_in = createTerminationAwareInputStreamWrapper();
+            channel.setInputStream(termination_aware_in);
+            channel.setCommand(command);
+            try {
+                channel.connect(DEFAULT_SSH_CONNECTION_TIMEOUT_IN_MILLIS);
+            }
+            catch (final JSchException e) {
+                throw new IOException(e);
+            }
+            return channel;
+        }
+
+        private ChannelExec openExecChannel() throws IOException {
+
+            try {
+                return (ChannelExec) session.openChannel("exec");
+            }
+            catch (final JSchException e) {
+                throw new IOException(e);
+            }
+        }
+
+        private PipedInputStream createTerminationAwareInputStreamWrapper() {
+
+            return new PipedInputStream() {
+
+                @Override
+                public void close() throws IOException {
+
+                    termination_latch.countDown();
+                    super.close();
+                }
+            };
         }
     }
 }

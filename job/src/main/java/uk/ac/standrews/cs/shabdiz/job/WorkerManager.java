@@ -58,16 +58,6 @@ class WorkerManager extends AbstractApplicationManager {
         proxy_factory = new WorkerRemoteProxyFactory();
     }
 
-    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
-
-        final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
-
-        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addClasspath(classpath);
-        process_builder.addCurrentJVMClasspath();
-        return process_builder;
-    }
-
     @Override
     public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
@@ -81,6 +71,8 @@ class WorkerManager extends AbstractApplicationManager {
         final Integer worker_pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
         worker_wrapper.setWorkerProcessId(worker_pid);
         LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, worker_pid);
+        //        final DefaultWorkerRemote worker_remote = new DefaultWorkerRemote(NetworkUtil.getLocalIPv4InetSocketAddress(0), network.getCallbackAddress());
+        //        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, null, worker_remote.getAddress());
         return worker_wrapper;
     }
 
@@ -105,12 +97,6 @@ class WorkerManager extends AbstractApplicationManager {
         }
     }
 
-    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws IOException, InterruptedException, TimeoutException {
-
-        final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
-        return NetworkUtil.getAddressFromString(address_as_string);
-    }
-
     /**
      * Sets the worker deployment timeout.
      *
@@ -132,6 +118,22 @@ class WorkerManager extends AbstractApplicationManager {
     public void setWorkerJVMArguments(final String jvm_arguments) {
 
         worker_process_builder.setJVMArguments(jvm_arguments);
+    }
+
+    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
+
+        final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
+
+        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
+        process_builder.addClasspath(classpath);
+        process_builder.addCurrentJVMClasspath();
+        return process_builder;
+    }
+
+    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws IOException, InterruptedException, TimeoutException {
+
+        final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
+        return NetworkUtil.getAddressFromString(address_as_string);
     }
 
     @Override
