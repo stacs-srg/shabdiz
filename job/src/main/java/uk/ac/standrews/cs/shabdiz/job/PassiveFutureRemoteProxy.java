@@ -21,7 +21,6 @@ package uk.ac.standrews.cs.shabdiz.job;
 import com.google.common.util.concurrent.AbstractFuture;
 import java.io.Serializable;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import org.mashti.jetson.exception.RPCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,15 +55,18 @@ class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFutu
     }
 
     @Override
-    public boolean setException(final Throwable throwable) {
-
-        return super.setException(throwable);
-    }
-
-    @Override
     public int hashCode() {
 
         return job_id.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+
+        if (this == other) { return true; }
+        if (!(other instanceof PassiveFutureRemoteProxy)) { return false; }
+        final PassiveFutureRemoteProxy that = (PassiveFutureRemoteProxy) other;
+        return job_id.equals(that.job_id);
     }
 
     protected UUID getJobID() {
@@ -81,15 +83,5 @@ class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFutu
             LOGGER.warn("failed to cancel job: {}, due to {}", job_id, e);
             return false;
         }
-    }
-
-    private void launchAppropriatedException(final Exception exception) throws InterruptedException, ExecutionException {
-
-        if (exception instanceof InterruptedException) { throw (InterruptedException) exception; }
-        if (exception instanceof ExecutionException) { throw (ExecutionException) exception; }
-        if (exception instanceof RPCException) { throw new ExecutionException(exception); }
-        if (exception instanceof RuntimeException) { throw (RuntimeException) exception; }
-
-        throw new ExecutionException("unexpected exception was notified by the worker : " + exception.getClass(), exception);
     }
 }
