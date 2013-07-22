@@ -36,7 +36,6 @@ public interface WorkerCallback {
      * @param result the result of the completed job
      * @throws RPCException if unable to contact the correspondence
      */
-
     void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
 
     /**

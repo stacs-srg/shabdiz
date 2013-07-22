@@ -31,13 +31,13 @@ import org.slf4j.LoggerFactory;
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Result> {
+class FutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Result> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PassiveFutureRemoteProxy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FutureRemoteProxy.class);
     private final UUID job_id;
     private final WorkerRemote proxy;
 
-    PassiveFutureRemoteProxy(final UUID job_id, final WorkerRemote proxy) {
+    FutureRemoteProxy(final UUID job_id, final WorkerRemote proxy) {
 
         this.job_id = job_id;
         this.proxy = proxy;
@@ -70,8 +70,8 @@ class PassiveFutureRemoteProxy<Result extends Serializable> extends AbstractFutu
     public boolean equals(final Object other) {
 
         if (this == other) { return true; }
-        if (!(other instanceof PassiveFutureRemoteProxy)) { return false; }
-        final PassiveFutureRemoteProxy that = (PassiveFutureRemoteProxy) other;
+        if (!(other instanceof FutureRemoteProxy)) { return false; }
+        final FutureRemoteProxy that = (FutureRemoteProxy) other;
         return job_id.equals(that.job_id);
     }
 

@@ -42,15 +42,11 @@ public class WorkerMain {
 
     static final String WORKER_REMOTE_ADDRESS_KEY = "WORKER_REMOTE_ADDRESS";
     static final String RUNTIME_MX_BEAN_NAME_KEY = "runtimeMXBeanName";
-
     private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
-
     private InetSocketAddress local_address = null;
     private InetSocketAddress launcher_callback_address = null;
-
-    // -------------------------------------------------------------------------------------------------------
 
     /**
      * Instantiates a new worker node server.
@@ -65,8 +61,6 @@ public class WorkerMain {
         configureLocalAddress(arguments);
         configureLauncherAddress(arguments);
     }
-
-    // -------------------------------------------------------------------------------------------------------
 
     /**
      * The following command line parameters are available:
@@ -97,8 +91,6 @@ public class WorkerMain {
         }
     }
 
-    // -------------------------------------------------------------------------------------------------------
-
     private static void printWorkerAddress(final DefaultWorkerRemote worker) {
 
         ProcessUtil.printKeyValue(System.out, WORKER_REMOTE_ADDRESS_KEY, worker.getAddress());
@@ -128,8 +120,6 @@ public class WorkerMain {
 
         return new DefaultWorkerRemote(local_address, launcher_callback_address);
     }
-
-    // -------------------------------------------------------------------------------------------------------
 
     private void usage() {
 

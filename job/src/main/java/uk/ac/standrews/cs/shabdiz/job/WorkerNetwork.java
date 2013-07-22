@@ -31,7 +31,7 @@ import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.exception.TransportException;
-import org.mashti.jetson.json.JsonServerFactory;
+import org.mashti.jetson.lean.LeanServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -50,7 +50,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
+    private final ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final Server callback_server; // The server which listens to the callbacks  from workers
     private final WorkerManager worker_manager;
     private final ServerFactory<WorkerCallback> callback_server_factory;
@@ -88,8 +88,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException {
 
         super("Shabdiz Worker Network");
-        id_future_map = new ConcurrentSkipListMap<UUID, PassiveFutureRemoteProxy<? extends Serializable>>();
-        callback_server_factory = new JsonServerFactory<WorkerCallback>(WorkerCallback.class, WorkerJsonFactory.getInstance());
+        id_future_map = new ConcurrentSkipListMap<UUID, FutureRemoteProxy<? extends Serializable>>();
+        callback_server_factory = new LeanServerFactory<WorkerCallback>(WorkerCallback.class);
         callback_server = callback_server_factory.createServer(this);
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
@@ -194,14 +194,14 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         final RPCException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
 
-        for (final PassiveFutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
+        for (final FutureRemoteProxy<? extends Serializable> future_remote : id_future_map.values()) {
             if (!future_remote.isDone()) {
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
             }
         }
     }
 
-    <Result extends Serializable> void notifyJobSubmission(final PassiveFutureRemoteProxy<Result> future_remote) {
+    <Result extends Serializable> void notifyJobSubmission(final FutureRemoteProxy<Result> future_remote) {
 
         id_future_map.put(future_remote.getJobID(), future_remote);
     }

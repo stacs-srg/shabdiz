@@ -30,10 +30,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
-import org.mashti.jetson.json.JsonServerFactory;
+import org.mashti.jetson.lean.LeanClientFactory;
+import org.mashti.jetson.lean.LeanServerFactory;
 import org.mashti.jetson.util.NamingThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +47,8 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultWorkerRemote implements WorkerRemote {
 
-    private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new JsonServerFactory<WorkerRemote>(WorkerRemote.class, WorkerJsonFactory.getInstance());
+    private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new LeanServerFactory<WorkerRemote>(WorkerRemote.class);
+    private static final ClientFactory<WorkerCallback> CLIENT_FACTORY = new LeanClientFactory<WorkerCallback>(WorkerCallback.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
     private final InetSocketAddress local_address;
     private final ListeningExecutorService executor;
@@ -55,7 +58,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
     protected DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
-        callback = CallbackProxyFactory.getProxy(callback_address);
+        callback = CLIENT_FACTORY.get(callback_address);
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         executor = createExecutorService();
         server = SERVER_FACTORY.createServer(this);

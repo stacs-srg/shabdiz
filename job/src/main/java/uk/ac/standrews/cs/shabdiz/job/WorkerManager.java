@@ -24,7 +24,9 @@ import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.exception.RPCException;
+import org.mashti.jetson.lean.LeanClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
@@ -45,7 +47,7 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Integer DEFAULT_WORKER_PORT = 0;
     private final FileBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
-    private final WorkerRemoteProxyFactory proxy_factory;
+    private final ClientFactory<WorkerRemote> proxy_factory;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
     private String[] arguments;
 
@@ -55,7 +57,7 @@ class WorkerManager extends AbstractApplicationManager {
         final InetSocketAddress callback_address = network.getCallbackAddress();
         arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
         worker_process_builder = createRemoteJavaProcessBuilder(classpath);
-        proxy_factory = new WorkerRemoteProxyFactory();
+        proxy_factory = new LeanClientFactory<WorkerRemote>(WorkerRemote.class);
     }
 
     @Override

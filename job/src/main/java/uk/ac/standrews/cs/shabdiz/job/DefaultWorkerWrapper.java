@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import org.mashti.jetson.exception.RPCException;
+import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
  * Implements a passive mechanism by which a {@link DefaultWorkerWrapper} can be contacted.
@@ -57,14 +58,12 @@ class DefaultWorkerWrapper implements Worker {
     }
 
     @Override
-    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
+    public synchronized <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
 
-        synchronized (network) {
-            final UUID job_id = proxy.submitJob(job);
-            final PassiveFutureRemoteProxy<Result> future_remote = new PassiveFutureRemoteProxy<Result>(job_id, proxy);
-            network.notifyJobSubmission(future_remote);
-            return future_remote;
-        }
+        final UUID job_id = proxy.submitJob(job);
+        final FutureRemoteProxy<Result> future_remote = new FutureRemoteProxy<Result>(job_id, proxy);
+        network.notifyJobSubmission(future_remote);
+        return future_remote;
     }
 
     @Override
@@ -81,33 +80,16 @@ class DefaultWorkerWrapper implements Worker {
     @Override
     public int hashCode() {
 
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (network == null ? 0 : network.hashCode());
-        result = prime * result + (worker_address == null ? 0 : worker_address.hashCode());
-        return result;
+        return HashCodeUtil.generate(network.hashCode(), worker_address.hashCode(), proxy.hashCode());
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(final Object other) {
 
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-
-        final DefaultWorkerWrapper other = (DefaultWorkerWrapper) obj;
-
-        if (worker_address == null) {
-            if (other.worker_address != null) { return false; }
-        }
-        else if (!worker_address.equals(other.worker_address)) { return false; }
-
-        if (network == null) {
-            if (other.network != null) { return false; }
-        }
-        else if (!network.equals(other.network)) { return false; }
-
-        return true;
+        if (this == other) { return true; }
+        if (other == null || getClass() != other.getClass()) { return false; }
+        final DefaultWorkerWrapper that = (DefaultWorkerWrapper) other;
+        return worker_address.equals(that.worker_address) && proxy.equals(that.proxy) && network.equals(that.network);
     }
 
     @Override

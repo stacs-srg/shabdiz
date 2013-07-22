@@ -20,6 +20,7 @@ package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import org.mashti.jetson.exception.RPCException;
 
@@ -36,7 +37,7 @@ public interface WorkerRemote {
      * @param job the job to submit
      * @return the globally unique id of the submitted job
      * @throws RPCException if unable to make the remote call
-     * @see ExecutorService#submit(java.util.concurrent.Callable)
+     * @see ExecutorService#submit(Callable)
      */
     UUID submitJob(Job<? extends Serializable> job) throws RPCException;
 
