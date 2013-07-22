@@ -14,5 +14,7 @@ public final class Constants {
     /** Shabdiz Maven group ID. */
     public static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs";
 
-    private Constants() {}
+    private Constants() {
+
+    }
 }
