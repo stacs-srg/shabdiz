@@ -86,7 +86,7 @@ class FutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Resu
             return proxy.cancel(job_id, may_interrupt);
         }
         catch (final RPCException e) {
-            LOGGER.warn("failed to cancel job: {}, due to {}", job_id, e);
+            LOGGER.warn("failed to cancel job", e);
             return false;
         }
     }

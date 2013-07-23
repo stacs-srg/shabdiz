@@ -71,22 +71,10 @@ public class DefaultWorkerRemote implements WorkerRemote {
     public UUID submitJob(final Job<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
-
         final ListenableFuture<? extends Serializable> future = executor.submit(job);
-        Futures.addCallback(future, new FutureCallback<Serializable>() {
+        final FutureCallbackNotifier future_callback = new FutureCallbackNotifier(job_id);
 
-            @Override
-            public void onSuccess(final Serializable result) {
-
-                handleCompletion(job_id, result);
-            }
-
-            @Override
-            public void onFailure(final Throwable error) {
-
-                handleException(job_id, error);
-            }
-        }, executor);
+        Futures.addCallback(future, future_callback, executor);
         return job_id;
     }
 
@@ -120,6 +108,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
      *
      * @return the address on which this worker is exposed
      */
+
     public InetSocketAddress getAddress() {
 
         return local_address;
@@ -135,7 +124,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         server.expose();
     }
 
-    private void handleException(final UUID job_id, final Throwable exception) {
+    private void notifyException(final UUID job_id, final Throwable exception) {
 
         try {
             callback.notifyException(job_id, exception);
@@ -151,7 +140,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         server.unexpose();
     }
 
-    private void handleCompletion(final UUID job_id, final Serializable result) {
+    private void notifyCompletion(final UUID job_id, final Serializable result) {
 
         try {
             callback.notifyCompletion(job_id, result);
@@ -166,4 +155,27 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
         return UUID.randomUUID();
     }
+
+    private class FutureCallbackNotifier implements FutureCallback<Serializable> {
+
+        private final UUID job_id;
+
+        private FutureCallbackNotifier(UUID job_id) {
+
+            this.job_id = job_id;
+        }
+
+        @Override
+        public void onSuccess(final Serializable result) {
+
+            notifyCompletion(job_id, result);
+        }
+
+        @Override
+        public void onFailure(final Throwable error) {
+
+            notifyException(job_id, error);
+        }
+    }
+
 }
