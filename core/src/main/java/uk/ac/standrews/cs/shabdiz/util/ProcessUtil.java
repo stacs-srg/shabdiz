@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.io.IOUtils;
-import org.mashti.jetson.util.NamingThreadFactory;
+import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public final class ProcessUtil {
      */
     public static String awaitNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
-        final ExecutorService executor = Executors.newFixedThreadPool(2, new NamingThreadFactory("process_util_"));
+        final ExecutorService executor = Executors.newFixedThreadPool(2, new NamedThreadFactory("process_util_"));
         try {
             final Future<Void> future_error = executor.submit(new Callable<Void>() {
 

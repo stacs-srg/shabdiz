@@ -25,7 +25,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.mashti.jetson.util.NamingThreadFactory;
+import org.mashti.jetson.util.NamedThreadFactory;
 
 /**
  * A utility {@link ThreadPoolExecutor} that is used to execute tasks with timeout.
@@ -40,7 +40,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private TimeoutExecutorService() {
 
-        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamingThreadFactory("TimeoutExecutorService_"));
+        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory("TimeoutExecutorService_"));
     }
 
     /**

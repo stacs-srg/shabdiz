@@ -36,7 +36,7 @@ import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientFactory;
 import org.mashti.jetson.lean.LeanServerFactory;
-import org.mashti.jetson.util.NamingThreadFactory;
+import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +116,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
     protected ListeningExecutorService createExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamingThreadFactory("worker_")));
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory("worker_")));
     }
 
     private void expose() throws IOException {
