@@ -60,7 +60,7 @@ public class SSHHost extends AbstractHost {
     private final JSch ssh_session_factory;
     private final ReentrantLock platform_lock;
     private final String username;
-    private final transient SSHCredentials credentials;
+    private final SSHCredentials credentials;
     private volatile Platform platform;
     private volatile int ssh_port;
     private volatile int ssh_connection_timeout_in_millis;
