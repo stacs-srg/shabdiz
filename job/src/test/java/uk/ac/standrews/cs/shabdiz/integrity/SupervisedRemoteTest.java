@@ -22,11 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -42,43 +40,6 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
 public class SupervisedRemoteTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedRemoteTest.class);
-
-    private static final class VerifyStoredTestDirJob implements Job<Boolean> {
-
-        private final AttributeKey<File> key_of_job_result;
-        private static final long serialVersionUID = -914929899418405919L;
-
-        private VerifyStoredTestDirJob(final AttributeKey<File> key_of_job_result) {
-
-            this.key_of_job_result = key_of_job_result;
-        }
-
-        @Override
-        public Boolean call() throws Exception {
-
-            final File temp_file = Attributes.get(key_of_job_result);
-            try {
-                return temp_file.exists();
-            }
-            finally {
-                temp_file.delete();
-            }
-        }
-    }
-
-    private static final class StoreTestDirectoryJob implements Job<AttributeKey<File>> {
-
-        private static final long serialVersionUID = 7824880921808363822L;
-
-        @Override
-        public AttributeKey<File> call() throws Exception {
-
-            final File temp_file = File.createTempFile("test_shabdiz_temp", ".tmp");
-            final AttributeKey<File> key = new AttributeKey<File>();
-            Attributes.put(key, temp_file);
-            return key;
-        }
-    }
 
     public static void main(final String[] args) throws Exception {
 
@@ -137,6 +98,43 @@ public class SupervisedRemoteTest {
             catch (final IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static final class VerifyStoredTestDirJob implements Job<Boolean> {
+
+        private static final long serialVersionUID = -914929899418405919L;
+        private final AttributeKey<File> key_of_job_result;
+
+        private VerifyStoredTestDirJob(final AttributeKey<File> key_of_job_result) {
+
+            this.key_of_job_result = key_of_job_result;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+
+            final File temp_file = Attributes.get(key_of_job_result);
+            try {
+                return temp_file.exists();
+            }
+            finally {
+                temp_file.delete();
+            }
+        }
+    }
+
+    private static final class StoreTestDirectoryJob implements Job<AttributeKey<File>> {
+
+        private static final long serialVersionUID = 7824880921808363822L;
+
+        @Override
+        public AttributeKey<File> call() throws Exception {
+
+            final File temp_file = File.createTempFile("test_shabdiz_temp", ".tmp");
+            final AttributeKey<File> key = new AttributeKey<File>();
+            Attributes.put(key, temp_file);
+            return key;
         }
     }
 }

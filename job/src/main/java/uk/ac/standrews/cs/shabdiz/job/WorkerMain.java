@@ -34,7 +34,7 @@ import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
- * THe entry point to start up a new worker.
+ * The entry point to start up a new worker.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -45,8 +45,8 @@ public class WorkerMain {
     private static final Logger LOGGER = Logger.getLogger(WorkerMain.class.getName());
     private static final String LOCAL_ADDRESS_KEY = "-s";
     private static final String CALLBACK_ADDRESS_KEY = "-c";
-    private InetSocketAddress local_address = null;
-    private InetSocketAddress launcher_callback_address = null;
+    private InetSocketAddress local_address;
+    private InetSocketAddress launcher_callback_address;
 
     /**
      * Instantiates a new worker node server.
@@ -121,7 +121,7 @@ public class WorkerMain {
         return new DefaultWorkerRemote(local_address, launcher_callback_address);
     }
 
-    private void usage() {
+    private static void usage() {
 
         System.err.println("Usage: -Chost:port [-Shost:port]");
     }

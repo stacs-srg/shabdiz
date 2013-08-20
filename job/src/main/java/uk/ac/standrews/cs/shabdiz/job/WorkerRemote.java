@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import org.mashti.jetson.exception.RPCException;
 
 /**
@@ -35,19 +36,24 @@ public interface WorkerRemote {
      * Submits a value-returning task for execution to a remote worker and returns the pending result of the task.
      *
      * @param job the job to submit
-     * @return the globally unique id of the submitted job
-     * @throws RPCException if unable to make the remote call
+     * @return the unique identifier of the submitted job on this worker
+     * @throws RPCException signals that an RPC error has occured
      * @see ExecutorService#submit(Callable)
      */
-    UUID submitJob(Job<? extends Serializable> job) throws RPCException;
+    UUID submit(Job<? extends Serializable> job) throws RPCException;
 
     /**
-     * Cancels a given job executing on this worker.
+     * Attempts to cancel execution of the task that is identified by the given {@code job_id}.
+     * This attempt will fail if the task has already completed, has already been cancelled, or the given {@code job_id} is not recognised by this worker.
+     * If successful, and this task has not started when cancel is called, this task will never run.
+     * If the task has already started, then the {@code may_interrupt} parameter determines whether the thread executing this task should be interrupted in an attempt to stop the task.
      *
-     * @param job_id the job_id
-     * @param may_interrupt the may_interrupt
-     * @return true, if successful
-     * @throws RPCException the json rpc exception
+     * @param job_id the identifier of the job to be cancelled
+     * @param may_interrupt whether the thread executing this task should be interrupted, or the in-progress task shuld be allowed to complete
+     * @return {@code false} if the task could not be cancelled, typically because it has already completed normally; {@code true} otherwise
+     * @throws UnknownJobException if the given job id is not recognised by this worker
+     * @throws RPCException signals that an RPC error has occured
+     * @see Future#cancel(boolean)
      */
     boolean cancel(UUID job_id, final boolean may_interrupt) throws RPCException;
 

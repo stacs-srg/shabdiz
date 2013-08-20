@@ -69,19 +69,19 @@ class WorkerManager extends AbstractApplicationManager {
         final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
-        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, worker_process, worker_remote_address);
+        final Worker worker = new Worker(network, worker_remote, worker_process, worker_remote_address);
         final Integer worker_pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
-        worker_wrapper.setWorkerProcessId(worker_pid);
+        worker.setWorkerProcessId(worker_pid);
         LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, worker_pid);
         //        final DefaultWorkerRemote worker_remote = new DefaultWorkerRemote(NetworkUtil.getLocalIPv4InetSocketAddress(0), network.getCallbackAddress());
-        //        final DefaultWorkerWrapper worker_wrapper = new DefaultWorkerWrapper(network, worker_remote, null, worker_remote.getAddress());
-        return worker_wrapper;
+        //        final Worker worker = new Worker(network, worker_remote, null, worker_remote.getAddress());
+        return worker;
     }
 
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
-        final DefaultWorkerWrapper worker = descriptor.getApplicationReference();
+        final Worker worker = descriptor.getApplicationReference();
         if (worker != null) {
             final Integer process_id = worker.getWorkerProcessId();
             if (process_id != null) {
@@ -122,7 +122,7 @@ class WorkerManager extends AbstractApplicationManager {
         worker_process_builder.setJVMArguments(jvm_arguments);
     }
 
-    private FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
+    private static FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
 
         final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
 

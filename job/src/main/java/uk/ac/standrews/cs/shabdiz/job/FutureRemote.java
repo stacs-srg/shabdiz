@@ -26,18 +26,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Presents a proxy to the pending result of a remote computation.
+ * Presents a proxy to the pending result of a {@link Job job}.
  *
  * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class FutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Result> {
+class FutureRemote<Result extends Serializable> extends AbstractFuture<Result> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FutureRemoteProxy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FutureRemote.class);
     private final UUID job_id;
     private final WorkerRemote proxy;
 
-    FutureRemoteProxy(final UUID job_id, final WorkerRemote proxy) {
+    FutureRemote(final UUID job_id, final WorkerRemote proxy) {
 
         this.job_id = job_id;
         this.proxy = proxy;
@@ -70,8 +70,8 @@ class FutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Resu
     public boolean equals(final Object other) {
 
         if (this == other) { return true; }
-        if (!(other instanceof FutureRemoteProxy)) { return false; }
-        final FutureRemoteProxy that = (FutureRemoteProxy) other;
+        if (!(other instanceof FutureRemote)) { return false; }
+        final FutureRemote that = (FutureRemote) other;
         return job_id.equals(that.job_id);
     }
 
@@ -86,7 +86,7 @@ class FutureRemoteProxy<Result extends Serializable> extends AbstractFuture<Resu
             return proxy.cancel(job_id, may_interrupt);
         }
         catch (final RPCException e) {
-            LOGGER.warn("failed to cancel job", e);
+            LOGGER.warn("failed to cancel job on remote", e);
             return false;
         }
     }

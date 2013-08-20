@@ -21,7 +21,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
 /**
  * Builds Java process on hosts and resolves any dependencies using Maven.
  * The process is started by executing a bootstrap jar that constructs a maven repository of any needed dependency.
- * By fault the Maven central repository and the Maven repository at the school of computer science University of St Andrews are loaded.
+ * By default the Maven central repository and the Maven repository at the school of computer science University of St Andrews are loaded.
  * Any additional repository may be added using {@link #addMavenRepository(URL)}.
  * Dependencies are added using {@link #addMavenDependency(String, String, String)}. Please note that any child dependency of an added dependency will be downloaded automatically.
  *
@@ -61,6 +61,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      * @param repository_url the url of the Maven repository
      */
     public void addMavenRepository(final URL repository_url) {
+
         maven_repositories.add(repository_url.toString());
     }
 
@@ -73,10 +74,12 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      * @param version the Maven dependency version
      */
     public void addMavenDependency(final String group_id, final String artifact_id, final String version) {
+
         dependency_coordinates.add(toCoordinate(group_id, artifact_id, version));
     }
 
     private String assembleCommand(final Platform platform, final String host_bootstrap_home, final String[] parameters) {
+
         final StringBuilder command = new StringBuilder();
         appendJavaBinPath(command, platform);
         appendJVMArguments(command);
@@ -90,11 +93,13 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     @Override
     protected void appendCommandLineArguments(final StringBuilder command, final Platform platform, final String[] parameters) {
+
         command.append(platform.quote(Arrays.toString(parameters)));
         command.append(SPACE);
     }
 
     private void appendRepositories(final StringBuilder command, final Platform platform) {
+
         command.append(platform.quote(Arrays.toString(maven_repositories.toArray())));
         command.append(SPACE);
     }
@@ -111,6 +116,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     private void appendBootstrapJar(final StringBuilder command, final Platform platform, final String bootstrap_home) {
+
         final char separator = platform.getSeparator();
 
         command.append("-jar ");

@@ -18,18 +18,20 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
+import java.util.UUID;
 import org.mashti.jetson.exception.RPCException;
 
 /**
- * Presents a remote exception on a worker.
+ * Signlas that a given {@link UUID job ID} is unknown by a {@link WorkerRemote remote worker}.
+ * This exception is typically thrown by {@link WorkerRemote#cancel(UUID, boolean)} operation when the given job ID is not recognised by the {@link WorkerRemote remote worker}.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class RemoteWorkerException extends RPCException {
+class UnknownJobException extends RPCException {
 
     private static final long serialVersionUID = 8032891766959571488L;
 
-    RemoteWorkerException(final String message) {
+    UnknownJobException(final String message) {
 
         super(message);
     }

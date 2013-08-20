@@ -23,7 +23,7 @@ import java.util.UUID;
 import org.mashti.jetson.exception.RPCException;
 
 /**
- * Receives notifications from workers about the outcome of a submitted job.
+ * Receives notifications from {@link WorkerRemote remote workers} about the outcome of a submitted job.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

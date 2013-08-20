@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An implementation of {@link DefaultWorkerRemote} which notifies the launcher about the completion of the submitted jobs on a given callback address.
+ * Presents a {@link WorkerRemote worker} that perfoms a given job and notifies the launcher about the completion of the submitted jobs on a given callback address.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -68,7 +68,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     }
 
     @Override
-    public UUID submitJob(final Job<? extends Serializable> job) {
+    public synchronized UUID submit(final Job<? extends Serializable> job) {
 
         final UUID job_id = generateJobId();
         final ListenableFuture<? extends Serializable> future = executor.submit(job);
@@ -79,7 +79,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
     }
 
     @Override
-    public boolean cancel(final UUID job_id, final boolean may_interrupt) throws RPCException {
+    public synchronized boolean cancel(final UUID job_id, final boolean may_interrupt) throws RPCException {
 
         if (submitted_jobs.containsKey(job_id)) {
             final boolean cancelled = submitted_jobs.get(job_id).cancel(may_interrupt);
@@ -88,7 +88,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
             }
             return cancelled;
         }
-        throw new RemoteWorkerException("Unable to cancel job, worker does not know of any job with the id " + job_id);
+        throw new UnknownJobException("Unable to cancel job, worker does not know of any job with the id " + job_id);
     }
 
     @Override
@@ -124,31 +124,9 @@ public class DefaultWorkerRemote implements WorkerRemote {
         server.expose();
     }
 
-    private void notifyException(final UUID job_id, final Throwable exception) {
-
-        try {
-            callback.notifyException(job_id, exception);
-            submitted_jobs.remove(job_id);
-        }
-        catch (final RPCException e) {
-            LOGGER.error("failed to notify job exception", e);
-        }
-    }
-
     private void unexpose() throws IOException {
 
         server.unexpose();
-    }
-
-    private void notifyCompletion(final UUID job_id, final Serializable result) {
-
-        try {
-            callback.notifyCompletion(job_id, result);
-            submitted_jobs.remove(job_id);
-        }
-        catch (final RPCException e) {
-            LOGGER.error("failed to notify job completion", e);
-        }
     }
 
     private static synchronized UUID generateJobId() {
@@ -175,6 +153,28 @@ public class DefaultWorkerRemote implements WorkerRemote {
         public void onFailure(final Throwable error) {
 
             notifyException(job_id, error);
+        }
+
+        private void notifyCompletion(final UUID job_id, final Serializable result) {
+
+            try {
+                callback.notifyCompletion(job_id, result);
+                submitted_jobs.remove(job_id);
+            }
+            catch (final RPCException e) {
+                LOGGER.error("failed to notify job completion", e);
+            }
+        }
+
+        private void notifyException(final UUID job_id, final Throwable exception) {
+
+            try {
+                callback.notifyException(job_id, exception);
+                submitted_jobs.remove(job_id);
+            }
+            catch (final RPCException e) {
+                LOGGER.error("failed to notify job exception", e);
+            }
         }
     }
 
