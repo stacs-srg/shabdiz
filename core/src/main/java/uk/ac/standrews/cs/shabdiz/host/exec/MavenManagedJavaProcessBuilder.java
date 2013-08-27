@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -204,8 +205,12 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws URISyntaxException, IOException {
 
-        final URL resource_url = type.getResource(getResourceName(type));
-        final File source = new File(resource_url.toURI());
+        final String resource_name = getResourceName(type);
+        LOGGER.info("located resource: {}", resource_name);
+        final URL resource_url = type.getResource(resource_name);
+        final URI resource_uri = resource_url.toURI();
+        LOGGER.info("located resource URI: {}", resource_uri);
+        final File source = new File(resource_uri);
         final String entry_name = type.getPackage().getName().replaceAll("\\.", "/") + "/" + source.getName();
         final JarEntry entry = new JarEntry(entry_name);
         entry.setTime(source.lastModified());
