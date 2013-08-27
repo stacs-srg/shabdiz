@@ -23,12 +23,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
  * Presents a host and hooks to download, upload and execute commands on the host.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public interface Host extends Closeable {
@@ -38,7 +37,7 @@ public interface Host extends Closeable {
      * If the given {@code source} is a directory, the files are uploaded recursively.
      * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
      * If the given {@code destination} already exists, the files are overridden.
-     * 
+     *
      * @param source the source to be uploaded
      * @param destination the path on this host to copy the file(s) into
      * @throws IOException Signals that an I/O exception has occurred.
@@ -50,7 +49,7 @@ public interface Host extends Closeable {
      * If the given {@code source} is a directory, the files are uploaded recursively.
      * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
      * If the given {@code destination} already exists, the files are overridden.
-     * 
+     *
      * @param sources the sources to be uploaded
      * @param destination the path on this host to copy the file(s) into
      * @throws IOException Signals that an I/O exception has occurred.
@@ -63,7 +62,7 @@ public interface Host extends Closeable {
      * If the given {@code source} is a directory, the files are downloaded recursively.
      * If the given {@code destination} does not exist, an attempt is made to construct any non-existing directories.
      * If the given {@code destination} already exists, the files are overridden.
-     * 
+     *
      * @param source the source
      * @param destination the destination
      * @throws IOException Signals that an I/O exception has occurred.
@@ -72,7 +71,7 @@ public interface Host extends Closeable {
 
     /**
      * Executes the given command in a new process on this host.
-     * 
+     *
      * @param command the command
      * @return the process that was started as the result of executing this command
      * @throws IOException Signals that an I/O exception has occurred.
@@ -82,7 +81,7 @@ public interface Host extends Closeable {
     /**
      * Executes the given command in a new process on this host at the given working directory.
      * The given working directory is ignored if it is {@code null}.
-     * 
+     *
      * @param working_directory the working directory that may be {@code null}
      * @param command the command
      * @return the process that was started as the result of executing this command
@@ -92,7 +91,7 @@ public interface Host extends Closeable {
 
     /**
      * Gets the platform-specific settings of this host.
-     * 
+     *
      * @return the platform-specific settings of this host
      * @throws IOException Signals that an I/O exception has occurred.
      */
@@ -100,21 +99,21 @@ public interface Host extends Closeable {
 
     /**
      * Gets the address of this host.
-     * 
+     *
      * @return the address of this host
      */
     InetAddress getAddress();
 
     /**
      * Gets the host name.
-     * 
+     *
      * @return the host name
      */
     String getName();
 
     /**
      * Checks if this host represents the local platform.
-     * 
+     *
      * @return true, if this host represents the local platform
      */
     boolean isLocal();
@@ -122,7 +121,7 @@ public interface Host extends Closeable {
     /**
      * Closes the streams that are used to manage this host and releases any system resources associated with them.
      * If this host is already closed then invoking this method has no effect.
-     * 
+     *
      * @throws IOException {@inheritDoc}
      */
     @Override

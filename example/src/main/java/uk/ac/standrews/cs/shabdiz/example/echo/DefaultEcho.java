@@ -25,6 +25,7 @@ import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
+import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.json.JsonServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,18 +33,33 @@ import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
- * The default implementation of {@link Echo} service.
+ * Implements a remotely accessible {@link Echo} service.
+ * This class contains a {@code main} method and can be used to start up a stand-alone Echo service.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class DefaultEcho implements Echo {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEcho.class);
-    private final InetSocketAddress local_address;
-    private final Server server;
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
     static final String RUNTIME_MX_BEAN_NAME_KEY = "RUNTIME_MX_BEAN_NAME";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEcho.class);
     private static final ServerFactory<Echo> SERVER_FACTORY = new JsonServerFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    private final InetSocketAddress local_address;
+    private final Server server;
+
+    /**
+     * Instantiates a new default echo and exposes an echo server on the given address.
+     *
+     * @param local_address the address on which this service is exposed
+     * @throws IOException Signals that an I/O exception has occurred
+     */
+    public DefaultEcho(final InetSocketAddress local_address) throws IOException {
+
+        server = SERVER_FACTORY.createServer(this);
+        server.setBindAddress(local_address);
+        server.expose();
+        this.local_address = server.getLocalSocketAddress();
+    }
 
     /**
      * Starts a new instance of {@link DefaultEcho}.
@@ -61,32 +77,17 @@ public class DefaultEcho implements Echo {
         ProcessUtil.printKeyValue(System.out, RUNTIME_MX_BEAN_NAME_KEY, ManagementFactory.getRuntimeMXBean().getName());
     }
 
-    /**
-     * Instantiates a new default echo and exposes an echo server on the given address.
-     *
-     * @param local_address the address on which this service is exposed
-     * @throws IOException Signals that an I/O exception has occurred
-     */
-    public DefaultEcho(final InetSocketAddress local_address) throws IOException {
-
-        server = SERVER_FACTORY.createServer(this);
-        server.setBindAddress(local_address);
-        server.expose();
-        this.local_address = server.getLocalSocketAddress();
-    }
-
-    InetSocketAddress getAddress() {
-
-        return local_address;
-    }
-
     @Override
     public String echo(final String message) {
 
         return message;
     }
 
-    @Override
+    /**
+     * Shuts down this remote interface.
+     *
+     * @throws RPCException signals that an RPC exception has occured
+     */
     public void shutdown() {
 
         try {
@@ -95,5 +96,10 @@ public class DefaultEcho implements Echo {
         catch (final IOException e) {
             LOGGER.error("failed to unexpose echo server", e);
         }
+    }
+
+    InetSocketAddress getAddress() {
+
+        return local_address;
     }
 }

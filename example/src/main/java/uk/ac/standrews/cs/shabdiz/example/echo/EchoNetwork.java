@@ -18,9 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.example.util.LogNewAndOldPropertyListener;
@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
  * Presents a network of Echo service instances.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class EchoNetwork extends ApplicationNetwork {
@@ -38,7 +38,8 @@ public class EchoNetwork extends ApplicationNetwork {
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
     private final transient EchoApplicationManager manager;
 
-    EchoNetwork() {
+    /** Instantiates a new Echo network under the name of {@code Echo Serice Network}. */
+    public EchoNetwork() {
 
         super("Echo Service Network");
         manager = new EchoApplicationManager();
@@ -46,7 +47,7 @@ public class EchoNetwork extends ApplicationNetwork {
 
     /**
      * Adds a new {@link ApplicationDescriptor} with the given {@code host} as its host, and {@link EchoApplicationManager} as its manager, to this network.
-     * 
+     *
      * @param host the host of the descriptor to be added
      * @return true, if successfully added
      */
@@ -58,6 +59,24 @@ public class EchoNetwork extends ApplicationNetwork {
         return add(descriptor);
     }
 
+    /**
+     * Attempts to add all the {@code hosts} to this network via {@link #add(Host)}.
+     *
+     * @param hosts the hosts to be added to this network
+     */
+    public void addAll(final Collection<? extends Host> hosts) {
+
+        for (Host host : hosts) {
+            add(host);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+
+        return HashCodeUtil.generate(super.hashCode(), manager.hashCode());
+    }
+
     @Override
     public boolean equals(final Object other) {
 
@@ -65,11 +84,5 @@ public class EchoNetwork extends ApplicationNetwork {
         if (!(other instanceof EchoNetwork) || !super.equals(other)) { return false; }
         final EchoNetwork that = (EchoNetwork) other;
         return manager.equals(that.manager);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return HashCodeUtil.generate(super.hashCode(), manager.hashCode());
     }
 }

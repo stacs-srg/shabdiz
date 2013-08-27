@@ -46,7 +46,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
-    public static final String ARGUMENTS = ":0";
+    private static final String ARGUMENTS = ":0";
     private final Random random;
     private final MavenManagedJavaProcessBuilder process_builder;
 

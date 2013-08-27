@@ -18,12 +18,9 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
@@ -62,19 +59,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
      */
     public WorkerNetwork() throws IOException {
 
-        this(new HashSet<File>());
-    }
-
-    /**
-     * Instantiates a new launcher and exposes the launcher callback on local address with an <i>ephemeral</i> port number.
-     * The given application library URLs are loaded on any worker which is deployed by this launcher.
-     *
-     * @param classpath the application library URLs
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public WorkerNetwork(final Set<File> classpath) throws IOException {
-
-        this(EPHEMERAL_PORT, classpath);
+        this(EPHEMERAL_PORT);
     }
 
     /**
@@ -82,10 +67,9 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
      * The given application library URLs are loaded on any worker which is deployed by this launcher.
      *
      * @param callback_server_port the port on which the callback server is exposed
-     * @param classpath the application library URLs
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public WorkerNetwork(final int callback_server_port, final Set<File> classpath) throws IOException {
+    public WorkerNetwork(final int callback_server_port) throws IOException {
 
         super("Shabdiz Worker Network");
         id_future_map = new ConcurrentSkipListMap<UUID, FutureRemote<? extends Serializable>>();
@@ -94,7 +78,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
-        worker_manager = new WorkerManager(this, classpath);
+        worker_manager = new WorkerManager(this);
     }
 
     /**
@@ -129,6 +113,11 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         else {
             LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
         }
+    }
+
+    public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
+
+        worker_manager.addMavenDependency(group_id, artifact_id, version, classifier);
     }
 
     /**

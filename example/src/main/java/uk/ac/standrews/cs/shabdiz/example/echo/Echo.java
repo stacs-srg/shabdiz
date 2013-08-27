@@ -36,10 +36,4 @@ public interface Echo {
      */
     String echo(String message) throws RPCException;
 
-    /**
-     * Shuts down this remote interface.
-     *
-     * @throws RPCException signals that an RPC exception has occured
-     */
-    void shutdown() throws RPCException;
 }

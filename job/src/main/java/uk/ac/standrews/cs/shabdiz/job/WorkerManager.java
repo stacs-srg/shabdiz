@@ -18,10 +18,8 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.mashti.jetson.ClientFactory;
@@ -33,7 +31,7 @@ import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.FileBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.MavenManagedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -45,18 +43,18 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-    private final FileBasedJavaProcessBuilder worker_process_builder;
+    private final MavenManagedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
     private final ClientFactory<WorkerRemote> proxy_factory;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
     private String[] arguments;
 
-    public WorkerManager(final WorkerNetwork network, final Set<File> classpath) {
+    public WorkerManager(final WorkerNetwork network) {
 
         this.network = network;
         final InetSocketAddress callback_address = network.getCallbackAddress();
         arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
-        worker_process_builder = createRemoteJavaProcessBuilder(classpath);
+        worker_process_builder = createRemoteJavaProcessBuilder();
         proxy_factory = new LeanClientFactory<WorkerRemote>(WorkerRemote.class);
     }
 
@@ -122,13 +120,18 @@ class WorkerManager extends AbstractApplicationManager {
         worker_process_builder.setJVMArguments(jvm_arguments);
     }
 
-    private static FileBasedJavaProcessBuilder createRemoteJavaProcessBuilder(final Set<File> classpath) {
+    public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
 
-        final FileBasedJavaProcessBuilder process_builder = new FileBasedJavaProcessBuilder(WorkerMain.class);
+        worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
+    }
 
+    private static MavenManagedJavaProcessBuilder createRemoteJavaProcessBuilder() {
+
+        final MavenManagedJavaProcessBuilder process_builder = new MavenManagedJavaProcessBuilder();
+        process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addClasspath(classpath);
-        process_builder.addCurrentJVMClasspath();
+        process_builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-core", "1.0-SNAPSHOT");
+        process_builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT");
         return process_builder;
     }
 

@@ -51,8 +51,9 @@
 
     <modules>
         <module>core</module>
-        <module>example</module>
         <module>job</module>
+        <module>example</module>
+        <module>evaluation</module>
     </modules>
 
     <repositories>

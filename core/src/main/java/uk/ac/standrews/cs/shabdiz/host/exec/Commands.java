@@ -20,13 +20,12 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
 /**
  * A utility class containing common {@link CommandBuilder command builders}.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class Commands {
@@ -73,6 +72,19 @@ public final class Commands {
         public String get(final Platform platform, final String... params) {
 
             return Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE;
+        }
+    };
+
+    /** Gets user home directory. */
+    public static final CommandBuilder EXISTS = new CommandBuilder() {
+
+        private static final String ECHO_HOME = "[ -e \"%s\" ] && echo true || echo false";
+        private static final String ECHO_USERPROFILE = "if exist \"%s\" (echo true) else (echo false)";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+
+            return String.format(Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE, params);
         }
     };
 

@@ -28,35 +28,16 @@ class JavaBootstrap {
     private static final String COMMONS_IO_JAR = "commons-io-2.4.jar";
     private static final File COMMONS_IO_JAR_FILE = new File(LOCAL_BOOTSTRAP_HOME, COMMONS_IO_JAR);
     private static final String COMMONS_IO_ON_MAVEN_CENTRAL = MVN_CENTRAL + "commons-io/commons-io/2.4/" + COMMONS_IO_JAR;
-    private static final String[] AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL = {
-            MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar",
-            MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar",
-            MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar",
-            MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar",
-            MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar",
-            MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar",
-            MVN_CENTRAL + "com/ning/async-http-client/1.7.6/async-http-client-1.7.6.jar",
-            MVN_CENTRAL + "io/netty/netty/3.4.4.Final/netty-3.4.4.Final.jar",
-            MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar",
-            MVN_CENTRAL + "io/tesla/maven/maven-aether-provider/3.1.0/maven-aether-provider-3.1.0.jar",
-            MVN_CENTRAL + "io/tesla/maven/maven-model/3.1.0/maven-model-3.1.0.jar",
-            MVN_CENTRAL + "io/tesla/maven/maven-model-builder/3.1.0/maven-model-builder-3.1.0.jar",
-            MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.16/plexus-interpolation-1.16.jar",
-            MVN_CENTRAL + "io/tesla/maven/maven-repository-metadata/3.1.0/maven-repository-metadata-3.1.0.jar",
-            MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M2a/org.eclipse.sisu.plexus-0.0.0.M2a.jar",
-            MVN_CENTRAL + "javax/enterprise/cdi-api/1.0/cdi-api-1.0.jar",
-            MVN_CENTRAL + "javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
-            MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar",
-            MVN_CENTRAL + "com/google/guava/guava/10.0.1/guava-10.0.1.jar",
-            MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar",
-            MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar",
-            MVN_CENTRAL + "aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
-            MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M2a/org.eclipse.sisu.inject-0.0.0.M2a.jar",
-            MVN_CENTRAL + "asm/asm/3.3.1/asm-3.3.1.jar",
-            MVN_CENTRAL + "org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar",
-            MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar",
-            MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"
-    };
+    private static final String[] AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL = {MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar", MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar",
+                    MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar", MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar", MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar",
+                    MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar", MVN_CENTRAL + "com/ning/async-http-client/1.7.6/async-http-client-1.7.6.jar", MVN_CENTRAL + "io/netty/netty/3.4.4.Final/netty-3.4.4.Final.jar",
+                    MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar", MVN_CENTRAL + "io/tesla/maven/maven-aether-provider/3.1.0/maven-aether-provider-3.1.0.jar", MVN_CENTRAL + "io/tesla/maven/maven-model/3.1.0/maven-model-3.1.0.jar",
+                    MVN_CENTRAL + "io/tesla/maven/maven-model-builder/3.1.0/maven-model-builder-3.1.0.jar", MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.16/plexus-interpolation-1.16.jar",
+                    MVN_CENTRAL + "io/tesla/maven/maven-repository-metadata/3.1.0/maven-repository-metadata-3.1.0.jar", MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M2a/org.eclipse.sisu.plexus-0.0.0.M2a.jar", MVN_CENTRAL + "javax/enterprise/cdi-api/1.0/cdi-api-1.0.jar",
+                    MVN_CENTRAL + "javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar", MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar", MVN_CENTRAL + "com/google/guava/guava/10.0.1/guava-10.0.1.jar", MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar",
+                    MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar", MVN_CENTRAL + "aopalliance/aopalliance/1.0/aopalliance-1.0.jar", MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M2a/org.eclipse.sisu.inject-0.0.0.M2a.jar",
+                    MVN_CENTRAL + "asm/asm/3.3.1/asm-3.3.1.jar", MVN_CENTRAL + "org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar", MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar",
+                    MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"};
     private final String main_class;
     private final String[] repositories;
     private final String[] artifacts;
@@ -74,6 +55,7 @@ class JavaBootstrap {
 
     public static void main(final String[] args) throws Exception {
 
+        System.out.println(LOCAL_SHABDIZ_HOME);
         final String[] repositories = toArray(args[REPOSITORIES_INDEX]);
         final String[] artifacts = toArray(args[ARTIFACTS_INDEX]);
         final String target_main_class = args[MAIN_CLASS_INDEX];
@@ -98,7 +80,7 @@ class JavaBootstrap {
 
     private void loadAndInvokeTargetMainMethod(final ClassLoader target_loader) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 
-        target_loader.loadClass(main_class).getMethod("main", String[].class).invoke(null, (Object) args);
+        ClassLoader.getSystemClassLoader().loadClass(main_class).getMethod("main", String[].class).invoke(null, (Object) args);
     }
 
     private void addRepositories(final Class<?> maven_dependency_resolver_class, final Object maven_dependency_resolver) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -131,16 +113,19 @@ class JavaBootstrap {
     }
 
     static File getBootstrapHome(final String tmp_dir) {
+
         return new File(getShabdizHome(tmp_dir), BOOTSTRAP_HOME_NAME);
     }
 
     static File getShabdizHome(final String tmp_dir) {
+
         return new File(tmp_dir, SHABDIZ_HOME_NAME);
     }
 
     private static URLClassLoader resolveSelfDependencies() throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, URISyntaxException {
+
         final URL commons_io_url = getCommonsIOURL();
-        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[] {commons_io_url}, ClassLoader.getSystemClassLoader());
+        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[]{commons_io_url}, ClassLoader.getSystemClassLoader());
         final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
         final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
         final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);
@@ -176,6 +161,7 @@ class JavaBootstrap {
     }
 
     private static URL[] toURLs(final File... files) throws MalformedURLException {
+
         URL[] urls = null;
         if (files != null) {
             final int files_count = files.length;
@@ -189,15 +175,16 @@ class JavaBootstrap {
     }
 
     private static URL toURL(final File file) throws MalformedURLException {
+
         return file.toURI().toURL();
     }
 
     private static String[] toArray(final String value) {
+
         if (value != null) {
             final String tidied_value = value.trim().replace("[", "").replace("]", "");
             return !tidied_value.equals("") ? tidied_value.split(", ") : null;
         }
-
         return null;
     }
 }

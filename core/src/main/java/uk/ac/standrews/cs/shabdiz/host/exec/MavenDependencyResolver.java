@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -43,6 +44,7 @@ class MavenDependencyResolver implements DependencyResolver {
     private final Set<Artifact> artifacts;
 
     MavenDependencyResolver() {
+
         repositories = new ArrayList<RemoteRepository>();
         artifacts = new HashSet<Artifact>();
         addDefaultRepositories();
@@ -56,8 +58,22 @@ class MavenDependencyResolver implements DependencyResolver {
         for (Artifact artifact : artifacts) {
             dependency_urls.addAll(resolveDependenciesAsURL(artifact));
         }
+        try {
+            URLClassLoader classLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+            Class clazz = URLClassLoader.class;
 
-        return URLClassLoader.newInstance(dependency_urls.toArray(new URL[dependency_urls.size()]), null);
+            // Use reflection
+            Method method = clazz.getDeclaredMethod("addURL", new Class[]{URL.class});
+            method.setAccessible(true);
+            for (URL url : dependency_urls) {
+                method.invoke(classLoader, new Object[]{url});
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        final URL[] dependency_urls_as_rray = dependency_urls.toArray(new URL[dependency_urls.size()]);
+        return URLClassLoader.newInstance(dependency_urls_as_rray, null);
     }
 
     private void addDefaultRepositories() {
@@ -87,10 +103,11 @@ class MavenDependencyResolver implements DependencyResolver {
     }
 
     private boolean addRepository(final RemoteRepository repository) {
+
         return repositories.add(repository);
     }
 
-    private List<URL> resolveDependenciesAsURL(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, ArtifactResolutionException, VersionResolutionException {
+    private List<URL> resolveDependenciesAsURL(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
 
         final CollectResult collect_result = collectDependencies(artifact, repositories);
         final DependencyNode root_dependency = collect_result.getRoot();
@@ -117,6 +134,7 @@ class MavenDependencyResolver implements DependencyResolver {
     }
 
     private static CollectResult collectDependencies(final Artifact artifact, final List<RemoteRepository> repositories) throws DependencyCollectionException {
+
         final CollectResult collectResult;
         final CollectRequest collectRequest = new CollectRequest();
         final Dependency root_dependency = new Dependency(artifact, "");
@@ -127,6 +145,7 @@ class MavenDependencyResolver implements DependencyResolver {
     }
 
     private static RepositorySystem createRepositorySystem() {
+
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
         locator.addService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
@@ -139,6 +158,7 @@ class MavenDependencyResolver implements DependencyResolver {
         private final List<URL> urls;
 
         URLCollector() {
+
             urls = new ArrayList<URL>();
         }
 
@@ -149,10 +169,12 @@ class MavenDependencyResolver implements DependencyResolver {
         }
 
         public boolean visitLeave(final DependencyNode node) {
+
             return true;
         }
 
         private URL toURL(final File artifact_file) {
+
             try {
                 return artifact_file.toURI().toURL();
             }
@@ -162,4 +184,3 @@ class MavenDependencyResolver implements DependencyResolver {
         }
     }
 }
-

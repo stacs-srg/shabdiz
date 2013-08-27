@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /**
  * Builds Java process on hosts and resolves any dependencies using Maven.
@@ -48,7 +49,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
         final Platform platform = host.getPlatform();
         final String host_bootstrap_home = platform.getTempDirectory() + JavaBootstrap.SHABDIZ_HOME_NAME + platform.getSeparator() + JavaBootstrap.BOOTSTRAP_HOME_NAME;
-        host.upload(getBootstrapJar(), host_bootstrap_home);
+        uploadBootstrapJar(host, host_bootstrap_home);
         final String command = assembleCommand(platform, host_bootstrap_home, parameters);
         LOGGER.info("executing {}", command);
         return host.execute(getWorkingDirectory(), command);
@@ -75,7 +76,43 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      */
     public void addMavenDependency(final String group_id, final String artifact_id, final String version) {
 
-        dependency_coordinates.add(toCoordinate(group_id, artifact_id, version));
+        addMavenDependency(group_id, artifact_id, version, null);
+    }
+
+    /**
+     * Adds a Maven dependency to the list of dependencies.
+     * Any dependencies of the given dependency are resolved automatically.
+     *
+     * @param group_id the Maven dependency group ID
+     * @param artifact_id the Maven dependency artifact ID
+     * @param version the Maven dependency version
+     */
+    public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
+
+        dependency_coordinates.add(toCoordinate(group_id, artifact_id, version, classifier));
+    }
+
+    private void uploadBootstrapJar(final Host host, final String host_bootstrap_home) throws IOException {
+
+        final String exist_command = Commands.EXISTS.get(host.getPlatform(), host_bootstrap_home);
+        final Process bootstrap_jar_exists = host.execute(exist_command);
+        boolean already_exists;
+        try {
+            final String result = ProcessUtil.awaitNormalTerminationAndGetOutput(bootstrap_jar_exists);
+            already_exists = Boolean.valueOf(result);
+        }
+        catch (InterruptedException e) {
+            LOGGER.debug("interrupted while waiting to determine whether bootstrap.jar exists on remote host", e);
+            already_exists = false;
+        }
+
+        if (!already_exists) {
+            host.upload(getBootstrapJar(), host_bootstrap_home);
+            LOGGER.debug("uploading bootstrap.jar to {} on host {}", host_bootstrap_home, host);
+        }
+        else {
+            LOGGER.debug("skipped bootstrap.jar upload to {} on host {}; bootstrap home directory already exists", host_bootstrap_home, host);
+        }
     }
 
     private String assembleCommand(final Platform platform, final String host_bootstrap_home, final String[] parameters) {
@@ -104,9 +141,15 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(SPACE);
     }
 
-    private static String toCoordinate(final String group_id, final String artifact_id, final String version) {
+    static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {
 
-        return new StringBuilder().append(group_id).append(COLON).append(artifact_id).append(COLON).append(version).toString();
+        final StringBuilder builder = new StringBuilder();
+        builder.append(group_id).append(COLON).append(artifact_id);
+        if (classifier != null) {
+            builder.append(COLON).append("jar").append(COLON).append(classifier);
+        }
+        builder.append(COLON).append(version);
+        return builder.toString();
     }
 
     private void appendDependencyCoordinates(final StringBuilder command, final Platform platform) {
