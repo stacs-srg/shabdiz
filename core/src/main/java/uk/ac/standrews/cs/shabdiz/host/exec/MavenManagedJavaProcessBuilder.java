@@ -3,8 +3,7 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -195,33 +195,31 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
             addClassToJar(DependencyResolver.class, jar_stream);
             return BOOTSTRAP_JAR;
         }
-        catch (final URISyntaxException e) {
-            throw new IOException(e);
-        }
         finally {
             jar_stream.close();
         }
     }
 
-    private static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws URISyntaxException, IOException {
+    private static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws IOException {
 
-        final String resource_name = getResourceName(type);
-        LOGGER.info("located resource: {}", resource_name);
-        final URL resource_url = type.getResource(resource_name);
-        final URI resource_uri = resource_url.toURI();
-        LOGGER.info("located resource URI: {}", resource_uri);
-        final File source = new File(resource_uri);
-        final String entry_name = type.getPackage().getName().replaceAll("\\.", "/") + "/" + source.getName();
-        final JarEntry entry = new JarEntry(entry_name);
-        entry.setTime(source.lastModified());
+        final String resource_path = getResourcePath(type);
+        final InputStream resource_stream = getResurceInputStream(type, resource_path);
+        final JarEntry entry = new JarEntry(resource_path);
         jar.putNextEntry(entry);
-
-        FileUtils.copyFile(source, jar);
+        IOUtils.copy(resource_stream, jar);
         jar.closeEntry();
     }
 
-    private static String getResourceName(final Class<?> type) {
+    private static InputStream getResurceInputStream(final Class<?> type, final String resource_path) throws IOException {
 
-        return type.getName().replace(type.getPackage().getName() + ".", "") + ".class";
+        final InputStream resource_stream = type.getResourceAsStream(resource_path);
+        if (resource_stream != null) { return resource_stream; }
+        LOGGER.error("cannot locate resource {}", type);
+        throw new IOException("unable to locate resource " + type);
+    }
+
+    private static String getResourcePath(final Class<?> type) {
+
+        return "/" + type.getName().replaceAll("\\.", "/") + ".class";
     }
 }
