@@ -196,15 +196,16 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
             return BOOTSTRAP_JAR;
         }
         finally {
+            jar_stream.flush();
             jar_stream.close();
         }
     }
 
-    private static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws IOException {
+    protected static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws IOException {
 
         final String resource_path = getResourcePath(type);
-        final InputStream resource_stream = getResurceInputStream(type, resource_path);
         final JarEntry entry = new JarEntry(resource_path);
+        final InputStream resource_stream = getResurceInputStream(type, resource_path);
         jar.putNextEntry(entry);
         IOUtils.copy(resource_stream, jar);
         jar.closeEntry();
@@ -212,7 +213,8 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static InputStream getResurceInputStream(final Class<?> type, final String resource_path) throws IOException {
 
-        final InputStream resource_stream = type.getResourceAsStream(resource_path);
+        final ClassLoader class_loader = Thread.currentThread().getContextClassLoader();
+        final InputStream resource_stream = class_loader.getResourceAsStream(resource_path);
         if (resource_stream != null) { return resource_stream; }
         LOGGER.error("cannot locate resource {}", type);
         throw new IOException("unable to locate resource " + type);
@@ -220,6 +222,6 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static String getResourcePath(final Class<?> type) {
 
-        return "/" + type.getName().replaceAll("\\.", "/") + ".class";
+        return type.getName().replaceAll("\\.", "/") + ".class";
     }
 }
