@@ -73,4 +73,33 @@
     </dependencies>
 
 
+    <profiles>
+
+        <profile>
+            <id>evaluation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.14</version>
+                        <configuration>
+                            <groups>uk.ac.standrews.cs.shabdiz.evaluation.Experiment</groups>
+                            <testSourceDirectory>src/main/java</testSourceDirectory>
+                            <testClassesDirectory>target/classes</testClassesDirectory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
+                            <threadCount>1</threadCount>
+                            <perCoreThreadCount>false</perCoreThreadCount>
+                            <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                            <workingDirectory>results</workingDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

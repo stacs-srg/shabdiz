@@ -20,6 +20,7 @@ package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -41,8 +42,10 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 class EchoApplicationManager extends AbstractApplicationManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    private static final long RANDOM_MESSAGE_SEED = 0x4456;
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoApplicationManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = DEFAULT_DEPLOYMENT_TIMEOUT;
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
@@ -52,7 +55,13 @@ class EchoApplicationManager extends AbstractApplicationManager {
 
     EchoApplicationManager() {
 
-        random = new Random();
+        this(DEFAULT_STATE_PROBE_TIMEOUT);
+    }
+
+    EchoApplicationManager(Duration timeout) {
+
+        super(timeout);
+        random = new Random(RANDOM_MESSAGE_SEED);
         process_builder = new MavenManagedJavaProcessBuilder();
         process_builder.setMainClass(DefaultEcho.class);
         process_builder.addMavenDependency(Constants.SHABDIZ_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
@@ -79,22 +88,30 @@ class EchoApplicationManager extends AbstractApplicationManager {
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         try {
-
-            final Integer pid = descriptor.getAttribute(PID_KEY);
-            if (pid != null) {
-                final Host host = descriptor.getHost();
-                final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
-                final Process kill = host.execute(kill_command);
-                ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
-            }
-
-            final Process process = descriptor.getAttribute(PROCESS_KEY);
-            if (process != null) {
-                process.destroy();
-            }
+            attemptTerminationByPID(descriptor);
+            attemptTerminationByProcess(descriptor);
         }
         catch (final Exception e) {
             LOGGER.debug("failed to kill echo application instance", e);
+        }
+    }
+
+    private void attemptTerminationByProcess(final ApplicationDescriptor descriptor) {
+
+        final Process process = descriptor.getAttribute(PROCESS_KEY);
+        if (process != null) {
+            process.destroy();
+        }
+    }
+
+    private void attemptTerminationByPID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
+
+        final Integer pid = descriptor.getAttribute(PID_KEY);
+        if (pid != null) {
+            final Host host = descriptor.getHost();
+            final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
+            final Process kill = host.execute(kill_command);
+            ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
         }
     }
 

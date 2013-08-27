@@ -7,6 +7,9 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
@@ -18,6 +21,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+@RunWith(value = Parameterized.class)
 public abstract class Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
@@ -56,6 +60,7 @@ public abstract class Experiment {
     }
 
     @Test
+    @Category(Experiment.class)
     public abstract void doExperiment() throws Exception;
 
     @After

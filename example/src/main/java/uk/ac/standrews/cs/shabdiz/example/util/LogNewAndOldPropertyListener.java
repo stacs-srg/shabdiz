@@ -20,14 +20,13 @@ package uk.ac.standrews.cs.shabdiz.example.util;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A {@link PropertyChangeListener} that logs the new and the old value of a changed property.
  * This class is typically used by the examples to demonstrate changes that are detected by Scanners.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class LogNewAndOldPropertyListener implements PropertyChangeListener {
@@ -37,6 +36,6 @@ public final class LogNewAndOldPropertyListener implements PropertyChangeListene
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {
 
-        LOGGER.info("Property {} changed from {} to {}; Source: {}", evt.getPropertyName(), evt.getOldValue(), evt.getNewValue(), evt.getSource());
+        LOGGER.debug("Property {} changed from {} to {}; Source: {}", evt.getPropertyName(), evt.getOldValue(), evt.getNewValue(), evt.getSource());
     }
 }

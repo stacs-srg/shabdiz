@@ -41,8 +41,13 @@ public class EchoNetwork extends ApplicationNetwork {
     /** Instantiates a new Echo network under the name of {@code Echo Serice Network}. */
     public EchoNetwork() {
 
+        this(new EchoApplicationManager());
+    }
+
+    public EchoNetwork(EchoApplicationManager manager) {
+
         super("Echo Service Network");
-        manager = new EchoApplicationManager();
+        this.manager = manager;
     }
 
     /**
