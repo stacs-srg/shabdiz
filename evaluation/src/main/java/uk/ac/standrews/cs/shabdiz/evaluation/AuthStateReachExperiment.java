@@ -1,10 +1,8 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.junit.runner.RunWith;
@@ -19,13 +17,13 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 @RunWith(value = Parameterized.class)
 public class AuthStateReachExperiment extends Experiment {
 
-    private final Timer state_timer;
+    protected final Timer state_timer;
     private final EchoNetwork network;
     private final int network_size;
 
     public AuthStateReachExperiment(int network_size) throws IOException {
 
-        super("AUTH_EXPERIMENT", new File("AUTH_EXPERIMENT" + new Date().toString()));
+        super(network_size);
         this.network_size = network_size;
         state_timer = new Timer();
         network = new EchoNetwork();

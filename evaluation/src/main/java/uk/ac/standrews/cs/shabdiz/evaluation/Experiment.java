@@ -32,18 +32,19 @@ public abstract class Experiment {
     private final StateCountGauge running_state_gauge;
     private final StateCountGauge other_state_gauge;
     private final File observations_directory;
+    private final String name;
 
-    public Experiment(String name, File observations_directory) throws IOException {
+    public Experiment(Integer network_size) throws IOException {
 
+        name = getClass().getSimpleName() + "_" + network_size;
+        observations_directory = new File(name + "_" + System.currentTimeMillis());
         FileUtils.forceMkdir(observations_directory);
-        this.observations_directory = observations_directory;
-
         auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
         running_state_gauge = new StateCountGauge(ApplicationState.RUNNING);
         unknown_state_gauge = new StateCountGauge(ApplicationState.UNKNOWN);
         other_state_gauge = new StateCountGauge(ApplicationState.DEPLOYED, ApplicationState.INVALID, ApplicationState.KILLED, ApplicationState.LAUNCHED, ApplicationState.NO_AUTH, ApplicationState.UNREACHABLE);
 
-        registry = new MetricRegistry(name);
+        registry = new MetricRegistry(getClass().getSimpleName());
         reporter = new CsvReporter(registry, observations_directory);
     }
 
