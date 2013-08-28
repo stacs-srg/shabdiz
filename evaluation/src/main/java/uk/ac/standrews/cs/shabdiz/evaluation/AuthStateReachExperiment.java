@@ -33,11 +33,11 @@ public class AuthStateReachExperiment extends Experiment {
     public static Collection<Object[]> data() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        parameters.add(new Object[]{10});
-        parameters.add(new Object[]{20});
-        parameters.add(new Object[]{30});
-        parameters.add(new Object[]{40});
         parameters.add(new Object[]{48});
+        //        parameters.add(new Object[]{20});
+        //        parameters.add(new Object[]{30});
+        //        parameters.add(new Object[]{40});
+        //        parameters.add(new Object[]{10});
         return parameters;
     }
 
