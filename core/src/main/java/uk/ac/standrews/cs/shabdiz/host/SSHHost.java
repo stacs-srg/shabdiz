@@ -161,7 +161,7 @@ public class SSHHost extends AbstractHost {
     @Override
     public Process execute(final String command) throws IOException {
 
-        LOGGER.info("host {} executing {}", getName(), command);
+        LOGGER.debug("host {} executing {}", getName(), command);
         return new SSHManagedRemoteProcess(command);
     }
 
