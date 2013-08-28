@@ -30,7 +30,6 @@
     <artifactId>shabdiz-example</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/example</name>
-
     <build>
         <plugins>
             <plugin>
@@ -38,16 +37,11 @@
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.5.2</version>
                 <configuration>
-                    <instrumentation>
-                        <ignores>
-                            <ignore>uk.ac.standrews.cs.shabdiz.example.*</ignore>
-                        </ignores>
-                    </instrumentation>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

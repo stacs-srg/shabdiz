@@ -256,7 +256,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return NEXT_ID.getAndIncrement();
     }
 
-    protected void setApplicationReference(final Object reference) {
+    protected synchronized void setApplicationReference(final Object reference) {
 
         application_reference.set(reference);
     }
