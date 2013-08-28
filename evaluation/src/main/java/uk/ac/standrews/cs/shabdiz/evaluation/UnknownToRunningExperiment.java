@@ -5,9 +5,9 @@ import org.mashti.gauge.Timer;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RunStateReachExperiment extends AuthStateReachExperiment {
+public class UnknownToRunningExperiment extends UnknownToAuthExperiment {
 
-    public RunStateReachExperiment(final int network_size) throws IOException {
+    public UnknownToRunningExperiment(final int network_size) throws IOException {
 
         super(network_size);
     }
@@ -18,13 +18,7 @@ public class RunStateReachExperiment extends AuthStateReachExperiment {
         final Timer.Time time = state_timer.time();
         getNetwork().setStatusScannerEnabled(true);
         getNetwork().setAutoDeployEnabled(true);
-        getNetwork().awaitAnyOfStates(getNetworkTargetState());
+        getNetwork().awaitAnyOfStates(ApplicationState.RUNNING);
         time.stop();
-    }
-
-    @Override
-    protected ApplicationState getNetworkTargetState() {
-
-        return ApplicationState.RUNNING;
     }
 }

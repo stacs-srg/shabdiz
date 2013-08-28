@@ -2,6 +2,9 @@ package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -46,6 +49,18 @@ public abstract class Experiment {
 
         registry = new MetricRegistry(getClass().getSimpleName());
         reporter = new CsvReporter(registry, observations_directory);
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+
+        final List<Object[]> parameters = new ArrayList<Object[]>();
+        parameters.add(new Object[]{10});
+        parameters.add(new Object[]{20});
+        parameters.add(new Object[]{30});
+        parameters.add(new Object[]{40});
+        parameters.add(new Object[]{48});
+        return parameters;
     }
 
     @Before
