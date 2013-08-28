@@ -72,7 +72,7 @@ public abstract class Experiment {
         registerMetric("other_state_gauge", other_state_gauge);
 
         LOGGER.info("starting experimentation...");
-        reporter.start(1, TimeUnit.SECONDS);
+        reporter.start(5, TimeUnit.SECONDS);
     }
 
     @Test
@@ -82,8 +82,8 @@ public abstract class Experiment {
     @After
     public void tearDown() throws Exception {
 
-        getNetwork().shutdown();
         reporter.stop();
+        getNetwork().shutdown();
         LOGGER.info("done, results are stored at {}", observations_directory);
     }
 

@@ -79,11 +79,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         attributes = new ConcurrentHashMap<AttributeKey<?>, Object>();
     }
 
-    private static Long generateId() {
-
-        return NEXT_ID.getAndIncrement();
-    }
-
     /**
      * Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
      *
@@ -147,11 +142,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     public <ApplicationReference> ApplicationReference getApplicationReference() {
 
         return (ApplicationReference) application_reference.get();
-    }
-
-    protected void setApplicationReference(final Object reference) {
-
-        application_reference.set(reference);
     }
 
     /**
@@ -220,15 +210,9 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      *
      * @return the cached state of the application instance that is described by this descriptor
      */
-    public synchronized ApplicationState getApplicationState() {
+    public ApplicationState getApplicationState() {
 
         return state.get();
-    }
-
-    protected synchronized void setApplicationState(final ApplicationState new_state) {
-
-        final ApplicationState old_state = state.getAndSet(new_state);
-        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
     @Override
@@ -265,6 +249,22 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         sb.append(", attributes=").append(attributes);
         sb.append('}');
         return sb.toString();
+    }
+
+    private static Long generateId() {
+
+        return NEXT_ID.getAndIncrement();
+    }
+
+    protected void setApplicationReference(final Object reference) {
+
+        application_reference.set(reference);
+    }
+
+    protected synchronized void setApplicationState(final ApplicationState new_state) {
+
+        final ApplicationState old_state = state.getAndSet(new_state);
+        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
 }

@@ -24,7 +24,7 @@ public class RunningToAuthExperiment extends UnknownToAuthExperiment {
         final Timer.Time time_to_reach_auth = state_timer.time();
         getNetwork().setAutoDeployEnabled(false);
         getNetwork().setAutoKillEnabled(true);
-        getNetwork().awaitAnyOfStates(ApplicationState.RUNNING);
+        getNetwork().awaitAnyOfStates(ApplicationState.AUTH);
         time_to_reach_auth.stop();
     }
 }

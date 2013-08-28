@@ -21,10 +21,8 @@ package uk.ac.standrews.cs.shabdiz.util;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.CountDownLatch;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /**
@@ -47,7 +45,7 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
     public LatchedStateChangeListener(final ApplicationState[] states) {
 
         this.states = states.clone();
-        this.latch = new CountDownLatch(1);
+        latch = new CountDownLatch(1);
     }
 
     @Override

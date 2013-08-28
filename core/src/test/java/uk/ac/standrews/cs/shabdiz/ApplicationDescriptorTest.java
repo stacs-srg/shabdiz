@@ -74,7 +74,6 @@ public class ApplicationDescriptorTest {
         return new ApplicationDescriptor(null);
     }
 
-
     /** Tests {@link ApplicationDescriptor#getAttribute(AttributeKey)} and {@link ApplicationDescriptor#setAttribute(AttributeKey, Object)}. */
     @Test
     public void testGetSetAttribute() {
@@ -164,12 +163,13 @@ public class ApplicationDescriptorTest {
     @Test
     public void testAwaitAnyOfStatesWithConcurrentStateChange() throws InterruptedException {
 
-        final List<ApplicationDescriptor> descriptors = createDescriptors(2);
+        final List<ApplicationDescriptor> descriptors = createDescriptors(10);
         awaitStateChanges(descriptors, ApplicationState.RUNNING);
     }
 
     @Test
     public void testGetHost() throws Exception {
+
         LocalHost local_host = new LocalHost();
         ApplicationDescriptor descriptor = new ApplicationDescriptor(local_host, null);
 
