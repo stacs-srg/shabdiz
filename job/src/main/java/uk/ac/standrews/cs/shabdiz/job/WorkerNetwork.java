@@ -189,7 +189,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         }
     }
 
-    <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
+    synchronized <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
 
         id_future_map.put(future_remote.getJobID(), future_remote);
     }
