@@ -215,6 +215,17 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         return state.get();
     }
 
+    /**
+     * Sets the state of the application instance that is described by this descriptor.
+     *
+     * @param new_state the new state
+     */
+    public synchronized void setApplicationState(final ApplicationState new_state) {
+
+        final ApplicationState old_state = state.getAndSet(new_state);
+        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
+    }
+
     @Override
     public int compareTo(final ApplicationDescriptor other) {
 
@@ -259,12 +270,6 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
     protected synchronized void setApplicationReference(final Object reference) {
 
         application_reference.set(reference);
-    }
-
-    protected synchronized void setApplicationState(final ApplicationState new_state) {
-
-        final ApplicationState old_state = state.getAndSet(new_state);
-        property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
 }

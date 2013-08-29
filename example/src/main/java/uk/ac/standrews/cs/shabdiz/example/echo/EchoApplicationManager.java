@@ -92,7 +92,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
             attemptTerminationByProcess(descriptor);
         }
         catch (final Exception e) {
-            LOGGER.debug("failed to kill echo application instance", e);
+            LOGGER.error("failed to kill echo application instance", e);
         }
     }
 
