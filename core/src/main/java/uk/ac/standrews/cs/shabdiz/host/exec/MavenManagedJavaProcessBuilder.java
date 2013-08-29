@@ -52,7 +52,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         final String host_bootstrap_home = platform.getTempDirectory() + JavaBootstrap.SHABDIZ_HOME_NAME + platform.getSeparator() + JavaBootstrap.BOOTSTRAP_HOME_NAME;
         uploadBootstrapJar(host, host_bootstrap_home);
         final String command = assembleCommand(platform, host_bootstrap_home, parameters);
-        LOGGER.info("executing {}", command);
+        LOGGER.debug("executing {}", command);
         return host.execute(getWorkingDirectory(), command);
     }
 
