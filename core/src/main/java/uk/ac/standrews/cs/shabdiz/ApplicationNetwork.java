@@ -18,17 +18,25 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -54,7 +62,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     protected final StatusScanner status_scanner;
     private final String application_name;
     private final ScheduledExecutorService scanner_scheduler;
-    private final ExecutorService concurrent_scanner_executor;
+    private final ListeningExecutorService concurrent_scanner_executor;
 
     /**
      * Instantiates a new application network.
@@ -91,14 +99,34 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
-     * Attempts to sequentially {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
+     * Attempts to concurrently {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
+     * If one deployment task fails all deployment tasks are cancelled.
      *
      * @throws Exception if any of the deployments fails
      */
     public void deployAll() throws Exception {
 
+        final List<ListenableFuture<Void>> deployments = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            deploy(application_descriptor);
+            final ListenableFuture<Void> deployment = concurrent_scanner_executor.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+
+                    deploy(application_descriptor);
+                    return null;
+                }
+            });
+            deployments.add(deployment);
+        }
+
+        try {
+            Futures.allAsList(deployments).get();
+        }
+        finally {
+            for (ListenableFuture<Void> deployment : deployments) {
+                deployment.cancel(true);
+            }
         }
     }
 
@@ -150,9 +178,31 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        // TODO This implementation checks sequentially; consider checking concurrently
+        final List<ListenableFuture<Void>> awaiting_states = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor descriptor : application_descriptors) {
-            descriptor.awaitAnyOfStates(states);
+            final ListenableFuture<Void> awaiting_state = concurrent_scanner_executor.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+
+                    descriptor.awaitAnyOfStates(states);
+                    return null;
+                }
+            });
+            awaiting_states.add(awaiting_state);
+        }
+
+        try {
+            Futures.allAsList(awaiting_states).get();
+        }
+        catch (ExecutionException e) {
+            LOGGER.error("failure occured while awaiting uniform state", e);
+            throw new InterruptedException("failure occured while awaiting uniform state");
+        }
+        finally {
+            for (ListenableFuture<Void> awaiting_state : awaiting_states) {
+                awaiting_state.cancel(true);
+            }
         }
     }
 
@@ -314,15 +364,34 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
-     * Attempts to terminate all the application instances that are managed by this network.
+     * Attempts to concurrently terminate all the application instances that are managed by this network.
+     * If one termination task fails, all the termination tasks are cancelled.
      *
      * @throws Exception the exception
      */
     public void killAll() throws Exception {
 
-        // TODO implement concurrent kill
+        final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            kill(application_descriptor);
+            final ListenableFuture<Void> termination = concurrent_scanner_executor.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+
+                    kill(application_descriptor);
+                    return null;
+                }
+            });
+            terminations.add(termination);
+        }
+
+        try {
+            Futures.allAsList(terminations).get();
+        }
+        finally {
+            for (ListenableFuture<Void> deployment : terminations) {
+                deployment.cancel(true);
+            }
         }
     }
 
@@ -352,9 +421,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
     }
 
-    protected ExecutorService createScannerExecutorService() {
+    protected ListeningExecutorService createScannerExecutorService() {
 
-        return Executors.newCachedThreadPool();
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name)));
     }
 
     private void closeHosts() {
