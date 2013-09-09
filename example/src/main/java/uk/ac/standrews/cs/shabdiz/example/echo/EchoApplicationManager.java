@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.json.JsonClientFactory;
@@ -42,7 +42,6 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 class EchoApplicationManager extends AbstractApplicationManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
-    private static final long RANDOM_MESSAGE_SEED = 0x4456;
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoApplicationManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = DEFAULT_DEPLOYMENT_TIMEOUT;
@@ -50,7 +49,6 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     private static final String ARGUMENTS = ":0";
-    private final Random random;
     private final MavenManagedJavaProcessBuilder process_builder;
 
     EchoApplicationManager() {
@@ -61,7 +59,6 @@ class EchoApplicationManager extends AbstractApplicationManager {
     EchoApplicationManager(Duration timeout) {
 
         super(timeout);
-        random = new Random(RANDOM_MESSAGE_SEED);
         process_builder = new MavenManagedJavaProcessBuilder();
         process_builder.setMainClass(DefaultEcho.class);
         process_builder.addMavenDependency(Constants.SHABDIZ_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
@@ -96,7 +93,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
         }
     }
 
-    private void attemptTerminationByProcess(final ApplicationDescriptor descriptor) {
+    private static void attemptTerminationByProcess(final ApplicationDescriptor descriptor) {
 
         final Process process = descriptor.getAttribute(PROCESS_KEY);
         if (process != null) {
@@ -104,7 +101,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
         }
     }
 
-    private void attemptTerminationByPID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
+    private static void attemptTerminationByPID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
 
         final Integer pid = descriptor.getAttribute(PID_KEY);
         if (pid != null) {
@@ -122,16 +119,10 @@ class EchoApplicationManager extends AbstractApplicationManager {
         final Echo echo_service = descriptor.getApplicationReference();
         final String echoed_message = echo_service.echo(random_message);
         if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but received " + echoed_message); }
-
     }
 
-    private String generateRandomString() {
+    private static String generateRandomString() {
 
-        synchronized (random) {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("RANDOM MESSAGE: ");
-            builder.append(random.nextLong());
-            return String.valueOf(builder.toString());
-        }
+        return UUID.randomUUID().toString();
     }
 }

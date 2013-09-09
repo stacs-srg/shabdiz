@@ -34,6 +34,9 @@ import org.apache.commons.io.IOUtils;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 
 /**
  * A utility class for awaiting {@link Process} termination and parsing {@link Process} outputs.
@@ -106,6 +109,54 @@ public final class ProcessUtil {
     }
 
     /**
+     * Attempts to get a PID from a given runtime MXBean name.
+     * The expected format is {@code <pid>@<machine_name>}.
+     * Returns {@code null} if the given MXBean name does not match the above pattern.
+     *
+     * @param runtime_mxbean_name a runtime MXBean name
+     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
+     * @see RuntimeMXBean#getName()
+     */
+    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
+
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+
+        if (index_of_at != -1) {
+            try {
+                pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+            }
+            catch (final NumberFormatException e) {
+                LOGGER.debug("failed to extract pid from runtime MXBean name", e);
+            }
+        }
+        return pid;
+    }
+
+    public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
+
+        final Platform platform = host.getPlatform();
+        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        final Process kill = host.execute(kill_command);
+        awaitNormalTerminationAndGetOutput(kill);
+    }
+
+    /**
+     * Prints a line containing the given {@code key value} pair to the given stream.
+     * This method is thread-safe.
+     *
+     * @param out the stream to write to
+     * @param key the key
+     * @param value the value
+     */
+    public static void printKeyValue(final PrintStream out, final String key, final Object value) {
+
+        synchronized (out) {
+            out.println(key + DELIMITER + value);
+        }
+    }
+
+    /**
      * Scans the process output for a value that is specified with the give {@code key}.
      *
      * @param process the process to scan its output
@@ -159,45 +210,5 @@ public final class ProcessUtil {
     private static String findValueInLine(final String line, final String key) throws UnknownHostException {
 
         return line != null && line.startsWith(key + DELIMITER) ? line.split(DELIMITER)[1] : null;
-    }
-
-    /**
-     * Attempts to get a PID from a given runtime MXBean name.
-     * The expected format is {@code <pid>@<machine_name>}.
-     * Returns {@code null} if the given MXBean name does not match the above pattern.
-     *
-     * @param runtime_mxbean_name a runtime MXBean name
-     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
-     * @see RuntimeMXBean#getName()
-     */
-    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
-
-        Integer pid = null;
-        final int index_of_at = runtime_mxbean_name.indexOf("@");
-
-        if (index_of_at != -1) {
-            try {
-                pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
-            }
-            catch (final NumberFormatException e) {
-                LOGGER.debug("failed to extract pid from runtime MXBean name", e);
-            }
-        }
-        return pid;
-    }
-
-    /**
-     * Prints a line containing the given {@code key value} pair to the given stream.
-     * This method is thread-safe.
-     *
-     * @param out the stream to write to
-     * @param key the key
-     * @param value the value
-     */
-    public static void printKeyValue(final PrintStream out, final String key, final Object value) {
-
-        synchronized (out) {
-            out.println(key + DELIMITER + value);
-        }
     }
 }

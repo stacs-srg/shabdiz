@@ -36,7 +36,7 @@ public class EchoNetwork extends ApplicationNetwork {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoNetwork.class);
     private static final LogNewAndOldPropertyListener PRINT_LISTENER = new LogNewAndOldPropertyListener();
-    private final transient EchoApplicationManager manager;
+    private final EchoApplicationManager manager;
 
     /** Instantiates a new Echo network under the name of {@code Echo Serice Network}. */
     public EchoNetwork() {

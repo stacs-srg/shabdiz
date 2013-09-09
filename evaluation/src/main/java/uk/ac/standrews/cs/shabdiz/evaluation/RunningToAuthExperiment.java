@@ -1,15 +1,18 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.IOException;
+import javax.inject.Provider;
 import org.mashti.gauge.Timer;
+import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class RunningToAuthExperiment extends UnknownToAuthExperiment {
+public abstract class RunningToAuthExperiment extends UnknownToAuthExperiment {
 
-    public RunningToAuthExperiment(final int network_size) throws IOException {
+    public RunningToAuthExperiment(final int network_size, final Provider<Host> host_provider, final ApplicationManager manager) throws IOException {
 
-        super(network_size);
+        super(network_size, host_provider, manager);
     }
 
     @Override

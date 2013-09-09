@@ -9,3 +9,7 @@ syntax: regexp
 .DS_Store$
 syntax: regexp
 /target$
+syntax: regexp
+/evaluation/results$
+syntax: regexp
+/evaluation/analysis$

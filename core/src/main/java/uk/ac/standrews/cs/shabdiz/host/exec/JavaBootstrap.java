@@ -53,6 +53,63 @@ class JavaBootstrap {
         loader = resolveSelfDependencies();
     }
 
+    private static URLClassLoader resolveSelfDependencies() throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, URISyntaxException {
+
+        final URL commons_io_url = getCommonsIOURL();
+        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[]{commons_io_url}, ClassLoader.getSystemClassLoader());
+        final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
+        final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
+        final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);
+        for (final URL dependency : selfDependencies) {
+            final File destination = new File(LOCAL_BOOTSTRAP_HOME, getJarFileName(dependency));
+            if (!destination.isFile()) {
+                copyURLToFile.invoke(null, dependency, destination);
+            }
+        }
+        return URLClassLoader.newInstance(toURLs(LOCAL_BOOTSTRAP_HOME.listFiles()), null);
+    }
+
+    private static URL getCommonsIOURL() throws MalformedURLException {
+
+        return COMMONS_IO_JAR_FILE.isFile() ? toURL(COMMONS_IO_JAR_FILE) : new URL(COMMONS_IO_ON_MAVEN_CENTRAL);
+    }
+
+    private static URL toURL(final File file) throws MalformedURLException {
+
+        return file.toURI().toURL();
+    }
+
+    private static String getJarFileName(final URL url) {
+
+        final String url_file = url.getFile();
+        return url_file.substring(url_file.lastIndexOf('/'));
+    }
+
+    private static URL[] getSelfDependenciesRemoteURLs() throws MalformedURLException {
+
+        final List<URL> self_dependencies = new ArrayList<URL>();
+        self_dependencies.add(new URL(COMMONS_IO_ON_MAVEN_CENTRAL));
+        for (final String aether_dependency : AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL) {
+            self_dependencies.add(new URL(aether_dependency));
+        }
+        self_dependencies.add(JavaBootstrap.class.getProtectionDomain().getCodeSource().getLocation());
+        return self_dependencies.toArray(new URL[self_dependencies.size()]);
+    }
+
+    private static URL[] toURLs(final File... files) throws MalformedURLException {
+
+        URL[] urls = null;
+        if (files != null) {
+            final int files_count = files.length;
+            urls = new URL[files_count];
+
+            for (int i = 0; i < files_count; i++) {
+                urls[i] = toURL(files[i]);
+            }
+        }
+        return urls;
+    }
+
     public static void main(final String[] args) throws Exception {
 
         System.out.println(LOCAL_SHABDIZ_HOME);
@@ -112,6 +169,15 @@ class JavaBootstrap {
         return (ClassLoader) resolve.invoke(maven_dependency_resolver);
     }
 
+    private static String[] toArray(final String value) {
+
+        if (value != null) {
+            final String tidied_value = value.trim().replace("[", "").replace("]", "");
+            return !tidied_value.equals("") ? tidied_value.split(", ") : null;
+        }
+        return null;
+    }
+
     static File getBootstrapHome(final String tmp_dir) {
 
         return new File(getShabdizHome(tmp_dir), BOOTSTRAP_HOME_NAME);
@@ -120,71 +186,5 @@ class JavaBootstrap {
     static File getShabdizHome(final String tmp_dir) {
 
         return new File(tmp_dir, SHABDIZ_HOME_NAME);
-    }
-
-    private static URLClassLoader resolveSelfDependencies() throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, URISyntaxException {
-
-        final URL commons_io_url = getCommonsIOURL();
-        final URLClassLoader url_class_loader = URLClassLoader.newInstance(new URL[]{commons_io_url}, ClassLoader.getSystemClassLoader());
-        final URL[] selfDependencies = getSelfDependenciesRemoteURLs();
-        final Class<?> target_main = url_class_loader.loadClass("org.apache.commons.io.FileUtils");
-        final Method copyURLToFile = target_main.getMethod("copyURLToFile", URL.class, File.class);
-        for (final URL dependency : selfDependencies) {
-            final File destination = new File(LOCAL_BOOTSTRAP_HOME, getJarFileName(dependency));
-            if (!destination.isFile()) {
-                copyURLToFile.invoke(null, dependency, destination);
-            }
-        }
-        return URLClassLoader.newInstance(toURLs(LOCAL_BOOTSTRAP_HOME.listFiles()), null);
-    }
-
-    private static URL getCommonsIOURL() throws MalformedURLException {
-
-        return COMMONS_IO_JAR_FILE.isFile() ? toURL(COMMONS_IO_JAR_FILE) : new URL(COMMONS_IO_ON_MAVEN_CENTRAL);
-    }
-
-    private static String getJarFileName(final URL url) {
-
-        final String url_file = url.getFile();
-        return url_file.substring(url_file.lastIndexOf('/'));
-    }
-
-    private static URL[] getSelfDependenciesRemoteURLs() throws MalformedURLException {
-
-        final List<URL> self_dependencies = new ArrayList<URL>();
-        self_dependencies.add(new URL(COMMONS_IO_ON_MAVEN_CENTRAL));
-        for (final String aether_dependency : AETHER_DEPENDENCIES_ON_MAVEN_CENTRAL) {
-            self_dependencies.add(new URL(aether_dependency));
-        }
-        self_dependencies.add(JavaBootstrap.class.getProtectionDomain().getCodeSource().getLocation());
-        return self_dependencies.toArray(new URL[self_dependencies.size()]);
-    }
-
-    private static URL[] toURLs(final File... files) throws MalformedURLException {
-
-        URL[] urls = null;
-        if (files != null) {
-            final int files_count = files.length;
-            urls = new URL[files_count];
-
-            for (int i = 0; i < files_count; i++) {
-                urls[i] = toURL(files[i]);
-            }
-        }
-        return urls;
-    }
-
-    private static URL toURL(final File file) throws MalformedURLException {
-
-        return file.toURI().toURL();
-    }
-
-    private static String[] toArray(final String value) {
-
-        if (value != null) {
-            final String tidied_value = value.trim().replace("[", "").replace("]", "");
-            return !tidied_value.equals("") ? tidied_value.split(", ") : null;
-        }
-        return null;
     }
 }

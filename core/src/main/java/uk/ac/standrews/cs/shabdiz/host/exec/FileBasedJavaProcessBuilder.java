@@ -72,8 +72,81 @@ public class FileBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         final String remote_working_directory = prepareRemoteWorkingDirectory(host);
         final String command = assembleRemoteJavaCommand(host, parameters);
-        LOGGER.debug("preparing to execute command: {}", command);
+        LOGGER.debug("executing command: {}", command);
         return host.execute(remote_working_directory, command);
+    }
+
+    private String assembleRemoteJavaCommand(final Host host, final String[] parameters) throws IOException {
+
+        final StringBuilder command = new StringBuilder();
+        final Platform platform = host.getPlatform();
+        appendJavaBinPath(command, platform);
+        appendJVMArguments(command);
+        appendClasspath(command, platform);
+        appendMainClass(command);
+        appendCommandLineArguments(command, platform, parameters);
+
+        return command.toString();
+    }
+
+    private void appendClasspath(final StringBuilder command, final Platform platform) {
+
+        command.append("-classpath");
+        command.append(SPACE);
+        command.append("\"");
+        command.append(".");
+        command.append(platform.getPathSeparator());
+        appendClasspathDirectoryNames(command, platform);
+        command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
+        command.append("\"");
+        command.append(SPACE);
+    }
+
+    private void appendClasspathDirectoryNames(final StringBuilder command, final Platform platform) {
+
+        final Set<String> classpath_directory_names = new HashSet<String>();
+        for (final File classpath_entry : classpath) {
+            final String name = classpath_entry.getName();
+            if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
+                command.append(name);
+                command.append(platform.getPathSeparator());
+                classpath_directory_names.add(name);
+            }
+        }
+    }
+
+    private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
+
+        final String remote_working_directory = getRemoteWorkingDirectory(host);
+        LOGGER.info("remote working directory: {}", remote_working_directory);
+        final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
+        LOGGER.info("compressed classpath: {}", compressed_classpath);
+        CompressionUtil.toZip(classpath, compressed_classpath);
+        host.upload(compressed_classpath, remote_working_directory);
+        decompressOnHost(host, remote_working_directory, compressed_classpath);
+        return remote_working_directory;
+    }
+
+    private String getRemoteWorkingDirectory(final Host host) throws IOException {
+
+        return host.getPlatform().getTempDirectory() + "shabdiz_" + UUID.randomUUID().toString();
+    }
+
+    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
+
+        try {
+
+            final String compressed_classpath_file_name = compressed_classpath.getName();
+            try {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath_file_name));
+            }
+            catch (final IOException e) {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath_file_name));
+            }
+        }
+        catch (final InterruptedException e) {
+            throw new IOException(e);
+        }
     }
 
     /** Adds current JVM's classpath to this builder's collection of classpath files. */
@@ -121,80 +194,6 @@ public class FileBasedJavaProcessBuilder extends JavaProcessBuilder {
         final File downloaded_file = File.createTempFile("downloaded_", classpath_url.getFile());
         FileUtils.copyURLToFile(classpath_url, downloaded_file);
         return classpath.add(downloaded_file);
-    }
-
-    private String prepareRemoteWorkingDirectory(final Host host) throws IOException {
-
-        final String remote_working_directory = getRemoteWorkingDirectory(host);
-        LOGGER.info("remote working directory: {}", remote_working_directory);
-        final File compressed_classpath = File.createTempFile("shabdiz_compressed_cp", ".zip");
-        LOGGER.info("compressed classpath: {}", compressed_classpath);
-        CompressionUtil.toZip(classpath, compressed_classpath);
-        host.upload(compressed_classpath, remote_working_directory);
-        decompressOnHost(host, remote_working_directory, compressed_classpath);
-        return remote_working_directory;
-    }
-
-    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
-
-        //TODO use tar.gz instead of zip if jar is not available; comes with cygwin where as unzip package needs to be installed
-        try {
-
-            final String compressed_classpath_file_name = compressed_classpath.getName();
-            try {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath_file_name));
-            }
-            catch (final IOException e) {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath_file_name));
-            }
-        }
-        catch (final InterruptedException e) {
-            throw new IOException(e);
-        }
-    }
-
-    private String getRemoteWorkingDirectory(final Host host) throws IOException {
-
-        return host.getPlatform().getTempDirectory() + "shabdiz_" + UUID.randomUUID().toString();
-    }
-
-    private String assembleRemoteJavaCommand(final Host host, final String[] parameters) throws IOException {
-
-        final StringBuilder command = new StringBuilder();
-        final Platform platform = host.getPlatform();
-        appendJavaBinPath(command, platform);
-        appendJVMArguments(command);
-        appendClasspath(command, platform);
-        appendMainClass(command);
-        appendCommandLineArguments(command, platform, parameters);
-
-        return command.toString();
-    }
-
-    private void appendClasspath(final StringBuilder command, final Platform platform) {
-
-        command.append("-classpath");
-        command.append(SPACE);
-        command.append("\"");
-        command.append(".");
-        command.append(platform.getPathSeparator());
-        appendClasspathDirectoryNames(command, platform);
-        command.append("*"); // Add all the files with .jar or .JAR extension in the run-time current directory to the classpath
-        command.append("\"");
-        command.append(SPACE);
-    }
-
-    private void appendClasspathDirectoryNames(final StringBuilder command, final Platform platform) {
-
-        final Set<String> classpath_directory_names = new HashSet<String>();
-        for (final File classpath_entry : classpath) {
-            final String name = classpath_entry.getName();
-            if (classpath_entry.isDirectory() && !classpath_directory_names.contains(name)) {
-                command.append(name);
-                command.append(platform.getPathSeparator());
-                classpath_directory_names.add(name);
-            }
-        }
     }
 
 }

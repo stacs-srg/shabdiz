@@ -1,29 +1,21 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.IOException;
-import java.util.Set;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import javax.inject.Provider;
 import org.mashti.gauge.Timer;
-import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.example.echo.EchoNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(value = Parameterized.class)
 public class UnknownToAuthExperiment extends Experiment {
 
     protected final Timer state_timer;
-    private final EchoNetwork network;
-    private final int network_size;
 
-    public UnknownToAuthExperiment(int network_size) throws IOException {
+    public UnknownToAuthExperiment(int network_size, final Provider<Host> host_provider, final ApplicationManager manager) throws IOException {
 
-        super(network_size);
-        this.network_size = network_size;
+        super(network_size, host_provider, manager);
         state_timer = new Timer();
-        network = new EchoNetwork();
     }
 
     @Override
@@ -42,26 +34,5 @@ public class UnknownToAuthExperiment extends Experiment {
         getNetwork().setStatusScannerEnabled(true);
         getNetwork().awaitAnyOfStates(ApplicationState.AUTH);
         time.stop();
-    }
-
-    @Override
-    protected ApplicationNetwork getNetwork() {
-
-        return network;
-    }
-
-    protected void populateNetwork() throws IOException {
-
-        final Set<Host> hosts = BlubUtils.getHosts(network_size);
-        network.addAll(hosts);
-    }
-
-    protected void disableAllNetworkScanners() {
-
-        network.setAutoKillEnabled(false);
-        network.setAutoRemoveEnabled(false);
-        network.setAutoDeployEnabled(false);
-        network.setStatusScannerEnabled(false);
-        network.setScanEnabled(false);
     }
 }

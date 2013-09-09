@@ -237,7 +237,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
-     * Sets the policy on whether the scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
+     * Sets the policy on whether the all scanners of this network should be {@link Scanner#setEnabled(boolean) enabled}.
      *
      * @param enabled if {@code true} enables all the scanners of this network, disables all the scanners otherwise
      */

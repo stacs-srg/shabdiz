@@ -32,7 +32,7 @@ public interface HostProcessBuilder {
      * Starts a {@link Process process} on a given {@code host}.
      *
      * @param host the host on which to start a process
-     * @param parameters the parameters to pass to process
+     * @param parameters the command line arguments to be passed to the process
      * @return the process running on the host
      * @throws IOException Signals that an I/O exception has occurred.
      */

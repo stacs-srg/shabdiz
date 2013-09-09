@@ -1,24 +1,25 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
+
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_HOME_NAME;
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_JAR_NAME;
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.SHABDIZ_HOME_NAME;
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.TEMP_HOME_NAME;
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
 
 /**
  * Builds Java process on hosts and resolves any dependencies using Maven.
@@ -32,28 +33,206 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenManagedJavaProcessBuilder.class);
-    private static final String BOOTSTRAP_JAR_NAME = "bootstrap.jar";
-    private static final File BOOTSTRAP_JAR = new File(JavaBootstrap.LOCAL_BOOTSTRAP_HOME, BOOTSTRAP_JAR_NAME);
     private static final String COLON = ":";
-    private final List<String> dependency_coordinates;
-    private final List<String> maven_repositories;
+    private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
+    private static final String EQUALS = "=";
+    private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
+    private static final String JVM_PARAM_JAR = "-jar";
+    private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = true;
+    private final Bootstrap.BootstrapConfiguration configuration;
+    private final Set<File> uploads;
 
     /** Initialises a new Maven managed Java process builder. */
     public MavenManagedJavaProcessBuilder() {
 
-        dependency_coordinates = new ArrayList<String>();
-        maven_repositories = new ArrayList<String>();
+        configuration = new Bootstrap.BootstrapConfiguration();
+        uploads = new HashSet<File>();
     }
 
     @Override
     public Process start(final Host host, final String... parameters) throws IOException {
 
         final Platform platform = host.getPlatform();
-        final String host_bootstrap_home = platform.getTempDirectory() + JavaBootstrap.SHABDIZ_HOME_NAME + platform.getSeparator() + JavaBootstrap.BOOTSTRAP_HOME_NAME;
-        uploadBootstrapJar(host, host_bootstrap_home);
-        final String command = assembleCommand(platform, host_bootstrap_home, parameters);
-        LOGGER.debug("executing {}", command);
-        return host.execute(getWorkingDirectory(), command);
+        final String bootstrap_jar = uploadBootstrapJar(host);
+        final String working_directory = getWorkingDirectoryByPlatform(platform);
+        uploadLocalClasspathFiles(host, working_directory);
+        uploadBootstrapConfigurationFile(host, working_directory);
+
+        final String command = assembleCommand(platform, bootstrap_jar, parameters);
+        LOGGER.info("working directory: {};executing {}", working_directory, command);
+        return host.execute(working_directory, command);
+    }
+
+    private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
+
+        host.upload(uploads, working_directory);
+    }
+
+    private String getWorkingDirectoryByPlatform(final Platform platform) {
+
+        String working_directory = getWorkingDirectory();
+        if (working_directory == null) {
+            working_directory = createTempDirByPlatform(platform);
+        }
+        return working_directory;
+    }
+
+    private static String createTempDirByPlatform(final Platform platform) {
+
+        final char separator = platform.getSeparator();
+        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + System.currentTimeMillis();
+    }
+
+    private void uploadBootstrapConfigurationFile(final Host host, final String working_directory) throws IOException {
+
+        final File config_as_file = getConfigurationAsFile();
+        host.upload(config_as_file, working_directory);
+    }
+
+    private File getConfigurationAsFile() throws IOException {
+
+        final File config_file = new File(createTempDirOnLocal(), BOOTSTRAP_CONFIG_FILE_NAME);
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(config_file));
+            configuration.write(out);
+        }
+        finally {
+            CloseableUtil.closeQuietly(out);
+        }
+        return config_file;
+    }
+
+    private static File createTempDirOnLocal() throws IOException {
+
+        final File temp_dir = new File(Bootstrap.LOCAL_SHABDIZ_TMP_HOME, String.valueOf(System.currentTimeMillis()));
+        FileUtils.forceMkdir(temp_dir);
+        return temp_dir;
+    }
+
+    private static String uploadBootstrapJar(final Host host) throws IOException {
+
+        final Platform platform = host.getPlatform();
+        final String bootstrap_home = getBootstrapHomeByPlatform(platform);
+        final String bootstrap_jar = getBootstrapJarByPlatform(platform);
+        final boolean already_exists = existsOnHost(host, bootstrap_jar);
+        if (!already_exists) {
+            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
+            LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
+        }
+        else {
+            LOGGER.debug("skipped bootstrap.jar upload to {} on host {}; bootstrap already exists", bootstrap_jar, host);
+        }
+        return bootstrap_jar;
+    }
+
+    private static String getBootstrapHomeByPlatform(final Platform platform) {
+
+        return getShabdizHomeByPlatform(platform) + BOOTSTRAP_HOME_NAME + platform.getSeparator();
+    }
+
+    private static String getShabdizHomeByPlatform(final Platform platform) {
+
+        return platform.getTempDirectory() + SHABDIZ_HOME_NAME + platform.getSeparator();
+    }
+
+    private static String getBootstrapJarByPlatform(final Platform platform) {
+
+        return getBootstrapHomeByPlatform(platform) + BOOTSTRAP_JAR_NAME;
+    }
+
+    private static boolean existsOnHost(final Host host, final String file) throws IOException {
+
+        final String exists_command = Commands.EXISTS.get(host.getPlatform(), file);
+        final Process exists_process = host.execute(exists_command);
+        boolean already_exists;
+        try {
+            final String result = ProcessUtil.awaitNormalTerminationAndGetOutput(exists_process);
+            already_exists = Boolean.valueOf(result);
+        }
+        catch (InterruptedException e) {
+            LOGGER.debug("interrupted while waiting to determine whether bootstrap.jar exists on remote host", e);
+            already_exists = false;
+        }
+        finally {
+            exists_process.destroy();
+        }
+        return already_exists;
+    }
+
+    private String assembleCommand(final Platform platform, final String bootstrap_jar, final String[] parameters) {
+
+        final StringBuilder command = new StringBuilder();
+        appendJavaBinPath(command, platform);
+        appendBootstrpAgent(command, bootstrap_jar);
+        appendJVMArguments(command);
+        appendBootstrapJar(command, bootstrap_jar);
+        appendCommandLineArguments(command, platform, parameters);
+        return command.toString();
+    }
+
+    private static void appendBootstrpAgent(final StringBuilder command, final String bootstrap_jar) {
+
+        command.append(JVM_PARAM_JAVAAGENT);
+        command.append(bootstrap_jar);
+        command.append(EQUALS);
+        command.append(BOOTSTRAP_CONFIG_FILE_NAME);
+        command.append(SPACE);
+    }
+
+    private static void appendBootstrapJar(final StringBuilder command, final String bootstrap_jar) {
+
+        command.append(JVM_PARAM_JAR);
+        command.append(SPACE);
+        command.append(bootstrap_jar);
+        command.append(SPACE);
+    }
+
+    @Override
+    public void setMainClass(final Class<?> main_class) {
+
+        super.setMainClass(main_class);
+        configuration.setApplicationBootstrapClass(main_class);
+    }
+
+    @Override
+    public void setMainClass(final String main_class) {
+
+        super.setMainClass(main_class);
+        configuration.setApplicationBootstrapClassName(main_class);
+    }
+
+    /**
+     * Adds a {@link URL} of a classpath resource to the list of this process builder's classpath entries.
+     * The given {@code url} is expected to be accessible by any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param url the url of a resource that must be available in the classpath of started processes
+     */
+    public boolean addURL(URL url) {
+
+        return configuration.addClassPathURL(url);
+    }
+
+    /**
+     * Adds a file on a host to the list of this process builder's classpath entries.
+     * The given {@code file} is expected to exist on any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param file the path to a resource that must be available in the classpath of started processes and exists on remote hosts
+     */
+    public boolean addRemoteFile(String file) {
+
+        return configuration.addClassPathFile(file);
+    }
+
+    /**
+     * Adds a local file to the list of this process builder's classpath entries.
+     * The given {@code file} is expected to exist on the local machine and is uploaded to the working directory of any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param file the local file to add to the classpath of any process started by this process builder
+     */
+    public boolean addFile(File file) {
+
+        return uploads.add(file);
     }
 
     /**
@@ -62,9 +241,9 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      *
      * @param repository_url the url of the Maven repository
      */
-    public void addMavenRepository(final URL repository_url) {
+    public boolean addMavenRepository(final URL repository_url) {
 
-        maven_repositories.add(repository_url.toString());
+        return configuration.addMavenRepository(repository_url);
     }
 
     /**
@@ -75,9 +254,9 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      * @param artifact_id the Maven dependency artifact ID
      * @param version the Maven dependency version
      */
-    public void addMavenDependency(final String group_id, final String artifact_id, final String version) {
+    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version) {
 
-        addMavenDependency(group_id, artifact_id, version, null);
+        return addMavenDependency(group_id, artifact_id, version, null);
     }
 
     /**
@@ -88,58 +267,10 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
      * @param artifact_id the Maven dependency artifact ID
      * @param version the Maven dependency version
      */
-    public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
+    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
 
-        dependency_coordinates.add(toCoordinate(group_id, artifact_id, version, classifier));
-    }
-
-    private void uploadBootstrapJar(final Host host, final String host_bootstrap_home) throws IOException {
-
-        final String exist_command = Commands.EXISTS.get(host.getPlatform(), host_bootstrap_home);
-        final Process bootstrap_jar_exists = host.execute(exist_command);
-        boolean already_exists;
-        try {
-            final String result = ProcessUtil.awaitNormalTerminationAndGetOutput(bootstrap_jar_exists);
-            already_exists = Boolean.valueOf(result);
-        }
-        catch (InterruptedException e) {
-            LOGGER.debug("interrupted while waiting to determine whether bootstrap.jar exists on remote host", e);
-            already_exists = false;
-        }
-
-        if (!already_exists) {
-            host.upload(getBootstrapJar(), host_bootstrap_home);
-            LOGGER.debug("uploading bootstrap.jar to {} on host {}", host_bootstrap_home, host);
-        }
-        else {
-            LOGGER.debug("skipped bootstrap.jar upload to {} on host {}; bootstrap home directory already exists", host_bootstrap_home, host);
-        }
-    }
-
-    private String assembleCommand(final Platform platform, final String host_bootstrap_home, final String[] parameters) {
-
-        final StringBuilder command = new StringBuilder();
-        appendJavaBinPath(command, platform);
-        appendJVMArguments(command);
-        appendBootstrapJar(command, platform, host_bootstrap_home);
-        appendRepositories(command, platform);
-        appendDependencyCoordinates(command, platform);
-        appendMainClass(command);
-        appendCommandLineArguments(command, platform, parameters);
-        return command.toString();
-    }
-
-    @Override
-    protected void appendCommandLineArguments(final StringBuilder command, final Platform platform, final String[] parameters) {
-
-        command.append(platform.quote(Arrays.toString(parameters)));
-        command.append(SPACE);
-    }
-
-    private void appendRepositories(final StringBuilder command, final Platform platform) {
-
-        command.append(platform.quote(Arrays.toString(maven_repositories.toArray())));
-        command.append(SPACE);
+        final String artifact_coordinate = toCoordinate(group_id, artifact_id, version, classifier);
+        return configuration.addMavenArtifact(artifact_coordinate);
     }
 
     static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {
@@ -151,77 +282,5 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
         }
         builder.append(COLON).append(version);
         return builder.toString();
-    }
-
-    private void appendDependencyCoordinates(final StringBuilder command, final Platform platform) {
-
-        command.append(platform.quote(Arrays.toString(dependency_coordinates.toArray())));
-        command.append(SPACE);
-    }
-
-    private void appendBootstrapJar(final StringBuilder command, final Platform platform, final String bootstrap_home) {
-
-        final char separator = platform.getSeparator();
-
-        command.append("-jar ");
-        command.append(bootstrap_home);
-        command.append(separator);
-        command.append(BOOTSTRAP_JAR_NAME);
-        command.append(SPACE);
-    }
-
-    private static synchronized File getBootstrapJar() throws IOException {
-
-        return !BOOTSTRAP_JAR.isFile() ? reconstructBootstrapJar() : BOOTSTRAP_JAR;
-    }
-
-    private static File reconstructBootstrapJar() throws IOException {
-
-        final Manifest manifest = new Manifest();
-        final Attributes main_attributes = manifest.getMainAttributes();
-        main_attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        main_attributes.put(Attributes.Name.MAIN_CLASS, JavaBootstrap.class.getName());
-        main_attributes.put(Attributes.Name.CLASS_PATH, ".");
-
-        FileUtils.deleteDirectory(JavaBootstrap.LOCAL_BOOTSTRAP_HOME);
-        FileUtils.forceMkdir(JavaBootstrap.LOCAL_BOOTSTRAP_HOME);
-
-        final JarOutputStream jar_stream = new JarOutputStream(new FileOutputStream(BOOTSTRAP_JAR), manifest);
-
-        try {
-            addClassToJar(JavaBootstrap.class, jar_stream);
-            addClassToJar(MavenDependencyResolver.class, jar_stream);
-            addClassToJar(MavenDependencyResolver.URLCollector.class, jar_stream);
-            addClassToJar(DependencyResolver.class, jar_stream);
-            return BOOTSTRAP_JAR;
-        }
-        finally {
-            jar_stream.flush();
-            jar_stream.close();
-        }
-    }
-
-    protected static void addClassToJar(final Class<?> type, final JarOutputStream jar) throws IOException {
-
-        final String resource_path = getResourcePath(type);
-        final JarEntry entry = new JarEntry(resource_path);
-        final InputStream resource_stream = getResurceInputStream(type, resource_path);
-        jar.putNextEntry(entry);
-        IOUtils.copy(resource_stream, jar);
-        jar.closeEntry();
-    }
-
-    private static InputStream getResurceInputStream(final Class<?> type, final String resource_path) throws IOException {
-
-        final ClassLoader class_loader = Thread.currentThread().getContextClassLoader();
-        final InputStream resource_stream = class_loader.getResourceAsStream(resource_path);
-        if (resource_stream != null) { return resource_stream; }
-        LOGGER.error("cannot locate resource {}", type);
-        throw new IOException("unable to locate resource " + type);
-    }
-
-    private static String getResourcePath(final Class<?> type) {
-
-        return type.getName().replaceAll("\\.", "/") + ".class";
     }
 }

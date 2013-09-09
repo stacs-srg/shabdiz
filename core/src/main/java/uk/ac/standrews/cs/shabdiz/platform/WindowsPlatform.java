@@ -20,16 +20,17 @@ package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
  * Presents a Windows-based platform.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class WindowsPlatform extends SimplePlatform {
 
     static final String WINDOWS_OS_NAME_KEY = "windows";
 
+    //FIXME get temp path by executing echo %TEMP%
     /**
      * Instantiates a new windows platform.
-     * 
+     *
      * @param os_name the operating system name
      */
     public WindowsPlatform(final String os_name) {
