@@ -20,6 +20,7 @@ package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.mashti.jetson.ClientFactory;
@@ -31,6 +32,7 @@ import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -63,14 +65,15 @@ class WorkerManager extends AbstractApplicationManager {
 
         final Host host = descriptor.getHost();
         final Process worker_process = worker_process_builder.start(host, arguments);
-        final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), getWorkerRemoteAddressFromProcessOutput(worker_process).getPort());
-        final String runtime_mxbean_name = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
+        final Properties properties = Bootstrap.readProperties(WorkerMain.class, worker_process, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
+        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
+        final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), worker_port);
+        final Integer pid = Integer.valueOf(properties.getProperty(Bootstrap.PID_PROPERTY_KEY));
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
         final Worker worker = new Worker(network, worker_remote, worker_process, worker_remote_address);
-        final Integer worker_pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mxbean_name);
-        worker.setWorkerProcessId(worker_pid);
-        LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, worker_pid);
+        worker.setWorkerProcessId(pid);
+        LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, pid);
         //        final DefaultWorkerRemote worker_remote = new DefaultWorkerRemote(NetworkUtil.getLocalIPv4InetSocketAddress(0), network.getCallbackAddress());
         //        final Worker worker = new Worker(network, worker_remote, null, worker_remote.getAddress());
         return worker;

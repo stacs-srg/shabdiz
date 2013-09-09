@@ -7,27 +7,43 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.instrument.Instrumentation;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class Bootstrap {
 
+    public static final String PID_PROPERTY_KEY = "pid";
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final String TEMP_HOME_NAME = "tmp";
@@ -35,6 +51,8 @@ public abstract class Bootstrap {
     static final File LOCAL_BOOTSTRAP_HOME = new File(LOCAL_SHABDIZ_HOME, BOOTSTRAP_HOME_NAME);
     static final File LOCAL_SHABDIZ_TMP_HOME = new File(LOCAL_SHABDIZ_HOME, TEMP_HOME_NAME);
     static final String BOOTSTRAP_JAR_NAME = "bootstrap.jar";
+    private static final String PROCESS_OUTPUT_ENCODING = "UTF-8";
+    //TODO add shutdown hook for deleting files
     private static final File BOOTSTRAP_JAR = new File(LOCAL_BOOTSTRAP_HOME, BOOTSTRAP_JAR_NAME);
     private static final String MVN_CENTRAL = "http://repo1.maven.org/maven2/";
     private static final String SEPARATOR = "\t";
@@ -47,8 +65,57 @@ public abstract class Bootstrap {
     private static final Attributes.Name PREMAIN_CLASS = new Attributes.Name("Premain-Class");
     private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
     private static final String FILE_PROTOCOL = "file:";
+    private static final String PROPERTIES_ID_SUFFIX = ".properties:";
+    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.*?)=(.*?),\\s");
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
+    private final Properties properties;
+
+    protected Bootstrap() {
+
+        properties = new Properties();
+
+        setDefaultProperties();
+    }
+
+    private void setDefaultProperties() {
+
+        setProperty(PID_PROPERTY_KEY, getPIDFromRuntimeMXBeanName());
+    }
+
+    /**
+     * Attempts to get a PID from a given runtime MXBean name.
+     * The expected format is {@code <pid>@<machine_name>}.
+     * Returns {@code null} if the given MXBean name does not match the above pattern.
+     *
+     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
+     * @see RuntimeMXBean#getName()
+     */
+    public static Integer getPIDFromRuntimeMXBeanName() {
+
+        final String runtime_mxbean_name = ManagementFactory.getRuntimeMXBean().getName();
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+        if (index_of_at != -1) {
+            pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+        }
+        return pid;
+    }
+
+    protected Object setProperty(Object key, Object value) {
+
+        return setProperty(String.valueOf(key), String.valueOf(value));
+    }
+
+    protected Object setProperty(String key, String value) {
+
+        try {
+            return properties.setProperty(URLEncoder.encode(key, PROCESS_OUTPUT_ENCODING), URLEncoder.encode(value, PROCESS_OUTPUT_ENCODING));
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("failed to encode property", e);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -57,14 +124,34 @@ public abstract class Bootstrap {
 
             final Bootstrap bootstrap = (Bootstrap) application_bootstrap_class.newInstance();
             bootstrap.deploy(args);
+            bootstrap.printProperties();
         }
         else {
             application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
         }
-        //TODO print properties
     }
 
-    protected abstract void deploy(String... args);
+    private void printProperties() {
+
+        final String properties_as_string = getPropertiesAsString();
+        System.out.println(properties_as_string);
+        System.out.flush();
+    }
+
+    private String getPropertiesAsString() {
+
+        final StringBuilder properties_as_string = new StringBuilder();
+        properties_as_string.append(getPropertiesID(getClass()));
+        properties_as_string.append(properties);
+        return properties_as_string.toString();
+    }
+
+    private static String getPropertiesID(Class<? extends Bootstrap> bootstrap_class) {
+
+        return bootstrap_class.getName() + PROPERTIES_ID_SUFFIX;
+    }
+
+    protected abstract void deploy(String... args) throws Exception;
 
     public static void premain(String path_to_config_file, Instrumentation instrumentation) throws Exception {
 
@@ -81,6 +168,41 @@ public abstract class Bootstrap {
         loadClassPathFiles(instrumentation, configuration.files);
         loadClassPathUrlsAsString(instrumentation, configuration.urls);
         application_bootstrap_class_name = configuration.application_bootstrap_class_name;
+    }
+
+    public static Properties readProperties(Class<? extends Bootstrap> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
+
+        final String properties_id = getPropertiesID(bootstrap_class);
+        final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
+        final ExecutorService executors = Executors.newSingleThreadExecutor();
+
+        return executors.submit(scan_task).get(timeout.getLength(), timeout.getTimeUnit());
+    }
+
+    private static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
+
+        return new Callable<Properties>() {
+
+            @Override
+            public Properties call() throws Exception {
+
+                Properties properties = new Properties();
+                final Scanner scanner = new Scanner(in, PROCESS_OUTPUT_ENCODING);
+                final Pattern pattern = Pattern.compile("^(" + Pattern.quote(properties_id) + "\\{)(.+?)?(\\})$");
+                final String output_line = scanner.findInLine(pattern);
+                final Matcher matcher = pattern.matcher(output_line);
+                if (matcher.find()) {
+                    final String key_values = matcher.group(2);
+                    final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
+                    while (key_value_matcher.find()) {
+                        final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
+                        final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
+                        properties.setProperty(key, value);
+                    }
+                }
+                return properties;
+            }
+        };
     }
 
     private static void loadClassPathFiles(final Instrumentation instrumentation, final Set<String> files) throws IOException {
@@ -137,17 +259,17 @@ public abstract class Bootstrap {
         jar.closeEntry();
     }
 
-    private static String getResourcePath(final Class<?> type) {
-
-        return type.getName().replaceAll("\\.", "/") + ".class";
-    }
-
     private static InputStream getResurceInputStream(final Class<?> type, final String resource_path) throws IOException {
 
         final ClassLoader class_loader = Thread.currentThread().getContextClassLoader();
         final InputStream resource_stream = class_loader.getResourceAsStream(resource_path);
         if (resource_stream != null) { return resource_stream; }
         throw new IOException("unable to locate resource " + type);
+    }
+
+    private static String getResourcePath(final Class<?> type) {
+
+        return type.getName().replaceAll("\\.", "/") + ".class";
     }
 
     private static void loadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
@@ -375,9 +497,9 @@ public abstract class Bootstrap {
             return configuration;
         }
 
-        boolean addMavenArtifact(String artifact_coordinate) {
+        void setApplicationBootstrapClassName(String class_name) {
 
-            return maven_artifacts.add(artifact_coordinate);
+            application_bootstrap_class_name = class_name;
         }
 
         boolean addClassPathFile(String path) {
@@ -385,9 +507,9 @@ public abstract class Bootstrap {
             return files.add(path);
         }
 
-        void setApplicationBootstrapClassName(String class_name) {
+        boolean addMavenArtifact(String artifact_coordinate) {
 
-            application_bootstrap_class_name = class_name;
+            return maven_artifacts.add(artifact_coordinate);
         }
 
         boolean addMavenRepository(URL url) {
