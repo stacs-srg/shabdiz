@@ -190,14 +190,18 @@ public abstract class Bootstrap {
                 final Scanner scanner = new Scanner(in, PROCESS_OUTPUT_ENCODING);
                 final Pattern pattern = Pattern.compile("^(" + Pattern.quote(properties_id) + "\\{)(.+?)?(\\})$");
                 final String output_line = scanner.findInLine(pattern);
-                final Matcher matcher = pattern.matcher(output_line);
-                if (matcher.find()) {
-                    final String key_values = matcher.group(2);
-                    final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
-                    while (key_value_matcher.find()) {
-                        final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
-                        final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
-                        properties.setProperty(key, value);
+                if (output_line != null) {
+                    final Matcher matcher = pattern.matcher(output_line);
+                    if (matcher.find()) {
+                        final String key_values = matcher.group(2);
+                        if (key_values != null) {
+                            final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
+                            while (key_value_matcher.find()) {
+                                final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
+                                final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
+                                properties.setProperty(key, value);
+                            }
+                        }
                     }
                 }
                 return properties;

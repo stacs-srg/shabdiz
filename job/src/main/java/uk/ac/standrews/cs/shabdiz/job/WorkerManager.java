@@ -18,11 +18,11 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.IOException;
+import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientFactory;
@@ -45,6 +45,8 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
+    private static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs";
+    private static final String SHABDIZ_VERSION = "1.0-SNAPSHOT";
     private final AgentBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
     private final ClientFactory<WorkerRemote> proxy_factory;
@@ -60,15 +62,27 @@ class WorkerManager extends AbstractApplicationManager {
         proxy_factory = new LeanClientFactory<WorkerRemote>(WorkerRemote.class);
     }
 
+    private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
+
+        final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
+        process_builder.setMainClass(WorkerMain.class);
+        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
+        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
+        System.out.println(">>> " + new File(".").getAbsolutePath());
+        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT.jar"));
+        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT-tests.jar"));
+        //        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
+        return process_builder;
+    }
+
     @Override
     public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
         final Process worker_process = worker_process_builder.start(host, arguments);
-        final Properties properties = Bootstrap.readProperties(WorkerMain.class, worker_process, DEFAULT_WORKER_DEPLOYMENT_TIMEOUT);
-        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
-        final InetSocketAddress worker_address = new InetSocketAddress(host.getAddress(), worker_port);
-        final Integer pid = Integer.valueOf(properties.getProperty(Bootstrap.PID_PROPERTY_KEY));
+        final Properties properties = Bootstrap.readProperties(WorkerMain.class, worker_process, worker_deployment_timeout);
+        final InetSocketAddress worker_address = getWorkerAddressFromProperties(host, properties);
+        final Integer pid = getProcessIDFromProperties(properties);
         final WorkerRemote worker_remote = proxy_factory.get(worker_address);
         final InetSocketAddress worker_remote_address = new InetSocketAddress(host.getAddress(), worker_address.getPort());
         final Worker worker = new Worker(network, worker_remote, worker_process, worker_remote_address);
@@ -100,6 +114,18 @@ class WorkerManager extends AbstractApplicationManager {
         }
     }
 
+    private Integer getProcessIDFromProperties(final Properties properties) {
+
+        final String pid_as_string = properties.getProperty(Bootstrap.PID_PROPERTY_KEY);
+        return pid_as_string.equals("null") ? null : Integer.valueOf(pid_as_string);
+    }
+
+    private InetSocketAddress getWorkerAddressFromProperties(final Host host, final Properties properties) throws UnknownHostException {
+
+        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
+        return new InetSocketAddress(host.getAddress(), worker_port);
+    }
+
     /**
      * Sets the worker deployment timeout.
      *
@@ -126,22 +152,6 @@ class WorkerManager extends AbstractApplicationManager {
     public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
 
         worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
-    }
-
-    private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
-
-        final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
-        process_builder.setMainClass(WorkerMain.class);
-        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-core", "1.0-SNAPSHOT");
-        process_builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT");
-        return process_builder;
-    }
-
-    private InetSocketAddress getWorkerRemoteAddressFromProcessOutput(final Process worker_process) throws IOException, InterruptedException, TimeoutException {
-
-        final String address_as_string = ProcessUtil.scanProcessOutput(worker_process, WorkerMain.WORKER_REMOTE_ADDRESS_KEY, worker_deployment_timeout);
-        return NetworkUtil.getAddressFromString(address_as_string);
     }
 
     @Override
