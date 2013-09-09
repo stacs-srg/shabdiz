@@ -367,7 +367,7 @@ public abstract class Bootstrap {
 
         final File url_as_file;
         final String url_file_name = getFileName(url);
-        url_as_file = new File(destination_directory, url_file_name + ".jar");
+        url_as_file = new File(destination_directory, url_file_name);
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
         try {
