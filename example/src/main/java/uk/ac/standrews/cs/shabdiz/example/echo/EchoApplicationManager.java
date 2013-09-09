@@ -32,8 +32,8 @@ import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.MavenManagedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -49,7 +49,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     private static final String ARGUMENTS = ":0";
-    private final MavenManagedJavaProcessBuilder process_builder;
+    private final AgentBasedJavaProcessBuilder process_builder;
 
     EchoApplicationManager() {
 
@@ -59,7 +59,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
     EchoApplicationManager(Duration timeout) {
 
         super(timeout);
-        process_builder = new MavenManagedJavaProcessBuilder();
+        process_builder = new AgentBasedJavaProcessBuilder();
         process_builder.setMainClass(DefaultEcho.class);
         process_builder.addMavenDependency(Constants.SHABDIZ_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     }

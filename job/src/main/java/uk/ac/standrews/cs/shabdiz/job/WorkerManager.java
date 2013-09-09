@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
-import uk.ac.standrews.cs.shabdiz.host.exec.MavenManagedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -43,7 +43,7 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-    private final MavenManagedJavaProcessBuilder worker_process_builder;
+    private final AgentBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
     private final ClientFactory<WorkerRemote> proxy_factory;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
@@ -125,9 +125,9 @@ class WorkerManager extends AbstractApplicationManager {
         worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
     }
 
-    private static MavenManagedJavaProcessBuilder createRemoteJavaProcessBuilder() {
+    private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
 
-        final MavenManagedJavaProcessBuilder process_builder = new MavenManagedJavaProcessBuilder();
+        final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-core", "1.0-SNAPSHOT");

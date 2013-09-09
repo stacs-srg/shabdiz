@@ -30,9 +30,9 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
+public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenManagedJavaProcessBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AgentBasedJavaProcessBuilder.class);
     private static final String COLON = ":";
     private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
     private static final String EQUALS = "=";
@@ -43,7 +43,7 @@ public class MavenManagedJavaProcessBuilder extends JavaProcessBuilder {
     private final Set<File> uploads;
 
     /** Initialises a new Maven managed Java process builder. */
-    public MavenManagedJavaProcessBuilder() {
+    public AgentBasedJavaProcessBuilder() {
 
         configuration = new Bootstrap.BootstrapConfiguration();
         uploads = new HashSet<File>();

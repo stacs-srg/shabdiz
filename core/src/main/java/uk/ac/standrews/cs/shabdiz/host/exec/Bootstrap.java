@@ -45,7 +45,8 @@ public abstract class Bootstrap {
     private static final Attributes.Name MAVEN_ARTIFACTS = new Attributes.Name("Maven-Atifacts");
     private static final Attributes.Name BOOTSTRAP_CLASS_KEY = new Attributes.Name("Application-Bootstrap-Class");
     private static final Attributes.Name PREMAIN_CLASS = new Attributes.Name("Premain-Class");
-    private static final String WORKING_DIRECTORY = System.getProperty("user.dir");
+    private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
+    private static final String FILE_PROTOCOL = "file:";
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
 
@@ -78,7 +79,7 @@ public abstract class Bootstrap {
             loadMavenArtifacts(instrumentation, configuration.maven_artifacts);
         }
         loadClassPathFiles(instrumentation, configuration.files);
-        loadClassPathUrls(instrumentation, configuration.urls);
+        loadClassPathUrlsAsString(instrumentation, configuration.urls);
         application_bootstrap_class_name = configuration.application_bootstrap_class_name;
     }
 
@@ -157,6 +158,13 @@ public abstract class Bootstrap {
         }
     }
 
+    private static void loadClassPathUrlsAsString(final Instrumentation instrumentation, final Collection<String> urls) throws URISyntaxException, IOException {
+
+        for (String url : urls) {
+            loadClassPathURL(instrumentation, new URL(url));
+        }
+    }
+
     private static void loadClassPathUrls(final Instrumentation instrumentation, final Collection<URL> urls) throws URISyntaxException, IOException {
 
         for (URL url : urls) {
@@ -175,59 +183,65 @@ public abstract class Bootstrap {
 
         assert maven_dependency_resolver == null;
         try {
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/ning/async-http-client/1.7.6/async-http-client-1.7.6.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/netty/netty/3.4.4.Final/netty-3.4.4.Final.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-aether-provider/3.1.0/maven-aether-provider-3.1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model/3.1.0/maven-model-3.1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model-builder/3.1.0/maven-model-builder-3.1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.16/plexus-interpolation-1.16.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-repository-metadata/3.1.0/maven-repository-metadata-3.1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M2a/org.eclipse.sisu.plexus-0.0.0.M2a.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/enterprise/cdi-api/1.0/cdi-api-1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/guava/guava/10.0.1/guava-10.0.1.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "aopalliance/aopalliance/1.0/aopalliance-1.0.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M2a/org.eclipse.sisu.inject-0.0.0.M2a.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "asm/asm/3.3.1/asm-3.3.1.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar"));
-            loadClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/ning/async-http-client/1.7.6/async-http-client-1.7.6.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/netty/netty/3.4.4.Final/netty-3.4.4.Final.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-aether-provider/3.1.0/maven-aether-provider-3.1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model/3.1.0/maven-model-3.1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model-builder/3.1.0/maven-model-builder-3.1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.16/plexus-interpolation-1.16.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-repository-metadata/3.1.0/maven-repository-metadata-3.1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M2a/org.eclipse.sisu.plexus-0.0.0.M2a.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/enterprise/cdi-api/1.0/cdi-api-1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/guava/guava/10.0.1/guava-10.0.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "aopalliance/aopalliance/1.0/aopalliance-1.0.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M2a/org.eclipse.sisu.inject-0.0.0.M2a.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "asm/asm/3.3.1/asm-3.3.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"));
         }
         catch (final Exception e) {
             throw new RuntimeException("failed to load eclipse eather dependencies", e);
         }
     }
 
-    private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
+    private static void loadBootstrapClassPathURL(Instrumentation instrumentation, URL url) throws IOException {
 
-        final File url_as_file;
-        if (!isFile(url)) {
-            url_as_file = copyUrlToWorkingDirectory(url);
+        final File cache = new File(LOCAL_BOOTSTRAP_HOME, getFileName(url));
+        if (!cache.isFile()) {
+            copyUrlToFile(url, cache);
         }
-        else {
-            url_as_file = new File(url.toURI());
-        }
-
-        final JarFile url_as_jar = new JarFile(url_as_file);
+        final JarFile url_as_jar = new JarFile(cache);
         loadClassPathJAR(instrumentation, url_as_jar);
     }
 
-    private static File copyUrlToWorkingDirectory(final URL url) throws IOException {
+    private static void loadClassPathJAR(final Instrumentation instrumentation, final JarFile jar) {
+
+        instrumentation.appendToSystemClassLoaderSearch(jar);
+    }
+
+    private static String getFileName(final URL url) {
+
+        final String url_file = url.getFile();
+        return url_file.substring(url_file.lastIndexOf('/') + 1);
+    }
+
+    private static File copyUrlToFile(final URL url, File destination_directory) throws IOException {
 
         final File url_as_file;
-        final String url_file = url.getFile();
-        final String url_file_name = url_file.substring(url_file.lastIndexOf('/') + 1);
-        url_as_file = new File(WORKING_DIRECTORY, url_file_name + ".jar");
+        final String url_file_name = getFileName(url);
+        url_as_file = new File(destination_directory, url_file_name + ".jar");
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
         try {
@@ -247,28 +261,42 @@ public abstract class Bootstrap {
         return url_as_file;
     }
 
-    private static void loadClassPathJAR(final Instrumentation instrumentation, final JarFile jar) {
+    private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
 
-        instrumentation.appendToSystemClassLoaderSearch(jar);
+        final File url_as_file;
+        if (!isFile(url)) {
+            url_as_file = copyUrlToWorkingDirectory(url);
+        }
+        else {
+            url_as_file = new File(url.toURI());
+        }
+
+        final JarFile url_as_jar = new JarFile(url_as_file);
+        loadClassPathJAR(instrumentation, url_as_jar);
     }
 
-    private static void addMavenRepositories(final Set<URL> repositories) {
+    private static File copyUrlToWorkingDirectory(final URL url) throws IOException {
 
-        for (URL repository : repositories) {
-            maven_dependency_resolver.addRepository(repository);
+        return copyUrlToFile(url, WORKING_DIRECTORY);
+    }
+
+    private static void addMavenRepositories(final Set<String> repositories) throws MalformedURLException {
+
+        for (String repository : repositories) {
+            maven_dependency_resolver.addRepository(new URL(repository));
         }
     }
 
     private static boolean isFile(final URL url) {
 
-        return url.getProtocol().equals("file:");
+        return url.getProtocol().equals(FILE_PROTOCOL);
     }
 
     static class BootstrapConfiguration {
 
         private final Set<String> files = new HashSet<String>();
-        private final Set<URL> urls = new HashSet<URL>();
-        private final Set<URL> maven_repositories = new HashSet<URL>();
+        private final Set<String> urls = new HashSet<String>();
+        private final Set<String> maven_repositories = new HashSet<String>();
         private final Set<String> maven_artifacts = new HashSet<String>();
         private volatile String application_bootstrap_class_name;
 
@@ -309,7 +337,7 @@ public abstract class Bootstrap {
             return fromManifest(manifest);
         }
 
-        private static BootstrapConfiguration fromManifest(Manifest manifest) throws MalformedURLException {
+        private static BootstrapConfiguration fromManifest(Manifest manifest) {
 
             final BootstrapConfiguration configuration = new BootstrapConfiguration();
             final Attributes attributes = manifest.getAttributes(CONFIG_FILE_ATTRIBUTES_NAME);
@@ -326,14 +354,14 @@ public abstract class Bootstrap {
             final String[] urls = attributes.get(CLASSPATH_URLS).toString().split(SEPARATOR);
             for (String url : urls) {
                 if (!url.trim().isEmpty()) {
-                    configuration.addClassPathURL(new URL(url));
+                    configuration.urls.add(url);
                 }
             }
 
             final String[] repos = attributes.get(MAVEN_REPOSITORIES).toString().split(SEPARATOR);
             for (String repo : repos) {
                 if (!repo.trim().isEmpty()) {
-                    configuration.addMavenRepository(new URL(repo));
+                    configuration.maven_repositories.add(repo);
                 }
             }
 
@@ -347,24 +375,9 @@ public abstract class Bootstrap {
             return configuration;
         }
 
-        void setApplicationBootstrapClass(Class<?> bootstrap_class) {
-
-            application_bootstrap_class_name = bootstrap_class.getName();
-        }
-
-        boolean addClassPathURL(URL url) {
-
-            return urls.add(url);
-        }
-
         boolean addMavenArtifact(String artifact_coordinate) {
 
             return maven_artifacts.add(artifact_coordinate);
-        }
-
-        boolean addMavenRepository(URL url) {
-
-            return maven_repositories.add(url);
         }
 
         boolean addClassPathFile(String path) {
@@ -375,6 +388,21 @@ public abstract class Bootstrap {
         void setApplicationBootstrapClassName(String class_name) {
 
             application_bootstrap_class_name = class_name;
+        }
+
+        boolean addMavenRepository(URL url) {
+
+            return maven_repositories.add(url.toExternalForm());
+        }
+
+        boolean addClassPathURL(URL url) {
+
+            return urls.add(url.toExternalForm());
+        }
+
+        void setApplicationBootstrapClass(Class<?> bootstrap_class) {
+
+            application_bootstrap_class_name = bootstrap_class.getName();
         }
 
         boolean hasMavenArtifact() {
