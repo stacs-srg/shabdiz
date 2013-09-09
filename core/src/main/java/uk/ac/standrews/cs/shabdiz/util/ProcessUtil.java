@@ -21,6 +21,7 @@ package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.management.RuntimeMXBean;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -51,6 +52,32 @@ public final class ProcessUtil {
 
     private ProcessUtil() {
 
+    }
+
+    /**
+     * Attempts to get a PID from a given runtime MXBean name.
+     * The expected format is {@code <pid>@<machine_name>}.
+     * Returns {@code null} if the given MXBean name does not match the above pattern.
+     *
+     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
+     * @see RuntimeMXBean#getName()
+     */
+    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
+
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+        if (index_of_at != -1) {
+            pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+        }
+        return pid;
+    }
+
+    public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
+
+        final Platform platform = host.getPlatform();
+        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        final Process kill = host.execute(kill_command);
+        awaitNormalTerminationAndGetOutput(kill);
     }
 
     /**
@@ -105,14 +132,6 @@ public final class ProcessUtil {
             process.destroy();
             executor.shutdownNow();
         }
-    }
-
-    public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
-
-        final Platform platform = host.getPlatform();
-        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
-        final Process kill = host.execute(kill_command);
-        awaitNormalTerminationAndGetOutput(kill);
     }
 
     /**

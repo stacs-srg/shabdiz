@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -68,9 +67,6 @@ class WorkerManager extends AbstractApplicationManager {
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
-        System.out.println(">>> " + new File(".").getAbsolutePath());
-        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT.jar"));
-        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT-tests.jar"));
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
         return process_builder;
     }
