@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.job;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -68,9 +67,9 @@ class WorkerManager extends AbstractApplicationManager {
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
-        //        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
-        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT.jar"));
-        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT-tests.jar"));
+        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
+        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT.jar"));
+        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT-tests.jar"));
         return process_builder;
     }
 
@@ -92,18 +91,6 @@ class WorkerManager extends AbstractApplicationManager {
         return worker;
     }
 
-    private InetSocketAddress getWorkerAddressFromProperties(final Host host, final Properties properties) throws UnknownHostException {
-
-        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
-        return new InetSocketAddress(host.getAddress(), worker_port);
-    }
-
-    private Integer getProcessIDFromProperties(final Properties properties) {
-
-        final String pid_as_string = properties.getProperty(Bootstrap.PID_PROPERTY_KEY);
-        return pid_as_string.equals("null") ? null : Integer.valueOf(pid_as_string);
-    }
-
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
@@ -123,6 +110,18 @@ class WorkerManager extends AbstractApplicationManager {
                 LOGGER.trace("ignoring expected error at the time of kill", e);
             }
         }
+    }
+
+    private Integer getProcessIDFromProperties(final Properties properties) {
+
+        final String pid_as_string = properties.getProperty(Bootstrap.PID_PROPERTY_KEY);
+        return pid_as_string.equals("null") ? null : Integer.valueOf(pid_as_string);
+    }
+
+    private InetSocketAddress getWorkerAddressFromProperties(final Host host, final Properties properties) throws UnknownHostException {
+
+        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
+        return new InetSocketAddress(host.getAddress(), worker_port);
     }
 
     /**
