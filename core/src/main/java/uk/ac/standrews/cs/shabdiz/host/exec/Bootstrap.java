@@ -83,6 +83,21 @@ public abstract class Bootstrap {
         setProperty(PID_PROPERTY_KEY, getPIDFromRuntimeMXBeanName());
     }
 
+    protected Object setProperty(Object key, Object value) {
+
+        return setProperty(String.valueOf(key), String.valueOf(value));
+    }
+
+    protected Object setProperty(String key, String value) {
+
+        try {
+            return properties.setProperty(URLEncoder.encode(key, PROCESS_OUTPUT_ENCODING), URLEncoder.encode(value, PROCESS_OUTPUT_ENCODING));
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("failed to encode property", e);
+        }
+    }
+
     /**
      * Attempts to get a PID from a given runtime MXBean name.
      * The expected format is {@code <pid>@<machine_name>}.
@@ -102,21 +117,6 @@ public abstract class Bootstrap {
         return pid;
     }
 
-    protected Object setProperty(Object key, Object value) {
-
-        return setProperty(String.valueOf(key), String.valueOf(value));
-    }
-
-    protected Object setProperty(String key, String value) {
-
-        try {
-            return properties.setProperty(URLEncoder.encode(key, PROCESS_OUTPUT_ENCODING), URLEncoder.encode(value, PROCESS_OUTPUT_ENCODING));
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("failed to encode property", e);
-        }
-    }
-
     public static void main(String[] args) throws Exception {
 
         final Class<?> application_bootstrap_class = Class.forName(application_bootstrap_class_name);
@@ -130,6 +130,8 @@ public abstract class Bootstrap {
             application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
         }
     }
+
+    protected abstract void deploy(String... args) throws Exception;
 
     private void printProperties() {
 
@@ -150,8 +152,6 @@ public abstract class Bootstrap {
 
         return bootstrap_class.getName() + PROPERTIES_ID_SUFFIX;
     }
-
-    protected abstract void deploy(String... args) throws Exception;
 
     public static void premain(String path_to_config_file, Instrumentation instrumentation) throws Exception {
 
@@ -174,9 +174,13 @@ public abstract class Bootstrap {
 
         final String properties_id = getPropertiesID(bootstrap_class);
         final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
-        final ExecutorService executors = Executors.newSingleThreadExecutor();
-
-        return executors.submit(scan_task).get(timeout.getLength(), timeout.getTimeUnit());
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            return executor.submit(scan_task).get(timeout.getLength(), timeout.getTimeUnit());
+        }
+        finally {
+            executor.shutdownNow();
+        }
     }
 
     private static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
@@ -263,17 +267,17 @@ public abstract class Bootstrap {
         jar.closeEntry();
     }
 
+    private static String getResourcePath(final Class<?> type) {
+
+        return type.getName().replaceAll("\\.", "/") + ".class";
+    }
+
     private static InputStream getResurceInputStream(final Class<?> type, final String resource_path) throws IOException {
 
         final ClassLoader class_loader = Thread.currentThread().getContextClassLoader();
         final InputStream resource_stream = class_loader.getResourceAsStream(resource_path);
         if (resource_stream != null) { return resource_stream; }
         throw new IOException("unable to locate resource " + type);
-    }
-
-    private static String getResourcePath(final Class<?> type) {
-
-        return type.getName().replaceAll("\\.", "/") + ".class";
     }
 
     private static void loadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
@@ -501,9 +505,9 @@ public abstract class Bootstrap {
             return configuration;
         }
 
-        void setApplicationBootstrapClassName(String class_name) {
+        boolean addMavenArtifact(String artifact_coordinate) {
 
-            application_bootstrap_class_name = class_name;
+            return maven_artifacts.add(artifact_coordinate);
         }
 
         boolean addClassPathFile(String path) {
@@ -511,9 +515,9 @@ public abstract class Bootstrap {
             return files.add(path);
         }
 
-        boolean addMavenArtifact(String artifact_coordinate) {
+        void setApplicationBootstrapClassName(String class_name) {
 
-            return maven_artifacts.add(artifact_coordinate);
+            application_bootstrap_class_name = class_name;
         }
 
         boolean addMavenRepository(URL url) {

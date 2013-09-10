@@ -59,7 +59,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         uploadBootstrapConfigurationFile(host, working_directory);
 
         final String command = assembleCommand(platform, bootstrap_jar, parameters);
-        LOGGER.info("working directory: {};executing {}", working_directory, command);
+        LOGGER.info("cd {}; {}", working_directory, command);
         return host.execute(working_directory, command);
     }
 
