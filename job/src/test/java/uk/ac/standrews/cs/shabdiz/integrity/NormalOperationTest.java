@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
@@ -78,6 +79,7 @@ public class NormalOperationTest {
      * @throws Exception the exception
      */
     @Test
+    @Ignore
     public void sayHelloTest() throws Exception {
 
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
@@ -90,6 +92,7 @@ public class NormalOperationTest {
      * @throws Exception the exception
      */
     @Test
+    @Ignore
     public void throwExeptionTest() throws Exception {
 
         final NullPointerException npe = new NullPointerException(TEST_EXCEPTION_MESSAGE);
