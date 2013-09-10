@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 class WorkerManager extends AbstractApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerManager.class);
-    private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
     private static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs";
@@ -68,8 +68,6 @@ class WorkerManager extends AbstractApplicationManager {
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
-        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT.jar"));
-        //        process_builder.addFile(new File("target/shabdiz-job-1.0-SNAPSHOT-tests.jar"));
         return process_builder;
     }
 
