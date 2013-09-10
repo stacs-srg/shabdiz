@@ -26,8 +26,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -39,6 +37,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class Bootstrap {
@@ -66,7 +65,7 @@ public abstract class Bootstrap {
     private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
     private static final String FILE_PROTOCOL = "file:";
     private static final String PROPERTIES_ID_SUFFIX = ".properties:";
-    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.*?)=(.*?),\\s");
+    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.?[^=]+)=(.?[^=,]+)(,\\s)?");
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
     private final Properties properties;
@@ -174,16 +173,10 @@ public abstract class Bootstrap {
 
         final String properties_id = getPropertiesID(bootstrap_class);
         final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            return executor.submit(scan_task).get(timeout.getLength(), timeout.getTimeUnit());
-        }
-        finally {
-            executor.shutdownNow();
-        }
+        return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
     }
 
-    private static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
+    static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
 
         return new Callable<Properties>() {
 
@@ -192,17 +185,19 @@ public abstract class Bootstrap {
 
                 Properties properties = new Properties();
                 final Scanner scanner = new Scanner(in, PROCESS_OUTPUT_ENCODING);
-                final Pattern pattern = Pattern.compile("^(" + Pattern.quote(properties_id) + "\\{)(.+?)?(\\})$");
+                final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
                 final String output_line = scanner.findInLine(pattern);
                 if (output_line != null) {
                     final Matcher matcher = pattern.matcher(output_line);
                     if (matcher.find()) {
-                        final String key_values = matcher.group(2);
+                        final String key_values = matcher.group(1);
+                        System.out.println(key_values);
                         if (key_values != null) {
                             final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
                             while (key_value_matcher.find()) {
                                 final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
                                 final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
+                                System.out.println(key + " -> " + value);
                                 properties.setProperty(key, value);
                             }
                         }
@@ -250,6 +245,7 @@ public abstract class Bootstrap {
             addClassToJar(MavenDependencyResolver.URLCollector.class, jar_stream);
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
+            addClassToJar(Duration.class, jar_stream);
         }
         finally {
             jar_stream.flush();
@@ -367,16 +363,13 @@ public abstract class Bootstrap {
         return url_file.substring(url_file.lastIndexOf('/') + 1);
     }
 
-    private static File copyUrlToFile(final URL url, File destination_directory) throws IOException {
+    private static File copyUrlToFile(final URL url, File destination) throws IOException {
 
-        final File url_as_file;
-        final String url_file_name = getFileName(url);
-        url_as_file = new File(destination_directory, url_file_name);
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
         try {
             byte_channel = Channels.newChannel(url.openStream());
-            out = new FileOutputStream(url_as_file);
+            out = new FileOutputStream(destination);
             out.getChannel().transferFrom(byte_channel, 0, Long.MAX_VALUE);
             out.close();
         }
@@ -388,7 +381,7 @@ public abstract class Bootstrap {
                 out.close();
             }
         }
-        return url_as_file;
+        return destination;
     }
 
     private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
@@ -407,7 +400,7 @@ public abstract class Bootstrap {
 
     private static File copyUrlToWorkingDirectory(final URL url) throws IOException {
 
-        return copyUrlToFile(url, WORKING_DIRECTORY);
+        return copyUrlToFile(url, new File(WORKING_DIRECTORY, getFileName(url)));
     }
 
     private static void addMavenRepositories(final Set<String> repositories) throws MalformedURLException {
