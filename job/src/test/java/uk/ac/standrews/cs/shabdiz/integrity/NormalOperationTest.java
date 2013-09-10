@@ -18,6 +18,18 @@
  */
 package uk.ac.standrews.cs.shabdiz.integrity;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
+import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.job.Worker;
+import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+
 /**
  * Tests whether a deployed job returns expected result.
  *
@@ -25,72 +37,72 @@ package uk.ac.standrews.cs.shabdiz.integrity;
  */
 public class NormalOperationTest {
 
-    //    private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
-    //    private static final String HELLO = "hello";
-    //    private static AbstractHost localhost;
-    //    private static WorkerNetwork network;
-    //    private static Worker worker;
-    //
-    //    /**
-    //     * Sets the up the test.
-    //     *
-    //     * @throws Exception if unable to set up
-    //     */
-    //    @BeforeClass
-    //    public static void setUp() throws Exception {
-    //
-    //        localhost = new LocalHost();
-    //        network = new WorkerNetwork();
-    //        network.add(localhost);
-    //        network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");
-    //        network.deployAll();
-    //        network.awaitAnyOfStates(ApplicationState.RUNNING);
-    //        worker = network.first().getApplicationReference();
-    //    }
-    //
-    //    /**
-    //     * Cleans up after tests.
-    //     *
-    //     * @throws Exception if unable to clean up
-    //     */
-    //    @AfterClass
-    //    public static void tearDown() throws Exception {
-    //
-    //        network.shutdown();
-    //        localhost.close();
-    //    }
-    //
-    //    /**
-    //     * Test.
-    //     *
-    //     * @throws Exception the exception
-    //     */
-    //    @Test
-    //    public void sayHelloTest() throws Exception {
-    //
-    //        final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
-    //        Assert.assertEquals(HELLO, future.get());
-    //    }
-    //
-    //    /**
-    //     * Test.
-    //     *
-    //     * @throws Exception the exception
-    //     */
-    //    @Test
-    //    public void throwExeptionTest() throws Exception {
-    //
-    //        final NullPointerException npe = new NullPointerException(TEST_EXCEPTION_MESSAGE);
-    //        final Future<String> future = worker.submit(TestJobRemoteFactory.makeThrowExceptionJob(npe));
-    //
-    //        try {
-    //            future.get(); // Expect the execution exception to be thrown
-    //        }
-    //        catch (final ExecutionException e) {
-    //            final Throwable cause = e.getCause();
-    //            Assert.assertTrue(cause != null);
-    //            Assert.assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
-    //            Assert.assertEquals(NullPointerException.class, cause.getClass());
-    //        }
-    //    }
+    private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
+    private static final String HELLO = "hello";
+    private static AbstractHost localhost;
+    private static WorkerNetwork network;
+    private static Worker worker;
+
+    /**
+     * Sets the up the test.
+     *
+     * @throws Exception if unable to set up
+     */
+    @BeforeClass
+    public static void setUp() throws Exception {
+
+        localhost = new LocalHost();
+        network = new WorkerNetwork();
+        network.add(localhost);
+        network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");
+        network.deployAll();
+        network.awaitAnyOfStates(ApplicationState.RUNNING);
+        worker = network.first().getApplicationReference();
+    }
+
+    /**
+     * Cleans up after tests.
+     *
+     * @throws Exception if unable to clean up
+     */
+    @AfterClass
+    public static void tearDown() throws Exception {
+
+        network.shutdown();
+        localhost.close();
+    }
+
+    /**
+     * Test.
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void sayHelloTest() throws Exception {
+
+        final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
+        Assert.assertEquals(HELLO, future.get());
+    }
+
+    /**
+     * Test.
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void throwExeptionTest() throws Exception {
+
+        final NullPointerException npe = new NullPointerException(TEST_EXCEPTION_MESSAGE);
+        final Future<String> future = worker.submit(TestJobRemoteFactory.makeThrowExceptionJob(npe));
+
+        try {
+            future.get(); // Expect the execution exception to be thrown
+        }
+        catch (final ExecutionException e) {
+            final Throwable cause = e.getCause();
+            Assert.assertTrue(cause != null);
+            Assert.assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
+            Assert.assertEquals(NullPointerException.class, cause.getClass());
+        }
+    }
 }
