@@ -32,6 +32,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
@@ -51,11 +52,11 @@ public abstract class Bootstrap {
     static final File LOCAL_SHABDIZ_TMP_HOME = new File(LOCAL_SHABDIZ_HOME, TEMP_HOME_NAME);
     static final String BOOTSTRAP_JAR_NAME = "bootstrap.jar";
     private static final String PROCESS_OUTPUT_ENCODING = "UTF-8";
-    //TODO add shutdown hook for deleting files
     private static final File BOOTSTRAP_JAR = new File(LOCAL_BOOTSTRAP_HOME, BOOTSTRAP_JAR_NAME);
     private static final String MVN_CENTRAL = "http://repo1.maven.org/maven2/";
     private static final String SEPARATOR = "\t";
     private static final String CONFIG_FILE_ATTRIBUTES_NAME = "Shabdiz";
+    private static final Attributes.Name DELETE_WD_ON_EXIT = new Attributes.Name("Delete-Working-Directory-On-Exit");
     private static final Attributes.Name CLASSPATH_FILES = new Attributes.Name("Class-Path-Files");
     private static final Attributes.Name CLASSPATH_URLS = new Attributes.Name("Class-Path-URLs");
     private static final Attributes.Name MAVEN_REPOSITORIES = new Attributes.Name("Maven-Repositories");
@@ -63,9 +64,10 @@ public abstract class Bootstrap {
     private static final Attributes.Name BOOTSTRAP_CLASS_KEY = new Attributes.Name("Application-Bootstrap-Class");
     private static final Attributes.Name PREMAIN_CLASS = new Attributes.Name("Premain-Class");
     private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
-    private static final String FILE_PROTOCOL = "file:";
+    private static final String FILE_PROTOCOL = "file";
     private static final String PROPERTIES_ID_SUFFIX = ".properties:";
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.?[^=]+)=(.?[^=,]+)(,\\s)?");
+    private static final RecursiveWorkingDirectoryDeletionHook RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK = new RecursiveWorkingDirectoryDeletionHook();
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
     private final Properties properties;
@@ -75,6 +77,55 @@ public abstract class Bootstrap {
         properties = new Properties();
 
         setDefaultProperties();
+    }
+
+    public static Integer getPIDProperty(final Properties properties) {
+
+        final String pid_as_string = properties.getProperty(PID_PROPERTY_KEY);
+        return pid_as_string != null ? Integer.parseInt(pid_as_string) : null;
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        final Class<?> application_bootstrap_class = Class.forName(application_bootstrap_class_name);
+        if (Bootstrap.class.isAssignableFrom(application_bootstrap_class)) {
+
+            final Bootstrap bootstrap = (Bootstrap) application_bootstrap_class.newInstance();
+            bootstrap.deploy(args);
+            bootstrap.printProperties();
+        }
+        else {
+            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[] {args});
+        }
+    }
+
+    public static void premain(String path_to_config_file, Instrumentation instrumentation) throws Exception {
+
+        if (path_to_config_file == null) { throw new IllegalArgumentException("unspecified config file in bootstrap agent"); }
+
+        final FileInputStream in = new FileInputStream(path_to_config_file);
+        final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
+
+        if (configuration.hasMavenArtifact()) {
+            initMavenDependencyResolver(instrumentation);
+            addMavenRepositories(configuration.maven_repositories);
+            loadMavenArtifacts(instrumentation, configuration.maven_artifacts);
+        }
+        loadClassPathFiles(instrumentation, configuration.files);
+        loadClassPathUrlsAsString(instrumentation, configuration.urls);
+        application_bootstrap_class_name = configuration.application_bootstrap_class_name;
+
+        if (configuration.delete_working_directory_on_exit) {
+            Runtime.getRuntime().addShutdownHook(RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK);
+            System.out.println("ADDED DELETION HOOK");
+        }
+    }
+
+    public static Properties readProperties(Class<? extends Bootstrap> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
+
+        final String properties_id = getPropertiesID(bootstrap_class);
+        final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
+        return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
     }
 
     private void setDefaultProperties() {
@@ -105,7 +156,7 @@ public abstract class Bootstrap {
      * @return the pid from the given name or {@code null} if the name does not match the expected pattern
      * @see RuntimeMXBean#getName()
      */
-    public static Integer getPIDFromRuntimeMXBeanName() {
+    private static Integer getPIDFromRuntimeMXBeanName() {
 
         final String runtime_mxbean_name = ManagementFactory.getRuntimeMXBean().getName();
         Integer pid = null;
@@ -114,20 +165,6 @@ public abstract class Bootstrap {
             pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
         }
         return pid;
-    }
-
-    public static void main(String[] args) throws Exception {
-
-        final Class<?> application_bootstrap_class = Class.forName(application_bootstrap_class_name);
-        if (Bootstrap.class.isAssignableFrom(application_bootstrap_class)) {
-
-            final Bootstrap bootstrap = (Bootstrap) application_bootstrap_class.newInstance();
-            bootstrap.deploy(args);
-            bootstrap.printProperties();
-        }
-        else {
-            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
-        }
     }
 
     protected abstract void deploy(String... args) throws Exception;
@@ -152,30 +189,6 @@ public abstract class Bootstrap {
         return bootstrap_class.getName() + PROPERTIES_ID_SUFFIX;
     }
 
-    public static void premain(String path_to_config_file, Instrumentation instrumentation) throws Exception {
-
-        if (path_to_config_file == null) { throw new IllegalArgumentException("unspecified config file in bootstrap agent"); }
-
-        final FileInputStream in = new FileInputStream(path_to_config_file);
-        final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
-
-        if (configuration.hasMavenArtifact()) {
-            initMavenDependencyResolver(instrumentation);
-            addMavenRepositories(configuration.maven_repositories);
-            loadMavenArtifacts(instrumentation, configuration.maven_artifacts);
-        }
-        loadClassPathFiles(instrumentation, configuration.files);
-        loadClassPathUrlsAsString(instrumentation, configuration.urls);
-        application_bootstrap_class_name = configuration.application_bootstrap_class_name;
-    }
-
-    public static Properties readProperties(Class<? extends Bootstrap> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
-
-        final String properties_id = getPropertiesID(bootstrap_class);
-        final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
-        return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
-    }
-
     static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
 
         return new Callable<Properties>() {
@@ -186,21 +199,23 @@ public abstract class Bootstrap {
                 Properties properties = new Properties();
                 final Scanner scanner = new Scanner(in, PROCESS_OUTPUT_ENCODING);
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
-                final String output_line = scanner.findInLine(pattern);
-                if (output_line != null) {
-                    final Matcher matcher = pattern.matcher(output_line);
-                    if (matcher.find()) {
-                        final String key_values = matcher.group(1);
-                        System.out.println(key_values);
+                while (scanner.hasNextLine()) {
+                    final String output_line = scanner.findInLine(pattern);
+                    if (output_line == null) {
+                        scanner.nextLine();
+                    }
+                    else {
+                        final MatchResult match = scanner.match();
+                        final String key_values = match.group(1);
                         if (key_values != null) {
                             final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
                             while (key_value_matcher.find()) {
                                 final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
                                 final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
-                                System.out.println(key + " -> " + value);
                                 properties.setProperty(key, value);
                             }
                         }
+                        break;
                     }
                 }
                 return properties;
@@ -246,6 +261,7 @@ public abstract class Bootstrap {
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
             addClassToJar(Duration.class, jar_stream);
+            addClassToJar(RecursiveWorkingDirectoryDeletionHook.class, jar_stream);
         }
         finally {
             jar_stream.flush();
@@ -365,6 +381,8 @@ public abstract class Bootstrap {
 
     private static File copyUrlToFile(final URL url, File destination) throws IOException {
 
+        System.out.println("copying " + url + " to " + destination);
+
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
         try {
@@ -386,6 +404,7 @@ public abstract class Bootstrap {
 
     private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
 
+        System.out.println(url);
         final File url_as_file;
         if (!isFile(url)) {
             url_as_file = copyUrlToWorkingDirectory(url);
@@ -422,6 +441,11 @@ public abstract class Bootstrap {
         private final Set<String> maven_repositories = new HashSet<String>();
         private final Set<String> maven_artifacts = new HashSet<String>();
         private volatile String application_bootstrap_class_name;
+        private boolean delete_working_directory_on_exit;
+
+        void setDeleteWorkingDirectoryOnExit(final boolean enabled) {
+            delete_working_directory_on_exit = enabled;
+        }
 
         void write(OutputStream out) throws IOException {
 
@@ -439,6 +463,7 @@ public abstract class Bootstrap {
             attributes.put(CLASSPATH_URLS, toString(urls, SEPARATOR));
             attributes.put(MAVEN_REPOSITORIES, toString(maven_repositories, SEPARATOR));
             attributes.put(MAVEN_ARTIFACTS, toString(maven_artifacts, SEPARATOR));
+            attributes.put(DELETE_WD_ON_EXIT, String.valueOf(delete_working_directory_on_exit));
             manifest.getEntries().put(CONFIG_FILE_ATTRIBUTES_NAME, attributes);
             return manifest;
         }
@@ -495,6 +520,9 @@ public abstract class Bootstrap {
                 }
             }
 
+            final Boolean delete_wd_on_exit = Boolean.valueOf(attributes.get(DELETE_WD_ON_EXIT).toString());
+            configuration.setDeleteWorkingDirectoryOnExit(delete_wd_on_exit);
+
             return configuration;
         }
 
@@ -531,6 +559,29 @@ public abstract class Bootstrap {
         boolean hasMavenArtifact() {
 
             return !maven_artifacts.isEmpty();
+        }
+    }
+
+    private static class RecursiveWorkingDirectoryDeletionHook extends Thread {
+
+        @Override
+        public void run() {
+            try {
+                deleteRecursively(WORKING_DIRECTORY);
+            }
+            catch (IOException e) {
+                System.err.println("Failure occured while deleting working directory");
+                e.printStackTrace();
+            }
+        }
+
+        void deleteRecursively(File file) throws IOException {
+            if (file.isDirectory()) {
+                for (File sub_file : file.listFiles()) {
+                    deleteRecursively(sub_file);
+                }
+            }
+            if (!file.delete()) { System.err.println("Failed to delete file: " + file); }
         }
     }
 }

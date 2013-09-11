@@ -20,6 +20,10 @@ import org.junit.runners.Parameterized;
 import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
+import org.mashti.gauge.Timer;
+import org.mashti.gauge.jvm.MemoryUsageGauge;
+import org.mashti.gauge.jvm.ThreadCountGauge;
+import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
 import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
@@ -37,26 +41,31 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 @RunWith(Parameterized.class)
 public abstract class Experiment {
 
+    protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
+    protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final int REPETITIONS = 20;
     private static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    private static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
+    private static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new BlubHostProvider()};
+    protected final ApplicationNetwork network;
     private final MetricRegistry registry;
     private final CsvReporter reporter;
     private final StateCountGauge auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
     private final StateCountGauge unknown_state_gauge = new StateCountGauge(ApplicationState.UNKNOWN);
     private final StateCountGauge running_state_gauge = new StateCountGauge(ApplicationState.RUNNING);
     private final StateCountGauge other_state_gauge = new StateCountGauge(ApplicationState.DEPLOYED, ApplicationState.INVALID, ApplicationState.KILLED, ApplicationState.LAUNCHED, ApplicationState.NO_AUTH, ApplicationState.UNREACHABLE);
-    //TODO add CPU and memory usage gauge
+    private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
+    private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
+    private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
     private final File observations_directory;
     private final String name;
     private final Properties properties = new Properties();
     private final Integer network_size;
     private final Provider<Host> host_provider;
     private final ApplicationManager manager;
-    private final ApplicationNetwork network;
+    private final Timer timer = new Timer();
 
     public Experiment(Integer network_size, Provider<Host> host_provider, ApplicationManager manager) throws IOException {
 
@@ -72,11 +81,17 @@ public abstract class Experiment {
         populateProperties();
     }
 
+    private void populateProperties() {
+
+        properties.put("name", name);
+        properties.put("observations_directory", observations_directory.getAbsolutePath());
+    }
+
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}")
     public static Collection<Object[]> data() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, HOST_PROVIDERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -85,46 +100,29 @@ public abstract class Experiment {
 
     @Before
     public void setUp() throws Exception {
-
+        disableAllNetworkScanners();
+        populateNetwork();
         registerMetric("auth_state_gauge", auth_state_gauge);
         registerMetric("running_state_gauge", running_state_gauge);
         registerMetric("unknown_state_gauge", unknown_state_gauge);
         registerMetric("other_state_gauge", other_state_gauge);
-        persistProperties();
+        registerMetric("memory_gauge", memory_gauge);
+        registerMetric("cpu_gauge", cpu_gauge);
+        registerMetric("thread_count_gauge", thread_count_gauge);
 
+        persistProperties();
         LOGGER.info("starting experimentation...");
         startReporter();
     }
 
-    @Test
-    @Category(Experiment.class)
-    public abstract void doExperiment() throws Exception;
+    protected void registerMetric(final String metric_name, final Metric metric) {
 
-    @After
-    public void tearDown() throws Exception {
-
-        reporter.stop();
-        getNetwork().shutdown();
-        LOGGER.info("done, results are stored at {}", observations_directory);
+        registry.register(metric_name, metric);
     }
 
-    private void populateProperties() {
+    private void startReporter() {
 
-        properties.put("name", name);
-        properties.put("observations_directory", observations_directory.getAbsolutePath());
-    }
-
-    private void persistProperties() throws IOException {
-
-        BufferedOutputStream out = null;
-        try {
-            out = new BufferedOutputStream(new FileOutputStream(new File(observations_directory, PROPERTOES_FILE_NAME), false));
-
-            properties.store(out, "");
-        }
-        finally {
-            CloseableUtil.closeQuietly(out);
-        }
+        reporter.start(REPORT_INTERVAL.getLength(), REPORT_INTERVAL.getTimeUnit());
     }
 
     protected void populateNetwork() throws IOException {
@@ -140,29 +138,51 @@ public abstract class Experiment {
         network.add(new ApplicationDescriptor(host, manager));
     }
 
+    private void persistProperties() throws IOException {
+
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(new File(observations_directory, PROPERTOES_FILE_NAME), false));
+
+            properties.store(out, "");
+        }
+        finally {
+            CloseableUtil.closeQuietly(out);
+        }
+    }
+
     protected void disableAllNetworkScanners() {
 
         getNetwork().setScanEnabled(false);
     }
 
-    private void startReporter() {
+    protected ApplicationNetwork getNetwork() {
 
-        reporter.start(REPORT_INTERVAL.getLength(), REPORT_INTERVAL.getTimeUnit());
+        return network;
+    }
+
+    @Test
+    @Category(Experiment.class)
+    public abstract void doExperiment() throws Exception;
+
+    @After
+    public void tearDown() throws Exception {
+
+        persistProperties();
+        reporter.stop();
+        getNetwork().shutdown();
+        LOGGER.info("done, results are stored at {}", observations_directory);
+    }
+
+    protected long timeUniformNetworkStateInNanos(ApplicationState state) throws InterruptedException {
+        final Timer.Time time = timer.time();
+        getNetwork().awaitAnyOfStates(state);
+        return time.stop();
     }
 
     protected Object setProperty(String key, String value) {
 
         return properties.setProperty(key, value);
-    }
-
-    protected void registerMetric(final String metric_name, final Metric metric) {
-
-        registry.register(metric_name, metric);
-    }
-
-    protected ApplicationNetwork getNetwork() {
-
-        return network;
     }
 
     protected class StateCountGauge implements Gauge<Integer> {

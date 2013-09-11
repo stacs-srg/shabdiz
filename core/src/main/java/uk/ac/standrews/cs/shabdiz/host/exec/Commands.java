@@ -30,13 +30,6 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  */
 public final class Commands {
 
-    private static final String SPACE = " ";
-    private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
-
-    private Commands() {
-
-    }
-
     /** Gets the current working directory. */
     public static final CommandBuilder ECHO = new CommandBuilder() {
 
@@ -48,7 +41,6 @@ public final class Commands {
             return ECHO + concatinateWithSpace(params);
         }
     };
-
     /** Gets the current working directory. */
     public static final CommandBuilder CURRENT_WORKING_DIRECTORY = new CommandBuilder() {
 
@@ -61,7 +53,6 @@ public final class Commands {
             return Platforms.isUnixBased(platform) ? PWD : ECHO_CD;
         }
     };
-
     /** Gets user home directory. */
     public static final CommandBuilder USER_HOME = new CommandBuilder() {
 
@@ -74,7 +65,6 @@ public final class Commands {
             return Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE;
         }
     };
-
     /** Gets user home directory. */
     public static final CommandBuilder EXISTS = new CommandBuilder() {
 
@@ -87,7 +77,6 @@ public final class Commands {
             return String.format(Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE, params);
         }
     };
-
     /** Gets user name. */
     public static final CommandBuilder USER_NAME = new CommandBuilder() {
 
@@ -100,7 +89,6 @@ public final class Commands {
             return Platforms.isUnixBased(platform) ? WHOAMI : ECHO_USERNAME;
         }
     };
-
     /** Gets operating system name. */
     public static final CommandBuilder OS_NAME = new CommandBuilder() {
 
@@ -113,7 +101,6 @@ public final class Commands {
             return Platforms.isUnixBased(platform) ? UNAME : VER;
         }
     };
-
     /** The CD command builder. */
     public static final CommandBuilder CHANGE_DIRECTORY = new CommandBuilder() {
 
@@ -125,7 +112,6 @@ public final class Commands {
             return CD + concatinateWithSpace(params);
         }
     };
-
     /** The CD command builder. */
     public static final CommandBuilder APPENDER = new CommandBuilder() {
 
@@ -150,9 +136,24 @@ public final class Commands {
             return builder.toString();
         }
     };
-
     /** The kill by PID command builder. */
     public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
+
+        private static final String TASKKILL_PID = "taskkill /PID ";
+        private static final String KILL_9 = "kill ";
+
+        /** Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command. */
+        @Override
+        public String get(final Platform platform, final String... parameters) {
+
+            if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
+            final Integer pid = Integer.parseInt(parameters[0]);
+            LOGGER.debug("generating kill command for pid: {}", pid);
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
+        }
+    };
+    /** Force kill by PID command builder. */
+    public static final CommandBuilder FORCE_KILL_BY_PROCESS_ID = new CommandBuilder() {
 
         private static final String TASKKILL_PID = "taskkill /F /PID ";
         private static final String KILL_9 = "kill -9 ";
@@ -167,6 +168,13 @@ public final class Commands {
             return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
+
+    private static final String SPACE = " ";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
+
+    private Commands() {
+
+    }
 
     static String concatinateWithSpace(final String... params) {
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
@@ -39,6 +40,8 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
     private static final String JVM_PARAM_JAR = "-jar";
     private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = true;
+    private static final String SYSTEM_CLASSPATH = System.getProperty("java.class.path");
+    private static final String BOOTSTRAP_CLASS_NAME = Bootstrap.class.getName();
     private final Bootstrap.BootstrapConfiguration configuration;
     private final Set<File> uploads;
 
@@ -63,9 +66,110 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return host.execute(working_directory, command);
     }
 
-    private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
+    @Override
+    public void setMainClass(final Class<?> main_class) {
 
-        host.upload(uploads, working_directory);
+        super.setMainClass(main_class);
+        configuration.setApplicationBootstrapClass(main_class);
+    }
+
+    @Override
+    public void setMainClass(final String main_class) {
+
+        super.setMainClass(main_class);
+        configuration.setApplicationBootstrapClassName(main_class);
+    }
+
+    public void setDeleteWorkingDirectoryOnExit(boolean enabled) {
+
+        configuration.setDeleteWorkingDirectoryOnExit(enabled);
+    }
+
+    /**
+     * Adds a {@link URL} of a classpath resource to the list of this process builder's classpath entries.
+     * The given {@code url} is expected to be accessible by any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param url the url of a resource that must be available in the classpath of started processes
+     */
+    public boolean addURL(URL url) {
+
+        return configuration.addClassPathURL(url);
+    }
+
+    /**
+     * Adds a file on a host to the list of this process builder's classpath entries.
+     * The given {@code file} is expected to exist on any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param file the path to a resource that must be available in the classpath of started processes and exists on remote hosts
+     */
+    public boolean addRemoteFile(String file) {
+
+        return configuration.addClassPathFile(file);
+    }
+
+    /**
+     * Adds a local file to the list of this process builder's classpath entries.
+     * The given {@code file} is expected to exist on the local machine and is uploaded to the working directory of any host on which a process is {@link #start(Host, String...) started}.
+     *
+     * @param file the local file to add to the classpath of any process started by this process builder
+     */
+    public boolean addFile(File file) {
+
+        return uploads.add(file);
+    }
+
+    /**
+     * Adds a Maven repository to the list of repositories.
+     * The given URL is assumed to be accessible by hosts on which Java processes to be started.
+     *
+     * @param repository_url the url of the Maven repository
+     */
+    public boolean addMavenRepository(final URL repository_url) {
+
+        return configuration.addMavenRepository(repository_url);
+    }
+
+    /**
+     * Adds a Maven dependency to the list of dependencies.
+     * Any dependencies of the given dependency are resolved automatically.
+     *
+     * @param group_id the Maven dependency group ID
+     * @param artifact_id the Maven dependency artifact ID
+     * @param version the Maven dependency version
+     */
+    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version) {
+
+        return addMavenDependency(group_id, artifact_id, version, null);
+    }
+
+    /** Adds current JVM's classpath to this builder's collection of classpath files. */
+    public void addCurrentJVMClasspath() {
+
+        for (final String classpath_entry : SYSTEM_CLASSPATH.split(File.pathSeparator)) {
+            if (!classpath_entry.isEmpty()) {
+                addFile(new File(classpath_entry));
+            }
+        }
+    }
+
+    /**
+     * Adds a Maven dependency to the list of dependencies.
+     * Any dependencies of the given dependency are resolved automatically.
+     *
+     * @param group_id the Maven dependency group ID
+     * @param artifact_id the Maven dependency artifact ID
+     * @param version the Maven dependency version
+     */
+    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
+
+        final String artifact_coordinate = toCoordinate(group_id, artifact_id, version, classifier);
+        return configuration.addMavenArtifact(artifact_coordinate);
+    }
+
+    private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
+        if (!uploads.isEmpty()) {
+            host.upload(uploads, working_directory);
+        }
     }
 
     private String getWorkingDirectoryByPlatform(final Platform platform) {
@@ -80,13 +184,14 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private static String createTempDirByPlatform(final Platform platform) {
 
         final char separator = platform.getSeparator();
-        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + System.currentTimeMillis();
+        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString();
     }
 
     private void uploadBootstrapConfigurationFile(final Host host, final String working_directory) throws IOException {
 
         final File config_as_file = getConfigurationAsFile();
         host.upload(config_as_file, working_directory);
+        FileUtils.deleteQuietly(config_as_file.getParentFile());
     }
 
     private File getConfigurationAsFile() throws IOException {
@@ -105,7 +210,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static File createTempDirOnLocal() throws IOException {
 
-        final File temp_dir = new File(Bootstrap.LOCAL_SHABDIZ_TMP_HOME, String.valueOf(System.currentTimeMillis()));
+        final File temp_dir = new File(Bootstrap.LOCAL_SHABDIZ_TMP_HOME, UUID.randomUUID().toString());
         FileUtils.forceMkdir(temp_dir);
         return temp_dir;
     }
@@ -166,7 +271,8 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         appendJavaBinPath(command, platform);
         appendBootstrpAgent(command, bootstrap_jar);
         appendJVMArguments(command);
-        appendBootstrapJar(command, bootstrap_jar);
+        appendClassPath(command, platform);
+        appendMainClass(command);
         appendCommandLineArguments(command, platform, parameters);
         return command.toString();
     }
@@ -189,88 +295,17 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     @Override
-    public void setMainClass(final Class<?> main_class) {
-
-        super.setMainClass(main_class);
-        configuration.setApplicationBootstrapClass(main_class);
+    protected void appendMainClass(final StringBuilder command) {
+        command.append(BOOTSTRAP_CLASS_NAME);
+        command.append(SPACE);
     }
 
-    @Override
-    public void setMainClass(final String main_class) {
+    private void appendClassPath(final StringBuilder command, Platform platform) {
 
-        super.setMainClass(main_class);
-        configuration.setApplicationBootstrapClassName(main_class);
-    }
-
-    /**
-     * Adds a {@link URL} of a classpath resource to the list of this process builder's classpath entries.
-     * The given {@code url} is expected to be accessible by any host on which a process is {@link #start(Host, String...) started}.
-     *
-     * @param url the url of a resource that must be available in the classpath of started processes
-     */
-    public boolean addURL(URL url) {
-
-        return configuration.addClassPathURL(url);
-    }
-
-    /**
-     * Adds a file on a host to the list of this process builder's classpath entries.
-     * The given {@code file} is expected to exist on any host on which a process is {@link #start(Host, String...) started}.
-     *
-     * @param file the path to a resource that must be available in the classpath of started processes and exists on remote hosts
-     */
-    public boolean addRemoteFile(String file) {
-
-        return configuration.addClassPathFile(file);
-    }
-
-    /**
-     * Adds a local file to the list of this process builder's classpath entries.
-     * The given {@code file} is expected to exist on the local machine and is uploaded to the working directory of any host on which a process is {@link #start(Host, String...) started}.
-     *
-     * @param file the local file to add to the classpath of any process started by this process builder
-     */
-    public boolean addFile(File file) {
-
-        return uploads.add(file);
-    }
-
-    /**
-     * Adds a Maven repository to the list of repositories.
-     * The given URL is assumed to be accessible by hosts on which Java processes to be started.
-     *
-     * @param repository_url the url of the Maven repository
-     */
-    public boolean addMavenRepository(final URL repository_url) {
-
-        return configuration.addMavenRepository(repository_url);
-    }
-
-    /**
-     * Adds a Maven dependency to the list of dependencies.
-     * Any dependencies of the given dependency are resolved automatically.
-     *
-     * @param group_id the Maven dependency group ID
-     * @param artifact_id the Maven dependency artifact ID
-     * @param version the Maven dependency version
-     */
-    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version) {
-
-        return addMavenDependency(group_id, artifact_id, version, null);
-    }
-
-    /**
-     * Adds a Maven dependency to the list of dependencies.
-     * Any dependencies of the given dependency are resolved automatically.
-     *
-     * @param group_id the Maven dependency group ID
-     * @param artifact_id the Maven dependency artifact ID
-     * @param version the Maven dependency version
-     */
-    public boolean addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
-
-        final String artifact_coordinate = toCoordinate(group_id, artifact_id, version, classifier);
-        return configuration.addMavenArtifact(artifact_coordinate);
+        command.append("-cp .");
+        command.append(platform.getPathSeparator());
+        command.append("*");
+        command.append(SPACE);
     }
 
     static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {

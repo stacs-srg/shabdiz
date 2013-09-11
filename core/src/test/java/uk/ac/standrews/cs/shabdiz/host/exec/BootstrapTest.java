@@ -27,7 +27,8 @@ public class BootstrapTest {
     public void testPropertiesScanner() throws Exception {
 
         final String id = "uk.ac.standrews.cs.shabdiz.job.WorkerMain.properties:";
-        final InputStream in = IOUtils.toInputStream(id + "{worker.remote.address=138.251.195.136%3A54816, pid=33306}");
+        final InputStream in = IOUtils.toInputStream(id + "kjhfkjhafadfgkasdhjfgkadsjhgfaksdhfgjf\n" + id + "{worker.remote.address=138.251.195.136%3A54816, pid=33306}\n" +
+                "asdasdasasdsasasd");
 
         final Properties properties = Bootstrap.newProcessOutputScannerTask(in, id).call();
 
