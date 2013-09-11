@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.mashti.jetson.ClientFactory;
@@ -33,10 +34,10 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 class EchoApplicationManager extends AbstractApplicationManager {
@@ -48,7 +49,6 @@ class EchoApplicationManager extends AbstractApplicationManager {
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
-    private static final String ARGUMENTS = ":0";
     private final AgentBasedJavaProcessBuilder process_builder;
 
     EchoApplicationManager() {
@@ -68,11 +68,10 @@ class EchoApplicationManager extends AbstractApplicationManager {
     public Echo deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process echo_service_process = process_builder.start(host, ARGUMENTS);
-        final String address_as_string = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.ECHO_SERVICE_ADDRESS_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
-        final String runtime_mx_bean_name = ProcessUtil.scanProcessOutput(echo_service_process, DefaultEcho.RUNTIME_MX_BEAN_NAME_KEY, DEFAULT_DEPLOYMENT_TIMEOUT);
-        final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mx_bean_name);
-        final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
+        final Process echo_service_process = process_builder.start(host);
+        final Properties properties = Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, DEFAULT_DEPLOYMENT_TIMEOUT);
+        final Integer pid = Bootstrap.getPIDProperty(properties);
+        final InetSocketAddress address = EchoBootstrap.getAddressProperty(properties);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
         descriptor.setAttribute(ADDRESS_KEY, address);
         descriptor.setAttribute(PROCESS_KEY, echo_service_process);
