@@ -2,6 +2,7 @@ package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,7 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -47,11 +49,11 @@ public class ChordManager extends AbstractApplicationManager {
 
         final Host host = descriptor.getHost();
         final Process node_process = process_builder.start(host, "-s:0", "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
-        final String address_as_string = ProcessUtil.scanProcessOutput(node_process, NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY, PROCESS_START_TIMEOUT);
-        final String runtime_mx_bean_name = ProcessUtil.scanProcessOutput(node_process, NodeServer.RUNTIME_MX_BEAN_NAME_KEY, PROCESS_START_TIMEOUT);
-        final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
-        final Integer pid = ProcessUtil.getPIDFromRuntimeMXBeanName(runtime_mx_bean_name);
+        final Properties properties = Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
+        final Integer pid = Bootstrap.getPIDProperty(properties);
+        final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
+
         descriptor.setAttribute(PEER_PROCESS_KEY, node_process);
         descriptor.setAttribute(PEER_PROCESS_PID_KEY, pid);
         return node_reference;
@@ -78,8 +80,7 @@ public class ChordManager extends AbstractApplicationManager {
                     catch (final Exception e) {
                         error = e;
                     }
-                }
-                while (!Thread.currentThread().isInterrupted());
+                } while (!Thread.currentThread().isInterrupted());
                 throw error;
             }
         }, timeout);
