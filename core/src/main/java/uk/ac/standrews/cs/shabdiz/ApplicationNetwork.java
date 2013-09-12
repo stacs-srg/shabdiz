@@ -28,8 +28,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -340,6 +342,15 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         catch (NoSuchElementException e) {
             return null;
         }
+    }
+
+    /**
+     * Gets a copy of this network's application descriptors.
+     *
+     * @return a copy of this network's application descriptors
+     */
+    public Set<ApplicationDescriptor> getApplicationDescriptors() {
+        return new CopyOnWriteArraySet<ApplicationDescriptor>(application_descriptors);
     }
 
     /**

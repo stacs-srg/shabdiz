@@ -11,17 +11,17 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class UnknownToAuthToRunningToAuthExperiment extends Experiment {
+public class RunningToAuthAfterKillExperiment extends Experiment {
 
     private static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
 
-    public UnknownToAuthToRunningToAuthExperiment(int network_size, final Provider<Host> host_provider, final ApplicationManager manager) throws IOException {
+    public RunningToAuthAfterKillExperiment(int network_size, final Provider<Host> host_provider, final ApplicationManager manager) throws IOException {
 
         super(network_size, host_provider, manager);
     }
 
     @Override
-    public void doExperiment() throws InterruptedException {
+    public void doExperiment() throws Exception {
 
         network.setStatusScannerEnabled(true);
         final long time_to_reach_auth = timeUniformNetworkStateInNanos(ApplicationState.AUTH);
@@ -32,6 +32,7 @@ public class UnknownToAuthToRunningToAuthExperiment extends Experiment {
         setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
 
         network.setAutoDeployEnabled(false);
+        network.killAll();
         final long time_to_reach_auth_from_running = timeUniformNetworkStateInNanos(ApplicationState.AUTH);
         setProperty(TIME_TO_REACH_AUTH_FROM_RUNNING, String.valueOf(time_to_reach_auth_from_running));
     }

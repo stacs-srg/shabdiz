@@ -12,7 +12,7 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class RunningToRunningAfterResetExperiment extends Experiment {
+public class RunningToRunningAfterResetExperiment extends Experiment {
 
     private static final String TIME_TO_REACH_RUNNING_AFTER_RESET = "time_to_reach_running_after_reset";
 

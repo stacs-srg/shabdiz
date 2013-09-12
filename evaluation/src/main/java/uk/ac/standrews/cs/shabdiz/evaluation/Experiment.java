@@ -41,14 +41,19 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 @RunWith(Parameterized.class)
 public abstract class Experiment {
 
+    //TODO fix the state change over time gauge. one for each state
+    //TODO fix the key-value pair CSV output
+
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
+    static final int REPETITIONS = 20;
+    static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
+    static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new BlubHostProvider()};
+    //FIXME add application managers
+    static final ApplicationManager[] APPLICATION_MANAGERS = {};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
-    private static final int REPETITIONS = 20;
-    private static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    private static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new BlubHostProvider()};
     protected final ApplicationNetwork network;
     private final MetricRegistry registry;
     private final CsvReporter reporter;
@@ -62,10 +67,10 @@ public abstract class Experiment {
     private final File observations_directory;
     private final String name;
     private final Properties properties = new Properties();
-    private final Integer network_size;
+    protected final Integer network_size;
     private final Provider<Host> host_provider;
     private final ApplicationManager manager;
-    private final Timer timer = new Timer();
+    protected final Timer timer = new Timer();
 
     public Experiment(Integer network_size, Provider<Host> host_provider, ApplicationManager manager) throws IOException {
 
@@ -81,17 +86,11 @@ public abstract class Experiment {
         populateProperties();
     }
 
-    private void populateProperties() {
-
-        properties.put("name", name);
-        properties.put("observations_directory", observations_directory.getAbsolutePath());
-    }
-
-    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}")
-    public static Collection<Object[]> data() {
+    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}")
+    public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, HOST_PROVIDERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, HOST_PROVIDERS, APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -113,6 +112,25 @@ public abstract class Experiment {
         persistProperties();
         LOGGER.info("starting experimentation...");
         startReporter();
+    }
+
+    @Test
+    @Category(Experiment.class)
+    public abstract void doExperiment() throws Exception;
+
+    @After
+    public void tearDown() throws Exception {
+
+        persistProperties();
+        reporter.stop();
+        getNetwork().shutdown();
+        LOGGER.info("done, results are stored at {}", observations_directory);
+    }
+
+    private void populateProperties() {
+
+        properties.put("name", name);
+        properties.put("observations_directory", observations_directory.getAbsolutePath());
     }
 
     protected void registerMetric(final String metric_name, final Metric metric) {
@@ -159,19 +177,6 @@ public abstract class Experiment {
     protected ApplicationNetwork getNetwork() {
 
         return network;
-    }
-
-    @Test
-    @Category(Experiment.class)
-    public abstract void doExperiment() throws Exception;
-
-    @After
-    public void tearDown() throws Exception {
-
-        persistProperties();
-        reporter.stop();
-        getNetwork().shutdown();
-        LOGGER.info("done, results are stored at {}", observations_directory);
     }
 
     protected long timeUniformNetworkStateInNanos(ApplicationState state) throws InterruptedException {
