@@ -37,7 +37,7 @@ public class ChordManager extends AbstractApplicationManager {
     protected final AgentBasedJavaProcessBuilder process_builder;
     private final SHA1KeyFactory key_factory;
 
-    public ChordManager() {
+    public ChordManager() throws Exception {
 
         process_builder = new AgentBasedJavaProcessBuilder();
         configure();
@@ -71,7 +71,7 @@ public class ChordManager extends AbstractApplicationManager {
         }
     }
 
-    protected void configure() {
+    protected void configure() throws Exception {
 
         process_builder.setMainClass(NodeServer.class);
     }

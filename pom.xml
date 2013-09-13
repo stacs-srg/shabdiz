@@ -65,7 +65,7 @@
         <repository>
             <id>org.mashti.maven</id>
             <name>Mashti Maven Repository</name>
-            <url>http://maven.mashti.org</url>
+            <url>http://maven.mashti.org/</url>
         </repository>
     </repositories>
 

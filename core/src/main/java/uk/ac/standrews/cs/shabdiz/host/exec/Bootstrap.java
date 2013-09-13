@@ -95,7 +95,7 @@ public abstract class Bootstrap {
             bootstrap.printProperties();
         }
         else {
-            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[] {args});
+            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
         }
     }
 
@@ -257,7 +257,7 @@ public abstract class Bootstrap {
 
         try {
             addClassToJar(MavenDependencyResolver.class, jar_stream);
-            addClassToJar(MavenDependencyResolver.URLCollector.class, jar_stream);
+            addClassToJar(MavenDependencyResolver.FileCollector.class, jar_stream);
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
             addClassToJar(Duration.class, jar_stream);
@@ -295,8 +295,8 @@ public abstract class Bootstrap {
     private static void loadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
 
         for (String artifact : maven_artifacts) {
-            final List<URL> resolved_urls = maven_dependency_resolver.resolve(artifact);
-            loadClassPathUrls(instrumentation, resolved_urls);
+            final List<File> resolved_urls = maven_dependency_resolver.resolve(artifact);
+            loadClassPathFiles(instrumentation, resolved_urls);
         }
     }
 
@@ -307,10 +307,10 @@ public abstract class Bootstrap {
         }
     }
 
-    private static void loadClassPathUrls(final Instrumentation instrumentation, final Collection<URL> urls) throws URISyntaxException, IOException {
+    private static void loadClassPathFiles(final Instrumentation instrumentation, final Collection<File> files) throws URISyntaxException, IOException {
 
-        for (URL url : urls) {
-            loadClassPathURL(instrumentation, url);
+        for (File file : files) {
+            loadClassPathFile(instrumentation, file);
         }
     }
 
@@ -364,8 +364,7 @@ public abstract class Bootstrap {
         if (!cache.isFile()) {
             copyUrlToFile(url, cache);
         }
-        final JarFile url_as_jar = new JarFile(cache);
-        loadClassPathJAR(instrumentation, url_as_jar);
+        loadClassPathFile(instrumentation, cache);
     }
 
     private static void loadClassPathJAR(final Instrumentation instrumentation, final JarFile jar) {
@@ -404,7 +403,6 @@ public abstract class Bootstrap {
 
     private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
 
-        System.out.println(url);
         final File url_as_file;
         if (!isFile(url)) {
             url_as_file = copyUrlToWorkingDirectory(url);
@@ -413,8 +411,13 @@ public abstract class Bootstrap {
             url_as_file = new File(url.toURI());
         }
 
-        final JarFile url_as_jar = new JarFile(url_as_file);
-        loadClassPathJAR(instrumentation, url_as_jar);
+        loadClassPathFile(instrumentation, url_as_file);
+    }
+
+    private static void loadClassPathFile(final Instrumentation instrumentation, final File file) throws IOException {
+
+        final JarFile jar = new JarFile(file);
+        loadClassPathJAR(instrumentation, jar);
     }
 
     private static File copyUrlToWorkingDirectory(final URL url) throws IOException {
@@ -444,6 +447,7 @@ public abstract class Bootstrap {
         private boolean delete_working_directory_on_exit;
 
         void setDeleteWorkingDirectoryOnExit(final boolean enabled) {
+
             delete_working_directory_on_exit = enabled;
         }
 
@@ -566,6 +570,7 @@ public abstract class Bootstrap {
 
         @Override
         public void run() {
+
             try {
                 deleteRecursively(WORKING_DIRECTORY);
             }
@@ -576,12 +581,15 @@ public abstract class Bootstrap {
         }
 
         void deleteRecursively(File file) throws IOException {
+
             if (file.isDirectory()) {
                 for (File sub_file : file.listFiles()) {
                     deleteRecursively(sub_file);
                 }
             }
-            if (!file.delete()) { System.err.println("Failed to delete file: " + file); }
+            if (!file.delete()) {
+                System.err.println("Failed to delete file: " + file);
+            }
         }
     }
 }

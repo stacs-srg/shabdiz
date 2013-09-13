@@ -1,7 +1,9 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,8 @@ public class MavenDependencyResolverTest {
     @Test
     public void testResolveByCoordinate() throws Exception {
 
-        final List<URL> resolve = maven_dependency_resolver.resolve("uk.ac.standrews.cs:stachord:2.0-SNAPSHOT");
+        final List<URL> resolve = maven_dependency_resolver.resolveAsRemoteURLs(new DefaultArtifact("uk.ac.standrews.cs:stachord:2.0-SNAPSHOT"));
+        System.out.println(Arrays.toString(resolve.toArray()));
     }
 
     @Test

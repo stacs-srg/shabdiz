@@ -21,6 +21,7 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_JAR_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.SHABDIZ_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.TEMP_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
+import static uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver.toCoordinate;
 
 /**
  * Builds Java process on hosts and resolves any dependencies using Maven.
@@ -34,22 +35,41 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
 public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentBasedJavaProcessBuilder.class);
-    private static final String COLON = ":";
     private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
     private static final String EQUALS = "=";
     private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
-    private static final String JVM_PARAM_JAR = "-jar";
     private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = true;
     private static final String SYSTEM_CLASSPATH = System.getProperty("java.class.path");
     private static final String BOOTSTRAP_CLASS_NAME = Bootstrap.class.getName();
     private final Bootstrap.BootstrapConfiguration configuration;
     private final Set<File> uploads;
+    private boolean always_upload_bootstrap;
 
     /** Initialises a new Maven managed Java process builder. */
     public AgentBasedJavaProcessBuilder() {
 
         configuration = new Bootstrap.BootstrapConfiguration();
         uploads = new HashSet<File>();
+    }
+
+    /**
+     * Whether to always upload bootstrap jar.
+     *
+     * @return whether to always upload bootstrap jar
+     */
+    public boolean alwaysUploadBootstrap() {
+
+        return always_upload_bootstrap;
+    }
+
+    /**
+     * Sets whether to always upload bootstrap jar
+     *
+     * @param always_upload_bootstrap whether to always upload bootstrap jar
+     */
+    public void setAlwaysUploadBootstrap(final boolean always_upload_bootstrap) {
+
+        this.always_upload_bootstrap = always_upload_bootstrap;
     }
 
     @Override
@@ -167,6 +187,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
+
         if (!uploads.isEmpty()) {
             host.upload(uploads, working_directory);
         }
@@ -215,12 +236,12 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return temp_dir;
     }
 
-    private static String uploadBootstrapJar(final Host host) throws IOException {
+    private String uploadBootstrapJar(final Host host) throws IOException {
 
         final Platform platform = host.getPlatform();
         final String bootstrap_home = getBootstrapHomeByPlatform(platform);
         final String bootstrap_jar = getBootstrapJarByPlatform(platform);
-        final boolean already_exists = existsOnHost(host, bootstrap_jar);
+        final boolean already_exists = !always_upload_bootstrap || existsOnHost(host, bootstrap_jar);
         if (!already_exists) {
             host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
@@ -286,16 +307,9 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(SPACE);
     }
 
-    private static void appendBootstrapJar(final StringBuilder command, final String bootstrap_jar) {
-
-        command.append(JVM_PARAM_JAR);
-        command.append(SPACE);
-        command.append(bootstrap_jar);
-        command.append(SPACE);
-    }
-
     @Override
     protected void appendMainClass(final StringBuilder command) {
+
         command.append(BOOTSTRAP_CLASS_NAME);
         command.append(SPACE);
     }
@@ -306,16 +320,5 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(platform.getPathSeparator());
         command.append("*");
         command.append(SPACE);
-    }
-
-    static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append(group_id).append(COLON).append(artifact_id);
-        if (classifier != null) {
-            builder.append(COLON).append("jar").append(COLON).append(classifier);
-        }
-        builder.append(COLON).append(version);
-        return builder.toString();
     }
 }

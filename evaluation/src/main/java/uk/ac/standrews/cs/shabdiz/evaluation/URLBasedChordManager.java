@@ -1,16 +1,17 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import java.io.File;
+import java.net.URL;
 import java.util.List;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class FileBasedChordManager extends ChordManager {
+public class URLBasedChordManager extends ChordManager {
 
     private final MavenDependencyResolver resolver;
 
-    public FileBasedChordManager() throws Exception {
+    public URLBasedChordManager() throws Exception {
 
         resolver = new MavenDependencyResolver();
     }
@@ -21,9 +22,9 @@ public class FileBasedChordManager extends ChordManager {
         super.configure();
 
         final String stachord_coordinates = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, "stachord", "2.0-SNAPSHOT");
-        final List<File> dependenlcy_files = resolver.resolve(stachord_coordinates);
-        for (File file : dependenlcy_files) {
-            process_builder.addFile(file);
+        final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(new DefaultArtifact(stachord_coordinates));
+        for (URL url : dependenlcy_urls) {
+            process_builder.addURL(url);
         }
     }
 }

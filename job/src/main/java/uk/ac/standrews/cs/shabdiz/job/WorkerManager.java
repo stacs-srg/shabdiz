@@ -61,16 +61,6 @@ class WorkerManager extends AbstractApplicationManager {
         proxy_factory = new LeanClientFactory<WorkerRemote>(WorkerRemote.class);
     }
 
-    private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
-
-        final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
-        process_builder.setMainClass(WorkerMain.class);
-        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
-        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
-        return process_builder;
-    }
-
     @Override
     public Worker deploy(final ApplicationDescriptor descriptor) throws Exception {
 
@@ -111,18 +101,6 @@ class WorkerManager extends AbstractApplicationManager {
         }
     }
 
-    private Integer getProcessIDFromProperties(final Properties properties) {
-
-        final String pid_as_string = properties.getProperty(Bootstrap.PID_PROPERTY_KEY);
-        return pid_as_string.equals("null") ? null : Integer.valueOf(pid_as_string);
-    }
-
-    private InetSocketAddress getWorkerAddressFromProperties(final Host host, final Properties properties) throws UnknownHostException {
-
-        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
-        return new InetSocketAddress(host.getAddress(), worker_port);
-    }
-
     /**
      * Sets the worker deployment timeout.
      *
@@ -149,6 +127,29 @@ class WorkerManager extends AbstractApplicationManager {
     public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
 
         worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
+    }
+
+    private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
+
+        final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
+        process_builder.setMainClass(WorkerMain.class);
+        process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
+        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
+        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
+        process_builder.setAlwaysUploadBootstrap(true);
+        return process_builder;
+    }
+
+    private Integer getProcessIDFromProperties(final Properties properties) {
+
+        final String pid_as_string = properties.getProperty(Bootstrap.PID_PROPERTY_KEY);
+        return pid_as_string.equals("null") ? null : Integer.valueOf(pid_as_string);
+    }
+
+    private InetSocketAddress getWorkerAddressFromProperties(final Host host, final Properties properties) throws UnknownHostException {
+
+        final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
+        return new InetSocketAddress(host.getAddress(), worker_port);
     }
 
     @Override

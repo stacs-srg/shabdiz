@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,21 +26,98 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
-class MavenDependencyResolver {
+public class MavenDependencyResolver {
 
     static final File REPOSITORY_HOME = new File(Bootstrap.LOCAL_SHABDIZ_HOME, "repository");
+    private static final String COLON = ":";
     private static final String DEFAULT_REPOSITORY_TYPE = "default";
     private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build();
     private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
     private static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
     private static final RepositorySystemSession REPOSITORY_SYSTEM_SESSION = createRepositorySystemSession(REPOSITORY_SYSTEM, REPOSITORY_HOME);
+    private static final int URL_PING_TIMEOUT_MILLIS = 15000;
     private final List<RemoteRepository> repositories;
 
-    MavenDependencyResolver() {
+    public MavenDependencyResolver() {
 
         repositories = new ArrayList<RemoteRepository>();
         addDefaultRepositories();
+    }
+
+    public static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append(group_id).append(COLON).append(artifact_id);
+        if (classifier != null) {
+            builder.append(COLON).append("jar").append(COLON).append(classifier);
+        }
+        builder.append(COLON).append(version);
+        return builder.toString();
+    }
+
+    public static String toCoordinate(final String group_id, final String artifact_id, final String version) {
+
+        return toCoordinate(group_id, artifact_id, version, null);
+    }
+
+    public List<File> resolve(String artifact_coordinates) throws DependencyCollectionException, DependencyResolutionException {
+
+        return resolve(new DefaultArtifact(artifact_coordinates));
+    }
+
+    public List<File> resolve(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
+
+        final List<DependencyNode> nodes = resolveAsDependencyNode(artifact);
+        return getFiles(nodes);
+    }
+
+    public List<URL> resolveAsRemoteURLs(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, IOException {
+
+        final List<DependencyNode> nodes = resolveAsDependencyNode(artifact);
+        return getRemoteURLs(nodes);
+    }
+
+    public List<DependencyNode> resolveAsDependencyNode(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
+
+        final CollectResult collect_result = collectDependencies(artifact, repositories);
+        final DependencyNode root_dependency = collect_result.getRoot();
+        final DependencyRequest dep_request = new DependencyRequest();
+        final DependencyNodeCollector node_collector = new DependencyNodeCollector();
+        dep_request.setRoot(root_dependency);
+        REPOSITORY_SYSTEM.resolveDependencies(REPOSITORY_SYSTEM_SESSION, dep_request);
+        root_dependency.accept(node_collector);
+        return node_collector.nodes;
+    }
+
+    private List<URL> getRemoteURLs(final List<DependencyNode> nodes) throws IOException {
+
+        final List<URL> urls = new ArrayList<URL>();
+        for (DependencyNode node : nodes) {
+
+            final Artifact artifact = node.getArtifact();
+            boolean added = false;
+
+            for (RemoteRepository repository : node.getRepositories()) {
+                if (!added) {
+                    final URL url = constructRemoteURL(artifact, repository);
+                    added |= URLUtils.ping(url, URL_PING_TIMEOUT_MILLIS) && urls.add(url);
+                }
+            }
+
+            if (!added) { throw new IOException("unable to resolve the remote ural of artifact " + artifact); }
+        }
+        return urls;
+    }
+
+    private List<File> getFiles(final List<DependencyNode> nodes) {
+
+        final List<File> files = new ArrayList<File>();
+        for (DependencyNode node : nodes) {
+            files.add(node.getArtifact().getFile());
+        }
+        return files;
     }
 
     private void addDefaultRepositories() {
@@ -51,24 +129,6 @@ class MavenDependencyResolver {
     private boolean addRepository(final RemoteRepository repository) {
 
         return repositories.add(repository);
-    }
-
-    List<URL> resolve(String artifact_coordinates) throws DependencyCollectionException, DependencyResolutionException {
-
-        return resolve(new DefaultArtifact(artifact_coordinates));
-    }
-
-    List<URL> resolve(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
-
-        final CollectResult collect_result = collectDependencies(artifact, repositories);
-        final DependencyNode root_dependency = collect_result.getRoot();
-        final DependencyRequest dep_request = new DependencyRequest();
-        final URLCollector url_collector = new URLCollector();
-        dep_request.setRoot(root_dependency);
-        REPOSITORY_SYSTEM.resolveDependencies(REPOSITORY_SYSTEM_SESSION, dep_request);
-        root_dependency.accept(url_collector);
-
-        return url_collector.urls;
     }
 
     private static CollectResult collectDependencies(final Artifact artifact, final List<RemoteRepository> repositories) throws DependencyCollectionException {
@@ -114,29 +174,61 @@ class MavenDependencyResolver {
         return locator.getService(RepositorySystem.class);
     }
 
-    static class URLCollector implements DependencyVisitor {
+    private URL constructRemoteURL(final Artifact artifact, final RemoteRepository repository) throws MalformedURLException {
 
-        private final List<URL> urls;
+        final StringBuilder url_as_string = new StringBuilder();
+        final String artifact_id = artifact.getArtifactId();
+        final String repo_url = repository.getUrl();
+        url_as_string.append(repo_url.endsWith("/") ? repo_url : repo_url + "/");
+        url_as_string.append(artifact.getGroupId().replaceAll("\\.", "/"));
+        url_as_string.append("/");
+        url_as_string.append(artifact_id);
+        url_as_string.append("/");
+        url_as_string.append(artifact.getBaseVersion());
+        url_as_string.append("/");
+        url_as_string.append(artifact_id);
+        url_as_string.append("-");
+        url_as_string.append(artifact.getVersion());
+        url_as_string.append(".");
+        url_as_string.append(artifact.getExtension());
 
-        URLCollector() {
+        return new URL(url_as_string.toString());
+    }
 
-            urls = new ArrayList<URL>();
+    static class FileCollector implements DependencyVisitor {
+
+        private final List<File> files;
+
+        FileCollector() {
+
+            files = new ArrayList<File>();
         }
 
         public boolean visitEnter(final DependencyNode node) {
 
-            final File artifact_file = node.getArtifact().getFile();
-            return urls.add(toURL(artifact_file));
+            final Artifact artifact = node.getArtifact();
+            final File artifact_file = artifact.getFile();
+            return files.add(artifact_file);
         }
 
-        private URL toURL(final File artifact_file) {
+        public boolean visitLeave(final DependencyNode node) {
 
-            try {
-                return artifact_file.toURI().toURL();
-            }
-            catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
+            return true;
+        }
+    }
+
+    static class DependencyNodeCollector implements DependencyVisitor {
+
+        private final List<DependencyNode> nodes;
+
+        DependencyNodeCollector() {
+
+            nodes = new ArrayList<DependencyNode>();
+        }
+
+        public boolean visitEnter(final DependencyNode node) {
+
+            return nodes.add(node);
         }
 
         public boolean visitLeave(final DependencyNode node) {
