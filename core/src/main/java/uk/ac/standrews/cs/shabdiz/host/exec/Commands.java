@@ -20,6 +20,7 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.platform.CygwinPlatform;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
@@ -74,7 +75,7 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return String.format(Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE, params);
+            return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_HOME : ECHO_USERPROFILE, params);
         }
     };
     /** Gets user name. */
@@ -139,7 +140,7 @@ public final class Commands {
     /** The kill by PID command builder. */
     public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
 
-        private static final String TASKKILL_PID = "taskkill /PID ";
+        private static final String TASKKILL_PID = "taskkill /F /PID ";
         private static final String KILL_9 = "kill ";
 
         /** Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command. */
@@ -168,7 +169,6 @@ public final class Commands {
             return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
-
     private static final String SPACE = " ";
     private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
 

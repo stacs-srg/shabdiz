@@ -26,9 +26,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 /**
  * Tests whether a deployed job returns expected result.
@@ -51,7 +53,7 @@ public class NormalOperationTest {
     @BeforeClass
     public static void setUp() throws Exception {
 
-        localhost = new LocalHost();
+        localhost = new SSHHost("project07", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter password")));
         network = new WorkerNetwork();
         network.add(localhost);
         network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");

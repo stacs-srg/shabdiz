@@ -14,8 +14,8 @@ import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
-import uk.ac.standrews.cs.shabdiz.host.exec.JavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -28,18 +28,19 @@ import uk.ac.standrews.cs.stachord.servers.NodeServer;
 public class ChordManager extends AbstractApplicationManager {
 
     private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
-    private static final Duration DEFAULT_RETRY_DELAY = new Duration(1, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_RETRY_DELAY = new Duration(3, TimeUnit.SECONDS);
     private static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final AttributeKey<Process> PEER_PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PEER_PROCESS_PID_KEY = new AttributeKey<Integer>();
     private static final long KEY_FACTORY_SEED = 0x585;
     private final ChordNodeFactory node_factory;
-    private final JavaProcessBuilder process_builder;
+    protected final AgentBasedJavaProcessBuilder process_builder;
     private final SHA1KeyFactory key_factory;
 
-    public ChordManager(JavaProcessBuilder process_builder) {
+    public ChordManager() {
 
-        this.process_builder = process_builder;
+        process_builder = new AgentBasedJavaProcessBuilder();
+        configure();
         node_factory = new ChordNodeFactory();
         key_factory = new SHA1KeyFactory(KEY_FACTORY_SEED);
     }
@@ -57,6 +58,22 @@ public class ChordManager extends AbstractApplicationManager {
         descriptor.setAttribute(PEER_PROCESS_KEY, node_process);
         descriptor.setAttribute(PEER_PROCESS_PID_KEY, pid);
         return node_reference;
+    }
+
+    @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+
+        try {
+            killByProcessID(descriptor);
+        }
+        finally {
+            destroyProcess(descriptor);
+        }
+    }
+
+    protected void configure() {
+
+        process_builder.setMainClass(NodeServer.class);
     }
 
     private IChordRemoteReference bindWithRetry(final InetSocketAddress address) throws InterruptedException, ExecutionException, TimeoutException {
@@ -80,7 +97,8 @@ public class ChordManager extends AbstractApplicationManager {
                     catch (final Exception e) {
                         error = e;
                     }
-                } while (!Thread.currentThread().isInterrupted());
+                }
+                while (!Thread.currentThread().isInterrupted());
                 throw error;
             }
         }, timeout);
@@ -89,17 +107,6 @@ public class ChordManager extends AbstractApplicationManager {
     private synchronized IKey nextPeerKey() {
 
         return key_factory.generateKey();
-    }
-
-    @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        try {
-            killByProcessID(descriptor);
-        }
-        finally {
-            destroyProcess(descriptor);
-        }
     }
 
     private void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {

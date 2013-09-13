@@ -11,11 +11,14 @@ import javax.inject.Provider;
 import org.junit.runners.Parameterized;
 import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Timer;
+import uk.ac.standrews.cs.nds.rpc.RPCException;
+import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ChordRingSizeScanner;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 
 /**
  * Unknwon -> Auth -> Running -> Kill a portion -> Running
@@ -41,7 +44,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, HOST_PROVIDERS, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -68,6 +71,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         final long time_to_reach_running = timeUniformNetworkStateInNanos(ApplicationState.RUNNING);
         setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
 
+        assembleRing();
         final long time_to_reach_stabilized_ring = timeRingStabilization();
         setProperty(TIME_TO_REACH_STABILIZED_RING, String.valueOf(time_to_reach_stabilized_ring));
 
@@ -80,6 +84,21 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         final long time_to_reach_stabilized_ring_after_kill = timeRingStabilization();
         setProperty(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL, String.valueOf(time_to_reach_stabilized_ring_after_kill));
 
+    }
+
+    private void assembleRing() throws RPCException {
+
+        IChordRemoteReference known_node = null;
+        for (ApplicationDescriptor descriptor : network) {
+
+            final IChordRemoteReference reference = descriptor.getApplicationReference();
+            if (known_node == null) {
+                known_node = reference;
+            }
+            else {
+                reference.getRemote().join(known_node);
+            }
+        }
     }
 
     private long timeRingStabilization() throws InterruptedException {
@@ -107,6 +126,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
 
         @Override
         public Integer get() {
+
             return ring_size_scanner.getLastStableRingSize();
         }
     }
