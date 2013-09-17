@@ -113,7 +113,6 @@ public abstract class Experiment {
         registerMetric("memory_gauge", memory_gauge);
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
-        persistProperties();
         LOGGER.info("starting experimentation...");
         startReporter();
     }
@@ -133,12 +132,12 @@ public abstract class Experiment {
 
     private void populateProperties() {
 
-        properties.put("name", name);
-        properties.put("observations_directory", observations_directory.getAbsolutePath());
-        properties.put("network_size", network_size);
-        properties.put("manager", manager);
-        properties.put("cold", cold);
-        properties.put("host_provider", host_provider);
+        setProperty("name", name);
+        setProperty("observations_directory", observations_directory.getAbsolutePath());
+        setProperty("network_size", network_size);
+        setProperty("manager", manager);
+        setProperty("cold", cold);
+        setProperty("host_provider", host_provider);
 
     }
 
@@ -195,9 +194,9 @@ public abstract class Experiment {
         return time.stop();
     }
 
-    protected Object setProperty(String key, String value) {
+    protected Object setProperty(String key, Object value) {
 
-        return properties.setProperty(key, value);
+        return properties.setProperty(key, String.valueOf(value));
     }
 
     protected class StateCountGauge implements Gauge<Integer> {

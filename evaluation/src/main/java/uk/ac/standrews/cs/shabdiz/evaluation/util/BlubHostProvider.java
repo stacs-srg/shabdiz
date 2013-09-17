@@ -54,6 +54,6 @@ public class BlubHostProvider implements Provider<Host> {
 
     private static boolean isOutOfRange(final int index) {
 
-        return index < 0 || index > MAX_INDEX - 1;
+        return index < 0 || index > MAX_INDEX;
     }
 }
