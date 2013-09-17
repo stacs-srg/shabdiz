@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
     static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(RunningToRunningAfterKillExperiment.class);
     private static final long RANDOM_SEED = 0x455fa4;
-    private final float kill_portion;
+    protected final float kill_portion;
     private final Random random;
 
     public RunningToRunningAfterKillExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, boolean cold, final float kill_portion) throws IOException {
@@ -50,25 +51,37 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
     @Override
     public void doExperiment() throws Exception {
 
+        LOGGER.info("enabling status scanner");
         network.setStatusScannerEnabled(true);
+        LOGGER.info("awaiting AUTH state...");
         final long time_to_reach_auth = timeUniformNetworkStateInNanos(ApplicationState.AUTH);
         setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
+        LOGGER.info("reached AUTH state in {} seconds", TimeUnit.SECONDS.convert(time_to_reach_auth, TimeUnit.NANOSECONDS));
 
+        LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);
+        LOGGER.info("awaiting RUNNING state...");
         final long time_to_reach_running = timeUniformNetworkStateInNanos(ApplicationState.RUNNING);
         setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
+        LOGGER.info("reached RUNNING state in {} seconds", TimeUnit.SECONDS.convert(time_to_reach_running, TimeUnit.NANOSECONDS));
 
+        LOGGER.info("disabling auto deploy");
         network.setAutoDeployEnabled(false);
+        LOGGER.info("killing {} portion of network", kill_portion);
         killPortionOfNetwork();
+
+        LOGGER.info("re-enabling auto deploy");
         network.setAutoDeployEnabled(true);
+        LOGGER.info("awaiting RUNNING state after killing portion of network...");
         final long time_to_reach_running_after_kill = timeUniformNetworkStateInNanos(ApplicationState.RUNNING);
         setProperty(TIME_TO_REACH_RUNNING_AFTER_KILL, String.valueOf(time_to_reach_running_after_kill));
+        LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, TimeUnit.SECONDS.convert(time_to_reach_running, TimeUnit.NANOSECONDS));
     }
 
     protected void killPortionOfNetwork() throws Exception {
 
         final int kill_count = getNumberOfKillCandidates();
-        LOGGER.debug("number of descriptors to kill: {}", kill_count);
+        LOGGER.info("killing {} out of {}...", kill_count, network_size);
         final List<ApplicationDescriptor> descriptors_list = new ArrayList<ApplicationDescriptor>(network.getApplicationDescriptors());
         final int descriptors_count = descriptors_list.size();
         for (int i = 0; i < kill_count; i++) {
@@ -82,7 +95,6 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
 
     private int getNumberOfKillCandidates() {
 
-        final int network_size = network.size();
         final int kill_count = Math.round(network_size / kill_portion);
         if (kill_count == 0) {
             LOGGER.warn("the number of instances to kill is zero for network size of {} and kill portion of {}", network_size, kill_portion);

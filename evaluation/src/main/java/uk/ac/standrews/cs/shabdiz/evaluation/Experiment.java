@@ -135,6 +135,11 @@ public abstract class Experiment {
 
         properties.put("name", name);
         properties.put("observations_directory", observations_directory.getAbsolutePath());
+        properties.put("network_size", network_size);
+        properties.put("manager", manager);
+        properties.put("cold", cold);
+        properties.put("host_provider", host_provider);
+
     }
 
     protected void registerMetric(final String metric_name, final Metric metric) {
