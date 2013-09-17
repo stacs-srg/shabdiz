@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.IOException;
 import javax.inject.Provider;
-import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
@@ -15,9 +14,9 @@ public class RunningToAuthAfterKillExperiment extends Experiment {
 
     private static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
 
-    public RunningToAuthAfterKillExperiment(int network_size, final Provider<Host> host_provider, final ApplicationManager manager) throws IOException {
+    public RunningToAuthAfterKillExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager, boolean cold) throws IOException {
 
-        super(network_size, host_provider, manager);
+        super(network_size, host_provider, manager, cold);
     }
 
     @Override

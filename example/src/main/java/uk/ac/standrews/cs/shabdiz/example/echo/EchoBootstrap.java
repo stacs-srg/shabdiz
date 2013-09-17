@@ -29,7 +29,7 @@ public class EchoBootstrap extends Bootstrap {
         bootstrap.deploy(args);
     }
 
-    static InetSocketAddress getAddressProperty(Properties properties) throws UnknownHostException {
+    public static InetSocketAddress getAddressProperty(Properties properties) throws UnknownHostException {
 
         final String address_as_string = properties.getProperty(ECHO_SERVICE_ADDRESS_KEY);
         return address_as_string != null ? NetworkUtil.getAddressFromString(address_as_string) : null;
@@ -37,6 +37,7 @@ public class EchoBootstrap extends Bootstrap {
 
     @Override
     protected void deploy(final String... args) throws IOException {
+
         final InetSocketAddress address = getAddress(args);
         final DefaultEcho echo_service = new DefaultEcho(address);
         setProperty(ECHO_SERVICE_ADDRESS_KEY, echo_service.getAddress());

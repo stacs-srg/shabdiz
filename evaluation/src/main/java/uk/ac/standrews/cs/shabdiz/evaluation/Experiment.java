@@ -29,7 +29,6 @@ import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
@@ -41,7 +40,8 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 @RunWith(Parameterized.class)
 public abstract class Experiment {
 
-    //TODO fix the state change over time gauge. one for each state
+    //TODO fix the state change over time gauge. one for each state : use property change listener
+
     //TODO fix the key-value pair CSV output
 
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
@@ -49,12 +49,14 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 20;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new BlubHostProvider()};
-    //FIXME add application managers
-    static final ApplicationManager[] APPLICATION_MANAGERS = {};
+    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
+    static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
+    static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     protected final ApplicationNetwork network;
+    protected final Integer network_size;
+    protected final Timer timer = new Timer();
     private final MetricRegistry registry;
     private final CsvReporter reporter;
     private final StateCountGauge auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
@@ -67,16 +69,16 @@ public abstract class Experiment {
     private final File observations_directory;
     private final String name;
     private final Properties properties = new Properties();
-    protected final Integer network_size;
     private final Provider<Host> host_provider;
-    private final ApplicationManager manager;
-    protected final Timer timer = new Timer();
+    private final ExperimentManager manager;
+    private final boolean cold;
 
-    public Experiment(Integer network_size, Provider<Host> host_provider, ApplicationManager manager) throws IOException {
+    public Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager, boolean cold) throws IOException {
 
         this.network_size = network_size;
         this.host_provider = host_provider;
         this.manager = manager;
+        this.cold = cold;
         network = new ApplicationNetwork(getClass().getSimpleName() + " Network");
         name = getClass().getSimpleName() + "_" + network_size;
         observations_directory = new File(new File(name, "repetitions"), String.valueOf(System.currentTimeMillis()));
@@ -86,11 +88,11 @@ public abstract class Experiment {
         populateProperties();
     }
 
-    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}")
+    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, HOST_PROVIDERS, APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, APPLICATION_MANAGERS, HOT_COLD});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -99,8 +101,11 @@ public abstract class Experiment {
 
     @Before
     public void setUp() throws Exception {
+
         disableAllNetworkScanners();
         populateNetwork();
+        manager.configure(network, cold);
+
         registerMetric("auth_state_gauge", auth_state_gauge);
         registerMetric("running_state_gauge", running_state_gauge);
         registerMetric("unknown_state_gauge", unknown_state_gauge);
@@ -108,7 +113,6 @@ public abstract class Experiment {
         registerMetric("memory_gauge", memory_gauge);
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
-
         persistProperties();
         LOGGER.info("starting experimentation...");
         startReporter();
@@ -180,6 +184,7 @@ public abstract class Experiment {
     }
 
     protected long timeUniformNetworkStateInNanos(ApplicationState state) throws InterruptedException {
+
         final Timer.Time time = timer.time();
         getNetwork().awaitAnyOfStates(state);
         return time.stop();
@@ -212,5 +217,4 @@ public abstract class Experiment {
             return count;
         }
     }
-
 }

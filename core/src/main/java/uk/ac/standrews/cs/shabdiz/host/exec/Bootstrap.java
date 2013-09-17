@@ -103,22 +103,12 @@ public abstract class Bootstrap {
 
         if (path_to_config_file == null) { throw new IllegalArgumentException("unspecified config file in bootstrap agent"); }
 
-        final FileInputStream in = new FileInputStream(path_to_config_file);
-        final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
-
-        if (configuration.hasMavenArtifact()) {
-            initMavenDependencyResolver(instrumentation);
-            addMavenRepositories(configuration.maven_repositories);
-            loadMavenArtifacts(instrumentation, configuration.maven_artifacts);
-        }
+        final BootstrapConfiguration configuration = getConfigurationFromFile(path_to_config_file);
+        loadMavenArtifacts(instrumentation, configuration);
         loadClassPathFiles(instrumentation, configuration.files);
         loadClassPathUrlsAsString(instrumentation, configuration.urls);
-        application_bootstrap_class_name = configuration.application_bootstrap_class_name;
-
-        if (configuration.delete_working_directory_on_exit) {
-            Runtime.getRuntime().addShutdownHook(RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK);
-            System.out.println("ADDED DELETION HOOK");
-        }
+        loadShutdownHooks(configuration);
+        loadApplicationBootstrapClassName(configuration);
     }
 
     public static Properties readProperties(Class<? extends Bootstrap> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
@@ -126,6 +116,35 @@ public abstract class Bootstrap {
         final String properties_id = getPropertiesID(bootstrap_class);
         final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
         return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
+    }
+
+    private static BootstrapConfiguration getConfigurationFromFile(final String path_to_config_file) throws IOException {
+
+        final FileInputStream in = new FileInputStream(path_to_config_file);
+        final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
+        in.close();
+        return configuration;
+    }
+
+    private static void loadMavenArtifacts(final Instrumentation instrumentation, final BootstrapConfiguration configuration) throws Exception {
+
+        if (configuration.hasMavenArtifact()) {
+            initMavenDependencyResolver(instrumentation);
+            addMavenRepositories(configuration.maven_repositories);
+            resolveAndLoadMavenArtifacts(instrumentation, configuration.maven_artifacts);
+        }
+    }
+
+    private static void loadApplicationBootstrapClassName(final BootstrapConfiguration configuration) {
+
+        application_bootstrap_class_name = configuration.application_bootstrap_class_name;
+    }
+
+    private static void loadShutdownHooks(final BootstrapConfiguration configuration) {
+
+        if (configuration.delete_working_directory_on_exit) {
+            Runtime.getRuntime().addShutdownHook(RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK);
+        }
     }
 
     private void setDefaultProperties() {
@@ -240,12 +259,14 @@ public abstract class Bootstrap {
         if (force_reconstruction || !BOOTSTRAP_JAR.isFile()) {
             reconstructBootstrapJar();
         }
+        assert BOOTSTRAP_JAR.isFile();
         return BOOTSTRAP_JAR;
 
     }
 
     private static void reconstructBootstrapJar() throws IOException {
 
+        //        BOOTSTRAP_JAR.getParentFile().mkdirs();
         final Manifest manifest = new Manifest();
         final Attributes main_attributes = manifest.getMainAttributes();
         main_attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -292,7 +313,7 @@ public abstract class Bootstrap {
         throw new IOException("unable to locate resource " + type);
     }
 
-    private static void loadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
+    private static void resolveAndLoadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
 
         for (String artifact : maven_artifacts) {
             final List<File> resolved_urls = maven_dependency_resolver.resolve(artifact);

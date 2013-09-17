@@ -169,6 +169,22 @@ public final class Commands {
             return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
+    /** Recursively deletes a given file or directory. */
+    public static final CommandBuilder DELETE_RECURSIVELY = new CommandBuilder() {
+
+        private static final String DEL = "del /R "; //FIXME Check if thre delete command is correct for windows
+        private static final String RM = "rm -rf ";
+
+        /** Given a path to delete, which is expected as the first element in {@code parameters}, constructs a platform-dependent recursive path removal command. */
+        @Override
+        public String get(final Platform platform, final String... parameters) {
+
+            if (parameters.length != 1) { throw new IllegalArgumentException("one parameter, the file/directory to be removed, must be specified"); }
+            final String path = parameters[0];
+            LOGGER.debug("path to delete: {}", path);
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? RM : DEL, String.valueOf(path));
+        }
+    };
     private static final String SPACE = " ";
     private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
 

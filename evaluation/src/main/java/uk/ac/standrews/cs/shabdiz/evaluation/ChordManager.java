@@ -1,21 +1,26 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.Key;
 import uk.ac.standrews.cs.nds.p2p.util.SHA1KeyFactory;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
-import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
+import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
+import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
+import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -25,7 +30,7 @@ import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 import uk.ac.standrews.cs.stachord.servers.NodeServer;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class ChordManager extends AbstractApplicationManager {
+public abstract class ChordManager extends ExperimentManager {
 
     private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
     private static final Duration DEFAULT_RETRY_DELAY = new Duration(3, TimeUnit.SECONDS);
@@ -33,16 +38,22 @@ public class ChordManager extends AbstractApplicationManager {
     private static final AttributeKey<Process> PEER_PROCESS_KEY = new AttributeKey<Process>();
     private static final AttributeKey<Integer> PEER_PROCESS_PID_KEY = new AttributeKey<Integer>();
     private static final long KEY_FACTORY_SEED = 0x585;
-    private final ChordNodeFactory node_factory;
-    protected final AgentBasedJavaProcessBuilder process_builder;
-    private final SHA1KeyFactory key_factory;
+    private static final String STACHORD_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, "stachord", "2.0-SNAPSHOT");
+    private static final DefaultArtifact STACHORD_MAVEN_ARTIFACT = new DefaultArtifact(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+    private final ChordNodeFactory node_factory = new ChordNodeFactory();
+    private final SHA1KeyFactory key_factory = new SHA1KeyFactory(KEY_FACTORY_SEED);
 
-    public ChordManager() throws Exception {
+    static final FileBased FILE_BASED = new FileBased();
+    static final URLBased URL_BASED = new URLBased();
+    static final MavenBased MAVEN_BASED = new MavenBased();
 
-        process_builder = new AgentBasedJavaProcessBuilder();
-        configure();
-        node_factory = new ChordNodeFactory();
-        key_factory = new SHA1KeyFactory(KEY_FACTORY_SEED);
+    protected ChordManager() {
+
+    }
+
+    public ChordManager(Duration timeout) {
+
+        super(timeout);
     }
 
     @Override
@@ -71,7 +82,8 @@ public class ChordManager extends AbstractApplicationManager {
         }
     }
 
-    protected void configure() throws Exception {
+    @Override
+    protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
 
         process_builder.setMainClass(NodeServer.class);
     }
@@ -131,5 +143,65 @@ public class ChordManager extends AbstractApplicationManager {
 
         final IChordRemoteReference reference = descriptor.getApplicationReference();
         reference.ping();
+    }
+
+    static class MavenBased extends ChordManager {
+
+        MavenBased() {
+
+        }
+
+        public MavenBased(final Duration timeout) {
+
+            super(timeout);
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+
+            super.configure(network, cold);
+            configureMavenBased(network, cold, STACHORD_MAVEN_ARTIFACT_COORDINATES);
+        }
+    }
+
+    static class URLBased extends ChordManager {
+
+        URLBased() {
+
+        }
+
+        public URLBased(final Duration timeout) {
+
+            super(timeout);
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+
+            super.configure(network, cold);
+
+            final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
+            configureURLBased(network, cold, dependenlcy_urls);
+        }
+    }
+
+    static class FileBased extends ChordManager {
+
+        FileBased() {
+
+        }
+
+        public FileBased(final Duration timeout) {
+
+            super(timeout);
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+
+            super.configure(network, cold);
+            final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+            configureFileBased(network, cold, dependenlcy_files);
+        }
     }
 }

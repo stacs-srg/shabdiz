@@ -72,12 +72,14 @@ public class Worker implements Comparable<Worker> {
      * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    public synchronized <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
+    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
 
-        final UUID job_id = proxy.submit(job);
-        final FutureRemote<Result> future_remote = new FutureRemote<Result>(job_id, proxy);
-        network.notifyJobSubmission(future_remote);
-        return future_remote;
+        synchronized (network) {
+            final UUID job_id = proxy.submit(job);
+            final FutureRemote<Result> future_remote = new FutureRemote<Result>(job_id, proxy);
+            network.notifyJobSubmission(future_remote);
+            return future_remote;
+        }
     }
 
     /**

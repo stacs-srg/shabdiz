@@ -34,6 +34,7 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver.toCoo
  */
 public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
+    //TODO set environment variables for shabdiz parameter?
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentBasedJavaProcessBuilder.class);
     private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
     private static final String EQUALS = "=";
@@ -50,6 +51,26 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         configuration = new Bootstrap.BootstrapConfiguration();
         uploads = new HashSet<File>();
+    }
+
+    /**
+     * Removes Shabdiz home directory on the given {@code host}.
+     *
+     * @param host the host on which to remove the Shabdiz home directory
+     * @throws IOException if an error occurs while attempting to execute the deletion command
+     * @throws InterruptedException if interrupted while waiting for deletion command to complete
+     */
+    public static void clearCachedFilesOnHost(Host host) throws IOException, InterruptedException {
+
+        final Platform platform = host.getPlatform();
+        final String shabdiz_home_on_host = getShabdizHomeByPlatform(platform);
+        final Process delete_process = host.execute(Commands.DELETE_RECURSIVELY.get(platform, shabdiz_home_on_host));
+        try {
+            ProcessUtil.awaitNormalTerminationAndGetOutput(delete_process);
+        }
+        finally {
+            delete_process.destroy();
+        }
     }
 
     /**
@@ -100,6 +121,10 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         configuration.setApplicationBootstrapClassName(main_class);
     }
 
+    /**
+     * Sets whether the bootstrap agent must delete the working directory upon normal JVM termination.
+     * @param enabled whether the bootstrap agent must delete the working directory upon normal JVM termination
+     */
     public void setDeleteWorkingDirectoryOnExit(boolean enabled) {
 
         configuration.setDeleteWorkingDirectoryOnExit(enabled);
@@ -183,6 +208,11 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     public boolean addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
 
         final String artifact_coordinate = toCoordinate(group_id, artifact_id, version, classifier);
+        return addMavenDependency(artifact_coordinate);
+    }
+
+    public boolean addMavenDependency(final String artifact_coordinate) {
+
         return configuration.addMavenArtifact(artifact_coordinate);
     }
 
@@ -241,8 +271,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         final Platform platform = host.getPlatform();
         final String bootstrap_home = getBootstrapHomeByPlatform(platform);
         final String bootstrap_jar = getBootstrapJarByPlatform(platform);
-        final boolean already_exists = !always_upload_bootstrap || existsOnHost(host, bootstrap_jar);
-        if (!already_exists) {
+        if (always_upload_bootstrap || !existsOnHost(host, bootstrap_jar)) {
             host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
         }

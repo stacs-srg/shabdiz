@@ -13,7 +13,6 @@ import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Timer;
 import uk.ac.standrews.cs.nds.rpc.RPCException;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
-import uk.ac.standrews.cs.shabdiz.ApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ChordRingSizeScanner;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -29,22 +28,22 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
 
     private static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
     private static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
-    private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {};
+    private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED};
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
 
-    public ChordRunningToRunningAfterKillExperiment(final int network_size, final Provider<Host> host_provider, final ApplicationManager manager, final float kill_portion) throws IOException {
+    public ChordRunningToRunningAfterKillExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, boolean cold, final float kill_portion) throws IOException {
 
-        super(network_size, host_provider, manager, kill_portion);
+        super(network_size, host_provider, manager, cold, kill_portion);
         ring_size_scanner = new ChordRingSizeScanner();
         ring_size_gauge = new RingSizeGauge();
     }
 
-    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, chord_manager: {2}, kill_portion: {3}")
+    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, chord_manager: {2}, cold: {3}, kill_portion: {4}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, CHORD_APPLICATION_MANAGERS, HOT_COLD, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
