@@ -14,21 +14,12 @@ public class BootstrapTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapTest.class);
 
     @Test
-    public void testDeploy() throws Exception {
-
-        //        final AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
-        //        builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT");
-        //        builder.addFile(new File("/Users/masih/Desktop/a.jar"));
-        //        builder.setMainClass("uk.ac.standrews.cs.shabdiz.job.WorkerMain");
-        //        builder.start(new LocalHost(), ":0", "abc:1111");
-    }
-
-    @Test
     public void testPropertiesScanner() throws Exception {
 
         final String id = "uk.ac.standrews.cs.shabdiz.job.WorkerMain.properties:";
-        final InputStream in = IOUtils.toInputStream(id + "kjhfkjhafadfgkasdhjfgkadsjhgfaksdhfgjf\n" + id + "{worker.remote.address=138.251.195.136%3A54816, pid=33306}\n" +
-                "asdasdasasdsasasd");
+        final InputStream in = IOUtils.toInputStream("SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\n" + "SLF4J: Defaulting to no-operation (NOP) logger implementation\n" + "SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\n" + id
+                        + "{worker.remote.address=138.251.195.136%3A54816, pid=33306}\n" + "SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\n" + "SLF4J: Defaulting to no-operation (NOP) logger implementation\n"
+                        + "SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\n");
 
         final Properties properties = Bootstrap.newProcessOutputScannerTask(in, id).call();
 
