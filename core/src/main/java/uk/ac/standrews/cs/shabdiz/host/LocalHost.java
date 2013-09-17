@@ -82,7 +82,7 @@ public class LocalHost extends AbstractHost {
     public Process execute(final String working_directory, final String command) throws IOException {
 
         final ProcessBuilder process_builder = createProcessBuilder(command, working_directory);
-        LOGGER.info("executing command: {}, at the working dir: {}, on platform: {}", process_builder.command(), working_directory, getPlatform());
+        LOGGER.debug("executing command: {}, at the working dir: {}, on platform: {}", process_builder.command(), working_directory, getPlatform());
         return process_builder.start();
     }
 

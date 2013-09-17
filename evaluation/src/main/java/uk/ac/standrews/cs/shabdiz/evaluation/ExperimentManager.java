@@ -10,8 +10,10 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ExperimentManager extends AbstractApplicationManager {
@@ -32,7 +34,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     protected abstract void configure(ApplicationNetwork network, boolean cold) throws Exception;
 
-    protected void configureFileBased(ApplicationNetwork network, boolean cold, List<File> files) throws Exception {
+    protected void configureFileBased(ApplicationNetwork network, boolean cold, List<File> files, String application_name) throws Exception {
 
         if (cold) {
             for (File file : files) {
@@ -43,12 +45,18 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
             //FIXME this wont work if the platform is windows
             //TODO add parametric path on each host; maybe based on process environment variables?
-            final String dependencies_home = "/tmp/" + network.getApplicationName() + "_dependencies";
+            final String dependencies_home = "/tmp/" + application_name + "_dependencies";
             for (ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();
-                host.upload(files, dependencies_home);
+                final Process exists = host.execute(Commands.EXISTS.get(host.getPlatform(), dependencies_home));
+                final String already_exists = ProcessUtil.awaitNormalTerminationAndGetOutput(exists);
+                if (!Boolean.valueOf(already_exists)) {
+                    host.upload(files, dependencies_home);
+                }
             }
-            process_builder.addRemoteFile(dependencies_home + "/*");
+            for (File file : files) {
+                process_builder.addRemoteFile(dependencies_home + "/" + file.getName());
+            }
         }
     }
 

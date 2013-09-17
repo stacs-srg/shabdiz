@@ -173,7 +173,7 @@ abstract class EchoManager extends ExperimentManager {
 
             super.configure(network, cold);
             final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
-            configureFileBased(network, cold, dependenlcy_files);
+            configureFileBased(network, cold, dependenlcy_files, "echo");
         }
     }
 

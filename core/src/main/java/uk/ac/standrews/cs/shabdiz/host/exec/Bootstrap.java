@@ -266,7 +266,6 @@ public abstract class Bootstrap {
 
     private static void reconstructBootstrapJar() throws IOException {
 
-        //        BOOTSTRAP_JAR.getParentFile().mkdirs();
         final Manifest manifest = new Manifest();
         final Attributes main_attributes = manifest.getMainAttributes();
         main_attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");

@@ -201,7 +201,7 @@ public abstract class ChordManager extends ExperimentManager {
 
             super.configure(network, cold);
             final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
-            configureFileBased(network, cold, dependenlcy_files);
+            configureFileBased(network, cold, dependenlcy_files, "chord");
         }
     }
 }
