@@ -279,6 +279,7 @@ public abstract class Bootstrap {
         try {
             addClassToJar(MavenDependencyResolver.class, jar_stream);
             addClassToJar(MavenDependencyResolver.FileCollector.class, jar_stream);
+            addClassToJar(MavenDependencyResolver.DependencyNodeCollector.class, jar_stream);
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
             addClassToJar(Duration.class, jar_stream);
