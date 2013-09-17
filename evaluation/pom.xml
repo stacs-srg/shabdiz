@@ -111,7 +111,7 @@
                             <testSourceDirectory>src/main/java</testSourceDirectory>
                             <testClassesDirectory>target/classes</testClassesDirectory>
                             <includes>
-                                <include>**/*</include>
+                                <include>**/*.class</include>
                             </includes>
                             <forkCount>1</forkCount>
                             <reuseForks>false</reuseForks>
