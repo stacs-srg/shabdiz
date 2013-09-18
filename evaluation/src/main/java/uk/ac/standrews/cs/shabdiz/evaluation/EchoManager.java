@@ -50,6 +50,9 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 abstract class EchoManager extends ExperimentManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    static final FileBased FILE_BASED = new FileBased();
+    static final URLBased URL_BASED = new URLBased();
+    static final MavenBased MAVEN_BASED = new MavenBased();
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
@@ -57,10 +60,6 @@ abstract class EchoManager extends ExperimentManager {
     private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
-
-    static final FileBased FILE_BASED = new FileBased();
-    static final URLBased URL_BASED = new URLBased();
-    static final MavenBased MAVEN_BASED = new MavenBased();
 
     protected EchoManager() {
 
@@ -149,6 +148,12 @@ abstract class EchoManager extends ExperimentManager {
         }
 
         @Override
+        public String toString() {
+
+            return "EchoManager.URL";
+        }
+
+        @Override
         protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
 
             super.configure(network, cold);
@@ -169,6 +174,12 @@ abstract class EchoManager extends ExperimentManager {
         }
 
         @Override
+        public String toString() {
+
+            return "EchoManager.File";
+        }
+
+        @Override
         protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
 
             super.configure(network, cold);
@@ -186,6 +197,12 @@ abstract class EchoManager extends ExperimentManager {
         MavenBased(final Duration timeout) throws Exception {
 
             super(timeout);
+        }
+
+        @Override
+        public String toString() {
+
+            return "EchoManager.Maven";
         }
 
         @Override

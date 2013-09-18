@@ -221,7 +221,8 @@ public abstract class Bootstrap {
                 while (scanner.hasNextLine()) {
                     final String output_line = scanner.findInLine(pattern);
                     if (output_line == null) {
-                        scanner.nextLine();
+                        final String next_line = scanner.nextLine();
+                        System.out.println(next_line);
                     }
                     else {
                         final MatchResult match = scanner.match();

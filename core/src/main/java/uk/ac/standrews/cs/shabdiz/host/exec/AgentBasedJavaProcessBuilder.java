@@ -103,7 +103,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         uploadBootstrapConfigurationFile(host, working_directory);
 
         final String command = assembleCommand(platform, bootstrap_jar, parameters);
-        LOGGER.debug("cd {}; {}", working_directory, command);
+        LOGGER.info("cd {}; {}", working_directory, command);
         return host.execute(working_directory, command);
     }
 
@@ -192,7 +192,15 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         for (final String classpath_entry : SYSTEM_CLASSPATH.split(File.pathSeparator)) {
             if (!classpath_entry.isEmpty()) {
-                addFile(new File(classpath_entry));
+                final File classphath_file = new File(classpath_entry);
+                if (classphath_file.isDirectory()) {
+                    for (String sub_cp : classphath_file.list()) {
+                        addFile(new File(classphath_file, sub_cp));
+                    }
+                }
+                else {
+                    addFile(classphath_file);
+                }
             }
         }
     }

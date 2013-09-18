@@ -162,6 +162,12 @@ public abstract class ChordManager extends ExperimentManager {
             super.configure(network, cold);
             configureMavenBased(network, cold, STACHORD_MAVEN_ARTIFACT_COORDINATES);
         }
+
+        @Override
+        public String toString() {
+
+            return "ChordManager.Maven";
+        }
     }
 
     static class URLBased extends ChordManager {
@@ -183,6 +189,12 @@ public abstract class ChordManager extends ExperimentManager {
             final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
             configureURLBased(network, cold, dependenlcy_urls);
         }
+
+        @Override
+        public String toString() {
+
+            return "ChordManager.URL";
+        }
     }
 
     static class FileBased extends ChordManager {
@@ -202,6 +214,12 @@ public abstract class ChordManager extends ExperimentManager {
             super.configure(network, cold);
             final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
             configureFileBased(network, cold, dependenlcy_files, "chord");
+        }
+
+        @Override
+        public String toString() {
+
+            return "ChordManager.File";
         }
     }
 }
