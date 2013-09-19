@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.LocalHostProvider;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -49,7 +49,8 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()}; //new BlubHostProvider()};
+    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()}; //new BlubHostProvider()};
+    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);

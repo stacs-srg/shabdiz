@@ -47,7 +47,7 @@ public class Parallelized extends Parameterized {
             builder.addJVMArgument("-Xmx1024m");
             builder.addJVMArgument("-XX:MaxPermSize=256m");
             builder.setWorkingDirectory(System.getProperty("user.dir", "."));
-            builder.setDeleteWorkingDirectoryOnExit(true);
+            //            builder.setDeleteWorkingDirectoryOnExit(true);
             Host host = null;
             try {
                 host = new LocalHost();
