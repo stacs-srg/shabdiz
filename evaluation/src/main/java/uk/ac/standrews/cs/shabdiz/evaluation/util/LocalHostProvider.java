@@ -18,4 +18,10 @@ public class LocalHostProvider implements Provider<Host> {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public String toString() {
+
+        return "localhost";
+    }
 }

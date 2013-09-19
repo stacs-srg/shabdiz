@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mashti.gauge.Gauge;
@@ -30,13 +31,14 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.LocalHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(ParallelizedParameterized.class)
+@RunWith(Parallelized.class)
+//@RunWith(Parameterized.class)
 public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
@@ -48,7 +50,7 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 20;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
+    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()}; //new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
@@ -57,7 +59,7 @@ public abstract class Experiment {
     protected final Integer network_size;
     protected final Timer timer = new Timer();
     private final MetricRegistry registry;
-    private final CsvReporter reporter;
+    private CsvReporter reporter;
     private final StateCountGauge auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
     private final StateCountGauge unknown_state_gauge = new StateCountGauge(ApplicationState.UNKNOWN);
     private final StateCountGauge running_state_gauge = new StateCountGauge(ApplicationState.RUNNING);
@@ -65,8 +67,8 @@ public abstract class Experiment {
     private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
     private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
-    private final File observations_directory;
-    private final String name;
+    private File observations_directory;
+    private String name;
     private final Properties properties = new Properties();
     private final Provider<Host> host_provider;
     private final ExperimentManager manager;
@@ -79,12 +81,7 @@ public abstract class Experiment {
         this.manager = manager;
         this.cold = cold;
         network = new ApplicationNetwork(getClass().getSimpleName());
-        name = getClass().getSimpleName() + "_" + network_size;
-        observations_directory = new File(new File(name, "repetitions"), String.valueOf(System.currentTimeMillis()));
-        FileUtils.forceMkdir(observations_directory);
         registry = new MetricRegistry(getClass().getSimpleName());
-        reporter = new CsvReporter(registry, observations_directory);
-        populateProperties();
     }
 
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
@@ -100,6 +97,12 @@ public abstract class Experiment {
 
     @Before
     public void setUp() throws Exception {
+
+        name = constructName();
+        observations_directory = new File(new File(name, "repetitions"), String.valueOf(System.currentTimeMillis()));
+        FileUtils.forceMkdir(observations_directory);
+        reporter = new CsvReporter(registry, observations_directory);
+        populateProperties();
 
         disableAllNetworkScanners();
         populateNetwork();
@@ -117,7 +120,7 @@ public abstract class Experiment {
     }
 
     @Test
-    //    @Category(Experiment.class)
+    @Category(Experiment.class)
     public abstract void doExperiment() throws Exception;
 
     @After
@@ -127,6 +130,11 @@ public abstract class Experiment {
         reporter.stop();
         getNetwork().shutdown();
         LOGGER.info("done, results are stored at {}", observations_directory);
+    }
+
+    protected String constructName() {
+
+        return getClass().getSimpleName() + "_" + network_size + "_" + host_provider + "_" + manager + "_" + cold;
     }
 
     private void populateProperties() {

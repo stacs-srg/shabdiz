@@ -56,4 +56,10 @@ public class BlubHostProvider implements Provider<Host> {
 
         return index < 0 || index > MAX_INDEX;
     }
+
+    @Override
+    public String toString() {
+
+        return "Blub";
+    }
 }

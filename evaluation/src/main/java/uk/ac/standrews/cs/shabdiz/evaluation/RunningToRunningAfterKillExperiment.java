@@ -78,6 +78,13 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
         LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, TimeUnit.SECONDS.convert(time_to_reach_running, TimeUnit.NANOSECONDS));
     }
 
+    @Override
+    protected String constructName() {
+
+        System.out.println("construcing nameeee");
+        return super.constructName() + "_" + kill_portion;
+    }
+
     protected void killPortionOfNetwork() throws Exception {
 
         final int kill_count = getNumberOfKillCandidates();

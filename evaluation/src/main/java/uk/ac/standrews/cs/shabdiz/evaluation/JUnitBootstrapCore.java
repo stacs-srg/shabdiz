@@ -21,13 +21,13 @@ public class JUnitBootstrapCore extends Bootstrap {
 
     static final String TEST_RESULT = "result";
     private static final Charset UTF8 = Charset.forName("UTF-8");
-    private final List<Failure> missing_classes;
-    private final List<Class<?>> classes;
+    private final List<Failure> failures;
+    private final List<Class<?>> test_classes;
 
     public JUnitBootstrapCore() {
 
-        classes = new ArrayList<Class<?>>();
-        missing_classes = new ArrayList<Failure>();
+        test_classes = new ArrayList<Class<?>>();
+        failures = new ArrayList<Failure>();
     }
 
     @Override
@@ -35,9 +35,9 @@ public class JUnitBootstrapCore extends Bootstrap {
 
         configure(args);
         final JUnitCore core = new JUnitCore();
-        final Result result = core.run(classes.toArray(new Class[0]));
-        for (Failure missing_class : missing_classes) {
-            result.getFailures().add(missing_class);
+        final Result result = core.run(test_classes.toArray(new Class[0]));
+        for (Failure failure : failures) {
+            result.getFailures().add(failure);
         }
 
         setProperty(TEST_RESULT, serializeAsBase64(result));
@@ -82,12 +82,12 @@ public class JUnitBootstrapCore extends Bootstrap {
 
         for (String each : args) {
             try {
-                classes.add(Class.forName(each));
+                test_classes.add(Class.forName(each));
             }
             catch (final ClassNotFoundException e) {
                 Description description = Description.createSuiteDescription(each);
                 Failure failure = new Failure(description, e);
-                missing_classes.add(failure);
+                failures.add(failure);
             }
         }
     }

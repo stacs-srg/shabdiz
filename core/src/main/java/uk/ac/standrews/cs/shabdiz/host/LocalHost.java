@@ -112,7 +112,7 @@ public class LocalHost extends AbstractHost {
         }
         else if (source.isDirectory() && !source.getCanonicalPath().equals(destination_canonical_path)) {
             LOGGER.debug("copying directory {}, to {}", source, destination);
-            FileUtils.copyDirectory(source, destination);
+            FileUtils.copyDirectory(source, new File(destination, source.getName()));
         }
     }
 }
