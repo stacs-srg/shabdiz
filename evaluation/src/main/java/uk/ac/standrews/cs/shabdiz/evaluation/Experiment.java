@@ -33,6 +33,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.testing.junit.Parallelized;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
@@ -85,6 +86,7 @@ public abstract class Experiment {
     }
 
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
+    @Parallelized.Parallelization(forkCount = 1)
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
@@ -135,7 +137,7 @@ public abstract class Experiment {
 
     protected String constructName() {
 
-        return getClass().getSimpleName() + "_" + network_size + "_" + host_provider + "_" + manager + "_" + cold;
+        return getClass().getSimpleName() + '_' + network_size + '_' + host_provider + '_' + manager + '_' + cold;
     }
 
     private void populateProperties() {

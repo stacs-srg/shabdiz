@@ -53,12 +53,18 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     @Override
     public final void scan(final ApplicationNetwork network) {
 
-        beforeScan();
-        prepareForChecks();
-        scheduleConcurrentChecks(network);
-        awaitCheckCompletionUntilTimeoutIsElapsed();
-        cancelLingeringChecks();
-        afterScan();
+        check_lock.lock();
+        try {
+            beforeScan();
+            prepareForChecks();
+            scheduleConcurrentChecks(network);
+            awaitCheckCompletionUntilTimeoutIsElapsed();
+            cancelLingeringChecks();
+            afterScan();
+        }
+        finally {
+            check_lock.unlock();
+        }
     }
 
     protected abstract void scan(ApplicationNetwork network, ApplicationDescriptor descriptor);

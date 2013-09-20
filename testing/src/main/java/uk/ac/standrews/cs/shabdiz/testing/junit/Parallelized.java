@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.evaluation;
+package uk.ac.standrews.cs.shabdiz.testing.junit;
 
 import java.util.NoSuchElementException;
 import java.util.Properties;
@@ -8,16 +8,17 @@ import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized;
-import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 public class Parallelized extends Parameterized {
 
     static final String TEST_PARAM_INDEX = "test.param.index";
-    static Host HOST;
+    static Host host;
     private final Integer target_parameter_index;
 
     /** Coppied from super constructor: Only called reflectively. Do not use programmatically. */
@@ -43,8 +44,8 @@ public class Parallelized extends Parameterized {
             final AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
             builder.setMainClass(JUnitBootstrapCore.class);
             //            builder.addCurrentJVMClasspath();
-            builder.addMavenDependency(Constants.CS_GROUP_ID, "shabdiz-evaluation", Constants.SHABDIZ_VERSION);
-            builder.addJVMArgument("-D" + TEST_PARAM_INDEX + "=" + index);
+            builder.addMavenDependency("uk.ac.standrews.cs", "shabdiz-evaluation", "1.0-SNAPSHOT");
+            builder.addJVMArgument("-D" + TEST_PARAM_INDEX + '=' + index);
             builder.addJVMArgument("-Xmx1024m");
             builder.addJVMArgument("-XX:MaxPermSize=256m");
             builder.setWorkingDirectory("/home/masih/shabdiz_experiments/results");
@@ -53,9 +54,9 @@ public class Parallelized extends Parameterized {
             //            builder.setDeleteWorkingDirectoryOnExit(true);
             //            Host host = null;
             try {
-                if (HOST == null) {
-                    //                    HOST = new SSHHost("blub.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("local RSA key")));
-                    HOST = new LocalHost();
+                if (host == null) {
+                    host = new SSHHost("blub.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("local RSA key")));
+                    //                    host = new LocalHost();
                 }
 
                 Process test_process = null;
@@ -63,7 +64,7 @@ public class Parallelized extends Parameterized {
                 final Properties properties;
                 try {
                     eachNotifier.fireTestStarted();
-                    test_process = builder.start(HOST, getTestClass().getJavaClass().getName());
+                    test_process = builder.start(host, getTestClass().getJavaClass().getName());
                     properties = JUnitBootstrapCore.readProperties(JUnitBootstrapCore.class, test_process, Duration.MAX_DURATION);
                 }
                 finally {
@@ -96,5 +97,25 @@ public class Parallelized extends Parameterized {
             i++;
         }
         throw new NoSuchElementException("No matching runner");
+    }
+
+    public static @interface Parallelization {
+
+        String[] mavenArtifacts() default {};
+
+        String[] URLs() default {};
+
+        String[] files() default {};
+
+        String[] remoteFiles() default {};
+
+        String[] JVMArguments() default {};
+
+        int forkCount() default 0;
+
+        int threadCount() default 1;
+
+        String workingDirectory() default "";
+
     }
 }

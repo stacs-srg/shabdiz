@@ -121,7 +121,7 @@ public abstract class ChordManager extends ExperimentManager {
         return key_factory.generateKey();
     }
 
-    private void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
+    private static void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
 
         final Integer pid = descriptor.getAttribute(PEER_PROCESS_PID_KEY);
         if (pid != null) {
@@ -130,7 +130,7 @@ public abstract class ChordManager extends ExperimentManager {
         }
     }
 
-    private void destroyProcess(final ApplicationDescriptor descriptor) {
+    private static void destroyProcess(final ApplicationDescriptor descriptor) {
 
         final Process process = descriptor.getAttribute(PEER_PROCESS_KEY);
         if (process != null) {

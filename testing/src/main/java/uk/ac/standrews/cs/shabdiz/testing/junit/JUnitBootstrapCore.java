@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.evaluation;
+package uk.ac.standrews.cs.shabdiz.testing.junit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +35,7 @@ public class JUnitBootstrapCore extends Bootstrap {
 
         configure(args);
         final JUnitCore core = new JUnitCore();
-        final Result result = core.run(test_classes.toArray(new Class[0]));
+        final Result result = core.run(test_classes.toArray(new Class[test_classes.size()]));
         for (Failure failure : failures) {
             result.getFailures().add(failure);
         }
@@ -60,7 +60,7 @@ public class JUnitBootstrapCore extends Bootstrap {
         }
     }
 
-    private String serializeAsBase64(final Result result) throws IOException {
+    private static String serializeAsBase64(final Result result) throws IOException {
 
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = null;

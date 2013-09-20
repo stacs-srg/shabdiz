@@ -81,7 +81,7 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
     @Override
     protected String constructName() {
 
-        return super.constructName() + "_" + kill_portion;
+        return super.constructName() + '_' + kill_portion;
     }
 
     protected List<ApplicationDescriptor> killPortionOfNetwork() throws Exception {

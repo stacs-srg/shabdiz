@@ -55,7 +55,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
                 }
             }
             for (File file : files) {
-                process_builder.addRemoteFile(dependencies_home + "/" + file.getName());
+                process_builder.addRemoteFile(dependencies_home + '/' + file.getName());
             }
         }
     }

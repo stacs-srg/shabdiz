@@ -54,6 +54,7 @@
         <module>job</module>
         <module>example</module>
         <module>evaluation</module>
+        <module>testing</module>
     </modules>
 
     <repositories>

@@ -22,10 +22,12 @@ public class ChordRingSizeScanner extends AbstractScanner {
     private final AtomicInteger ring_size;
 
     public ChordRingSizeScanner() {
+
         this(DELAY, TIMEOUT);
     }
 
     public ChordRingSizeScanner(Duration delay, Duration timeout) {
+
         super(delay, timeout, false);
         ring_size = new AtomicInteger();
     }
@@ -51,6 +53,7 @@ public class ChordRingSizeScanner extends AbstractScanner {
     }
 
     public Integer getLastStableRingSize() {
+
         return ring_size.get();
     }
 
@@ -64,7 +67,7 @@ public class ChordRingSizeScanner extends AbstractScanner {
         removePropertyChangeListener(RING_SIZE_PROPERTY_NAME, listener);
     }
 
-    private boolean isRingStable(final int ring_size_forwards, final int ring_size_backwards) {
+    private static boolean isRingStable(final int ring_size_forwards, final int ring_size_backwards) {
 
         return ring_size_forwards == ring_size_backwards;
     }
@@ -74,7 +77,7 @@ public class ChordRingSizeScanner extends AbstractScanner {
         firePropertyChange(RING_SIZE_PROPERTY_NAME, old_ring_size, new_ring_size);
     }
 
-    private IChordRemoteReference getFirstRunningPeer(final ApplicationNetwork network) {
+    private static IChordRemoteReference getFirstRunningPeer(final ApplicationNetwork network) {
 
         for (final ApplicationDescriptor descriptor : network) {
             if (descriptor.isInAnyOfStates(ApplicationState.RUNNING)) { return descriptor.getApplicationReference(); }
