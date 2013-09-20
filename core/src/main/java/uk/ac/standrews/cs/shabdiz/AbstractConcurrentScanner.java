@@ -28,7 +28,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
@@ -54,18 +53,12 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     @Override
     public final void scan(final ApplicationNetwork network) {
 
-        check_lock.lock();
-        try {
-            beforeScan();
-            prepareForChecks();
-            scheduleConcurrentChecks(network);
-            awaitCheckCompletionUntilTimeoutIsElapsed();
-            cancelLingeringChecks();
-            afterScan();
-        }
-        finally {
-            check_lock.unlock();
-        }
+        beforeScan();
+        prepareForChecks();
+        scheduleConcurrentChecks(network);
+        awaitCheckCompletionUntilTimeoutIsElapsed();
+        cancelLingeringChecks();
+        afterScan();
     }
 
     protected abstract void scan(ApplicationNetwork network, ApplicationDescriptor descriptor);

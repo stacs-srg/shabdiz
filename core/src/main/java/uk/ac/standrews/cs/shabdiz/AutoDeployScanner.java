@@ -19,7 +19,6 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -27,7 +26,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 /**
  * Scanner that checks for machines that will accept an SSH connection but are not currently running the given application, i.e. that
  * are in state AUTH. For such machines an attempt is made to launch the application.
- * 
+ *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -48,7 +47,8 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
             try {
                 final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
                 descriptor.setApplicationReference(application_reference);
-            } catch (final Exception e) {
+            }
+            catch (final Exception e) {
                 LOGGER.debug("auto deployment failed", e);
             }
         }

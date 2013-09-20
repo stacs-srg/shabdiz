@@ -8,7 +8,6 @@ import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized;
-import org.mashti.jetson.util.CloseableUtil;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -18,6 +17,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public class Parallelized extends Parameterized {
 
     static final String TEST_PARAM_INDEX = "test.param.index";
+    static Host HOST;
     private final Integer target_parameter_index;
 
     /** Coppied from super constructor: Only called reflectively. Do not use programmatically. */
@@ -38,6 +38,7 @@ public class Parallelized extends Parameterized {
             }
         }
         else {
+
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, runner.getDescription());
             final AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
             builder.setMainClass(JUnitBootstrapCore.class);
@@ -46,18 +47,23 @@ public class Parallelized extends Parameterized {
             builder.addJVMArgument("-D" + TEST_PARAM_INDEX + "=" + index);
             builder.addJVMArgument("-Xmx1024m");
             builder.addJVMArgument("-XX:MaxPermSize=256m");
-            builder.setWorkingDirectory(System.getProperty("user.dir", "."));
+            builder.setWorkingDirectory("/home/masih/shabdiz_experiments/results");
+            //            builder.setWorkingDirectory("/home/masih/shabdiz_wd");
+            //            builder.setWorkingDirectory(System.getProperty("user.dir", "."));
             //            builder.setDeleteWorkingDirectoryOnExit(true);
-            Host host = null;
+            //            Host host = null;
             try {
-                host = new LocalHost();
+                if (HOST == null) {
+                    //                    HOST = new SSHHost("blub.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("local RSA key")));
+                    HOST = new LocalHost();
+                }
 
                 Process test_process = null;
 
                 final Properties properties;
                 try {
                     eachNotifier.fireTestStarted();
-                    test_process = builder.start(host, getTestClass().getJavaClass().getName());
+                    test_process = builder.start(HOST, getTestClass().getJavaClass().getName());
                     properties = JUnitBootstrapCore.readProperties(JUnitBootstrapCore.class, test_process, Duration.MAX_DURATION);
                 }
                 finally {
@@ -78,9 +84,6 @@ public class Parallelized extends Parameterized {
             }
             catch (Exception e) {
                 eachNotifier.addFailure(e);
-            }
-            finally {
-                CloseableUtil.closeQuietly(host);
             }
         }
     }

@@ -1,11 +1,14 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
@@ -20,6 +23,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ChordRingSizeScanner;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 
 /**
@@ -33,14 +38,19 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
     private static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
     private static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED};
+    private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    private static final int SEED = 78354;
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
+    private final List<IChordRemoteReference> joined_nodes = Collections.synchronizedList(new ArrayList<IChordRemoteReference>());
+    private final Random random;
 
     public ChordRunningToRunningAfterKillExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, boolean cold, final float kill_portion) throws IOException {
 
         super(network_size, host_provider, manager, cold, kill_portion);
         ring_size_scanner = new ChordRingSizeScanner();
         ring_size_gauge = new RingSizeGauge();
+        random = new Random(SEED);
     }
 
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, chord_manager: {2}, cold: {3}, kill_portion: {4}")
@@ -91,7 +101,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         LOGGER.info("disabling auto deploy");
         network.setAutoDeployEnabled(false);
         LOGGER.info("killing {} portion of network", kill_portion);
-        killPortionOfNetwork();
+        final List<ApplicationDescriptor> killed_descriptors = killPortionOfNetwork();
 
         LOGGER.info("re-enabling auto deploy");
         network.setAutoDeployEnabled(true);
@@ -100,6 +110,9 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         setProperty(TIME_TO_REACH_RUNNING_AFTER_KILL, String.valueOf(time_to_reach_running_after_kill));
         LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, TimeUnit.SECONDS.convert(time_to_reach_running, TimeUnit.NANOSECONDS));
 
+        LOGGER.info("re-assembing Chord ring");
+        reassembleRing(killed_descriptors);
+
         LOGGER.info("awaiting stabilized ring after killing portion of network...");
         final long time_to_reach_stabilized_ring_after_kill = timeRingStabilization();
         setProperty(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL, String.valueOf(time_to_reach_stabilized_ring_after_kill));
@@ -107,18 +120,64 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
 
     }
 
-    private void assembleRing() throws RPCException {
+    @Override
+    protected synchronized void kill(final ApplicationDescriptor kill_candidate) throws Exception {
 
-        IChordRemoteReference known_node = null;
+        super.kill(kill_candidate);
+        joined_nodes.remove(kill_candidate.getApplicationReference());
+    }
+
+    private void reassembleRing(final List<ApplicationDescriptor> killed_descriptors) throws Exception {
+
+        for (ApplicationDescriptor killed_descriptor : killed_descriptors) {
+            final IChordRemoteReference node = killed_descriptor.getApplicationReference();
+            joinWithTimeout(node);
+        }
+    }
+
+    private void joinWithTimeout(final IChordRemoteReference joiner) throws Exception {
+
+        TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+
+            @Override
+            public Void call() throws Exception {
+
+                boolean successful = false;
+                while (!Thread.currentThread().isInterrupted() && !successful) {
+                    try {
+                        IChordRemoteReference known_node = getRandomJoinedNode(joiner);
+                        joiner.getRemote().join(known_node);
+                        successful = true;
+                    }
+                    catch (RPCException e) {
+                        successful = false;
+                    }
+                }
+                return null;
+            }
+        }, JOIN_TIMEOUT);
+    }
+
+    private synchronized IChordRemoteReference getRandomJoinedNode(IChordRemoteReference joiner) {
+
+        final IChordRemoteReference joined_node;
+        if (joined_nodes.isEmpty()) {
+            joined_nodes.add(joiner);
+            joined_node = joiner;
+        }
+        else {
+            int candidate_index = random.nextInt(joined_nodes.size());
+            joined_node = joined_nodes.get(candidate_index);
+        }
+        return joined_node;
+    }
+
+    private void assembleRing() throws Exception {
+
         for (ApplicationDescriptor descriptor : network) {
 
             final IChordRemoteReference reference = descriptor.getApplicationReference();
-            if (known_node == null) {
-                known_node = reference;
-            }
-            else {
-                reference.getRemote().join(known_node);
-            }
+            joinWithTimeout(reference);
         }
     }
 

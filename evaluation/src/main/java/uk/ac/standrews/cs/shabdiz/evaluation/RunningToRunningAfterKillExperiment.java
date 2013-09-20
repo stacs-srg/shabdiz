@@ -81,28 +81,36 @@ public class RunningToRunningAfterKillExperiment extends Experiment {
     @Override
     protected String constructName() {
 
-        System.out.println("construcing nameeee");
         return super.constructName() + "_" + kill_portion;
     }
 
-    protected void killPortionOfNetwork() throws Exception {
+    protected List<ApplicationDescriptor> killPortionOfNetwork() throws Exception {
 
         final int kill_count = getNumberOfKillCandidates();
         LOGGER.info("killing {} out of {}...", kill_count, network_size);
         final List<ApplicationDescriptor> descriptors_list = new ArrayList<ApplicationDescriptor>(network.getApplicationDescriptors());
+        final List<ApplicationDescriptor> killed_descriptors = new ArrayList<ApplicationDescriptor>();
         final int descriptors_count = descriptors_list.size();
         for (int i = 0; i < kill_count; i++) {
 
             final int kill_candidate_index = random.nextInt(descriptors_count - i);
             final ApplicationDescriptor kill_candidate = descriptors_list.remove(kill_candidate_index);
-            network.kill(kill_candidate);
+            kill(kill_candidate);
+            kill_candidate.awaitAnyOfStates(ApplicationState.AUTH);
+            killed_descriptors.add(kill_candidate);
             LOGGER.debug("killed {}", kill_candidate);
         }
+        return killed_descriptors;
+    }
+
+    protected void kill(final ApplicationDescriptor kill_candidate) throws Exception {
+
+        network.kill(kill_candidate);
     }
 
     private int getNumberOfKillCandidates() {
 
-        final int kill_count = Math.round(network_size / kill_portion);
+        final int kill_count = (int) (network_size * kill_portion);
         if (kill_count == 0) {
             LOGGER.warn("the number of instances to kill is zero for network size of {} and kill portion of {}", network_size, kill_portion);
         }

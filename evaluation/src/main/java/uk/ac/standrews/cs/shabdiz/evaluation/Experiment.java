@@ -49,7 +49,7 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()}; //new BlubHostProvider()};
+    //        static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
@@ -59,7 +59,6 @@ public abstract class Experiment {
     protected final Integer network_size;
     protected final Timer timer = new Timer();
     private final MetricRegistry registry;
-    private CsvReporter reporter;
     private final StateCountGauge auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
     private final StateCountGauge unknown_state_gauge = new StateCountGauge(ApplicationState.UNKNOWN);
     private final StateCountGauge running_state_gauge = new StateCountGauge(ApplicationState.RUNNING);
@@ -67,12 +66,13 @@ public abstract class Experiment {
     private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
     private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
-    private File observations_directory;
-    private String name;
     private final Properties properties = new Properties();
     private final Provider<Host> host_provider;
     private final ExperimentManager manager;
     private final boolean cold;
+    private CsvReporter reporter;
+    private File observations_directory;
+    private String name;
 
     public Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager, boolean cold) throws IOException {
 
@@ -99,6 +99,7 @@ public abstract class Experiment {
     public void setUp() throws Exception {
 
         name = constructName();
+        //        observations_directory = new File(new File(new File("/home/masih/shabdiz_experiments/results",name), "repetitions"), String.valueOf(System.currentTimeMillis()));
         observations_directory = new File(new File(name, "repetitions"), String.valueOf(System.currentTimeMillis()));
         FileUtils.forceMkdir(observations_directory);
         reporter = new CsvReporter(registry, observations_directory);
