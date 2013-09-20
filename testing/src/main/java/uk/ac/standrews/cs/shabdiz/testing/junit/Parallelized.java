@@ -72,6 +72,7 @@ public class Parallelized extends Parameterized {
                         test_process.destroy();
                     }
                 }
+
                 final Result result = JUnitBootstrapCore.getResultProperty(properties);
                 if (result.wasSuccessful()) {
                     eachNotifier.fireTestFinished();

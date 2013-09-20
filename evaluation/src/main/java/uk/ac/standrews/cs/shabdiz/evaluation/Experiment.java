@@ -33,13 +33,12 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.testing.junit.Parallelized;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(Parallelized.class)
-//@RunWith(Parameterized.class)
+//@RunWith(Parallelized.class)
+@RunWith(Parameterized.class)
 public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
@@ -50,7 +49,7 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //        static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
+    //            static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
@@ -86,7 +85,6 @@ public abstract class Experiment {
     }
 
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
-    @Parallelized.Parallelization(forkCount = 1)
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
