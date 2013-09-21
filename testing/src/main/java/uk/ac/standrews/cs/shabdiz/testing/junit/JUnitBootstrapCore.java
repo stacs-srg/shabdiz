@@ -80,12 +80,20 @@ public class JUnitBootstrapCore extends Bootstrap {
 
     private void configure(String... args) {
 
-        for (String each : args) {
+        if (args.length < 2) {
+            Failure failure = new Failure(Description.TEST_MECHANISM, new Exception("expected parameterized_test_class_name and parameter_index as command line arguments"));
+            failures.add(failure);
+        }
+        else {
+
+            final String test_class_name = args[0];
+            final String parameter_index = args[1];
+            System.setProperty(ParallelParameterized.TEST_PARAM_INDEX, parameter_index);
             try {
-                test_classes.add(Class.forName(each));
+                test_classes.add(Class.forName(test_class_name));
             }
             catch (final ClassNotFoundException e) {
-                Description description = Description.createSuiteDescription(each);
+                Description description = Description.createSuiteDescription(test_class_name);
                 Failure failure = new Failure(description, e);
                 failures.add(failure);
             }

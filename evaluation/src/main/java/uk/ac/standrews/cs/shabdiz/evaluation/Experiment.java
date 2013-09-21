@@ -33,23 +33,26 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.testing.junit.ParallelParameterized;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-//@RunWith(Parallelized.class)
-@RunWith(Parameterized.class)
+@RunWith(ParallelParameterized.class)
+//@RunWith(Parameterized.class)
+@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, deleteWorkingDirectoryOnExit = true, hostProvider = "localhost", mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT"})
 public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
     //TODO fix the key-value pair CSV output
-
+    public static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //            static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
+    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
@@ -82,6 +85,14 @@ public abstract class Experiment {
         this.cold = cold;
         network = new ApplicationNetwork(getClass().getSimpleName());
         registry = new MetricRegistry(getClass().getSimpleName());
+    }
+
+    @ParallelParameterized.HostProvider(name = "localhost")
+    public static Collection<Host> getHosts() throws IOException {
+
+        final List<Host> hosts = new ArrayList<Host>();
+        hosts.add(new LocalHost());
+        return hosts;
     }
 
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
@@ -120,7 +131,7 @@ public abstract class Experiment {
         startReporter();
     }
 
-    @Test
+    @Test(timeout = TIMEOUT)
     @Category(Experiment.class)
     public abstract void doExperiment() throws Exception;
 
