@@ -16,13 +16,16 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.junit.Test;
 import org.junit.internal.runners.model.EachTestNotifier;
+import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized;
 import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.RunnerScheduler;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
@@ -166,17 +169,13 @@ public class ParallelParameterized extends Parameterized {
             }
         }
         else if (hosts == null) {
-            super.runChild(runner, notifier);
         }
         else {
-
-            final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, runner.getDescription());
-
+            final Description description = describeChild(runner);
+            final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             try {
-                Host host = nextHost();
-
+                final Host host = nextHost();
                 Process test_process = null;
-
                 final String test_class_name = getTestClass().getJavaClass().getName();
                 final String parameter_index = String.valueOf(index);
                 final Properties properties;
@@ -191,20 +190,49 @@ public class ParallelParameterized extends Parameterized {
                     }
                 }
 
+                final List<Description> descriptions = getMethodDescriptions(runner);
+                for (Description description1 : descriptions) {
+                    notifier.fireTestStarted(description1);
+                }
+
                 final Result result = JUnitBootstrapCore.getResultProperty(properties);
                 if (result.wasSuccessful()) {
+
                     eachNotifier.fireTestFinished();
                 }
-                else {
-                    for (Failure failure : result.getFailures()) {
-                        eachNotifier.addFailure(failure.getException());
-                    }
+
+                final List<Throwable> failure_exceptions = new ArrayList<Throwable>();
+                for (Failure failure : result.getFailures()) {
+
+                    failure_exceptions.add(failure.getException());
+                    notifier.fireTestFailure(failure);
+                    descriptions.remove(failure.getDescription());
+                }
+
+                if (!failure_exceptions.isEmpty()) {
+                    eachNotifier.addFailure(new MultipleFailureException(failure_exceptions));
+                }
+                for (Description description1 : descriptions) {
+                    notifier.fireTestFinished(description1);
                 }
             }
             catch (Exception e) {
                 eachNotifier.addFailure(e);
             }
         }
+    }
+
+    private List<Description> getMethodDescriptions(final Runner runner) {
+
+        final String displayName = runner.getDescription().getDisplayName();
+        final List<FrameworkMethod> methods = getTestClass().getAnnotatedMethods(Test.class);
+        List<Description> descriptions = new ArrayList<Description>();
+        for (FrameworkMethod method : methods) {
+            final Description description = Description.createTestDescription(getTestClass().getJavaClass(), method.getName() + displayName, method.getAnnotations());
+            descriptions.add(description);
+        }
+
+        return descriptions;
     }
 
     private Host nextHost() {

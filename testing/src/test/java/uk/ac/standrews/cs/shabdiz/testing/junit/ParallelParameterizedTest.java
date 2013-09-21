@@ -12,10 +12,12 @@ import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
-@ParallelParameterized.Parallelization(threadCount = 0, hostProvider = "local")
+//@RunWith(Parameterized.class)
+@ParallelParameterized.Parallelization(threadCount = 1, hostProvider = "local")
 public class ParallelParameterizedTest {
 
     private final String a;
@@ -27,7 +29,7 @@ public class ParallelParameterizedTest {
         this.b = b;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{index}, a: {0}, b: {1}")
     public static Collection<Object[]> data() {
 
         return Combinations.generateArgumentCombinations(new Object[][]{{"a", "b"}, {"1", "2"}});
@@ -46,6 +48,14 @@ public class ParallelParameterizedTest {
     @Test
     public void testArgs() throws Exception {
 
+        assertNotNull(a);
+        assertNotNull(b);
+    }
+
+    @Test
+    public void testArgs2() throws Exception {
+
+        fail();
         assertNotNull(a);
         assertNotNull(b);
     }
