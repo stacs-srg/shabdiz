@@ -12,7 +12,6 @@ import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
@@ -55,7 +54,6 @@ public class ParallelParameterizedTest {
     @Test
     public void testArgs2() throws Exception {
 
-        fail();
         assertNotNull(a);
         assertNotNull(b);
     }
