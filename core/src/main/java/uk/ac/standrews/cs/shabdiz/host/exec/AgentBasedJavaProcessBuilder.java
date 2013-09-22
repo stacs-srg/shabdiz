@@ -103,6 +103,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         uploadLocalClasspathFiles(host, remote_tmp_dir);
         uploadBootstrapConfigurationFile(host, remote_tmp_dir);
         final String command = assembleCommand(remote_tmp_dir, platform, bootstrap_jar, parameters);
+        System.out.println(command);
         return host.execute(getWorkingDirectory(), command);
     }
 

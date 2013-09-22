@@ -41,7 +41,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
 //@RunWith(Parameterized.class)
-@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, addCurrentJvmClasspath = false, hostProvider = "localhost", mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT"})
+@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, hostProvider = "localhost", addCurrentJvmClasspath = false, mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT"})
 public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
@@ -52,7 +52,7 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[] {new LocalHostProvider()};
+    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()};
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
