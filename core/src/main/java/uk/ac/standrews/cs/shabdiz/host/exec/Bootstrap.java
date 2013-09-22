@@ -2,7 +2,6 @@ package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +17,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -63,11 +63,11 @@ public abstract class Bootstrap {
     private static final Attributes.Name MAVEN_ARTIFACTS = new Attributes.Name("Maven-Atifacts");
     private static final Attributes.Name BOOTSTRAP_CLASS_KEY = new Attributes.Name("Application-Bootstrap-Class");
     private static final Attributes.Name PREMAIN_CLASS = new Attributes.Name("Premain-Class");
+    private static final Attributes.Name FILES_TO_DELETE_ON_EXIT = new Attributes.Name("Delete-On-Exit");
     private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
     private static final String FILE_PROTOCOL = "file";
     private static final String PROPERTIES_ID_SUFFIX = ".properties:";
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.?[^=]+)=(.?[^=,]+)(,\\s)?");
-    private static final RecursiveWorkingDirectoryDeletionHook RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK = new RecursiveWorkingDirectoryDeletionHook();
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
     private final Properties properties;
@@ -99,11 +99,9 @@ public abstract class Bootstrap {
         }
     }
 
-    public static void premain(String path_to_config_file, Instrumentation instrumentation) throws Exception {
+    public static void premain(String args, Instrumentation instrumentation) throws Exception {
 
-        if (path_to_config_file == null) { throw new IllegalArgumentException("unspecified config file in bootstrap agent"); }
-
-        final BootstrapConfiguration configuration = getConfigurationFromFile(path_to_config_file);
+        final BootstrapConfiguration configuration = getConfigurationFromFile();
         loadMavenArtifacts(instrumentation, configuration);
         loadClassPathFiles(instrumentation, configuration.files);
         loadClassPathUrlsAsString(instrumentation, configuration.urls);
@@ -118,11 +116,13 @@ public abstract class Bootstrap {
         return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
     }
 
-    private static BootstrapConfiguration getConfigurationFromFile(final String path_to_config_file) throws IOException {
+    private static BootstrapConfiguration getConfigurationFromFile() throws IOException, URISyntaxException {
 
-        final FileInputStream in = new FileInputStream(path_to_config_file);
+        final File tmp_dir = new File(ClassLoader.getSystemResource("bootstrap.config").toURI()).getParentFile();
+        final InputStream in = ClassLoader.getSystemResourceAsStream("bootstrap.config");
         final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
         in.close();
+        configuration.addFileToDeleteOnExit(tmp_dir.getAbsolutePath());
         return configuration;
     }
 
@@ -142,8 +142,17 @@ public abstract class Bootstrap {
 
     private static void loadShutdownHooks(final BootstrapConfiguration configuration) {
 
+        final List<File> files_to_delete = new ArrayList<File>();
         if (configuration.delete_working_directory_on_exit) {
-            Runtime.getRuntime().addShutdownHook(RECURSIVE_WORKING_DIRECTORY_DELETION_HOOK);
+            files_to_delete.add(WORKING_DIRECTORY);
+        }
+        for (String file : configuration.delete_on_exit) {
+            files_to_delete.add(new File(file));
+        }
+
+        if (!files_to_delete.isEmpty()) {
+            final FileDeletionHook file_deletion_hook = new FileDeletionHook(files_to_delete);
+            Runtime.getRuntime().addShutdownHook(file_deletion_hook);
         }
     }
 
@@ -283,7 +292,7 @@ public abstract class Bootstrap {
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
             addClassToJar(Duration.class, jar_stream);
-            addClassToJar(RecursiveWorkingDirectoryDeletionHook.class, jar_stream);
+            addClassToJar(FileDeletionHook.class, jar_stream);
         }
         finally {
             jar_stream.flush();
@@ -465,6 +474,7 @@ public abstract class Bootstrap {
         private final Set<String> urls = new HashSet<String>();
         private final Set<String> maven_repositories = new HashSet<String>();
         private final Set<String> maven_artifacts = new HashSet<String>();
+        private final Set<String> delete_on_exit = new HashSet<String>();
         private volatile String application_bootstrap_class_name;
         private boolean delete_working_directory_on_exit;
 
@@ -489,6 +499,7 @@ public abstract class Bootstrap {
             attributes.put(CLASSPATH_URLS, toString(urls, SEPARATOR));
             attributes.put(MAVEN_REPOSITORIES, toString(maven_repositories, SEPARATOR));
             attributes.put(MAVEN_ARTIFACTS, toString(maven_artifacts, SEPARATOR));
+            attributes.put(FILES_TO_DELETE_ON_EXIT, toString(delete_on_exit, SEPARATOR));
             attributes.put(DELETE_WD_ON_EXIT, String.valueOf(delete_working_directory_on_exit));
             manifest.getEntries().put(CONFIG_FILE_ATTRIBUTES_NAME, attributes);
             return manifest;
@@ -546,6 +557,13 @@ public abstract class Bootstrap {
                 }
             }
 
+            final String[] delete_on_exit = attributes.get(FILES_TO_DELETE_ON_EXIT).toString().split(SEPARATOR);
+            for (String file : delete_on_exit) {
+                if (!file.trim().isEmpty()) {
+                    configuration.addFileToDeleteOnExit(file);
+                }
+            }
+
             final Boolean delete_wd_on_exit = Boolean.valueOf(attributes.get(DELETE_WD_ON_EXIT).toString());
             configuration.setDeleteWorkingDirectoryOnExit(delete_wd_on_exit);
 
@@ -577,6 +595,11 @@ public abstract class Bootstrap {
             return urls.add(url.toExternalForm());
         }
 
+        boolean addFileToDeleteOnExit(String path) {
+
+            return delete_on_exit.add(path);
+        }
+
         void setApplicationBootstrapClass(Class<?> bootstrap_class) {
 
             application_bootstrap_class_name = bootstrap_class.getName();
@@ -588,29 +611,40 @@ public abstract class Bootstrap {
         }
     }
 
-    private static class RecursiveWorkingDirectoryDeletionHook extends Thread {
+    private static class FileDeletionHook extends Thread {
+
+        private final List<File> files;
+
+        private FileDeletionHook(List<File> files) {
+
+            this.files = files;
+        }
 
         @Override
         public void run() {
 
-            try {
-                deleteRecursively(WORKING_DIRECTORY);
-            }
-            catch (IOException e) {
-                System.err.println("Failure occured while deleting working directory");
-                e.printStackTrace();
+            for (File file : files) {
+                try {
+                    deleteRecursively(file);
+                }
+                catch (IOException e) {
+                    System.err.println("Failure occured while deleting " + file);
+                    e.printStackTrace();
+                }
             }
         }
 
         void deleteRecursively(File file) throws IOException {
 
-            if (file.isDirectory()) {
-                for (File sub_file : file.listFiles()) {
-                    deleteRecursively(sub_file);
+            if (file.exists()) {
+                if (file.isDirectory()) {
+                    for (File sub_file : file.listFiles()) {
+                        deleteRecursively(sub_file);
+                    }
                 }
-            }
-            if (!file.delete()) {
-                System.err.println("Failed to delete file: " + file);
+                if (!file.delete()) {
+                    System.err.println("Failed to delete file: " + file);
+                }
             }
         }
     }

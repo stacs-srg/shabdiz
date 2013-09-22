@@ -14,10 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
+import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_JAR_NAME;
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.LOCAL_SHABDIZ_TMP_HOME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.SHABDIZ_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.TEMP_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
@@ -37,7 +39,6 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     //TODO set environment variables for shabdiz parameter?
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentBasedJavaProcessBuilder.class);
     private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
-    private static final String EQUALS = "=";
     private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
     private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = true;
     private static final String SYSTEM_CLASSPATH = System.getProperty("java.class.path");
@@ -98,13 +99,11 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         final Platform platform = host.getPlatform();
         final String bootstrap_jar = uploadBootstrapJar(host);
-        final String working_directory = getWorkingDirectoryByPlatform(platform);
-        uploadLocalClasspathFiles(host, working_directory);
-        uploadBootstrapConfigurationFile(host, working_directory);
-
-        final String command = assembleCommand(platform, bootstrap_jar, parameters);
-        LOGGER.debug("cd {}; {}", working_directory, command);
-        return host.execute(working_directory, command);
+        final String remote_tmp_dir = createTempDirByPlatform(platform);
+        uploadLocalClasspathFiles(host, remote_tmp_dir);
+        uploadBootstrapConfigurationFile(host, remote_tmp_dir);
+        final String command = assembleCommand(remote_tmp_dir, platform, bootstrap_jar, parameters);
+        return host.execute(getWorkingDirectory(), command);
     }
 
     @Override
@@ -227,17 +226,35 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
 
         if (!uploads.isEmpty()) {
-            host.upload(uploads, working_directory);
+            if (host.isLocal()) {
+                host.upload(uploads, working_directory);
+            }
+            else {
+                final File local_tmp_dir = createTempDirOnLocal();
+                final File compressed_uploads = new File(local_tmp_dir, "compressed_cp.zip");
+                CompressionUtil.toZip(uploads, compressed_uploads);
+                host.upload(compressed_uploads, working_directory);
+                decompressOnHost(host, working_directory, compressed_uploads);
+                FileUtils.deleteDirectory(local_tmp_dir);
+            }
         }
     }
 
-    private String getWorkingDirectoryByPlatform(final Platform platform) {
+    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
 
-        String working_directory = getWorkingDirectory();
-        if (working_directory == null) {
-            working_directory = createTempDirByPlatform(platform);
+        try {
+
+            final String compressed_classpath_file_name = compressed_classpath.getName();
+            try {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath_file_name));
+            }
+            catch (final IOException e) {
+                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath_file_name));
+            }
         }
-        return working_directory;
+        catch (final InterruptedException e) {
+            throw new IOException(e);
+        }
     }
 
     private static String createTempDirByPlatform(final Platform platform) {
@@ -269,7 +286,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
     private static File createTempDirOnLocal() throws IOException {
 
-        final File temp_dir = new File(Bootstrap.LOCAL_SHABDIZ_TMP_HOME, UUID.randomUUID().toString());
+        final File temp_dir = new File(LOCAL_SHABDIZ_TMP_HOME, UUID.randomUUID().toString());
         FileUtils.forceMkdir(temp_dir);
         return temp_dir;
     }
@@ -323,13 +340,13 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return already_exists;
     }
 
-    private String assembleCommand(final Platform platform, final String bootstrap_jar, final String[] parameters) {
+    private String assembleCommand(final String remote_tmp_dir, final Platform platform, final String bootstrap_jar, final String[] parameters) {
 
         final StringBuilder command = new StringBuilder();
         appendJavaBinPath(command, platform);
         appendBootstrpAgent(command, bootstrap_jar);
         appendJVMArguments(command);
-        appendClassPath(command, platform);
+        appendClassPath(command, platform, remote_tmp_dir);
         appendMainClass(command);
         appendCommandLineArguments(command, platform, parameters);
         return command.toString();
@@ -339,8 +356,6 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         command.append(JVM_PARAM_JAVAAGENT);
         command.append(bootstrap_jar);
-        command.append(EQUALS);
-        command.append(BOOTSTRAP_CONFIG_FILE_NAME);
         command.append(SPACE);
     }
 
@@ -351,11 +366,17 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         command.append(SPACE);
     }
 
-    private void appendClassPath(final StringBuilder command, Platform platform) {
+    private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {
 
+        final char path_separator = platform.getPathSeparator();
         command.append("-cp .");
-        command.append(platform.getPathSeparator());
+        command.append(path_separator);
+        command.append(remote_tmp_dir);
+        command.append(platform.getSeparator());
         command.append("*");
+        command.append(path_separator);
+        command.append(remote_tmp_dir);
+        command.append(platform.getSeparator());
         command.append(SPACE);
     }
 }

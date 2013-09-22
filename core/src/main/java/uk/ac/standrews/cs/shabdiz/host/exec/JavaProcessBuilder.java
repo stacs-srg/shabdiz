@@ -30,6 +30,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @param argument the argument to add to the collection of this builder's JVM arguments
      */
     public void addJVMArgument(final String argument) {
+
         jvm_arguments.append(argument.trim()).append(SPACE);
     }
 
@@ -62,6 +63,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @return the name of the class that is used as the main class of the process, which are started by this process builder
      */
     public String getMainClass() {
+
         return main_class;
     }
 
@@ -71,6 +73,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @param main_class the fully qualified class on which the {@code main} method is invoked
      */
     public void setMainClass(final Class<?> main_class) {
+
         this.main_class = main_class.getName();
     }
 
@@ -80,6 +83,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @param main_class the fully qualified class name on which the {@code main} method is invoked
      */
     public void setMainClass(final String main_class) {
+
         this.main_class = main_class.trim();
     }
 
@@ -90,6 +94,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @return the working directory of the Java process that are started by this builder, or {@code null} if not specified
      */
     public String getWorkingDirectory() {
+
         return working_directory;
     }
 
@@ -100,6 +105,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      * @param working_directory the new working directory
      */
     public void setWorkingDirectory(final String working_directory) {
+
         this.working_directory = working_directory;
     }
 
