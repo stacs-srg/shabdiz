@@ -225,7 +225,7 @@ public abstract class Bootstrap {
             public Properties call() throws Exception {
 
                 Properties properties = new Properties();
-                final Scanner scanner = new Scanner(in, PROCESS_OUTPUT_ENCODING);
+                final Scanner scanner = new Scanner(new BufferedInputStream(in), PROCESS_OUTPUT_ENCODING);
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
                 while (scanner.hasNextLine()) {
                     final String output_line = scanner.findInLine(pattern);

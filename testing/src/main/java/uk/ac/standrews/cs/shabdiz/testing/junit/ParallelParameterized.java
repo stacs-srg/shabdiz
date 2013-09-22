@@ -169,6 +169,7 @@ public class ParallelParameterized extends Parameterized {
             }
         }
         else if (hosts == null) {
+            super.runChild(runner, notifier);
         }
         else {
             final Description description = describeChild(runner);
