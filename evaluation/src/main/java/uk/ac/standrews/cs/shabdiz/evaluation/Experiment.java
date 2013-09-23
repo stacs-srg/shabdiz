@@ -41,7 +41,9 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
 //@RunWith(Parameterized.class)
-@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, hostProvider = "localhost", addCurrentJvmClasspath = false, mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT"})
+@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, hostProvider = "localhost"
+//        , addCurrentJvmClasspath = false, mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT","uk.ac.standrews.cs:shabdiz-testing:1.0-SNAPSHOT"}
+)
 public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
