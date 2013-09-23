@@ -18,6 +18,6 @@ public class RunningToRunningAfterKillExperimentTest extends ExperimentTest {
     @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
     public static Collection<Object[]> data() {
 
-        return Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, Experiment.APPLICATION_MANAGERS, Experiment.HOT_COLD, RunningToRunningAfterKillExperiment.KILL_PORTIONS});
+        return Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, Experiment.APPLICATION_MANAGERS, Experiment.HOT_COLD, KILL_PORTIONS});
     }
 }

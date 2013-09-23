@@ -28,6 +28,7 @@ public abstract class ExperimentTest {
 
     static final Long TEST_TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
     static final Integer[] NETWORK_SIZES = {10};
+    static final Float[] KILL_PORTIONS = {0.5F};
     @SuppressWarnings("unchecked")
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()};
     private final Experiment experiment;
