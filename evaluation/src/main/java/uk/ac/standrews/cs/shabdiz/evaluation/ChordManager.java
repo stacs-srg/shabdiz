@@ -14,6 +14,7 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.Key;
 import uk.ac.standrews.cs.nds.p2p.util.SHA1KeyFactory;
+import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
@@ -60,7 +61,7 @@ public abstract class ChordManager extends ExperimentManager {
     public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process node_process = process_builder.start(host, "-s" + host.getName() + ":0", "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
+        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":0", "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
         final Properties properties = Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));

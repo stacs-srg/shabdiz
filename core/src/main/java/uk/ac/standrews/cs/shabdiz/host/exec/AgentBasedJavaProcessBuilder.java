@@ -103,8 +103,9 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         uploadLocalClasspathFiles(host, remote_tmp_dir);
         uploadBootstrapConfigurationFile(host, remote_tmp_dir);
         final String command = assembleCommand(remote_tmp_dir, platform, bootstrap_jar, parameters);
-        System.out.println(command);
-        return host.execute(getWorkingDirectory(), command);
+        final String working_wirectory = getWorkingDirectory();
+        LOGGER.debug("executing {} on host {} at working directory {}", command, host, working_wirectory);
+        return host.execute(working_wirectory, command);
     }
 
     @Override

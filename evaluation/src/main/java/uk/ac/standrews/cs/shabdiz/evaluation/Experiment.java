@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Timer;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -48,13 +48,14 @@ public abstract class Experiment {
 
     //TODO fix the state change over time gauge. one for each state : use property change listener
     //TODO fix the key-value pair CSV output
-    public static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
+
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
+    static final File RESULTS_HOME = new File("results");
+    static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 1;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new LocalHostProvider()};
     static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
@@ -64,10 +65,6 @@ public abstract class Experiment {
     protected final Integer network_size;
     protected final Timer timer = new Timer();
     private final MetricRegistry registry;
-    private final StateCountGauge auth_state_gauge = new StateCountGauge(ApplicationState.AUTH);
-    private final StateCountGauge unknown_state_gauge = new StateCountGauge(ApplicationState.UNKNOWN);
-    private final StateCountGauge running_state_gauge = new StateCountGauge(ApplicationState.RUNNING);
-    private final StateCountGauge other_state_gauge = new StateCountGauge(ApplicationState.DEPLOYED, ApplicationState.INVALID, ApplicationState.KILLED, ApplicationState.LAUNCHED, ApplicationState.NO_AUTH, ApplicationState.UNREACHABLE);
     private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
     private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
@@ -79,7 +76,7 @@ public abstract class Experiment {
     private File observations_directory;
     private String name;
 
-    public Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager, boolean cold) throws IOException {
+    public Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager, boolean cold) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;
@@ -113,7 +110,7 @@ public abstract class Experiment {
 
         name = constructName();
         //        observations_directory = new File(new File(new File("/home/masih/shabdiz_experiments/results",name), "repetitions"), String.valueOf(System.currentTimeMillis()));
-        observations_directory = new File(new File(name, "repetitions"), String.valueOf(System.currentTimeMillis()));
+        observations_directory = new File(new File(new File(RESULTS_HOME, name), "repetitions"), String.valueOf(System.currentTimeMillis()));
         FileUtils.forceMkdir(observations_directory);
         reporter = new CsvReporter(registry, observations_directory);
         populateProperties();
@@ -121,11 +118,8 @@ public abstract class Experiment {
         disableAllNetworkScanners();
         populateNetwork();
         manager.configure(network, cold);
-
-        registerMetric("auth_state_gauge", auth_state_gauge);
-        registerMetric("running_state_gauge", running_state_gauge);
-        registerMetric("unknown_state_gauge", unknown_state_gauge);
-        registerMetric("other_state_gauge", other_state_gauge);
+        final ApplciationStateCounters application_state_counters = new ApplciationStateCounters(network);
+        application_state_counters.registerTo(registry);
         registerMetric("memory_gauge", memory_gauge);
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
@@ -218,28 +212,5 @@ public abstract class Experiment {
     protected Object setProperty(String key, Object value) {
 
         return properties.setProperty(key, String.valueOf(value));
-    }
-
-    protected class StateCountGauge implements Gauge<Integer> {
-
-        private final ApplicationState[] target_states;
-
-        StateCountGauge(ApplicationState... target_states) {
-
-            this.target_states = target_states;
-        }
-
-        @Override
-        public Integer get() {
-
-            int count = 0;
-            for (ApplicationDescriptor descriptor : getNetwork()) {
-
-                if (descriptor.isInAnyOfStates(target_states)) {
-                    count++;
-                }
-            }
-            return count;
-        }
     }
 }

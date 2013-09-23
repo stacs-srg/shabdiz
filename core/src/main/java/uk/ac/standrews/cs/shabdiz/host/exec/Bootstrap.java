@@ -60,7 +60,7 @@ public abstract class Bootstrap {
     private static final Attributes.Name CLASSPATH_FILES = new Attributes.Name("Class-Path-Files");
     private static final Attributes.Name CLASSPATH_URLS = new Attributes.Name("Class-Path-URLs");
     private static final Attributes.Name MAVEN_REPOSITORIES = new Attributes.Name("Maven-Repositories");
-    private static final Attributes.Name MAVEN_ARTIFACTS = new Attributes.Name("Maven-Atifacts");
+    private static final Attributes.Name MAVEN_ARTIFACTS = new Attributes.Name("Maven-Artifacts");
     private static final Attributes.Name BOOTSTRAP_CLASS_KEY = new Attributes.Name("Application-Bootstrap-Class");
     private static final Attributes.Name PREMAIN_CLASS = new Attributes.Name("Premain-Class");
     private static final Attributes.Name FILES_TO_DELETE_ON_EXIT = new Attributes.Name("Delete-On-Exit");
@@ -231,7 +231,7 @@ public abstract class Bootstrap {
                     final String output_line = scanner.findInLine(pattern);
                     if (output_line == null) {
                         final String next_line = scanner.nextLine();
-                        System.out.println(next_line);
+                        //                        System.out.println(next_line);
                     }
                     else {
                         final MatchResult match = scanner.match();
@@ -338,7 +338,7 @@ public abstract class Bootstrap {
         }
     }
 
-    private static void loadClassPathFiles(final Instrumentation instrumentation, final Collection<File> files) throws URISyntaxException, IOException {
+    private static void loadClassPathFiles(final Instrumentation instrumentation, final Collection<File> files) throws IOException {
 
         for (File file : files) {
             loadClassPathFile(instrumentation, file);
@@ -410,8 +410,6 @@ public abstract class Bootstrap {
     }
 
     private static File copyUrlToFile(final URL url, File destination) throws IOException {
-
-        System.out.println("copying " + url + " to " + destination);
 
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
@@ -495,22 +493,22 @@ public abstract class Bootstrap {
             final Attributes attributes = new Attributes();
 
             attributes.put(BOOTSTRAP_CLASS_KEY, application_bootstrap_class_name);
-            attributes.put(CLASSPATH_FILES, toString(files, SEPARATOR));
-            attributes.put(CLASSPATH_URLS, toString(urls, SEPARATOR));
-            attributes.put(MAVEN_REPOSITORIES, toString(maven_repositories, SEPARATOR));
-            attributes.put(MAVEN_ARTIFACTS, toString(maven_artifacts, SEPARATOR));
-            attributes.put(FILES_TO_DELETE_ON_EXIT, toString(delete_on_exit, SEPARATOR));
+            attributes.put(CLASSPATH_FILES, toString(files));
+            attributes.put(CLASSPATH_URLS, toString(urls));
+            attributes.put(MAVEN_REPOSITORIES, toString(maven_repositories));
+            attributes.put(MAVEN_ARTIFACTS, toString(maven_artifacts));
+            attributes.put(FILES_TO_DELETE_ON_EXIT, toString(delete_on_exit));
             attributes.put(DELETE_WD_ON_EXIT, String.valueOf(delete_working_directory_on_exit));
             manifest.getEntries().put(CONFIG_FILE_ATTRIBUTES_NAME, attributes);
             return manifest;
         }
 
-        private static String toString(Collection<?> collection, String delimiter) {
+        private static String toString(Collection<?> collection) {
 
             final StringBuilder string_builder = new StringBuilder();
             for (Object element : collection) {
                 string_builder.append(element);
-                string_builder.append(delimiter);
+                string_builder.append(SEPARATOR);
             }
 
             return string_builder.toString().trim();
@@ -624,22 +622,19 @@ public abstract class Bootstrap {
         public void run() {
 
             for (File file : files) {
-                try {
-                    deleteRecursively(file);
-                }
-                catch (IOException e) {
-                    System.err.println("Failure occured while deleting " + file);
-                    e.printStackTrace();
-                }
+                deleteRecursively(file);
             }
         }
 
-        void deleteRecursively(File file) throws IOException {
+        void deleteRecursively(File file) {
 
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    for (File sub_file : file.listFiles()) {
-                        deleteRecursively(sub_file);
+                    final File[] sub_files = file.listFiles();
+                    if (sub_files != null) {
+                        for (File sub_file : sub_files) {
+                            deleteRecursively(sub_file);
+                        }
                     }
                 }
                 if (!file.delete()) {

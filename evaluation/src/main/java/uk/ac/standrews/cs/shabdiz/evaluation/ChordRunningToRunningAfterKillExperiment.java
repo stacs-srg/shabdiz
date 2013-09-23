@@ -38,7 +38,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
     private static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
     private static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED};
-    private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    private static final Duration JOIN_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
     private static final int SEED = 78354;
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
@@ -111,7 +111,7 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, TimeUnit.SECONDS.convert(time_to_reach_running, TimeUnit.NANOSECONDS));
 
         LOGGER.info("re-assembing Chord ring");
-        reassembleRing(killed_descriptors);
+        assembleRing(killed_descriptors);
 
         LOGGER.info("awaiting stabilized ring after killing portion of network...");
         final long time_to_reach_stabilized_ring_after_kill = timeRingStabilization();
@@ -127,10 +127,10 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         joined_nodes.remove(kill_candidate.getApplicationReference());
     }
 
-    private void reassembleRing(final List<ApplicationDescriptor> killed_descriptors) throws Exception {
+    private void assembleRing(final Iterable<ApplicationDescriptor> descriptors) throws Exception {
 
-        for (ApplicationDescriptor killed_descriptor : killed_descriptors) {
-            final IChordRemoteReference node = killed_descriptor.getApplicationReference();
+        for (ApplicationDescriptor descriptor : descriptors) {
+            final IChordRemoteReference node = descriptor.getApplicationReference();
             joinWithTimeout(node);
         }
     }
@@ -147,6 +147,9 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
                     try {
                         IChordRemoteReference known_node = getRandomJoinedNode(joiner);
                         joiner.getRemote().join(known_node);
+                        synchronized (joined_nodes) {
+                            joined_nodes.add(joiner);
+                        }
                         successful = true;
                     }
                     catch (RPCException e) {
@@ -158,27 +161,26 @@ public class ChordRunningToRunningAfterKillExperiment extends RunningToRunningAf
         }, JOIN_TIMEOUT);
     }
 
-    private synchronized IChordRemoteReference getRandomJoinedNode(IChordRemoteReference joiner) {
+    private IChordRemoteReference getRandomJoinedNode(IChordRemoteReference joiner) {
 
-        final IChordRemoteReference joined_node;
-        if (joined_nodes.isEmpty()) {
-            joined_nodes.add(joiner);
-            joined_node = joiner;
+        synchronized (joined_nodes) {
+            final IChordRemoteReference joined_node;
+            if (joined_nodes.isEmpty()) {
+                joined_nodes.add(joiner);
+                joined_node = joiner;
+            }
+            else {
+                int candidate_index = random.nextInt(joined_nodes.size());
+                joined_node = joined_nodes.get(candidate_index);
+                assert joined_node != null;
+            }
+            return joined_node;
         }
-        else {
-            int candidate_index = random.nextInt(joined_nodes.size());
-            joined_node = joined_nodes.get(candidate_index);
-        }
-        return joined_node;
     }
 
     private void assembleRing() throws Exception {
 
-        for (ApplicationDescriptor descriptor : network) {
-
-            final IChordRemoteReference reference = descriptor.getApplicationReference();
-            joinWithTimeout(reference);
-        }
+        assembleRing(network);
     }
 
     private long timeRingStabilization() throws InterruptedException {

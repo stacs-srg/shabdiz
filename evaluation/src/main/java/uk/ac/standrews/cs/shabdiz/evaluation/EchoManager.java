@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.example.echo.DefaultEcho;
 import uk.ac.standrews.cs.shabdiz.example.echo.Echo;
 import uk.ac.standrews.cs.shabdiz.example.echo.EchoBootstrap;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
@@ -128,7 +127,7 @@ abstract class EchoManager extends ExperimentManager {
     @Override
     protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
 
-        process_builder.setMainClass(DefaultEcho.class);
+        process_builder.setMainClass(EchoBootstrap.class);
     }
 
     private static String generateRandomString() {
