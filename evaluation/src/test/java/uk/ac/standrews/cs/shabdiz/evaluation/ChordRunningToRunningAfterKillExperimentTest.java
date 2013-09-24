@@ -15,7 +15,7 @@ public class ChordRunningToRunningAfterKillExperimentTest extends ExperimentTest
         super(new ChordRunningToRunningAfterKillExperiment(network_size, host_provider, manager, cold, kill_portion));
     }
 
-    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
+    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}, kill_portion: {4}")
     public static Collection<Object[]> data() {
 
         return Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, Experiment.APPLICATION_MANAGERS, Experiment.HOT_COLD, KILL_PORTIONS});

@@ -75,7 +75,8 @@ public final class ProcessUtil {
     public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
 
         final Platform platform = host.getPlatform();
-        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        final String kill_command = Commands.FORCE_KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        //        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
         final Process kill = host.execute(kill_command);
         awaitNormalTerminationAndGetOutput(kill);
     }

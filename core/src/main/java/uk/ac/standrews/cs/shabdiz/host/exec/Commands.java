@@ -140,8 +140,8 @@ public final class Commands {
     /** The kill by PID command builder. */
     public static final CommandBuilder KILL_BY_PROCESS_ID = new CommandBuilder() {
 
-        private static final String TASKKILL_PID = "taskkill /F /PID ";
-        private static final String KILL_9 = "kill ";
+        private static final String TASKKILL_PID = "taskkill /PID ";
+        private static final String KILL = "kill ";
 
         /** Given a PID, which is expected as the first element in {@code parameters}, constructs a platform-dependent process termination command. */
         @Override
@@ -150,7 +150,7 @@ public final class Commands {
             if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
             final Integer pid = Integer.parseInt(parameters[0]);
             LOGGER.debug("generating kill command for pid: {}", pid);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL : TASKKILL_PID, String.valueOf(pid));
         }
     };
     /** Force kill by PID command builder. */
