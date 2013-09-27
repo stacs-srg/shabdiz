@@ -34,7 +34,7 @@ public class RunningToRunningAfterResetExperiment extends Experiment {
         setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
         LOGGER.info("reached AUTH state in {} seconds", TimeUnit.SECONDS.convert(time_to_reach_auth, TimeUnit.NANOSECONDS));
 
-        LOGGER.info("enabling auto deply");
+        LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);
         final long time_to_reach_running = timeUniformNetworkStateInNanos(ApplicationState.RUNNING);
         setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));

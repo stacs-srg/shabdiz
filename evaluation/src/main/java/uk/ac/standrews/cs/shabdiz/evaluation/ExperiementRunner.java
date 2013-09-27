@@ -5,10 +5,18 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ExperiementRunner {
 
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ExperiementRunner.class);
     private static final Map<Class, Collection<Object[]>> EXPERIMENTS = new HashMap<Class, Collection<Object[]>>();
     static {
 
@@ -16,13 +24,12 @@ public class ExperiementRunner {
         EXPERIMENTS.put(RunningToAuthAfterKillExperiment.class, RunningToAuthAfterKillExperiment.getParameters());
         EXPERIMENTS.put(RunningToRunningAfterKillExperiment.class, RunningToRunningAfterKillExperiment.getParameters());
         EXPERIMENTS.put(RunningToRunningAfterResetExperiment.class, RunningToRunningAfterResetExperiment.getParameters());
-
     }
 
     public static void main(String[] args) throws Exception {
 
         int experiment = 0;
-        int i = 0, j = 0;
+        int j = 0;
         if (args.length == 0) {
             for (Map.Entry<Class, Collection<Object[]>> entry : EXPERIMENTS.entrySet()) {
 
@@ -57,28 +64,48 @@ public class ExperiementRunner {
 
                 j = 0;
 
-                i++;
             }
         }
         else if (args.length == 2) {
+            String class_name = args[0];
+            int param_index = Integer.parseInt(args[1]);
             try {
-                String class_name = args[0];
-                int param_index = Integer.parseInt(args[1]);
                 final Class<?> experiment_class = Class.forName(class_name);
                 final Collection<Object[]> exp_args = EXPERIMENTS.get(experiment_class);
-                for (Object[] constructor_args : exp_args) {
+                for (final Object[] constructor_args : exp_args) {
                     if (j == param_index) {
-                        final Constructor constructor = experiment_class.getDeclaredConstructors()[0];
-                        final Experiment experiment1 = (Experiment) constructor.newInstance(constructor_args);
-                        experiment1.setUp();
-                        experiment1.doExperiment();
-                        experiment1.tearDown();
+
+                        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+                        try {
+                            executorService.submit(new Callable<Object>() {
+
+                                @Override
+                                public Object call() throws Exception {
+
+                                    final Constructor constructor = experiment_class.getDeclaredConstructors()[0];
+                                    final Experiment experiment1 = (Experiment) constructor.newInstance(constructor_args);
+                                    experiment1.setUp();
+                                    experiment1.doExperiment();
+                                    experiment1.tearDown();
+                                    return null;
+                                }
+                            }).get(15, TimeUnit.MINUTES);
+                        }
+                        catch (TimeoutException e) {
+                            LOGGER.error(" time out " + class_name + " " + param_index, e);
+                            System.out.println(">>>>> time out " + class_name + " " + param_index);
+                        }
+                        finally {
+                            executorService.shutdownNow();
+                        }
                         System.exit(0);
                     }
                     j++;
                 }
             }
             catch (Throwable e) {
+                LOGGER.error("failed to execute " + class_name + "   " + param_index, e);
                 System.exit(1);
             }
         }
@@ -89,6 +116,7 @@ public class ExperiementRunner {
         ProcessBuilder builder = new ProcessBuilder("bash", "-c", "rocks run host \"killall java\";");
         builder.redirectErrorStream(true);
         final Process start = builder.start();
+        ProcessUtil.awaitNormalTerminationAndGetOutput(start);
         start.waitFor();
         start.destroy();
     }

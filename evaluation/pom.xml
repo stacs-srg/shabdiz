@@ -40,10 +40,13 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <finalName>experiments</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>uk.ac.standrews.cs.shabdiz.evaluation.ExperiementRunner</mainClass>
                         </manifest>
+
                     </archive>
                 </configuration>
             </plugin>

@@ -18,7 +18,7 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ExperimentManager extends AbstractApplicationManager {
 
-    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(10, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
 

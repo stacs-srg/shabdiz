@@ -18,22 +18,19 @@
  */
 package uk.ac.standrews.cs.shabdiz;
 
+import com.jcraft.jsch.JSchException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
-
-import com.jcraft.jsch.JSchException;
 
 /**
  * Implements common state probe and termination functionality.
@@ -45,7 +42,7 @@ import com.jcraft.jsch.JSchException;
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
-    private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(5, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(10, TimeUnit.SECONDS);
     private final Duration command_execution_timeout;
 
     /** Instantiates a new application manager with the default command execution timeout of {@code 5} seconds. */
@@ -56,7 +53,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     /**
      * Instantiates a new application manager and sets the command execution timeout to the given {@code command_execution_timeout}.
-     * 
+     *
      * @param command_execution_timeout the command execution timeout
      */
     protected AbstractApplicationManager(final Duration command_execution_timeout) {

@@ -70,6 +70,7 @@ public abstract class Bootstrap {
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.?[^=]+)=(.?[^=,]+)(,\\s)?");
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
+    private static File tmp_dir;
     private final Properties properties;
 
     protected Bootstrap() {
@@ -118,7 +119,7 @@ public abstract class Bootstrap {
 
     private static BootstrapConfiguration getConfigurationFromFile() throws IOException, URISyntaxException {
 
-        final File tmp_dir = new File(ClassLoader.getSystemResource("bootstrap.config").toURI()).getParentFile();
+        tmp_dir = new File(ClassLoader.getSystemResource("bootstrap.config").toURI()).getParentFile();
         final InputStream in = ClassLoader.getSystemResourceAsStream("bootstrap.config");
         final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
         in.close();
@@ -434,7 +435,7 @@ public abstract class Bootstrap {
 
         final File url_as_file;
         if (!isFile(url)) {
-            url_as_file = copyUrlToWorkingDirectory(url);
+            url_as_file = copyUrlToTmpDirectory(url);
         }
         else {
             url_as_file = new File(url.toURI());
@@ -449,9 +450,9 @@ public abstract class Bootstrap {
         loadClassPathJAR(instrumentation, jar);
     }
 
-    private static File copyUrlToWorkingDirectory(final URL url) throws IOException {
+    private static File copyUrlToTmpDirectory(final URL url) throws IOException {
 
-        return copyUrlToFile(url, new File(WORKING_DIRECTORY, getFileName(url)));
+        return copyUrlToFile(url, new File(tmp_dir, getFileName(url)));
     }
 
     private static void addMavenRepositories(final Set<String> repositories) throws MalformedURLException {
