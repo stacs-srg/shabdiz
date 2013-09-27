@@ -94,7 +94,8 @@ class WorkerManager extends AbstractApplicationManager {
             final Integer process_id = worker.getWorkerProcessId();
             if (process_id != null) {
                 final Platform platform = descriptor.getHost().getPlatform();
-                final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
+
+                final String kill_command = Commands.FORCE_KILL_BY_PROCESS_ID.get(platform, String.valueOf(process_id));
                 final Process kill = descriptor.getHost().execute(kill_command);
                 ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
             }
