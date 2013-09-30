@@ -21,7 +21,6 @@ package uk.ac.standrews.cs.shabdiz.evaluation;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
@@ -40,11 +39,9 @@ import uk.ac.standrews.cs.shabdiz.example.echo.EchoBootstrap;
 import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
-import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 abstract class EchoManager extends ExperimentManager {
 
@@ -55,13 +52,12 @@ abstract class EchoManager extends ExperimentManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
-    private static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
-    private static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
     protected EchoManager() {
 
+        this(DEFAULT_DEPLOYMENT_TIMEOUT);
     }
 
     EchoManager(Duration timeout) {
@@ -88,30 +84,10 @@ abstract class EchoManager extends ExperimentManager {
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         try {
-            attemptTerminationByPID(descriptor);
-            attemptTerminationByProcess(descriptor);
+            killByProcessID(descriptor);
         }
-        catch (final Exception e) {
-            LOGGER.error("failed to kill echo application instance", e);
-        }
-    }
-
-    private static void attemptTerminationByProcess(final ApplicationDescriptor descriptor) {
-
-        final Process process = descriptor.getAttribute(PROCESS_KEY);
-        if (process != null) {
-            process.destroy();
-        }
-    }
-
-    private static void attemptTerminationByPID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
-
-        final Integer pid = descriptor.getAttribute(PID_KEY);
-        if (pid != null) {
-            final Host host = descriptor.getHost();
-            final String kill_command = Commands.KILL_BY_PROCESS_ID.get(host.getPlatform(), String.valueOf(pid));
-            final Process kill = host.execute(kill_command);
-            ProcessUtil.awaitNormalTerminationAndGetOutput(kill);
+        finally {
+            destroyProcess(descriptor);
         }
     }
 

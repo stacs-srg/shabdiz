@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
@@ -22,9 +21,7 @@ import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
-import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
-import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.stachord.impl.ChordNodeFactory;
 import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
@@ -36,8 +33,6 @@ public abstract class ChordManager extends ExperimentManager {
     private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
     private static final Duration DEFAULT_RETRY_DELAY = new Duration(3, TimeUnit.SECONDS);
     private static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
-    private static final AttributeKey<Process> PEER_PROCESS_KEY = new AttributeKey<Process>();
-    private static final AttributeKey<Integer> PEER_PROCESS_PID_KEY = new AttributeKey<Integer>();
     private static final long KEY_FACTORY_SEED = 0x585;
     private static final String STACHORD_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, "stachord", "2.0-SNAPSHOT");
     private static final DefaultArtifact STACHORD_MAVEN_ARTIFACT = new DefaultArtifact(STACHORD_MAVEN_ARTIFACT_COORDINATES);
@@ -67,8 +62,8 @@ public abstract class ChordManager extends ExperimentManager {
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
 
-        descriptor.setAttribute(PEER_PROCESS_KEY, node_process);
-        descriptor.setAttribute(PEER_PROCESS_PID_KEY, pid);
+        descriptor.setAttribute(PROCESS_KEY, node_process);
+        descriptor.setAttribute(PID_KEY, pid);
         return node_reference;
     }
 
@@ -120,23 +115,6 @@ public abstract class ChordManager extends ExperimentManager {
     private synchronized IKey nextPeerKey() {
 
         return key_factory.generateKey();
-    }
-
-    private static void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
-
-        final Integer pid = descriptor.getAttribute(PEER_PROCESS_PID_KEY);
-        if (pid != null) {
-            final Host host = descriptor.getHost();
-            ProcessUtil.killProcessOnHostByPID(host, pid);
-        }
-    }
-
-    private static void destroyProcess(final ApplicationDescriptor descriptor) {
-
-        final Process process = descriptor.getAttribute(PEER_PROCESS_KEY);
-        if (process != null) {
-            process.destroy();
-        }
     }
 
     @Override

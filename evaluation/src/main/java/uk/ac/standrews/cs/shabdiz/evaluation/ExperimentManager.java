@@ -12,12 +12,15 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ExperimentManager extends AbstractApplicationManager {
 
+    protected static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
+    protected static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
@@ -76,7 +79,6 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
                 final Process start = mock_process_builder.start(host);
                 start.waitFor();
                 start.destroy();
-                //TODO test if this works
             }
         }
         process_builder.addMavenDependency(artifact_coordinate);
@@ -88,6 +90,23 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         // TODO check if JarFile can be a remote url instead of file if so the problem is solved. cold would be adding URL to URLClassloader
         for (URL url : urls) {
             process_builder.addURL(url);
+        }
+    }
+
+    protected static void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
+
+        final Integer pid = descriptor.getAttribute(PID_KEY);
+        if (pid != null) {
+            final Host host = descriptor.getHost();
+            ProcessUtil.killProcessOnHostByPID(host, pid);
+        }
+    }
+
+    protected static void destroyProcess(final ApplicationDescriptor descriptor) {
+
+        final Process process = descriptor.getAttribute(PROCESS_KEY);
+        if (process != null) {
+            process.destroy();
         }
     }
 }

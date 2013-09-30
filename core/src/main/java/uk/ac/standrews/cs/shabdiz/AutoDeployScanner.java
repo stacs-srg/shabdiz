@@ -49,7 +49,7 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
                 descriptor.setApplicationReference(application_reference);
             }
             catch (final Exception e) {
-                LOGGER.debug("auto deployment failed", e);
+                LOGGER.error("auto deployment failed", e);
             }
         }
     }
@@ -58,5 +58,4 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
 
         return ApplicationState.AUTH.equals(application_descriptor.getApplicationState());
     }
-
 }
