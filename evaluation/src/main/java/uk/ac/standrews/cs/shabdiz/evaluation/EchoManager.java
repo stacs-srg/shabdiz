@@ -40,18 +40,18 @@ import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
-import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 abstract class EchoManager extends ExperimentManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
-    static final FileBased FILE_BASED = new FileBased();
+    static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
+    static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
     static final URLBased URL_BASED = new URLBased();
-    static final MavenBased MAVEN_BASED = new MavenBased();
+    static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
+    static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
     private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
-    private static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
@@ -81,17 +81,6 @@ abstract class EchoManager extends ExperimentManager {
     }
 
     @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
-
-        try {
-            killByProcessID(descriptor);
-        }
-        finally {
-            destroyProcess(descriptor);
-        }
-    }
-
-    @Override
     protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
         final String random_message = generateRandomString();
@@ -101,8 +90,9 @@ abstract class EchoManager extends ExperimentManager {
     }
 
     @Override
-    protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+    protected void configure(final ApplicationNetwork network) throws Exception {
 
+        super.configure(network);
         process_builder.setMainClass(EchoBootstrap.class);
     }
 
@@ -113,15 +103,6 @@ abstract class EchoManager extends ExperimentManager {
 
     static class URLBased extends EchoManager {
 
-        URLBased() {
-
-        }
-
-        URLBased(final Duration timeout) throws Exception {
-
-            super(timeout);
-        }
-
         @Override
         public String toString() {
 
@@ -129,62 +110,94 @@ abstract class EchoManager extends ExperimentManager {
         }
 
         @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+        protected void configure(final ApplicationNetwork network) throws Exception {
 
-            super.configure(network, cold);
+            super.configure(network);
             final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(ECHO_MAVEN_ARTIFACT);
-            configureURLBased(network, cold, dependenlcy_urls);
+            for (URL url : dependenlcy_urls) {
+                process_builder.addURL(url);
+            }
         }
     }
 
-    static class FileBased extends EchoManager {
-
-        FileBased() {
-
-        }
-
-        FileBased(final Duration timeout) throws Exception {
-
-            super(timeout);
-        }
+    static class FileBasedCold extends EchoManager {
 
         @Override
         public String toString() {
 
-            return "EchoManager.File";
+            return "EchoManager.FileCold";
         }
 
         @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+        protected void configure(final ApplicationNetwork network) throws Exception {
 
-            super.configure(network, cold);
+            super.configure(network);
             final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
-            configureFileBased(network, cold, dependenlcy_files, "echo");
+            for (File file : dependenlcy_files) {
+                process_builder.addFile(file);
+            }
         }
     }
 
-    static class MavenBased extends EchoManager {
-
-        MavenBased() {
-
-        }
-
-        MavenBased(final Duration timeout) throws Exception {
-
-            super(timeout);
-        }
+    static class FileBasedWarm extends EchoManager {
 
         @Override
         public String toString() {
 
-            return "EchoManager.Maven";
+            return "EchoManager.FileWarm";
         }
 
         @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+        protected void configure(final ApplicationNetwork network) throws Exception {
 
-            super.configure(network, cold);
-            configureMavenBased(network, cold, ECHO_MAVEN_ARTIFACT_COORDINATES);
+            super.configure(network);
+
+            final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
+            LOGGER.info("resolved echo dependencies locally. total of {} files", dependenlcy_files.size());
+
+            final String dependencies_home = "/tmp/chord_dependencies";
+            LOGGER.info("uploading echo dependencies to {} hosts at {}", network.size(), dependencies_home);
+            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+
+            for (File file : dependenlcy_files) {
+                process_builder.addRemoteFile(dependencies_home + '/' + file.getName());
+            }
+        }
+    }
+
+    static class MavenBasedCold extends EchoManager {
+
+        @Override
+        public String toString() {
+
+            return "EchoManager.MavenCold";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+            LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
+            clearCachedShabdizFilesOnAllHosts(network);
+            process_builder.addMavenDependency(ECHO_MAVEN_ARTIFACT_COORDINATES);
+        }
+    }
+
+    static class MavenBasedWarm extends EchoManager {
+
+        @Override
+        public String toString() {
+
+            return "EchoManager.MavenWarm";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+            LOGGER.info("Attemting to resolve {} on {} hosts", ECHO_MAVEN_ARTIFACT_COORDINATES, network.size());
+            resolveMavenArtifactOnAllHosts(network, ECHO_MAVEN_ARTIFACT_COORDINATES);
+            process_builder.addMavenDependency(ECHO_MAVEN_ARTIFACT_COORDINATES);
         }
     }
 }

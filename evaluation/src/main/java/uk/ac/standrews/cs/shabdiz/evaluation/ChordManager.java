@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.Key;
 import uk.ac.standrews.cs.nds.p2p.util.SHA1KeyFactory;
@@ -30,6 +32,12 @@ import uk.ac.standrews.cs.stachord.servers.NodeServer;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ChordManager extends ExperimentManager {
 
+    static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
+    static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
+    static final URLBased URL_BASED = new URLBased();
+    static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
+    static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChordManager.class);
     private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
     private static final Duration DEFAULT_RETRY_DELAY = new Duration(3, TimeUnit.SECONDS);
     private static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
@@ -38,10 +46,6 @@ public abstract class ChordManager extends ExperimentManager {
     private static final DefaultArtifact STACHORD_MAVEN_ARTIFACT = new DefaultArtifact(STACHORD_MAVEN_ARTIFACT_COORDINATES);
     private final ChordNodeFactory node_factory = new ChordNodeFactory();
     private final SHA1KeyFactory key_factory = new SHA1KeyFactory(KEY_FACTORY_SEED);
-
-    static final FileBased FILE_BASED = new FileBased();
-    static final URLBased URL_BASED = new URLBased();
-    static final MavenBased MAVEN_BASED = new MavenBased();
 
     protected ChordManager() {
 
@@ -62,25 +66,16 @@ public abstract class ChordManager extends ExperimentManager {
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
 
+        descriptor.setAttribute(ADDRESS_KEY, address);
         descriptor.setAttribute(PROCESS_KEY, node_process);
         descriptor.setAttribute(PID_KEY, pid);
         return node_reference;
     }
 
     @Override
-    public void kill(final ApplicationDescriptor descriptor) throws Exception {
+    protected void configure(final ApplicationNetwork network) throws Exception {
 
-        try {
-            killByProcessID(descriptor);
-        }
-        finally {
-            destroyProcess(descriptor);
-        }
-    }
-
-    @Override
-    protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
-
+        super.configure(network);
         process_builder.setMainClass(NodeServer.class);
     }
 
@@ -89,27 +84,16 @@ public abstract class ChordManager extends ExperimentManager {
         return bindWithRetry(address, DEFAULT_BIND_TIMEOUT, DEFAULT_RETRY_DELAY);
     }
 
-    private IChordRemoteReference bindWithRetry(final InetSocketAddress address, final Duration timeout, final Duration delay) throws InterruptedException, ExecutionException, TimeoutException {
+    private IChordRemoteReference bindWithRetry(final InetSocketAddress address, final Duration timeout, final Duration retry_interval) throws InterruptedException, ExecutionException, TimeoutException {
 
-        return TimeoutExecutorService.awaitCompletion(new Callable<IChordRemoteReference>() {
+        return TimeoutExecutorService.retry(new Callable<IChordRemoteReference>() {
 
             @Override
             public IChordRemoteReference call() throws Exception {
 
-                Exception error;
-                do {
-                    delay.sleep();
-                    try {
-                        return node_factory.bindToNode(address);
-                    }
-                    catch (final Exception e) {
-                        error = e;
-                    }
-                }
-                while (!Thread.currentThread().isInterrupted());
-                throw error;
+                return node_factory.bindToNode(address);
             }
-        }, timeout);
+        }, timeout, retry_interval);
     }
 
     private synchronized IKey nextPeerKey() {
@@ -124,81 +108,140 @@ public abstract class ChordManager extends ExperimentManager {
         reference.ping();
     }
 
-    static class MavenBased extends ChordManager {
-
-        MavenBased() {
-
-        }
-
-        public MavenBased(final Duration timeout) {
-
-            super(timeout);
-        }
-
-        @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
-
-            super.configure(network, cold);
-            configureMavenBased(network, cold, STACHORD_MAVEN_ARTIFACT_COORDINATES);
-        }
-
-        @Override
-        public String toString() {
-
-            return "ChordManager.Maven";
-        }
-    }
-
     static class URLBased extends ChordManager {
-
-        URLBased() {
-
-        }
-
-        public URLBased(final Duration timeout) {
-
-            super(timeout);
-        }
-
-        @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
-
-            super.configure(network, cold);
-
-            final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
-            configureURLBased(network, cold, dependenlcy_urls);
-        }
 
         @Override
         public String toString() {
 
             return "ChordManager.URL";
         }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+
+            final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
+            for (URL url : dependenlcy_urls) {
+                process_builder.addURL(url);
+            }
+        }
     }
 
-    static class FileBased extends ChordManager {
+    static class FileBasedCold extends ChordManager {
 
-        FileBased() {
+        FileBasedCold() {
 
         }
 
-        public FileBased(final Duration timeout) {
+        public FileBasedCold(final Duration timeout) {
 
             super(timeout);
         }
 
         @Override
-        protected void configure(final ApplicationNetwork network, final boolean cold) throws Exception {
+        public String toString() {
 
-            super.configure(network, cold);
+            return "ChordManager.FileCold";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
             final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
-            configureFileBased(network, cold, dependenlcy_files, "chord");
+            for (File file : dependenlcy_files) {
+                process_builder.addFile(file);
+            }
+        }
+    }
+
+    static class FileBasedWarm extends ChordManager {
+
+        FileBasedWarm() {
+
+        }
+
+        public FileBasedWarm(final Duration timeout) {
+
+            super(timeout);
         }
 
         @Override
         public String toString() {
 
-            return "ChordManager.File";
+            return "ChordManager.FileWarm";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+            final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+            LOGGER.info("resolved chord dependencies locally. total of {} files", dependenlcy_files.size());
+
+            final String dependencies_home = "/tmp/echo_dependencies";
+            LOGGER.info("uploading chord dependencies to {} hosts at {}", network.size(), dependencies_home);
+            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+
+            for (File file : dependenlcy_files) {
+                process_builder.addRemoteFile(dependencies_home + '/' + file.getName());
+            }
+        }
+    }
+
+    static class MavenBasedCold extends ChordManager {
+
+        MavenBasedCold() {
+
+        }
+
+        public MavenBasedCold(final Duration timeout) {
+
+            super(timeout);
+        }
+
+        @Override
+        public String toString() {
+
+            return "ChordManager.MavenCold";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+            LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
+            clearCachedShabdizFilesOnAllHosts(network);
+            process_builder.addMavenDependency(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+        }
+    }
+
+    static class MavenBasedWarm extends ChordManager {
+
+        MavenBasedWarm() {
+
+        }
+
+        public MavenBasedWarm(final Duration timeout) {
+
+            super(timeout);
+        }
+
+        @Override
+        public String toString() {
+
+            return "ChordManager.MavenWarm";
+        }
+
+        @Override
+        protected void configure(final ApplicationNetwork network) throws Exception {
+
+            super.configure(network);
+
+            LOGGER.info("Attemting to resolve {} on {} hosts", STACHORD_MAVEN_ARTIFACT_COORDINATES, network.size());
+            resolveMavenArtifactOnAllHosts(network, STACHORD_MAVEN_ARTIFACT_COORDINATES);
+            process_builder.addMavenDependency(STACHORD_MAVEN_ARTIFACT_COORDINATES);
         }
     }
 }

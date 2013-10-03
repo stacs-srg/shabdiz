@@ -55,7 +55,6 @@ public class ParallelParameterized extends Parameterized {
             public void schedule(final Runnable childStatement) {
 
                 executor_service.execute(childStatement);
-
             }
 
             @Override
@@ -68,7 +67,6 @@ public class ParallelParameterized extends Parameterized {
                 catch (InterruptedException exc) {
                     throw new RuntimeException(exc);
                 }
-
             }
         });
     }
@@ -263,7 +261,7 @@ public class ParallelParameterized extends Parameterized {
             if (runner.equals(child)) { return i; }
             i++;
         }
-        throw new NoSuchElementException("No matching runner");
+        throw new NoSuchElementException("No matching runner " + runner);
     }
 
     /** Specifies a collection of {@link Host hosts} on which to strat JVMs. */

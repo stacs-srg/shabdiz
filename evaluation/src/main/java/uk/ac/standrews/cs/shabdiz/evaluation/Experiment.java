@@ -4,19 +4,16 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Timer;
@@ -24,7 +21,6 @@ import org.mashti.gauge.jvm.MemoryUsageGauge;
 import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
-import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -33,37 +29,32 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
-import uk.ac.standrews.cs.shabdiz.testing.junit.ParallelParameterized;
-import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
+
+import static org.mashti.jetson.util.CloseableUtil.closeQuietly;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(ParallelParameterized.class)
+@RunWith(ExperiementRunner.class)
 //@RunWith(Parameterized.class)
-@ParallelParameterized.Parallelization(jvmArguments = {"-Xmx1024m", "-XX:MaxPermSize=256m"}, hostProvider = "localhost"
-//        , addCurrentJvmClasspath = false, mavenArtifacts = {"uk.ac.standrews.cs:shabdiz-evaluation:1.0-SNAPSHOT","uk.ac.standrews.cs:shabdiz-testing:1.0-SNAPSHOT"}
-)
 public abstract class Experiment {
-
-    //TODO fix the state change over time gauge. one for each state : use property change listener
-    //TODO fix the key-value pair CSV output
 
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final File RESULTS_HOME = new File("results");
-    static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
+    static final int TIMEOUT = 1000 * 60 * 20; // 20 minutes timeout for an experiment
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
-    static final int REPETITIONS = 1;
-    static final Integer[] NETWORK_SIZES = {/*10, 20, 30, 40,*/48};
-    static final Provider<Host>[] HOST_PROVIDERS = new Provider[]{new BlubHostProvider()};
-    static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.FILE_BASED, ChordManager.URL_BASED, ChordManager.MAVEN_BASED, EchoManager.FILE_BASED, EchoManager.URL_BASED, EchoManager.MAVEN_BASED};
-    static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
+    static final int REPETITIONS = 10;
+    static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
+    //    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new LocalHostProvider()};
+    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new BlubHostProvider()};
+    static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED,
+                    EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     protected final ApplicationNetwork network;
     protected final Integer network_size;
-    protected final Timer timer = new Timer();
+    private final Timer timer = new Timer();
     private final MetricRegistry registry;
     private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
     private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
@@ -71,63 +62,35 @@ public abstract class Experiment {
     private final Properties properties = new Properties();
     private final Provider<Host> host_provider;
     private final ExperimentManager manager;
-    private final boolean cold;
-    private CsvReporter reporter;
-    private File observations_directory;
-    private String name;
+    private final CsvReporter reporter;
+    @Rule
+    public Timeout experiment_timeout = new Timeout(TIMEOUT);
 
-    public Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager, boolean cold) {
+    protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;
         this.manager = manager;
-        this.cold = cold;
         network = new ApplicationNetwork(getClass().getSimpleName());
         registry = new MetricRegistry(getClass().getSimpleName());
-    }
-
-    @ParallelParameterized.HostProvider(name = "localhost")
-    public static Collection<Host> getHosts() throws IOException {
-
-        final List<Host> hosts = new ArrayList<Host>();
-        hosts.add(new LocalHost());
-        return hosts;
-    }
-
-    @Parameterized.Parameters(name = "{index}: network_size: {0}, host_provider: {1}, manager: {2}, cold: {3}")
-    public static Collection<Object[]> getParameters() {
-
-        final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, HOST_PROVIDERS, APPLICATION_MANAGERS, HOT_COLD});
-        for (int i = 0; i < REPETITIONS; i++) {
-            parameters.addAll(combinations);
-        }
-        return parameters;
+        reporter = new CsvReporter(registry);
     }
 
     @Before
     public void setUp() throws Exception {
 
-        name = constructName();
-        //        observations_directory = new File(new File(new File("/home/masih/shabdiz_experiments/results",name), "repetitions"), String.valueOf(System.currentTimeMillis()));
-        observations_directory = new File(new File(new File(RESULTS_HOME, name), "repetitions"), String.valueOf(System.currentTimeMillis()));
-        FileUtils.forceMkdir(observations_directory);
-        reporter = new CsvReporter(registry, observations_directory);
         populateProperties();
-
         disableAllNetworkScanners();
         populateNetwork();
-        manager.configure(network, cold);
-        final ApplciationStateCounters application_state_counters = new ApplciationStateCounters(network);
-        application_state_counters.registerTo(registry);
-        registerMetric("memory_gauge", memory_gauge);
-        registerMetric("cpu_gauge", cpu_gauge);
-        registerMetric("thread_count_gauge", thread_count_gauge);
+        if (manager != null) {
+            manager.configure(network);
+        }
+        registerMetrics();
         LOGGER.info("starting experimentation...");
         startReporter();
     }
 
-    @Test(timeout = TIMEOUT)
+    @Test
     @Category(Experiment.class)
     public abstract void doExperiment() throws Exception;
 
@@ -136,24 +99,44 @@ public abstract class Experiment {
 
         persistProperties();
         reporter.stop();
-        getNetwork().shutdown();
-        LOGGER.info("done, results are stored at {}", observations_directory);
+        network.shutdown();
+        if (host_provider instanceof BlubHostProvider) {
+            LOGGER.info("killing all java processes on blub nodes...");
+            killAllJavaProcessesOnBlubNodes();
+        }
+        LOGGER.info("done");
+    }
+
+    private static void killAllJavaProcessesOnBlubNodes() throws IOException, InterruptedException {
+
+        final ProcessBuilder builder = new ProcessBuilder("bash", "-c", "rocks run host \"killall java\";");
+        builder.redirectErrorStream(true);
+        final Process start = builder.start();
+        final String output = ProcessUtil.awaitNormalTerminationAndGetOutput(start);
+        LOGGER.info("output from killing all java processes on blub nodes: \n{}", output);
+    }
+
+    private void registerMetrics() {
+
+        final ApplciationStateCounters application_state_counters = new ApplciationStateCounters(network);
+        application_state_counters.registerTo(registry);
+        registerMetric("memory_gauge", memory_gauge);
+        registerMetric("cpu_gauge", cpu_gauge);
+        registerMetric("thread_count_gauge", thread_count_gauge);
     }
 
     protected String constructName() {
 
-        return getClass().getSimpleName() + '_' + network_size + '_' + host_provider + '_' + manager + '_' + cold;
+        return getClass().getSimpleName() + '_' + network_size + '_' + host_provider + '_' + manager;
     }
 
     private void populateProperties() {
 
-        setProperty("name", name);
-        setProperty("observations_directory", observations_directory.getAbsolutePath());
+        setProperty("user", System.getProperty("user.name"));
         setProperty("network_size", network_size);
         setProperty("manager", manager);
-        setProperty("cold", cold);
         setProperty("host_provider", host_provider);
-
+        setProperty("working_directory", System.getProperty("user.dir"));
     }
 
     protected void registerMetric(final String metric_name, final Metric metric) {
@@ -183,34 +166,38 @@ public abstract class Experiment {
 
         BufferedOutputStream out = null;
         try {
-            out = new BufferedOutputStream(new FileOutputStream(new File(observations_directory, PROPERTOES_FILE_NAME), false));
-
+            out = new BufferedOutputStream(new FileOutputStream(new File(PROPERTOES_FILE_NAME), false));
             properties.store(out, "");
         }
         finally {
-            CloseableUtil.closeQuietly(out);
+            closeQuietly(out);
         }
     }
 
     protected void disableAllNetworkScanners() {
 
-        getNetwork().setScanEnabled(false);
-    }
-
-    protected ApplicationNetwork getNetwork() {
-
-        return network;
+        network.setScanEnabled(false);
     }
 
     protected long timeUniformNetworkStateInNanos(ApplicationState state) throws InterruptedException {
 
         final Timer.Time time = timer.time();
-        getNetwork().awaitAnyOfStates(state);
+        network.awaitAnyOfStates(state);
         return time.stop();
     }
 
     protected Object setProperty(String key, Object value) {
 
         return properties.setProperty(key, String.valueOf(value));
+    }
+
+    protected Timer.Time time() {
+
+        return timer.time();
+    }
+
+    protected long nanosToSeconds(final long nanos) {
+
+        return TimeUnit.SECONDS.convert(nanos, TimeUnit.NANOSECONDS);
     }
 }

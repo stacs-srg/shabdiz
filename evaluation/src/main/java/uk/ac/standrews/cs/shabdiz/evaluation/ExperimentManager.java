@@ -1,10 +1,21 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.AbstractApplicationManager;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
@@ -19,8 +30,13 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ExperimentManager extends AbstractApplicationManager {
 
+    protected static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     protected static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     protected static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
+    static final boolean OVERRIDE_FILES_IN_WARN = false;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentManager.class);
+    private static final Duration FILE_UPLOAD_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
+    private static final Duration CACHE_DELETION_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
@@ -35,31 +51,166 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         super(command_execution_timeout);
     }
 
-    protected abstract void configure(ApplicationNetwork network, boolean cold) throws Exception;
+    @Override
+    public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
-    protected void configureFileBased(ApplicationNetwork network, boolean cold, List<File> files, String application_name) throws Exception {
-
-        if (cold) {
-            for (File file : files) {
-                process_builder.addFile(file);
-            }
+        try {
+            killByProcessID(descriptor);
         }
-        else {
+        finally {
+            destroyProcess(descriptor);
+        }
+    }
 
-            //FIXME this wont work if the platform is windows
-            //TODO add parametric path on each host; maybe based on process environment variables?
-            final String dependencies_home = "/tmp/" + application_name + "_dependencies";
+    protected static void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
+
+        final Integer pid = descriptor.getAttribute(PID_KEY);
+        if (pid != null) {
+            final Host host = descriptor.getHost();
+            ProcessUtil.killProcessOnHostByPID(host, pid);
+        }
+    }
+
+    protected static void destroyProcess(final ApplicationDescriptor descriptor) {
+
+        final Process process = descriptor.getAttribute(PROCESS_KEY);
+        if (process != null) {
+            process.destroy();
+        }
+    }
+
+    protected void configure(ApplicationNetwork network) throws Exception {
+
+        LOGGER.info("configuring manager {} for network {}", this, network.getApplicationName());
+    }
+
+    protected void uploadToAllHosts(ApplicationNetwork network, final List<File> files, final String destination, final boolean override) throws IOException, InterruptedException, TimeoutException, ExecutionException {
+
+        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        try {
+            final List<ListenableFuture<Void>> future_uploads = new ArrayList<ListenableFuture<Void>>();
+
             for (ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();
-                final Process exists = host.execute(Commands.EXISTS.get(host.getPlatform(), dependencies_home));
-                final String already_exists = ProcessUtil.awaitNormalTerminationAndGetOutput(exists);
-                if (!Boolean.valueOf(already_exists)) {
-                    host.upload(files, dependencies_home);
-                }
+                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+
+                    @Override
+                    public Void call() throws Exception {
+
+                        final String host_name = host.getName();
+                        LOGGER.info("uploading files to {}", host_name);
+                        try {
+                            uploadToHost(host, destination, override, files);
+                            LOGGER.info("done uploading files to {}", host_name);
+                        }
+                        catch (Exception e) {
+                            LOGGER.error("failed to upload files to " + host_name, e);
+                            throw e;
+                        }
+                        return null;
+                    }
+                });
+                future_uploads.add(future);
             }
-            for (File file : files) {
-                process_builder.addRemoteFile(dependencies_home + '/' + file.getName());
+
+            Futures.allAsList(future_uploads).get(FILE_UPLOAD_TIMEOUT.getLength(), FILE_UPLOAD_TIMEOUT.getTimeUnit());
+        }
+        finally {
+            executor.shutdownNow();
+        }
+
+    }
+
+    protected void clearCachedShabdizFilesOnAllHosts(ApplicationNetwork network) throws IOException, InterruptedException, TimeoutException, ExecutionException {
+
+        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        try {
+            final List<ListenableFuture<Void>> future_deletions = new ArrayList<ListenableFuture<Void>>();
+
+            for (ApplicationDescriptor descriptor : network) {
+                final Host host = descriptor.getHost();
+                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+
+                    @Override
+                    public Void call() throws Exception {
+
+                        final String host_name = host.getName();
+                        LOGGER.info("removing shabdiz cached files on {}", host_name);
+                        try {
+                            AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
+                            LOGGER.info("done removing shabdiz cached files on {}", host_name);
+                        }
+                        catch (Exception e) {
+                            LOGGER.error("failed to remove shabdiz cached files on " + host_name, e);
+                            throw e;
+                        }
+                        return null;
+                    }
+                });
+                future_deletions.add(future);
             }
+
+            Futures.allAsList(future_deletions).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
+        }
+        finally {
+            executor.shutdownNow();
+        }
+
+    }
+
+    protected void resolveMavenArtifactOnAllHosts(ApplicationNetwork network, final String artifact_coordinate) throws IOException, InterruptedException, TimeoutException, ExecutionException {
+
+        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        try {
+            final List<ListenableFuture<Void>> future_resolutions = new ArrayList<ListenableFuture<Void>>();
+            final AgentBasedJavaProcessBuilder mock_process_builder = new AgentBasedJavaProcessBuilder();
+            mock_process_builder.addMavenDependency(artifact_coordinate);
+
+            for (ApplicationDescriptor descriptor : network) {
+                final Host host = descriptor.getHost();
+                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+
+                    @Override
+                    public Void call() throws Exception {
+
+                        final String host_name = host.getName();
+                        LOGGER.info("resolving {} on {}", artifact_coordinate, host_name);
+                        try {
+                            final Process start = mock_process_builder.start(host);
+                            start.waitFor();
+                            start.destroy();
+                            LOGGER.info("done resolving {} on {}", artifact_coordinate, host_name);
+                        }
+                        catch (Exception e) {
+                            LOGGER.error("failed to resolve " + artifact_coordinate + " on " + host_name, e);
+                            throw e;
+                        }
+                        return null;
+                    }
+                });
+                future_resolutions.add(future);
+            }
+
+            Futures.allAsList(future_resolutions).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
+        }
+        finally {
+            executor.shutdownNow();
+        }
+
+    }
+
+    private void uploadToHost(final Host host, final String destination, final boolean override, final List<File> files) throws IOException, InterruptedException {
+
+        final boolean already_exists;
+        if (!override) {
+            final Process exists = host.execute(Commands.EXISTS.get(host.getPlatform(), destination));
+            already_exists = Boolean.valueOf(ProcessUtil.awaitNormalTerminationAndGetOutput(exists));
+        }
+        else {
+            already_exists = false;
+        }
+        if (!already_exists) {
+            host.upload(files, destination);
         }
     }
 
@@ -84,29 +235,4 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         process_builder.addMavenDependency(artifact_coordinate);
     }
 
-    protected void configureURLBased(ApplicationNetwork network, boolean cold, List<URL> urls) {
-
-        // TODO discuss cold url based with graham?
-        // TODO check if JarFile can be a remote url instead of file if so the problem is solved. cold would be adding URL to URLClassloader
-        for (URL url : urls) {
-            process_builder.addURL(url);
-        }
-    }
-
-    protected static void killByProcessID(final ApplicationDescriptor descriptor) throws IOException, InterruptedException {
-
-        final Integer pid = descriptor.getAttribute(PID_KEY);
-        if (pid != null) {
-            final Host host = descriptor.getHost();
-            ProcessUtil.killProcessOnHostByPID(host, pid);
-        }
-    }
-
-    protected static void destroyProcess(final ApplicationDescriptor descriptor) {
-
-        final Process process = descriptor.getAttribute(PROCESS_KEY);
-        if (process != null) {
-            process.destroy();
-        }
-    }
 }

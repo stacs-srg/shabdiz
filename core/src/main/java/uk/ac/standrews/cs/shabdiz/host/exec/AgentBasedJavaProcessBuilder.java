@@ -26,7 +26,7 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.getBootstrapJar;
 import static uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver.toCoordinate;
 
 /**
- * Builds Java process on hosts and resolves any dependencies using Maven.
+ * Builds Java process on hosts and resolves any dependencies using a java Agent.
  * The process is started by executing a bootstrap jar that constructs a maven repository of any needed dependency.
  * By default the Maven central repository and the Maven repository at the school of computer science University of St Andrews are loaded.
  * Any additional repository may be added using {@link #addMavenRepository(URL)}.
@@ -72,6 +72,27 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         finally {
             delete_process.destroy();
         }
+    }
+
+    public static String createTempDirByPlatform(final Platform platform) {
+
+        final char separator = platform.getSeparator();
+        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString();
+    }
+
+    public static String getBootstrapHomeByPlatform(final Platform platform) {
+
+        return getShabdizHomeByPlatform(platform) + BOOTSTRAP_HOME_NAME + platform.getSeparator();
+    }
+
+    public static String getBootstrapJarByPlatform(final Platform platform) {
+
+        return getBootstrapHomeByPlatform(platform) + BOOTSTRAP_JAR_NAME;
+    }
+
+    public static String getShabdizHomeByPlatform(final Platform platform) {
+
+        return platform.getTempDirectory() + SHABDIZ_HOME_NAME + platform.getSeparator();
     }
 
     /**
@@ -262,12 +283,6 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         }
     }
 
-    private static String createTempDirByPlatform(final Platform platform) {
-
-        final char separator = platform.getSeparator();
-        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString();
-    }
-
     private void uploadBootstrapConfigurationFile(final Host host, final String working_directory) throws IOException {
 
         final File config_as_file = getConfigurationAsFile();
@@ -309,21 +324,6 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
             LOGGER.debug("skipped bootstrap.jar upload to {} on host {}; bootstrap already exists", bootstrap_jar, host);
         }
         return bootstrap_jar;
-    }
-
-    private static String getBootstrapHomeByPlatform(final Platform platform) {
-
-        return getShabdizHomeByPlatform(platform) + BOOTSTRAP_HOME_NAME + platform.getSeparator();
-    }
-
-    private static String getShabdizHomeByPlatform(final Platform platform) {
-
-        return platform.getTempDirectory() + SHABDIZ_HOME_NAME + platform.getSeparator();
-    }
-
-    private static String getBootstrapJarByPlatform(final Platform platform) {
-
-        return getBootstrapHomeByPlatform(platform) + BOOTSTRAP_JAR_NAME;
     }
 
     private static boolean existsOnHost(final Host host, final String file) throws IOException {

@@ -22,7 +22,6 @@ package uk.ac.standrews.cs.shabdiz.util;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.RuntimeMXBean;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -192,6 +191,7 @@ public final class ProcessUtil {
                 final Scanner scanner = new Scanner(process.getInputStream(), UTF_8);
                 do {
                     final String output_line = scanner.nextLine();
+                    System.out.println(output_line);
                     worker_address = findValueInLine(output_line, key);
                 }
                 while (worker_address == null && !Thread.currentThread().isInterrupted());
@@ -201,7 +201,7 @@ public final class ProcessUtil {
         };
     }
 
-    private static String findValueInLine(final String line, final String key) throws UnknownHostException {
+    private static String findValueInLine(final String line, final String key) {
 
         return line != null && line.startsWith(key + DELIMITER) ? line.split(DELIMITER)[1] : null;
     }

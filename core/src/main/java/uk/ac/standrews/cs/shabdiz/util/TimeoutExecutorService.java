@@ -37,6 +37,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private static final TimeoutExecutorService TIMEOUT_EXECUTOR_SERVICE_INSTANCE = new TimeoutExecutorService();
     private static final long IDLE_THREAD_TIMEOUT_IN_MILLISECONDS = 500L;
+    private static final int UNLIMITED_RETRY_COUNT = Integer.MAX_VALUE;
 
     private TimeoutExecutorService() {
 
@@ -64,14 +65,14 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
      *
      * @param <Result> the type of the result that is returned by the task
      * @param task the task to await its execution
-     * @param time the duration to wait for the task completion
-     * @param time_unit the time unit of the duration to wait for the task completion
+     * @param time the maximum duration to wait for the task completion
+     * @param time_unit the unit of the maximum duration to wait for the task completion
      * @return the result of the task
      * @throws InterruptedException the interrupted exception
      * @throws ExecutionException the execution exception
      * @throws TimeoutException the timeout exception
      */
-    public static <Result> Result awaitCompletion(final Callable<Result> task, final Long time, final TimeUnit time_unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public static <Result> Result awaitCompletion(final Callable<Result> task, final long time, final TimeUnit time_unit) throws InterruptedException, ExecutionException, TimeoutException {
 
         final Future<Result> future_result = TIMEOUT_EXECUTOR_SERVICE_INSTANCE.submit(task);
         try {
@@ -80,6 +81,90 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
         finally {
             future_result.cancel(true);
             TIMEOUT_EXECUTOR_SERVICE_INSTANCE.purge();
+        }
+    }
+
+    public static <Result> Result retry(final Callable<Result> task, final Duration timeout, final Duration retry_interval) throws InterruptedException, ExecutionException, TimeoutException {
+
+        return retry(task, timeout.getLength(TimeUnit.NANOSECONDS), retry_interval.getLength(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+    }
+
+    public static <Result> Result retry(final Callable<Result> task, final Duration timeout) throws InterruptedException, ExecutionException, TimeoutException {
+
+        return retry(task, timeout.getLength(TimeUnit.NANOSECONDS), 0, TimeUnit.NANOSECONDS);
+    }
+
+    public static <Result> Result retry(final Callable<Result> task, final long timeout, final long retry_interval, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+
+        return retry(task, timeout, retry_interval, unit, UNLIMITED_RETRY_COUNT);
+    }
+
+    public static <Result> Result retry(final Callable<Result> task, final long timeout, final long retry_interval, final TimeUnit unit, int max_retry_count) throws InterruptedException, ExecutionException, TimeoutException {
+
+        final TaskRetryWrapper<Result> retry_wrapper = new TaskRetryWrapper<Result>(task, max_retry_count);
+        retry_wrapper.setRetryInterval(retry_interval, unit);
+
+        final Future<Result> future_result = TIMEOUT_EXECUTOR_SERVICE_INSTANCE.submit(retry_wrapper);
+        try {
+            return future_result.get(timeout, unit);
+        }
+        finally {
+            future_result.cancel(true);
+            TIMEOUT_EXECUTOR_SERVICE_INSTANCE.purge();
+        }
+    }
+
+    private static class TaskRetryWrapper<Result> implements Callable<Result> {
+
+        private final Callable<Result> task;
+        private final int max_retry_count;
+        private int retry_count;
+        private long interval_millis;
+
+        private TaskRetryWrapper(Callable<Result> task, int max_retry_count) {
+
+            this.task = task;
+            this.max_retry_count = max_retry_count;
+        }
+
+        @Override
+        public Result call() throws Exception {
+
+            Exception error = null;
+            while (!Thread.currentThread().isInterrupted() && !hasReachedMaxRetryCount()) {
+                try {
+                    return task.call();
+                }
+                catch (Exception e) {
+                    error = e;
+                    retry_count++;
+                    delayIfNecessary();
+                }
+            }
+            assert error != null;
+            throw error;
+        }
+
+        private void delayIfNecessary() throws InterruptedException {
+
+            if (isIntervalSpecified()) {
+                Thread.sleep(interval_millis);
+            }
+        }
+
+        private boolean isIntervalSpecified() {
+
+            return interval_millis > 0;
+        }
+
+        void setRetryInterval(long interval, TimeUnit unit) {
+
+            interval_millis = TimeUnit.MILLISECONDS.convert(interval, unit);
+        }
+
+        private boolean hasReachedMaxRetryCount() {
+
+            return retry_count >= max_retry_count;
         }
     }
 }

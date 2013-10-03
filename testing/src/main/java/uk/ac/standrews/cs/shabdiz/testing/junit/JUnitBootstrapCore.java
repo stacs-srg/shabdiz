@@ -30,6 +30,41 @@ public class JUnitBootstrapCore extends Bootstrap {
         failures = new ArrayList<Failure>();
     }
 
+    public static Result deserializeAsBase64(final String result_as_string) throws IOException, ClassNotFoundException {
+
+        final byte[] bytes = Base64.decodeBase64(result_as_string.getBytes(UTF8));
+        ObjectInputStream ois = null;
+
+        try {
+            ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+            return (Result) ois.readObject();
+        }
+        finally {
+            if (ois != null) {
+                ois.close();
+            }
+        }
+    }
+
+    public static String serializeAsBase64(final Result result) throws IOException {
+
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(result);
+            oos.flush();
+            final byte[] bytes = bos.toByteArray();
+            return new String(Base64.encodeBase64(bytes), UTF8);
+        }
+        finally {
+
+            if (oos != null) {
+                oos.close();
+            }
+        }
+    }
+
     @Override
     protected void deploy(final String... args) throws Exception {
 
@@ -46,36 +81,7 @@ public class JUnitBootstrapCore extends Bootstrap {
     static Result getResultProperty(Properties properties) throws IOException, ClassNotFoundException {
 
         final String result_as_string = properties.getProperty(TEST_RESULT);
-        final byte[] bytes = Base64.decodeBase64(result_as_string.getBytes(UTF8));
-        ObjectInputStream ois = null;
-
-        try {
-            ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-            return (Result) ois.readObject();
-        }
-        finally {
-            if (ois != null) {
-                ois.close();
-            }
-        }
-    }
-
-    private static String serializeAsBase64(final Result result) throws IOException {
-
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(bos);
-            oos.writeObject(result);
-            oos.flush();
-            final byte[] bytes = bos.toByteArray();
-            return new String(Base64.encodeBase64(bytes), UTF8);
-        }
-        finally {
-            if (oos != null) {
-                oos.close();
-            }
-        }
+        return deserializeAsBase64(result_as_string);
     }
 
     private void configure(String... args) {

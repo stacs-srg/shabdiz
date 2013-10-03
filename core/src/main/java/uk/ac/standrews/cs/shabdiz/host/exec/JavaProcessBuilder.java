@@ -10,8 +10,6 @@ import uk.ac.standrews.cs.shabdiz.platform.Platform;
  */
 public abstract class JavaProcessBuilder implements HostProcessBuilder {
 
-    // TODO make a single Java process builder that accepts file, URL and maven artifacts as dependencies.
-
     protected static final String SPACE = " ";
     protected static final String JAVA = "java";
     protected static final String BIN = "bin";
