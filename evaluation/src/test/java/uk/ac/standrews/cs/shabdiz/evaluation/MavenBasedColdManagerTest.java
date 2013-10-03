@@ -43,7 +43,7 @@ public class MavenBasedColdManagerTest {
     @Parameterized.Parameters(name = "{index} network_size: {0}, host_provider: {1}, manager: {2}")
     public static Collection<Object[]> getParameters() {
 
-        return Combinations.generateArgumentCombinations(new Object[][]{Experiment.NETWORK_SIZES, {new LocalHostProvider()}, {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD}});
+        return Combinations.generateArgumentCombinations(new Object[][]{{10}, {new LocalHostProvider()}, {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD}});
     }
 
     @Before

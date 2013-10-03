@@ -36,7 +36,6 @@ import static org.mashti.jetson.util.CloseableUtil.closeQuietly;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ExperiementRunner.class)
-//@RunWith(Parameterized.class)
 public abstract class Experiment {
 
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
