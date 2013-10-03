@@ -47,11 +47,13 @@ public class AutoDeployScannerTest extends ScannerTest {
     }
 
     private void assertAwaitDeployedStateTimeout() throws InterruptedException, ExecutionException {
+
         try {
             TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
+
                     network.awaitAnyOfStates(ApplicationState.DEPLOYED);
                     return null;
                 }

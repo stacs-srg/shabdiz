@@ -60,7 +60,9 @@ public abstract class ChordManager extends ExperimentManager {
     public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":0", "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
+        final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
+        int port = previous_address == null ? 0 : previous_address.getPort();
+        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
         final Properties properties = Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));

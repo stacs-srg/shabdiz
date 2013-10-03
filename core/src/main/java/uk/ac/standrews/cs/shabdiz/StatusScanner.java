@@ -19,10 +19,8 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
@@ -54,7 +52,7 @@ public class StatusScanner extends AbstractConcurrentScanner {
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
         final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
-        LOGGER.debug("new state {}", new_state);
+        LOGGER.debug("the state of host {} is now {}", descriptor.getHost().getName(), new_state);
         descriptor.setApplicationState(new_state);
     }
 }

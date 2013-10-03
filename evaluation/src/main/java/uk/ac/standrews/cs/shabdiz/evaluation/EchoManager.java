@@ -45,22 +45,21 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 abstract class EchoManager extends ExperimentManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
+    static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
     static final URLBased URL_BASED = new URLBased();
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
-    private static final Duration DEFAULT_DEPLOYMENT_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
     protected EchoManager() {
 
-        this(DEFAULT_DEPLOYMENT_TIMEOUT);
     }
 
-    EchoManager(Duration timeout) {
+    protected EchoManager(Duration timeout) {
 
         super(timeout);
     }
@@ -69,8 +68,11 @@ abstract class EchoManager extends ExperimentManager {
     public Echo deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-        final Process echo_service_process = process_builder.start(host);
-        final Properties properties = Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, DEFAULT_DEPLOYMENT_TIMEOUT);
+
+        final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
+        int port = previous_address == null ? 0 : previous_address.getPort();
+        final Process echo_service_process = process_builder.start(host, String.valueOf(port));
+        final Properties properties = Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = EchoBootstrap.getAddressProperty(properties);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);

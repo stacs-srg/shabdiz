@@ -42,10 +42,10 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
-    private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(10, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final Duration command_execution_timeout;
 
-    /** Instantiates a new application manager with the default command execution timeout of {@code 5} seconds. */
+    /** Instantiates a new application manager with the default command execution timeout of {@code 15} seconds. */
     protected AbstractApplicationManager() {
 
         this(DEFAULT_COMMAND_EXECUTION_TIMEOUT);
@@ -95,6 +95,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
                 state = ApplicationState.AUTH;
             }
             catch (final Throwable e) {
+                LOGGER.debug("attempting to resolve state by exception", e);
                 state = resolveStateFromThrowable(e);
             }
         }
@@ -129,6 +130,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private void attemptCommandExecution(final Host host) throws Throwable {
 
+        LOGGER.debug("attemting to execute a minimal command on {} to check for authority with the timeout {}", host.getName(), command_execution_timeout);
         TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
             @Override
@@ -143,7 +145,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private void attemptAddressResolution(final String host_name) throws UnknownHostException {
 
-        LOGGER.trace("attempting to resolve address from host name {}", host_name);
+        LOGGER.debug("attempting to resolve address from host name {}", host_name);
         InetAddress.getByName(host_name);
     }
 }

@@ -37,7 +37,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentManager.class);
     private static final Duration FILE_UPLOAD_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration CACHE_DELETION_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
-    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
 

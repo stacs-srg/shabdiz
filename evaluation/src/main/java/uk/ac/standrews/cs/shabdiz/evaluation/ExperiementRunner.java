@@ -81,6 +81,7 @@ public class ExperiementRunner extends Parameterized {
 
     public static void main(String[] args) throws IOException {
 
+        final String args_as_string = Arrays.toString(args);
         Result result;
         try {
             final String test_class_name = args[0];
@@ -90,11 +91,21 @@ public class ExperiementRunner extends Parameterized {
             result = core.run(runner);
         }
         catch (Throwable e) {
-            LOGGER.error("failed to run test with arguments {}" + Arrays.toString(args), e);
+            LOGGER.error("failed to run test with arguments {}" + args_as_string, e);
             result = new Result();
             final Description description = Description.createSuiteDescription(e.getMessage());
             final Failure failure = new Failure(description, e);
             result.getFailures().add(failure);
+        }
+
+        if (result.wasSuccessful()) {
+            LOGGER.info("Experiment {} completeted successfully", args_as_string);
+        }
+        else {
+            LOGGER.error("Experiment {} had failures", args_as_string);
+            for (Failure failure : result.getFailures()) {
+                LOGGER.error(failure.getMessage(), failure.getException());
+            }
         }
 
         final String result_in_base64;
@@ -118,7 +129,7 @@ public class ExperiementRunner extends Parameterized {
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             FileUtils.forceMkdir(working_directory);
             final String command = "java " + class_path + getClass().getName() + " " + getTestClass().getName() + " " + index + " " + (index + 1);
-            LOGGER.info("running command {}", command);
+            LOGGER.debug("running command {}", command);
             final Process test_process = local_host.execute(working_directory.getAbsolutePath(), command);
             final String result_in_base64 = ProcessUtil.scanProcessOutput(test_process, RESULT_PROPERTY_KEY, TEST_OUTPUT_TIMEOUT);
 
