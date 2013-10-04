@@ -172,7 +172,9 @@ public final class Commands {
     /** Recursively deletes a given file or directory. */
     public static final CommandBuilder DELETE_RECURSIVELY = new CommandBuilder() {
 
-        private static final String DEL = "del /F /Q "; //FIXME only deletes files; daft windows has separate commands for deleteing directories called 'rd'
+        //FIXME only deletes files; daft windows has separate commands for deleteing directories called 'rd'
+        //        private static final String DEL = "del /F /Q ";
+        private static final String DEL = "RD /S /Q ";
         private static final String RM = "rm -rf ";
 
         /** Given a path to delete, which is expected as the first element in {@code parameters}, constructs a platform-dependent recursive path removal command. */
@@ -182,7 +184,7 @@ public final class Commands {
             if (parameters.length != 1) { throw new IllegalArgumentException("one parameter, the file/directory to be removed, must be specified"); }
             final String path = platform.quote(parameters[0]);
             LOGGER.debug("path to delete: {}", path);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? RM : DEL, String.valueOf(path));
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? RM : DEL, String.valueOf(platform.quote(path)));
         }
     };
     private static final String SPACE = " ";
