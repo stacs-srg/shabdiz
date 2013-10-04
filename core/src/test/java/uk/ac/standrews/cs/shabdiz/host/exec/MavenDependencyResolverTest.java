@@ -7,8 +7,11 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import uk.ac.standrews.cs.test.category.Ignore;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+@Category(Ignore.class)
 public class MavenDependencyResolverTest {
 
     MavenDependencyResolver maven_dependency_resolver;
