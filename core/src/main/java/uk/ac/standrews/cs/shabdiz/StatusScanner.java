@@ -52,7 +52,7 @@ public class StatusScanner extends AbstractConcurrentScanner {
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
         final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
-        LOGGER.debug("the state of host {} is now {}", descriptor.getHost().getName(), new_state);
+        LOGGER.debug("the state of descriptor {} is now {}", descriptor, new_state);
         descriptor.setApplicationState(new_state);
     }
 }

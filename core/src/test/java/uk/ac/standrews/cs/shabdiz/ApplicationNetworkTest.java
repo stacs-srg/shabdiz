@@ -45,6 +45,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testDeployAll() throws Exception {
+
         mock_network.deployAll();
         mock_network.assertAllDeployed();
     }
@@ -89,6 +90,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testKill() throws Exception {
+
         ApplicationDescriptor descriptor = mock_network.createApplicationDescriptor();
         mock_network.kill(descriptor);
         mock_network.manager.assertKilled(descriptor);
@@ -98,7 +100,8 @@ public class ApplicationNetworkTest {
         }
     }
 
-    @Test(timeout = AWAIT_STATE_TEST_TIMEOUT)
+    @Test
+    //(timeout = AWAIT_STATE_TEST_TIMEOUT)
     public void testAwaitAnyOfStates() throws Exception {
 
         ApplicationState target_state = ApplicationState.LAUNCHED;
@@ -166,6 +169,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testSetAutoKillEnabled() throws Exception {
+
         mock_network.setAutoKillEnabled(true);
         Assert.assertTrue(mock_network.auto_kill_scanner.isEnabled());
 
@@ -176,6 +180,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testSetAutoDeployEnabled() throws Exception {
+
         mock_network.setAutoDeployEnabled(true);
         Assert.assertTrue(mock_network.auto_deploy_scanner.isEnabled());
 
@@ -185,6 +190,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testSetAutoRemoveEnabled() throws Exception {
+
         mock_network.setAutoRemoveEnabled(true);
         Assert.assertTrue(mock_network.auto_remove_scanner.isEnabled());
 
@@ -194,6 +200,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testSetStatusScannerEnabled() throws Exception {
+
         mock_network.setStatusScannerEnabled(true);
         Assert.assertTrue(mock_network.status_scanner.isEnabled());
 
@@ -223,6 +230,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testRemove() throws Exception {
+
         ApplicationDescriptor descriptor = mock_network.createApplicationDescriptor();
         Assert.assertFalse(mock_network.remove(descriptor));
         Assert.assertFalse(mock_network.application_descriptors.contains(descriptor));
@@ -245,6 +253,7 @@ public class ApplicationNetworkTest {
 
     @Test
     public void testKillAll() throws Exception {
+
         mock_network.killAll();
         mock_network.assertAllKilled();
     }
@@ -258,16 +267,19 @@ public class ApplicationNetworkTest {
 
         @Override
         public void scan(final ApplicationNetwork network) {
+
             scan_latch.countDown();
         }
 
         @Override
         public Duration getCycleDelay() {
+
             return CYCLE_DELAY;
         }
 
         @Override
         public Duration getScanTimeout() {
+
             return CYCLE_TIMEOUT;
         }
 
@@ -284,6 +296,7 @@ public class ApplicationNetworkTest {
 
         @Override
         public boolean isEnabled() {
+
             return enabled;
         }
 

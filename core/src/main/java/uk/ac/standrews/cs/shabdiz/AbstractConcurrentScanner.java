@@ -26,8 +26,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
@@ -37,7 +37,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  */
 public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractConcurrentScanner.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConcurrentScanner.class);
     private final ReentrantLock check_lock;
     private final List<Future<?>> scheduled_checks;
     private volatile ExecutorService executor;
@@ -117,7 +117,13 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
             @Override
             public void run() {
 
-                scan(network, descriptor);
+                try {
+                    scan(network, descriptor);
+                }
+                catch (Throwable e) {
+                    LOGGER.error("failed to scan descriptor {} of network {} in scanner {}", descriptor, network, this);
+                    LOGGER.error("failure occured while scanning descriptor " + descriptor, e);
+                }
             }
         });
     }
@@ -137,10 +143,10 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
                 break;
             }
             catch (final CancellationException e) {
-                LOGGER.log(Level.WARNING, "schedule host check was cancelled", e);
+                LOGGER.warn("schedule host check was cancelled", e);
             }
             catch (final ExecutionException e) {
-                LOGGER.log(Level.WARNING, "schedule host check failed", e.getCause());
+                LOGGER.warn("schedule host check failed", e.getCause());
             }
         }
     }

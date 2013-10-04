@@ -350,6 +350,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      * @return a copy of this network's application descriptors
      */
     public Set<ApplicationDescriptor> getApplicationDescriptors() {
+
         return new CopyOnWriteArraySet<ApplicationDescriptor>(application_descriptors);
     }
 
@@ -425,6 +426,12 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         if (!(other instanceof ApplicationNetwork) || !super.equals(other)) { return false; }
         final ApplicationNetwork that = (ApplicationNetwork) other;
         return application_name.equals(that.application_name) && scheduled_scanners.equals(that.scheduled_scanners);
+    }
+
+    @Override
+    public String toString() {
+
+        return application_name;
     }
 
     protected ScheduledExecutorService createScannerScheduledExecutorService() {
