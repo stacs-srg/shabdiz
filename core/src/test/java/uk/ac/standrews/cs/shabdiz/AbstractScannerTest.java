@@ -32,6 +32,7 @@ public class AbstractScannerTest {
 
             @Override
             public void scan(final ApplicationNetwork network) {
+
                 LOGGER.info("scanning {}", network);
             }
         };
@@ -51,21 +52,25 @@ public class AbstractScannerTest {
 
     @Test
     public void testGetCycleDelay() throws Exception {
+
         Assert.assertEquals(delay, scanner.getCycleDelay());
     }
 
     @Test
     public void testGetScanTimeout() throws Exception {
+
         Assert.assertEquals(timeout, scanner.getScanTimeout());
     }
 
     @Test
     public void testIsEnabled() throws Exception {
+
         Assert.assertEquals(enabled, scanner.isEnabled());
     }
 
     @Test
     public void testSetEnabled() throws Exception {
+
         scanner.setEnabled(false);
         Assert.assertFalse(scanner.isEnabled());
 
@@ -92,6 +97,7 @@ public class AbstractScannerTest {
 
     @Test
     public void testFirePropertyChange() throws Exception {
+
         scanner.addPropertyChangeListener(TEST_PROPERTY_NAME, listener);
         scanner.firePropertyChange(TEST_PROPERTY_NAME, TEST_PROPERTY_OLD_VALUE, TEST_PROPERTY_NEW_VALUE);
         // The assertion is done in the listener; here we just wait for the listener to signal success

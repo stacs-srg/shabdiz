@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -18,6 +19,7 @@ import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
+import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,6 +27,7 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder.
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(Parameterized.class)
+@Category(Ignore.class)
 public class MavenBasedColdManagerTest {
 
     private final Integer network_size;
