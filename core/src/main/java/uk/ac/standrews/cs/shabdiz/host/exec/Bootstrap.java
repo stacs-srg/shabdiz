@@ -1,10 +1,12 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.instrument.Instrumentation;
@@ -22,7 +24,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +33,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
@@ -226,17 +226,14 @@ public abstract class Bootstrap {
             public Properties call() throws Exception {
 
                 Properties properties = new Properties();
-                final Scanner scanner = new Scanner(new BufferedInputStream(in), PROCESS_OUTPUT_ENCODING);
+                //                final Scanner scanner = new Scanner(new BufferedInputStream(in), PROCESS_OUTPUT_ENCODING);
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
-                while (scanner.hasNextLine()) {
-                    final String output_line = scanner.findInLine(pattern);
-                    if (output_line == null) {
-                        final String next_line = scanner.nextLine();
-                        //                        System.out.println(next_line);
-                    }
-                    else {
-                        final MatchResult match = scanner.match();
-                        final String key_values = match.group(1);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    final Matcher line_matcher = pattern.matcher(line);
+                    if (line_matcher.find()) {
+                        final String key_values = line_matcher.group(1);
                         if (key_values != null) {
                             final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
                             while (key_value_matcher.find()) {
@@ -248,6 +245,27 @@ public abstract class Bootstrap {
                         break;
                     }
                 }
+
+                //                while (scanner.hasNextLine()) {
+                //                    final String output_line = scanner.findInLine(pattern);
+                //                    if (output_line == null) {
+                //                        final String next_line = scanner.nextLine();
+                //                        //                        System.out.println(next_line);
+                //                    }
+                //                    else {
+                //                        final MatchResult match = scanner.match();
+                //                        final String key_values = match.group(1);
+                //                        if (key_values != null) {
+                //                            final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
+                //                            while (key_value_matcher.find()) {
+                //                                final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
+                //                                final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
+                //                                properties.setProperty(key, value);
+                //                            }
+                //                        }
+                //                        break;
+                //                    }
+                //                }
                 return properties;
             }
         };
