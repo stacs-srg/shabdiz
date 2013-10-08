@@ -52,9 +52,9 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
  */
 public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
-    private static final String SCANNER_EXECUTOR_NAMING_SUFFIX = "_scanner_executor";
-    private static final String SCANNER_SCHEDULER_NAMING_SUFFIX = "_scanner_scheduler";
-    private static final String NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX = "_network_executor_service";
+    private static final String SCANNER_EXECUTOR_NAMING_SUFFIX = "_scanner_executor_";
+    private static final String SCANNER_SCHEDULER_NAMING_SUFFIX = "_scanner_scheduler_";
+    private static final String NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX = "_network_executor_service_";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 10;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(5, TimeUnit.SECONDS);

@@ -49,7 +49,7 @@ public class ExperiementRunner extends Parameterized {
         runner_jar_path = initRunnerJar().getAbsolutePath();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         final String args_as_string = Arrays.toString(args);
         Result result;
@@ -78,15 +78,19 @@ public class ExperiementRunner extends Parameterized {
             }
         }
 
-        final String result_in_base64;
+        int exit_code = 0;
         try {
-            result_in_base64 = JUnitBootstrapCore.serializeAsBase64(result);
+            final String result_in_base64 = JUnitBootstrapCore.serializeAsBase64(result);
             ProcessUtil.printKeyValue(System.out, RESULT_PROPERTY_KEY, result_in_base64);
         }
         catch (IOException e) {
             LOGGER.error("failed to encode result to base64", e);
-            throw e;
+            exit_code = 1;
         }
+        finally {
+            System.exit(exit_code);
+        }
+
     }
 
     private File initRunnerJar() throws IOException {
@@ -119,6 +123,7 @@ public class ExperiementRunner extends Parameterized {
             LOGGER.debug("running command {}", command);
             final Process test_process = local_host.execute(working_directory.getAbsolutePath(), command);
             final String result_in_base64 = ProcessUtil.scanProcessOutput(test_process, RESULT_PROPERTY_KEY, TEST_OUTPUT_TIMEOUT);
+            test_process.destroy();
 
             eachNotifier.fireTestStarted();
             final List<Description> descriptions = getMethodDescriptions(runner);

@@ -48,7 +48,6 @@ public class SSHPasswordCredentials extends SSHCredentials {
      */
     public SSHPasswordCredentials(final String password) {
 
-        super();
         this.password = password;
     }
 

@@ -138,7 +138,7 @@
                             <!--<threadCount>1</threadCount>-->
                             <!--<perCoreThreadCount>false</perCoreThreadCount>-->
                             <!--<argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>-->
-                            <workingDirectory>results</workingDirectory>
+                            <!--<workingDirectory>results</workingDirectory>-->
                         </configuration>
                     </plugin>
                 </plugins>
