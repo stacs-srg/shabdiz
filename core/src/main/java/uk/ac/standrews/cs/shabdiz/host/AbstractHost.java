@@ -92,4 +92,10 @@ public abstract class AbstractHost implements Host {
         final Host that = (Host) other;
         return local == that.isLocal() && address.equals(that.getAddress()) && name.equals(that.getName());
     }
+
+    @Override
+    public String toString() {
+
+        return getName();
+    }
 }

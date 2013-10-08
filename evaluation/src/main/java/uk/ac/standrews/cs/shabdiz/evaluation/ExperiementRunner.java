@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -24,6 +23,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.JarUtils;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.testing.junit.JUnitBootstrapCore;
 import uk.ac.standrews.cs.shabdiz.testing.junit.ParameterizedRange;
@@ -40,43 +40,13 @@ public class ExperiementRunner extends Parameterized {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperiementRunner.class);
     private static final File RESULTS_HOME = new File("results");
     private final LocalHost local_host;
-    private final String class_path;
+    private final String runner_jar_path;
 
     public ExperiementRunner(final Class<?> klass) throws Throwable {
 
         super(klass);
-
         local_host = new LocalHost();
-        final File tmp_dir_file = new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString());
-        FileUtils.forceMkdir(tmp_dir_file);
-        String tmp_dir_path = tmp_dir_file.getAbsolutePath();
-        if (!tmp_dir_path.endsWith(File.separator)) {
-            tmp_dir_path += File.separator;
-        }
-        class_path = "-cp " + tmp_dir_path + File.pathSeparator + tmp_dir_path + "* ";
-
-        for (String classpath_entry : System.getProperty("java.class.path").split(File.pathSeparator)) {
-            if (!classpath_entry.isEmpty()) {
-                final File classphath_file = new File(classpath_entry);
-                if (classphath_file.isDirectory()) {
-                    for (String sub_cp : classphath_file.list()) {
-                        local_host.upload(new File(classphath_file, sub_cp), tmp_dir_path);
-                    }
-                }
-                else {
-                    local_host.upload(classphath_file, tmp_dir_path);
-                }
-            }
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                FileUtils.deleteQuietly(tmp_dir_file);
-            }
-        }));
+        runner_jar_path = initRunnerJar().getAbsolutePath();
     }
 
     public static void main(String[] args) throws IOException {
@@ -119,6 +89,23 @@ public class ExperiementRunner extends Parameterized {
         }
     }
 
+    private File initRunnerJar() throws IOException {
+
+        final File runner_jar = File.createTempFile("experiment_runner", ".jar");
+
+        JarUtils.currentClasspathToExecutableJar(runner_jar, ExperiementRunner.class);
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                FileUtils.deleteQuietly(runner_jar);
+            }
+        }));
+        runner_jar.deleteOnExit();
+        return runner_jar;
+    }
+
     @Override
     protected void runChild(final Runner runner, final RunNotifier notifier) {
 
@@ -128,7 +115,7 @@ public class ExperiementRunner extends Parameterized {
         try {
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             FileUtils.forceMkdir(working_directory);
-            final String command = "java " + class_path + getClass().getName() + " " + getTestClass().getName() + " " + index + " " + (index + 1);
+            final String command = "java -jar " + runner_jar_path + " " + getTestClass().getName() + " " + index + " " + (index + 1);
             LOGGER.debug("running command {}", command);
             final Process test_process = local_host.execute(working_directory.getAbsolutePath(), command);
             final String result_in_base64 = ProcessUtil.scanProcessOutput(test_process, RESULT_PROPERTY_KEY, TEST_OUTPUT_TIMEOUT);

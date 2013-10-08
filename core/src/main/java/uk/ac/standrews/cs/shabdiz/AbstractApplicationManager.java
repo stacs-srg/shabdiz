@@ -90,8 +90,8 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
         else {
             try {
-                attemptAddressResolution(host.getName());
-                attemptCommandExecution(host);
+                resolveAddressByHostName(host.getName());
+                checkAuthorityByCommandExecution(host);
                 state = ApplicationState.AUTH;
             }
             catch (final Throwable e) {
@@ -128,7 +128,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         return state;
     }
 
-    private void attemptCommandExecution(final Host host) throws Throwable {
+    private void checkAuthorityByCommandExecution(final Host host) throws Throwable {
 
         LOGGER.debug("attemting to execute a minimal command on {} to check for authority with the timeout {}", host.getName(), command_execution_timeout);
         TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
@@ -136,14 +136,18 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             @Override
             public Void call() throws Exception {
 
-                final Process cd_process = host.execute(Commands.CHANGE_DIRECTORY.get(host.getPlatform()));
-                ProcessUtil.awaitNormalTerminationAndGetOutput(cd_process);
+                final String cd_command = Commands.CHANGE_DIRECTORY.get(host.getPlatform());
+                LOGGER.trace("checking authority on host {} by executing {}", host, cd_command);
+                final Process cd_process = host.execute(cd_command);
+                LOGGER.trace("awaiting normal termination of authority check command on host {}", host);
+                final String cd_execution_output = ProcessUtil.awaitNormalTerminationAndGetOutput(cd_process);
+                LOGGER.trace("authority check command output on host {}: {}", host, cd_execution_output);
                 return null; // Void task.
             }
         }, command_execution_timeout);
     }
 
-    private void attemptAddressResolution(final String host_name) throws UnknownHostException {
+    private static void resolveAddressByHostName(final String host_name) throws UnknownHostException {
 
         LOGGER.debug("attempting to resolve address from host name {}", host_name);
         InetAddress.getByName(host_name);

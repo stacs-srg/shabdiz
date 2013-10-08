@@ -138,14 +138,14 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
                 catch (Exception e) {
                     error = e;
                     retry_count++;
-                    delayIfNecessary();
+                    delayRetryIfNecessary();
                 }
             }
             assert error != null;
             throw error;
         }
 
-        private void delayIfNecessary() throws InterruptedException {
+        private void delayRetryIfNecessary() throws InterruptedException {
 
             if (isIntervalSpecified()) {
                 Thread.sleep(interval_millis);

@@ -52,6 +52,9 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
  */
 public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
+    private static final String SCANNER_EXECUTOR_NAMING_SUFFIX = "_scanner_executor";
+    private static final String SCANNER_SCHEDULER_NAMING_SUFFIX = "_scanner_scheduler";
+    private static final String NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX = "_network_executor_service";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 10;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(5, TimeUnit.SECONDS);
@@ -65,6 +68,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private final String application_name;
     private final ScheduledExecutorService scanner_scheduler;
     private final ListeningExecutorService concurrent_scanner_executor;
+    private final ListeningExecutorService network_executor_service;
 
     /**
      * Instantiates a new application network.
@@ -78,6 +82,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = createScannerScheduledExecutorService();
         concurrent_scanner_executor = createScannerExecutorService();
+        network_executor_service = createNetworkExecutorService();
 
         auto_kill_scanner = new AutoKillScanner(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
         auto_deploy_scanner = new AutoDeployScanner(DEFAULT_SCANNER_CYCLE_DELAY);
@@ -110,7 +115,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
         final List<ListenableFuture<Void>> deployments = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            final ListenableFuture<Void> deployment = concurrent_scanner_executor.submit(new Callable<Void>() {
+            final ListenableFuture<Void> deployment = network_executor_service.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
@@ -180,29 +185,29 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void awaitAnyOfStates(final ApplicationState... states) throws InterruptedException {
 
-        final List<ListenableFuture<Void>> awaiting_states = new ArrayList<ListenableFuture<Void>>();
+        final List<ListenableFuture<Void>> awaiting_state_futures = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor descriptor : application_descriptors) {
-            final ListenableFuture<Void> awaiting_state = concurrent_scanner_executor.submit(new Callable<Void>() {
+            final ListenableFuture<Void> awaiting_state = network_executor_service.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
 
                     descriptor.awaitAnyOfStates(states);
-                    return null;
+                    return null; // Void task
                 }
             });
-            awaiting_states.add(awaiting_state);
+            awaiting_state_futures.add(awaiting_state);
         }
 
         try {
-            Futures.allAsList(awaiting_states).get();
+            Futures.allAsList(awaiting_state_futures).get();
         }
         catch (ExecutionException e) {
             LOGGER.error("failure occured while awaiting uniform state", e);
             throw new InterruptedException("failure occured while awaiting uniform state");
         }
         finally {
-            for (ListenableFuture<Void> awaiting_state : awaiting_states) {
+            for (ListenableFuture<Void> awaiting_state : awaiting_state_futures) {
                 awaiting_state.cancel(true);
             }
         }
@@ -300,6 +305,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public void shutdown() {
 
         scanner_scheduler.shutdownNow();
+        network_executor_service.shutdownNow();
         concurrent_scanner_executor.shutdownNow();
         cancelScheduledScanners();
         killAllSilently();
@@ -385,7 +391,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
         final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            final ListenableFuture<Void> termination = concurrent_scanner_executor.submit(new Callable<Void>() {
+            final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
@@ -436,12 +442,17 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     protected ScheduledExecutorService createScannerScheduledExecutorService() {
 
-        return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
+        return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
     }
 
     protected ListeningExecutorService createScannerExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name)));
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name + SCANNER_EXECUTOR_NAMING_SUFFIX)));
+    }
+
+    protected ListeningExecutorService createNetworkExecutorService() {
+
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name + NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX)));
     }
 
     private void closeHosts() {

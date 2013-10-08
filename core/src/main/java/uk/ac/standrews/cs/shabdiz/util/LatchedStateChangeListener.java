@@ -26,7 +26,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /**
- * Given a collection of {@link ApplicationState states} listens for the change of state and {@link CountDownLatch#countDown() counts down} a latch for each state change that matches one of the given states.
+ * Given an array of {@link ApplicationState states} listens for the change of state events and {@link CountDownLatch#countDown() counts down} a latch for each state change event that matches one of the given states.
+ * The user of this class may await the count down by calling {@link #await()}.
  * This class is thread-safe.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
@@ -49,11 +50,14 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
     }
 
     @Override
-    public synchronized void propertyChange(final PropertyChangeEvent evt) {
+    public void propertyChange(final PropertyChangeEvent event) {
 
-        LOGGER.trace("state changed to {} on {}", evt.getNewValue(), evt.getSource());
+        final Object new_value = event.getNewValue();
+        final Object old_value = event.getOldValue();
+        final Object source = event.getSource();
+        LOGGER.trace("state changed from {} to {} on {}", old_value, new_value, source);
 
-        final ApplicationState new_state = (ApplicationState) evt.getNewValue();
+        final ApplicationState new_state = (ApplicationState) new_value;
         if (ArrayUtil.contains(new_state, states)) {
             latch.countDown();
             LOGGER.trace("counted down latch for the matching state {}", new_state);
@@ -61,7 +65,7 @@ public final class LatchedStateChangeListener implements PropertyChangeListener 
     }
 
     /**
-     * Awaits until a state change event is fired, which its new value matches one of this listeners states.
+     * Awaits until a state change event is fired, which its new value matches one of this listener's states.
      *
      * @throws InterruptedException if interrupted while waiting
      */
