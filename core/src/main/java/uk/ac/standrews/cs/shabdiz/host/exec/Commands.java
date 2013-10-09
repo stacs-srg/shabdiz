@@ -105,15 +105,15 @@ public final class Commands {
     /** The CD command builder. */
     public static final CommandBuilder CHANGE_DIRECTORY = new CommandBuilder() {
 
-        private static final String CD = "cd";
+        private static final String CD = "cd ";
 
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return CD + concatinateWithSpace(params);
+            return CD + platform.quote(params[0]);
         }
     };
-    /** The CD command builder. */
+    /** Appender. */
     public static final CommandBuilder APPENDER = new CommandBuilder() {
 
         private static final String AND_AND = " && ";

@@ -23,11 +23,11 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.JarUtils;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.testing.junit.JUnitBootstrapCore;
 import uk.ac.standrews.cs.shabdiz.testing.junit.ParameterizedRange;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.JarUtils;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */

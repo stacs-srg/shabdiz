@@ -366,8 +366,8 @@ public class SSHHost extends AbstractHost {
         private SSHManagedRemoteProcess(final String command) throws IOException {
 
             this.command = command;
-            this.session = createSession();
-            this.termination_latch = new CountDownLatch(1);
+            session = createSession();
+            termination_latch = new CountDownLatch(1);
 
             channel = createChannel();
             in = channel.getInputStream();

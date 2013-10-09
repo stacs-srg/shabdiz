@@ -1,4 +1,4 @@
-package uk.ac.standrews.cs.shabdiz.evaluation.util;
+package uk.ac.standrews.cs.shabdiz.util;
 
 import java.io.BufferedInputStream;
 import java.io.File;

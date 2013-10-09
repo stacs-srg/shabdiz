@@ -1,14 +1,17 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Provider;
+import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
+import net.schmizz.sshj.userauth.method.AuthPublickey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
+import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class BlubHostProvider implements Provider<Host> {
@@ -18,6 +21,12 @@ public class BlubHostProvider implements Provider<Host> {
     private static final int MAX_BLUB_NODES_COUNT = MAX_INDEX + 1;
     private static final SSHPublicKeyCredentials INTERNAL_PUBLIC_KEY_CREDENTIALS = SSHPublicKeyCredentials.getDefaultRSACredentials(new char[0]);
     private static final String BLUB_NODE_HOST_NAME_PREFIX = "compute-0-";
+    private static final AuthPublickey SSHJ_AUTH;
+    static {
+        final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
+        key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
+        SSHJ_AUTH = new AuthPublickey(key_provider);
+    }
     private final AtomicInteger next_host_index;
 
     public BlubHostProvider() {
@@ -46,20 +55,24 @@ public class BlubHostProvider implements Provider<Host> {
         }
     }
 
+    @Override
+    public String toString() {
+
+        return "Blub";
+    }
+
     private static Host getHostByIndex(final int host_index) throws IOException {
 
-        if (!isOutOfRange(host_index)) { return new SSHHost(BLUB_NODE_HOST_NAME_PREFIX + host_index, INTERNAL_PUBLIC_KEY_CREDENTIALS); }
+        if (!isOutOfRange(host_index)) {
+            final String host_name = BLUB_NODE_HOST_NAME_PREFIX + host_index;
+            return new SSHjHost(host_name, SSHJ_AUTH);
+            //            return new SSHHost(host_name, INTERNAL_PUBLIC_KEY_CREDENTIALS);
+        }
         throw new NoSuchElementException("cannot instantiate any more hosts; maximum blub hosts available is " + MAX_BLUB_NODES_COUNT);
     }
 
     private static boolean isOutOfRange(final int index) {
 
         return index < 0 || index > MAX_INDEX;
-    }
-
-    @Override
-    public String toString() {
-
-        return "Blub";
     }
 }
