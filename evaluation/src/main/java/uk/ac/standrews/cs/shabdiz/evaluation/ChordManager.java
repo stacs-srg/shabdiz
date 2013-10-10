@@ -38,9 +38,8 @@ public abstract class ChordManager extends ExperimentManager {
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordManager.class);
-    private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(20, TimeUnit.SECONDS);
-    private static final Duration DEFAULT_RETRY_DELAY = new Duration(3, TimeUnit.SECONDS);
-    private static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
+    private static final Duration DEFAULT_RETRY_DELAY = new Duration(10, TimeUnit.SECONDS);
     private static final long KEY_FACTORY_SEED = 0x585;
     private static final String STACHORD_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, "stachord", "2.0-SNAPSHOT");
     private static final DefaultArtifact STACHORD_MAVEN_ARTIFACT = new DefaultArtifact(STACHORD_MAVEN_ARTIFACT_COORDINATES);

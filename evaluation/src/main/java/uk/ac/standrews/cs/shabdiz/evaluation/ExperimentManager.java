@@ -33,11 +33,12 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     protected static final AttributeKey<InetSocketAddress> ADDRESS_KEY = new AttributeKey<InetSocketAddress>();
     protected static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     protected static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
+    static final Duration PROCESS_START_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     static final boolean OVERRIDE_FILES_IN_WARN = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentManager.class);
     private static final Duration FILE_UPLOAD_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration CACHE_DELETION_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
-    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
 

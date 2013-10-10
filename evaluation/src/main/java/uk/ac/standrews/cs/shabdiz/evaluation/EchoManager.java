@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.json.JsonClientFactory;
@@ -45,7 +44,6 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 abstract class EchoManager extends ExperimentManager {
 
     static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
-    static final Duration PROCESS_START_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
     static final URLBased URL_BASED = new URLBased();
