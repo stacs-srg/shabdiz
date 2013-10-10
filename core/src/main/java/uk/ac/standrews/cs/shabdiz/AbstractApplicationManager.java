@@ -136,7 +136,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
             @Override
             public Void call() throws Exception {
 
-                final String cd_command = Commands.CHANGE_DIRECTORY.get(host.getPlatform());
+                final String cd_command = Commands.CHANGE_DIRECTORY.get(host.getPlatform(), ".");
                 LOGGER.trace("checking authority on host {} by executing {}", host, cd_command);
                 final Process cd_process = host.execute(cd_command);
                 LOGGER.trace("awaiting normal termination of authority check command on host {}", host);
