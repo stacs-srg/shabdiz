@@ -105,12 +105,11 @@ public class LocalHost extends AbstractHost {
 
         if (!source.exists()) { throw new FileNotFoundException("source " + source + "does not exist"); }
 
-        final String destination_canonical_path = destination.getCanonicalPath();
-        if (source.isFile() && !source.getParentFile().getCanonicalPath().equals(destination_canonical_path)) {
+        if (source.isFile()) {
             LOGGER.debug("copying file {}, to {}", source, destination);
-            FileUtils.copyFileToDirectory(source, destination);
+            FileUtils.copyFile(source, destination);
         }
-        else if (source.isDirectory() && !source.getCanonicalPath().equals(destination_canonical_path)) {
+        else if (source.isDirectory()) {
             LOGGER.debug("copying directory {}, to {}", source, destination);
             FileUtils.copyDirectory(source, new File(destination, source.getName()));
         }
