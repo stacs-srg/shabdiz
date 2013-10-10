@@ -472,13 +472,37 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void killAllSilently() {
-
+        final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            try {
-                kill(application_descriptor);
-            }
-            catch (final Exception e) {
-                LOGGER.debug("failed to kill all managed application descriptors", e);
+            final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() {
+
+                    try {
+                        kill(application_descriptor);
+                    }
+                    catch (final Exception e) {
+                        LOGGER.debug("failed to kill all managed application descriptors", e);
+                    }
+                    return null;
+                }
+            });
+            terminations.add(termination);
+        }
+
+        try {
+            Futures.allAsList(terminations).get();
+        }
+        catch (InterruptedException e) {
+            LOGGER.debug("failed to kill all managed application descriptors", e);
+        }
+        catch (ExecutionException e) {
+            LOGGER.debug("failed to kill all managed application descriptors", e);
+        }
+        finally {
+            for (ListenableFuture<Void> deployment : terminations) {
+                deployment.cancel(true);
             }
         }
     }
