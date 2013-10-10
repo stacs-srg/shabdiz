@@ -70,6 +70,7 @@ abstract class EchoManager extends ExperimentManager {
         final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
         int port = previous_address == null ? 0 : previous_address.getPort();
         final Process echo_service_process = process_builder.start(host, String.valueOf(port));
+        LOGGER.info("waiting for properties...");
         final Properties properties = Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = EchoBootstrap.getAddressProperty(properties);

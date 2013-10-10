@@ -1,12 +1,11 @@
 package uk.ac.standrews.cs.shabdiz.host;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Scanner;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -16,15 +15,13 @@ import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPDownloadClient;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 import net.schmizz.sshj.xfer.scp.SCPUploadClient;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 
-/**
- * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SSHjHost extends AbstractHost {
 
     private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 10000;
@@ -61,6 +58,7 @@ public class SSHjHost extends AbstractHost {
         final SCPFileTransfer scp = ssh.newSCPFileTransfer();
         final SCPUploadClient scp_upload = scp.newSCPUploadClient();
         for (File source : sources) {
+            LOGGER.info("sending {} to {}", source, destination);
             scp_upload.copy(new FileSystemFile(source), destination);
         }
     }
@@ -86,8 +84,7 @@ public class SSHjHost extends AbstractHost {
 
         //FIXME determination of ppid is unix specific; generify for windows
         final Session.Command command_exec = session.exec("echo $$;" + command);
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(command_exec.getInputStream()));
-        final int ppid = Integer.parseInt(reader.readLine());
+        final int ppid = readParentProcessID(command_exec);
         return new Process() {
 
             @Override
@@ -99,21 +96,7 @@ public class SSHjHost extends AbstractHost {
             @Override
             public InputStream getInputStream() {
 
-                return new InputStream() {
-
-                    @Override
-                    public int read() throws IOException {
-
-                        return reader.read();
-                    }
-
-                    @Override
-                    public void close() throws IOException {
-
-                        super.close();
-                        reader.close();
-                    }
-                };
+                return command_exec.getInputStream();
             }
 
             @Override
@@ -164,7 +147,6 @@ public class SSHjHost extends AbstractHost {
                                 LOGGER.error("interrupted while waiting for kill_process on host " + getName(), e);
                             }
                         }
-                        IOUtils.closeQuietly(reader);
                         command_exec.close();
                     }
                     finally {
@@ -200,6 +182,11 @@ public class SSHjHost extends AbstractHost {
 
         super.close();
         ssh.disconnect();
+    }
+
+    private int readParentProcessID(final Session.Command command_exec) throws IOException {
+        final Scanner scanner = new Scanner(command_exec.getInputStream());
+        return scanner.nextInt();
     }
 
     private void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {

@@ -1,12 +1,10 @@
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.instrument.Instrumentation;
@@ -24,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -33,6 +32,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
@@ -44,6 +44,7 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 public abstract class Bootstrap {
 
     public static final String PID_PROPERTY_KEY = "pid";
+    public static final String NEW_LINE = "\n";
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final String TEMP_HOME_NAME = "tmp";
@@ -96,7 +97,7 @@ public abstract class Bootstrap {
             bootstrap.printProperties();
         }
         else {
-            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
+            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[] {args});
         }
     }
 
@@ -225,47 +226,37 @@ public abstract class Bootstrap {
             @Override
             public Properties call() throws Exception {
 
-                Properties properties = new Properties();
-                //                final Scanner scanner = new Scanner(new BufferedInputStream(in), PROCESS_OUTPUT_ENCODING);
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    final Matcher line_matcher = pattern.matcher(line);
-                    if (line_matcher.find()) {
+                final Scanner scanner = new Scanner(in);
+                scanner.useDelimiter(NEW_LINE);
+                while (!Thread.currentThread().isInterrupted()) {
+                    if (scanner.hasNext(pattern)) {
+                        final MatchResult line_matcher = scanner.match();
                         final String key_values = line_matcher.group(1);
-                        if (key_values != null) {
-                            final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
-                            while (key_value_matcher.find()) {
-                                final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
-                                final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
-                                properties.setProperty(key, value);
-                            }
-                        }
-                        break;
+                        return parseProperties(key_values);
+                    }
+                    else {
+                        //TODO log next line
+                        scanner.nextLine();
                     }
                 }
+                throw new InterruptedException();
+            }
 
-                //                while (scanner.hasNextLine()) {
-                //                    final String output_line = scanner.findInLine(pattern);
-                //                    if (output_line == null) {
-                //                        final String next_line = scanner.nextLine();
-                //                        //                        System.out.println(next_line);
-                //                    }
-                //                    else {
-                //                        final MatchResult match = scanner.match();
-                //                        final String key_values = match.group(1);
-                //                        if (key_values != null) {
-                //                            final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
-                //                            while (key_value_matcher.find()) {
-                //                                final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
-                //                                final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
-                //                                properties.setProperty(key, value);
-                //                            }
-                //                        }
-                //                        break;
-                //                    }
-                //                }
+            private Properties parseProperties(final String key_values) throws UnsupportedEncodingException {
+                final Properties properties;
+                if (key_values != null) {
+                    properties = new Properties();
+                    final Matcher key_value_matcher = KEY_VALUE_PATTERN.matcher(key_values);
+                    while (key_value_matcher.find()) {
+                        final String key = URLDecoder.decode(key_value_matcher.group(1), PROCESS_OUTPUT_ENCODING);
+                        final String value = URLDecoder.decode(key_value_matcher.group(2), PROCESS_OUTPUT_ENCODING);
+                        properties.setProperty(key, value);
+                    }
+                }
+                else {
+                    properties = null;
+                }
                 return properties;
             }
         };

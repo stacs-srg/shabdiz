@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
-import uk.ac.standrews.cs.shabdiz.util.CompressionUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_HOME_NAME;
@@ -275,34 +274,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
 
         if (!uploads.isEmpty()) {
-            if (host.isLocal()) {
-                host.upload(uploads, working_directory);
-            }
-            else {
-                final File local_tmp_dir = createTempDirOnLocal();
-                final File compressed_uploads = new File(local_tmp_dir, "compressed_cp.zip");
-                CompressionUtil.toZip(uploads, compressed_uploads);
-                host.upload(compressed_uploads, working_directory);
-                decompressOnHost(host, working_directory, compressed_uploads);
-                FileUtils.deleteDirectory(local_tmp_dir);
-            }
-        }
-    }
-
-    private void decompressOnHost(final Host host, final String remote_working_directory, final File compressed_classpath) throws IOException {
-
-        try {
-
-            final String compressed_classpath_file_name = compressed_classpath.getName();
-            try {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "jar xf " + compressed_classpath_file_name));
-            }
-            catch (final IOException e) {
-                ProcessUtil.awaitNormalTerminationAndGetOutput(host.execute(remote_working_directory, "unzip -q -o " + compressed_classpath_file_name));
-            }
-        }
-        catch (final InterruptedException e) {
-            throw new IOException(e);
+            host.upload(uploads, working_directory);
         }
     }
 
