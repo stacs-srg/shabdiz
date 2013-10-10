@@ -18,17 +18,25 @@
  */
 package uk.ac.standrews.cs.shabdiz.integrity;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
+import net.schmizz.sshj.userauth.method.AuthMethod;
+import net.schmizz.sshj.userauth.method.AuthPublickey;
+import net.schmizz.sshj.userauth.password.PasswordFinder;
+import net.schmizz.sshj.userauth.password.Resource;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
-import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHCredentials;
+import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.util.Input;
 
 /**
  * Tests whether a deployed job returns expected result.
@@ -51,7 +59,26 @@ public class NormalOperationTest {
     @BeforeClass
     public static void setUp() throws Exception {
 
-        localhost = new LocalHost();
+        //        localhost = new LocalHost();
+        final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
+        key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
+
+            @Override
+            public char[] reqPassword(final Resource<?> resource) {
+
+                return Input.readPassword("local private key password: ");
+            }
+
+            @Override
+            public boolean shouldRetry(final Resource<?> resource) {
+
+                return false;
+            }
+        });
+
+        final AuthMethod authentication = new AuthPublickey(key_provider);
+        localhost = new SSHjHost("localhost", authentication);
+
         network = new WorkerNetwork();
         network.add(localhost);
         network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");

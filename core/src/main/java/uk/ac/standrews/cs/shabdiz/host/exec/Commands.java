@@ -195,7 +195,7 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... parameters) {
 
-            if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
+            if (parameters.length == 0) { throw new IllegalArgumentException("at least one directory must be specified"); }
             final String directories = quoteAndConcatinateWithSpace(platform, parameters);
             return concatinateWithSpace(Platforms.isUnixBased(platform) ? MKDIR_P : MKDIR, directories);
         }
