@@ -107,7 +107,7 @@ public class LocalHost extends AbstractHost {
 
         if (source.isFile() && !source.getAbsolutePath().equals(destination.getAbsolutePath())) {
             LOGGER.debug("copying file {}, to {}", source, destination);
-            if (destination.isDirectory()) {
+            if (destination.isDirectory() && !source.getParentFile().getAbsolutePath().equals(destination.getAbsolutePath())) {
                 FileUtils.copyFileToDirectory(source, destination);
             }
             else {
