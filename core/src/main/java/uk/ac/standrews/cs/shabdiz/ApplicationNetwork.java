@@ -304,12 +304,12 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void shutdown() {
 
-        scanner_scheduler.shutdownNow();
-        network_executor_service.shutdownNow();
-        concurrent_scanner_executor.shutdownNow();
         cancelScheduledScanners();
         killAllSilently();
         closeHosts();
+        scanner_scheduler.shutdownNow();
+        network_executor_service.shutdownNow();
+        concurrent_scanner_executor.shutdownNow();
         application_descriptors.clear();
     }
 
@@ -456,17 +456,40 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void closeHosts() {
-
+        final List<ListenableFuture<Void>> host_closures = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+            final ListenableFuture<Void> host_closure = network_executor_service.submit(new Callable<Void>() {
 
-            final Host host = application_descriptor.getHost();
-            if (host != null) {
-                try {
-                    host.close();
+                @Override
+                public Void call() {
+
+                    final Host host = application_descriptor.getHost();
+                    if (host != null) {
+                        try {
+                            host.close();
+                        }
+                        catch (final IOException e) {
+                            LOGGER.debug("failed to close host", e);
+                        }
+                    }
+                    return null;
                 }
-                catch (final IOException e) {
-                    LOGGER.warn("failed to close host", e);
-                }
+            });
+            host_closures.add(host_closure);
+        }
+
+        try {
+            Futures.allAsList(host_closures).get();
+        }
+        catch (InterruptedException e) {
+            LOGGER.debug("failed to kill all managed application descriptors", e);
+        }
+        catch (ExecutionException e) {
+            LOGGER.debug("failed to kill all managed application descriptors", e);
+        }
+        finally {
+            for (ListenableFuture<Void> deployment : host_closures) {
+                deployment.cancel(true);
             }
         }
     }
