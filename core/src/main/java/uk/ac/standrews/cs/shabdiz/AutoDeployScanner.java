@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  */
 public class AutoDeployScanner extends AbstractConcurrentScanner {
 
-    private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScanner.class);
 
     protected AutoDeployScanner(final Duration cycle_delay) {

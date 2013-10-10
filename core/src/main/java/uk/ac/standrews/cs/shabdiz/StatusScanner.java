@@ -34,7 +34,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public class StatusScanner extends AbstractConcurrentScanner {
 
     /** The default timeout for attempted status checks. */
-    public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final boolean ENABLED_BY_DEFAULT = true;
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusScanner.class);
 
