@@ -96,9 +96,11 @@ public abstract class Experiment {
 
     @After
     public void tearDown() throws Exception {
-
+        LOGGER.info("persisting experiment properties...");
         persistProperties();
+        LOGGER.info("stopping reporter...");
         reporter.stop();
+        LOGGER.info("shuttin down the network...");
         network.shutdown();
         if (host_provider instanceof BlubHostProvider) {
             LOGGER.info("killing all java processes on blub nodes...");
