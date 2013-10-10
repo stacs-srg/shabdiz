@@ -16,19 +16,6 @@ public class EchoBootstrap extends Bootstrap {
 
     static final String ECHO_SERVICE_ADDRESS_KEY = "ECHO_SERVICE_ADDRESS";
 
-    /**
-     * Starts a new instance of {@link DefaultEcho}.
-     *
-     * @param args expects the first entry to be the port number on which to listen for incoming connections
-     * @throws NumberFormatException if the first entry in the arguments cannot be parsed to an integer
-     * @throws IOException Signals that an I/O exception has occurred
-     */
-    public static void main(final String[] args) throws IOException {
-
-        final EchoBootstrap bootstrap = new EchoBootstrap();
-        bootstrap.deploy(args);
-    }
-
     public static InetSocketAddress getAddressProperty(Properties properties) throws UnknownHostException {
 
         final String address_as_string = properties.getProperty(ECHO_SERVICE_ADDRESS_KEY);

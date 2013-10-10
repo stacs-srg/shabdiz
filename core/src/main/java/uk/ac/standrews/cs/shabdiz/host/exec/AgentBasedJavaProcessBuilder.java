@@ -339,7 +339,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         final Platform platform = host.getPlatform();
         final String bootstrap_jar = getBootstrapJarByPlatform(platform);
         if (always_upload_bootstrap || !existsOnHost(host, bootstrap_jar)) {
-            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_jar);
+            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), getBootstrapHomeByPlatform(platform));
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
         }
         else {
