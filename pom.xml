@@ -62,11 +62,17 @@
             <id>uk.ac.standrews.cs.maven.repository</id>
             <name>School of Computer Science Maven Repository</name>
             <url>http://maven.cs.st-andrews.ac.uk/</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
         <repository>
             <id>org.mashti.maven</id>
             <name>Mashti Maven Repository</name>
             <url>http://maven.mashti.org/</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
 

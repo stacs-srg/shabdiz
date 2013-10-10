@@ -60,7 +60,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      *
      * @return the name of the class that is used as the main class of the process, which are started by this process builder
      */
-    public String getMainClass() {
+    public String getMainClassName() {
 
         return main_class;
     }
@@ -80,7 +80,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
      *
      * @param main_class the fully qualified class name on which the {@code main} method is invoked
      */
-    public void setMainClass(final String main_class) {
+    public void setMainClassName(final String main_class) {
 
         this.main_class = main_class.trim();
     }
@@ -141,7 +141,7 @@ public abstract class JavaProcessBuilder implements HostProcessBuilder {
 
     protected void appendMainClass(final StringBuilder command) {
 
-        command.append(getMainClass());
+        command.append(getMainClassName());
         command.append(SPACE);
     }
 }

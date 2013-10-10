@@ -64,7 +64,7 @@ public class FileBasedJavaProcessBuilder extends JavaProcessBuilder {
     public FileBasedJavaProcessBuilder(final String main_class_name) {
 
         classpath = new HashSet<File>();
-        setMainClass(main_class_name);
+        setMainClassName(main_class_name);
     }
 
     @Override

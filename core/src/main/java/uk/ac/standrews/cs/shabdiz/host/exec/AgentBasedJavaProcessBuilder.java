@@ -119,9 +119,9 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     public Process start(final Host host, final String... parameters) throws IOException {
 
         final Platform platform = host.getPlatform();
-        final String bootstrap_jar = uploadBootstrapJar(host);
         final String remote_tmp_dir = createTempDirByPlatform(platform);
         makeRemoteDirectories(host, getBootstrapHomeByPlatform(platform), remote_tmp_dir);
+        final String bootstrap_jar = uploadBootstrapJar(host);
         uploadLocalClasspathFiles(host, remote_tmp_dir);
         uploadBootstrapConfigurationFile(host, remote_tmp_dir);
         final String command = assembleCommand(remote_tmp_dir, platform, bootstrap_jar, parameters);
@@ -141,9 +141,9 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     @Override
-    public void setMainClass(final String main_class) {
+    public void setMainClassName(final String main_class) {
 
-        super.setMainClass(main_class);
+        super.setMainClassName(main_class);
         configuration.setApplicationBootstrapClassName(main_class);
     }
 
@@ -389,21 +389,30 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     @Override
     protected void appendMainClass(final StringBuilder command) {
 
-        command.append(BOOTSTRAP_CLASS_NAME);
+        checkMainClassName();
+        command.append(getMainClassName());
         command.append(SPACE);
+    }
+
+    private void checkMainClassName() {
+        if (getMainClassName() == null) {
+            throw new NullPointerException("main class must be specified");
+        }
     }
 
     private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {
 
         final char path_separator = platform.getPathSeparator();
+        final char separator = platform.getSeparator();
+
         command.append("-cp .");
         command.append(path_separator);
         command.append(remote_tmp_dir);
-        command.append(platform.getSeparator());
+        command.append(separator);
         command.append("*");
         command.append(path_separator);
         command.append(remote_tmp_dir);
-        command.append(platform.getSeparator());
+        command.append(separator);
         command.append(SPACE);
     }
 }
