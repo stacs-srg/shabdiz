@@ -105,11 +105,11 @@ public class LocalHost extends AbstractHost {
 
         if (!source.exists()) { throw new FileNotFoundException("source " + source + "does not exist"); }
 
-        if (source.isFile()) {
+        if (source.isFile() && !source.getAbsolutePath().equals(destination.getAbsolutePath())) {
             LOGGER.debug("copying file {}, to {}", source, destination);
             FileUtils.copyFile(source, destination);
         }
-        else if (source.isDirectory()) {
+        else if (source.isDirectory() && !source.getAbsolutePath().equals(destination.getAbsolutePath())) {
             LOGGER.debug("copying directory {}, to {}", source, destination);
             FileUtils.copyDirectory(source, new File(destination, source.getName()));
         }
