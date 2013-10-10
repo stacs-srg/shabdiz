@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
  */
 public abstract class SSHCredentials {
 
-    static final File DEFAULT_SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
+    public static final File DEFAULT_SSH_HOME = new File(System.getProperty("user.home"), ".ssh");
     static final File DEFAULT_SSH_KNOWN_HOSTS_FILE = new File(DEFAULT_SSH_HOME, "known_hosts");
     private final String username;
 

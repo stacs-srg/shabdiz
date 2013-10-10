@@ -187,6 +187,19 @@ public final class Commands {
             return concatinateWithSpace(Platforms.isUnixBased(platform) ? RM : DEL, String.valueOf(platform.quote(path)));
         }
     };
+    public static final CommandBuilder MAKE_DIRECTORIES = new CommandBuilder() {
+
+        private static final String MKDIR = "mkdir ";
+        private static final String MKDIR_P = "mkdir -p ";
+
+        @Override
+        public String get(final Platform platform, final String... parameters) {
+
+            if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
+            final String directories = quoteAndConcatinateWithSpace(platform, parameters);
+            return concatinateWithSpace(Platforms.isUnixBased(platform) ? MKDIR_P : MKDIR, directories);
+        }
+    };
     private static final String SPACE = " ";
     private static final Logger LOGGER = LoggerFactory.getLogger(Commands.class);
 
@@ -202,6 +215,19 @@ public final class Commands {
             for (final String param : params) {
                 string_builder.append(SPACE);
                 string_builder.append(param);
+            }
+        }
+        return string_builder.toString();
+    }
+
+    static String quoteAndConcatinateWithSpace(Platform platform, final String... params) {
+
+        final StringBuilder string_builder = new StringBuilder();
+        if (params != null) {
+
+            for (final String param : params) {
+                string_builder.append(SPACE);
+                string_builder.append(platform.quote(param));
             }
         }
         return string_builder.toString();

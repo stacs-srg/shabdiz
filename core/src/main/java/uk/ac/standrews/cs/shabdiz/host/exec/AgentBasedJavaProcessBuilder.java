@@ -40,7 +40,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentBasedJavaProcessBuilder.class);
     private static final String BOOTSTRAP_CONFIG_FILE_NAME = "bootstrap.config";
     private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
-    private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = true;
+    private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = false;
     private static final String SYSTEM_CLASSPATH = System.getProperty("java.class.path");
     private static final String BOOTSTRAP_CLASS_NAME = Bootstrap.class.getName();
     private final Bootstrap.BootstrapConfiguration configuration;
@@ -77,7 +77,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     public static String createTempDirByPlatform(final Platform platform) {
 
         final char separator = platform.getSeparator();
-        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString();
+        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString() + separator;
     }
 
     public static String getBootstrapHomeByPlatform(final Platform platform) {
@@ -121,6 +121,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         final Platform platform = host.getPlatform();
         final String bootstrap_jar = uploadBootstrapJar(host);
         final String remote_tmp_dir = createTempDirByPlatform(platform);
+        makeRemoteDirectories(host, getBootstrapHomeByPlatform(platform), remote_tmp_dir);
         uploadLocalClasspathFiles(host, remote_tmp_dir);
         uploadBootstrapConfigurationFile(host, remote_tmp_dir);
         final String command = assembleCommand(remote_tmp_dir, platform, bootstrap_jar, parameters);
@@ -148,6 +149,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
     /**
      * Sets whether the bootstrap agent must delete the working directory upon normal JVM termination.
+     *
      * @param enabled whether the bootstrap agent must delete the working directory upon normal JVM termination
      */
     public void setDeleteWorkingDirectoryOnExit(boolean enabled) {
@@ -249,6 +251,27 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return configuration.addMavenArtifact(artifact_coordinate);
     }
 
+    private void makeRemoteDirectories(Host host, final String... directories) throws IOException {
+
+        final String mkdir_command = Commands.MAKE_DIRECTORIES.get(host.getPlatform(), directories);
+        Process mkdir_process = null;
+        try {
+            LOGGER.debug("making remote temp directory '{}' on host {}", directories, host);
+            mkdir_process = host.execute(mkdir_command);
+            ProcessUtil.awaitNormalTerminationAndGetOutput(mkdir_process);
+        }
+        catch (InterruptedException e) {
+            LOGGER.error("failed to make remote temp directory '" + directories + "' on host " + host + " due to interruption", e);
+            throw new IOException("interrupted while making remote directory on host " + host.getName(), e);
+        }
+        finally {
+            if (mkdir_process != null) {
+                mkdir_process.destroy();
+            }
+        }
+
+    }
+
     private void uploadLocalClasspathFiles(final Host host, final String working_directory) throws IOException {
 
         if (!uploads.isEmpty()) {
@@ -314,10 +337,9 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private String uploadBootstrapJar(final Host host) throws IOException {
 
         final Platform platform = host.getPlatform();
-        final String bootstrap_home = getBootstrapHomeByPlatform(platform);
         final String bootstrap_jar = getBootstrapJarByPlatform(platform);
         if (always_upload_bootstrap || !existsOnHost(host, bootstrap_jar)) {
-            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
+            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_jar);
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
         }
         else {
