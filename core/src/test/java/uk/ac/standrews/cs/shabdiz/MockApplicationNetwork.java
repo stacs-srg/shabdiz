@@ -56,7 +56,7 @@ public class MockApplicationNetwork extends ApplicationNetwork {
     void assertAllInState(final ApplicationState expected_state) {
 
         for (ApplicationDescriptor descriptor : this) {
-            Assert.assertTrue(descriptor.getApplicationState().equals(expected_state));
+            Assert.assertEquals(expected_state, descriptor.getApplicationState());
         }
     }
 

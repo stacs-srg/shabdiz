@@ -31,6 +31,7 @@ public class AutoKillScannerTest extends ScannerTest {
         network.manager.setThrowExceptionOnKill(true);
         network.manager.setProbeStateResult(ApplicationState.RUNNING);
         assertAwaitKilledStateTimeout();
+        network.awaitAnyOfStates(ApplicationState.RUNNING);
         network.assertAllInState(ApplicationState.RUNNING);
     }
 
