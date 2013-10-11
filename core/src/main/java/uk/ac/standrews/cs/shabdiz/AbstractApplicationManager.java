@@ -65,17 +65,15 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {
 
-        if (descriptor.getApplicationState() == ApplicationState.DEPLOYED) {
-            try {
-                return probeApplicationState(descriptor);
-            }
-            catch (final Exception e) {
-                LOGGER.debug("state probe using application call failed", e);
-            }
+        try {
+            return probeApplicationState(descriptor);
+        }
+        catch (final Exception e) {
+            LOGGER.debug("state probe using application call failed", e);
+            final Host host = descriptor.getHost();
+            return probeHostState(host);
         }
 
-        final Host host = descriptor.getHost();
-        return probeHostState(host);
     }
 
     protected ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {
