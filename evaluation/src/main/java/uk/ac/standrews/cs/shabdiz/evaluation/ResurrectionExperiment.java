@@ -41,7 +41,7 @@ public class ResurrectionExperiment extends Experiment {
     static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
     static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
-    private static final ExperimentManager[] ECHO_APPLICATION_MANAGERS = {EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM};
+    private static final ExperimentManager[] ECHO_APPLICATION_MANAGERS = {EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD};
     private static final long RANDOM_SEED = 0x455fa4;
     protected final float kill_portion;
     private final Random random;
