@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import java.beans.PropertyChangeListener;
@@ -224,6 +225,14 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
 
         final ApplicationState old_state = state.getAndSet(new_state);
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
+    }
+
+    public synchronized boolean compareAndSetApplicationState(final ApplicationState expect, final ApplicationState new_state) {
+        final boolean successfully_set = state.compareAndSet(expect, new_state);
+        if (successfully_set) {
+            property_change_support.firePropertyChange(STATE_PROPERTY_NAME, expect, new_state);
+        }
+        return successfully_set;
     }
 
     @Override

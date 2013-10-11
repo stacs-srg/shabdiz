@@ -54,6 +54,7 @@ public class AutoKillScanner extends AbstractConcurrentScanner {
 
     private boolean isKillable(final ApplicationDescriptor application_descriptor) {
 
-        return application_descriptor.getApplicationState() == ApplicationState.RUNNING;
+        final ApplicationState state = application_descriptor.getApplicationState();
+        return state == ApplicationState.RUNNING || state == ApplicationState.DEPLOYED;
     }
 }

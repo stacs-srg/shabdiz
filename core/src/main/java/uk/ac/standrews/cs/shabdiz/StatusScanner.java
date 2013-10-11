@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
@@ -51,8 +52,11 @@ public class StatusScanner extends AbstractConcurrentScanner {
     @Override
     protected void scan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
+        final ApplicationState old_state = descriptor.getApplicationState();
         final ApplicationState new_state = descriptor.getApplicationManager().probeState(descriptor);
-        LOGGER.debug("the state of descriptor {} is now {}", descriptor, new_state);
-        descriptor.setApplicationState(new_state);
+
+        if (descriptor.compareAndSetApplicationState(old_state, new_state)) {
+            LOGGER.debug("the state of descriptor {} is now {}", descriptor, new_state);
+        }
     }
 }

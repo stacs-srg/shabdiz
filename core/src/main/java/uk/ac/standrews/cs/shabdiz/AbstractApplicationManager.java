@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import com.jcraft.jsch.JSchException;
@@ -64,14 +65,17 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     @Override
     public ApplicationState probeState(final ApplicationDescriptor descriptor) {
 
-        try {
-            return probeApplicationState(descriptor);
+        if (descriptor.getApplicationState() == ApplicationState.DEPLOYED) {
+            try {
+                return probeApplicationState(descriptor);
+            }
+            catch (final Exception e) {
+                LOGGER.debug("state probe using application call failed", e);
+            }
         }
-        catch (final Exception e) {
-            LOGGER.debug("state probe using application call failed", e);
-            final Host host = descriptor.getHost();
-            return probeHostState(host);
-        }
+
+        final Host host = descriptor.getHost();
+        return probeHostState(host);
     }
 
     protected ApplicationState probeApplicationState(final ApplicationDescriptor descriptor) throws Exception {

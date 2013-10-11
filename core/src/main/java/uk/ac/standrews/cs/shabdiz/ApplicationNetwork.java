@@ -58,7 +58,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private static final String NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX = "_network_executor_service_";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 10;
-    private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(5, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(10, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
     protected final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
     protected final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
@@ -307,6 +307,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public void shutdown() {
 
+        setScanEnabled(false);
         cancelScheduledScanners();
         killAllSilently();
         closeHosts();
