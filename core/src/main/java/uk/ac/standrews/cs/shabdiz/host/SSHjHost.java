@@ -50,8 +50,8 @@ public class SSHjHost extends AbstractHost {
 
         final SCPFileTransfer scp = ssh.newSCPFileTransfer();
         final SCPUploadClient scp_upload = scp.newSCPUploadClient();
-        final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
-        upload(source, destination_path, scp_upload);
+        LOGGER.trace("sending {} to {}", source, destination);
+        scp_upload.copy(new FileSystemFile(source), destination);
     }
 
     @Override
