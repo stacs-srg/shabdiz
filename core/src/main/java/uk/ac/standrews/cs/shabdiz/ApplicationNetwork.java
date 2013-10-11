@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import com.google.common.util.concurrent.Futures;
@@ -149,6 +150,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         final ApplicationManager manager = descriptor.getApplicationManager();
         final Object application_reference = manager.deploy(descriptor);
         descriptor.setApplicationReference(application_reference);
+        descriptor.setApplicationState(ApplicationState.DEPLOYED);
     }
 
     /**
@@ -175,6 +177,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
         descriptor.getApplicationManager().kill(descriptor);
+        descriptor.setApplicationState(ApplicationState.KILLED);
     }
 
     /**

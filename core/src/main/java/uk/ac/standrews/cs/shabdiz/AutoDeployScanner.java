@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,7 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
             try {
                 final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
                 descriptor.setApplicationReference(application_reference);
+                descriptor.setApplicationState(ApplicationState.DEPLOYED);
             }
             catch (final Exception e) {
                 LOGGER.error("auto deployment failed", e);

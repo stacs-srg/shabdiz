@@ -175,7 +175,7 @@ abstract class EchoManager extends ExperimentManager {
             uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
 
             for (File file : dependenlcy_files) {
-                process_builder.addRemoteFile(dependencies_home + '/' + file.getName());
+                process_builder.addRemoteFile(dependencies_home + file.getName());
             }
         }
     }

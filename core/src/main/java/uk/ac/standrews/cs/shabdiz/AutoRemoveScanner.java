@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.concurrent.TimeUnit;
@@ -23,7 +24,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
- * 
+ *
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */

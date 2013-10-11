@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import org.slf4j.Logger;
@@ -43,7 +44,9 @@ public class AutoKillScanner extends AbstractConcurrentScanner {
         if (isKillable(descriptor)) {
             try {
                 descriptor.getApplicationManager().kill(descriptor);
-            } catch (final Exception e) {
+                descriptor.setApplicationState(ApplicationState.KILLED);
+            }
+            catch (final Exception e) {
                 LOGGER.debug("failed to terminate descriptor", e);
             }
         }
