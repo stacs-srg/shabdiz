@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.inject.Provider;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
@@ -18,7 +22,6 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#RUNNING} state after a portion of application instances are killed.
- *
  * For a given network size, a host provider, a manager and a kill portion:
  * - Adds all hosts to a network
  * - enables status scanner
@@ -55,7 +58,7 @@ public class ResurrectionExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_APPLICATION_MANAGERS, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -105,14 +108,33 @@ public class ResurrectionExperiment extends Experiment {
         final List<ApplicationDescriptor> descriptors_list = new ArrayList<ApplicationDescriptor>(network.getApplicationDescriptors());
         final List<ApplicationDescriptor> killed_descriptors = new ArrayList<ApplicationDescriptor>();
         final int descriptors_count = descriptors_list.size();
-        for (int i = 0; i < kill_count; i++) {
 
-            final int kill_candidate_index = random.nextInt(descriptors_count - i);
-            final ApplicationDescriptor kill_candidate = descriptors_list.remove(kill_candidate_index);
-            kill(kill_candidate);
-            kill_candidate.awaitAnyOfStates(AUTH);
-            killed_descriptors.add(kill_candidate);
-            LOGGER.debug("killed {}", kill_candidate);
+        final ExecutorService executor = Executors.newCachedThreadPool();
+        try {
+            final List<Future> awaits = new ArrayList<Future>();
+            for (int i = 0; i < kill_count; i++) {
+
+                final int kill_candidate_index = random.nextInt(descriptors_count - i);
+                final ApplicationDescriptor kill_candidate = descriptors_list.remove(kill_candidate_index);
+                final Future<Void> future_kill = executor.submit(new Callable<Void>() {
+
+                    @Override
+                    public Void call() throws Exception {
+                        kill(kill_candidate);
+                        kill_candidate.awaitAnyOfStates(AUTH);
+                        killed_descriptors.add(kill_candidate);
+                        LOGGER.debug("killed {}", kill_candidate);
+                        return null;
+                    }
+                });
+                awaits.add(future_kill);
+                for (Future future : awaits) {
+                    future.get();
+                }
+            }
+        }
+        finally {
+            executor.shutdownNow();
         }
         return killed_descriptors;
     }

@@ -12,7 +12,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.internal.AssumptionViolatedException;
+import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
@@ -65,6 +68,38 @@ public abstract class Experiment {
     private final CsvReporter reporter;
     @Rule
     public Timeout experiment_timeout = new Timeout(TIMEOUT);
+    @Rule
+    public TestWatcher watcher = new TestWatcher() {
+
+        @Override
+        protected void starting(final Description description) {
+            //TODO add description to properties
+            super.starting(description);
+        }
+
+        @Override
+        protected void succeeded(final Description description) {
+            super.succeeded(description);
+            properties.setProperty("watcher." + description, "succeeded");
+            LOGGER.info("succeeded test {}", description);
+        }
+
+        @Override
+        protected void failed(final Throwable e, final Description description) {
+            super.failed(e, description);
+            properties.setProperty("watcher." + description, "failed: " + e);
+            LOGGER.error("failed test {} due to assumption violation", description);
+            LOGGER.error("failed test error", e);
+        }
+
+        @Override
+        protected void skipped(final AssumptionViolatedException e, final Description description) {
+            super.skipped(e, description);
+            properties.setProperty("watcher." + description.getMethodName(), "skipped: " + e);
+            LOGGER.warn("skipped test {} due to assumption violation", description);
+            LOGGER.warn("assumption violation", e);
+        }
+    };
 
     protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
@@ -96,17 +131,22 @@ public abstract class Experiment {
 
     @After
     public void tearDown() throws Exception {
-        LOGGER.info("persisting experiment properties...");
-        persistProperties();
-        LOGGER.info("stopping reporter...");
-        reporter.stop();
-        LOGGER.info("shuttin down the network...");
-        network.shutdown();
-        if (host_provider instanceof BlubHostProvider) {
-            LOGGER.info("killing all java processes on blub nodes...");
-            killAllJavaProcessesOnBlubNodes();
+
+        try {
+            LOGGER.info("persisting experiment properties...");
+            persistProperties();
+            LOGGER.info("stopping reporter...");
+            reporter.stop();
+            LOGGER.info("shuttin down the network...");
+            network.shutdown();
         }
-        LOGGER.info("done");
+        finally {
+            if (host_provider instanceof BlubHostProvider) {
+                LOGGER.info("killing all java processes on blub nodes...");
+                killAllJavaProcessesOnBlubNodes();
+            }
+            LOGGER.info("done");
+        }
     }
 
     private static void killAllJavaProcessesOnBlubNodes() throws IOException, InterruptedException {

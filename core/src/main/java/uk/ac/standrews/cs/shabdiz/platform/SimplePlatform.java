@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
@@ -88,7 +89,7 @@ public class SimplePlatform implements Platform {
         return "SimplePlatform{" + "path_separator=" + path_separator + ", separator=" + separator + ", temp_dir='" + temp_dir + '\'' + ", os_name='" + os_name + '\'' + '}';
     }
 
-    protected static String addTailingSeparator(final char separator, final String path) {
+    public static String addTailingSeparator(final char separator, final String path) {
 
         return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }

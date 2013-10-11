@@ -23,6 +23,7 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
+import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -203,14 +204,26 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     private void uploadToHost(final Host host, final String destination, final boolean override, final List<File> files) throws IOException, InterruptedException {
 
         final boolean already_exists;
+        final Platform platform = host.getPlatform();
         if (!override) {
-            final Process exists = host.execute(Commands.EXISTS.get(host.getPlatform(), destination));
+            final Process exists = host.execute(Commands.EXISTS.get(platform, destination));
             already_exists = Boolean.valueOf(ProcessUtil.awaitNormalTerminationAndGetOutput(exists));
         }
         else {
             already_exists = false;
         }
+
         if (!already_exists) {
+            final String delete_destination = Commands.DELETE_RECURSIVELY.get(platform, destination);
+            final String mkdir_destination = Commands.MAKE_DIRECTORIES.get(platform, destination);
+            final String delete_and_make = Commands.APPENDER.get(platform, delete_destination, mkdir_destination);
+            final Process rm_mkdir_process = host.execute(delete_and_make);
+            try {
+                rm_mkdir_process.waitFor();
+            }
+            finally {
+                rm_mkdir_process.destroy();
+            }
             host.upload(files, destination);
         }
     }

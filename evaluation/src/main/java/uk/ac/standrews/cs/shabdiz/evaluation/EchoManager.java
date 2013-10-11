@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -69,9 +70,11 @@ abstract class EchoManager extends ExperimentManager {
 
         final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
         int port = previous_address == null ? 0 : previous_address.getPort();
+
         final Process echo_service_process = process_builder.start(host, String.valueOf(port));
         LOGGER.debug("waiting for properties of process on host {}...", host);
-        final Properties properties = Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
+
+        final Properties properties = getPropertiesFromProcess(echo_service_process);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = EchoBootstrap.getAddressProperty(properties);
         final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
@@ -79,6 +82,17 @@ abstract class EchoManager extends ExperimentManager {
         descriptor.setAttribute(PROCESS_KEY, echo_service_process);
         descriptor.setAttribute(PID_KEY, pid);
         return echo_proxy;
+    }
+
+    private Properties getPropertiesFromProcess(final Process echo_service_process) throws Exception {
+        try {
+            return Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
+        }
+        catch (final Exception e) {
+            LOGGER.error("failed to read properties of Echo process", e);
+            echo_service_process.destroy();
+            throw e;
+        }
     }
 
     @Override
@@ -156,7 +170,7 @@ abstract class EchoManager extends ExperimentManager {
             final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
             LOGGER.info("resolved echo dependencies locally. total of {} files", dependenlcy_files.size());
 
-            final String dependencies_home = "/tmp/chord_dependencies";
+            final String dependencies_home = "/tmp/echo_dependencies/";
             LOGGER.info("uploading echo dependencies to {} hosts at {}", network.size(), dependencies_home);
             uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
 

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
+import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SSHjHost extends AbstractHost {
@@ -49,8 +50,8 @@ public class SSHjHost extends AbstractHost {
 
         final SCPFileTransfer scp = ssh.newSCPFileTransfer();
         final SCPUploadClient scp_upload = scp.newSCPUploadClient();
-        LOGGER.trace("sending {} to {}", source, destination);
-        scp_upload.copy(new FileSystemFile(source), destination);
+        final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
+        upload(source, destination_path, scp_upload);
     }
 
     @Override
@@ -58,9 +59,9 @@ public class SSHjHost extends AbstractHost {
 
         final SCPFileTransfer scp = ssh.newSCPFileTransfer();
         final SCPUploadClient scp_upload = scp.newSCPUploadClient();
+        final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
         for (File source : sources) {
-            LOGGER.trace("sending {} to {}", source, destination);
-            scp_upload.copy(new FileSystemFile(source), destination);
+            upload(source, destination_path, scp_upload);
         }
     }
 
@@ -185,7 +186,12 @@ public class SSHjHost extends AbstractHost {
         ssh.disconnect();
     }
 
-    private int readParentProcessID(final Session.Command command_exec) throws IOException {
+    private void upload(File source, String destination, SCPUploadClient scp_upload) throws IOException {
+        LOGGER.trace("sending {} to {}", source, destination);
+        scp_upload.copy(new FileSystemFile(source), destination + source.getName());
+    }
+
+    private int readParentProcessID(final Session.Command command_exec) {
         final Scanner scanner = new Scanner(command_exec.getInputStream());
         return scanner.nextInt();
     }

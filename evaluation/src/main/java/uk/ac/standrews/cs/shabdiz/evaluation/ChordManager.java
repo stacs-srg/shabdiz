@@ -63,7 +63,7 @@ public abstract class ChordManager extends ExperimentManager {
         int port = previous_address == null ? 0 : previous_address.getPort();
         final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
         LOGGER.debug("waiting for properties of process on host {}...", host);
-        final Properties properties = Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
+        final Properties properties = getPropertiesFromProcess(node_process);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
@@ -72,6 +72,17 @@ public abstract class ChordManager extends ExperimentManager {
         descriptor.setAttribute(PROCESS_KEY, node_process);
         descriptor.setAttribute(PID_KEY, pid);
         return node_reference;
+    }
+
+    private Properties getPropertiesFromProcess(final Process node_process) throws Exception {
+        try {
+            return Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
+        }
+        catch (final Exception e) {
+            LOGGER.error("failed to read properties of Chord process", e);
+            node_process.destroy();
+            throw e;
+        }
     }
 
     @Override
@@ -182,7 +193,7 @@ public abstract class ChordManager extends ExperimentManager {
             final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
             LOGGER.info("resolved chord dependencies locally. total of {} files", dependenlcy_files.size());
 
-            final String dependencies_home = "/tmp/echo_dependencies";
+            final String dependencies_home = "/tmp/chord_dependencies/";
             LOGGER.info("uploading chord dependencies to {} hosts at {}", network.size(), dependencies_home);
             uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
 
