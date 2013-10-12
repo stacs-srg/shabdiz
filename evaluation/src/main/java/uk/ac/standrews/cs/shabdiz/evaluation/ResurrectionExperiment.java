@@ -121,7 +121,7 @@ public class ResurrectionExperiment extends Experiment {
                     @Override
                     public Void call() throws Exception {
                         kill(kill_candidate);
-                        kill_candidate.awaitAnyOfStates(AUTH);
+                        //                        kill_candidate.awaitAnyOfStates(AUTH);
                         killed_descriptors.add(kill_candidate);
                         LOGGER.debug("killed {}", kill_candidate);
                         return null;
