@@ -375,16 +375,13 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {
 
         final char path_separator = platform.getPathSeparator();
-        final char separator = platform.getSeparator();
 
         command.append("-cp .");
         command.append(path_separator);
         command.append(remote_tmp_dir);
-        command.append(separator);
         command.append("*");
         command.append(path_separator);
         command.append(remote_tmp_dir);
-        command.append(separator);
         command.append(SPACE);
     }
 }

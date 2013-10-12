@@ -199,7 +199,7 @@ public abstract class Bootstrap {
 
     protected abstract void deploy(String... args) throws Exception;
 
-    private void printProperties() {
+    protected void printProperties() {
 
         final String properties_as_string = getPropertiesAsString();
         System.out.println(properties_as_string);

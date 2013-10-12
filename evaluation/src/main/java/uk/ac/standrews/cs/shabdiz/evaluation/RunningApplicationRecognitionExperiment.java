@@ -18,7 +18,6 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.UNKNOWN;
 
 /**
  * Investigates how long it takes for a network to recognise already running instances of an application as defined by its manager.
- *
  * For a given network size, a host provider and a manager:
  * - Adds all hosts to a network
  * - enables status scanner
@@ -31,12 +30,12 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.UNKNOWN;
  * - shuts down the network
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * */
+ */
 public class RunningApplicationRecognitionExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RunningApplicationRecognitionExperiment.class);
     private static final String TIME_TO_REACH_RUNNING_AFTER_RESET = "time_to_reach_running_after_reset";
-    private static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM};
+    private static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD};
 
     public RunningApplicationRecognitionExperiment(final Integer network_size, final Provider<Host> host_provider, ExperimentManager manager) {
 
@@ -47,7 +46,7 @@ public class RunningApplicationRecognitionExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }

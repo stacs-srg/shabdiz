@@ -167,6 +167,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
             final List<ListenableFuture<Void>> future_resolutions = new ArrayList<ListenableFuture<Void>>();
             final AgentBasedJavaProcessBuilder mock_process_builder = new AgentBasedJavaProcessBuilder();
             mock_process_builder.addMavenDependency(artifact_coordinate);
+            mock_process_builder.setMainClassName("main");
 
             for (ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();

@@ -47,7 +47,7 @@ public abstract class Experiment {
     static final int TIMEOUT = 1000 * 60 * 20; // 20 minutes timeout for an experiment
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 10;
-    static final Integer[] NETWORK_SIZES = {10/*, 20, 30, 40, 48*/};
+    static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
     //    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new LocalHostProvider()};
     static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[] {new BlubHostProvider()};
     static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {
