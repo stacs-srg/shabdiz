@@ -170,7 +170,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
                     public Void call() throws Exception {
                         try {
                             final IChordRemoteReference known_node = joinWithRetry(node);
-                            LOGGER.info("node {}({}) successfully joined {}({})", node.getCachedKey(), node.getCachedAddress(), known_node.getCachedKey(), known_node.getCachedAddress());
+                            LOGGER.debug("node {}({}) successfully joined {}({})", node.getCachedKey(), node.getCachedAddress(), known_node.getCachedKey(), known_node.getCachedAddress());
                         }
                         catch (final Exception e) {
                             LOGGER.error("node {}({}) failed to complete join within timeout", node.getCachedKey(), node.getCachedAddress());

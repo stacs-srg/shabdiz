@@ -162,7 +162,7 @@ public abstract class Experiment {
             persistProperties();
             LOGGER.info("stopping reporter...");
             reporter.stop();
-            LOGGER.info("shuttin down the network...");
+            LOGGER.info("shutting down the network...");
             network.shutdown();
         }
         catch (Throwable e) {

@@ -45,6 +45,14 @@ public class SSHjHost extends AbstractHost {
         platform = Platforms.detectPlatform(this);
     }
 
+    public SSHjHost(final String host_name, int ssh_port, AuthMethod authentication, Platform platform) throws IOException {
+
+        super(host_name);
+        this.platform = platform;
+        ssh = new SSHClient();
+        configureSSHClient(host_name, ssh_port, authentication);
+    }
+
     @Override
     public void upload(final File source, final String destination) throws IOException {
 
