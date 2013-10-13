@@ -17,9 +17,8 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#RUNNING} from {@link ApplicationState#AUTH} state after killing all application instances using file, maven and URL based managers.
  * The initial state of the system may be warm or cold:
- *     - warm: makes sure the classpath files already exist on hosts and do not need to be uploaded by the manager
- *     - cold: removes any existing classpath files on hosts to force manger to upload any needed files
- *
+ * - warm: makes sure the classpath files already exist on hosts and do not need to be uploaded by the manager
+ * - cold: removes any existing classpath files on hosts to force manger to upload any needed files
  * For a given network size, a host provider and a manager:
  * - Adds all hosts to a network
  * - enables status scanner
@@ -29,7 +28,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  * - shuts down the network
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * */
+ */
 public class DeployTimeExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeployTimeExperiment.class);
@@ -40,11 +39,11 @@ public class DeployTimeExperiment extends Experiment {
         super(network_size, host_provider, manager);
     }
 
-    @Parameterized.Parameters(name = "{index}__size_{0}__on_{1}__{2}")
+    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, ALL_APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, ALL_APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }

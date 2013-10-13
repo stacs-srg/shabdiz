@@ -114,8 +114,8 @@ public class ExperiementRunner extends Parameterized {
     protected void runChild(final Runner runner, final RunNotifier notifier) {
 
         final int index = getRunnerIndex(runner);
-        final File working_directory = constructWorkingDirectoryByDescription(runner.getDescription());
-        final Description description = describeChild(runner);
+        final Description description = runner.getDescription();
+        final File working_directory = constructWorkingDirectoryByDescription(description);
         try {
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             FileUtils.forceMkdir(working_directory);

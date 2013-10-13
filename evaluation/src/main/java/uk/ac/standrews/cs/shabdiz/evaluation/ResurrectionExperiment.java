@@ -38,6 +38,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  */
 public class ResurrectionExperiment extends Experiment {
 
+    public static final String KILL_PORTION = "kill_portion";
     static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
     static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
@@ -52,9 +53,10 @@ public class ResurrectionExperiment extends Experiment {
         if (kill_portion <= 0 || kill_portion > 1) { throw new IllegalArgumentException("kill portion must be between 0.0 (excusive) to 1.0 (inclusive)"); }
         this.kill_portion = kill_portion;
         random = new Random(RANDOM_SEED);
+        setProperty(KILL_PORTION, kill_portion);
     }
 
-    @Parameterized.Parameters(name = "{index}__size_{0}__on_{1}__{2}__kill_portion_{3}")
+    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}__kill_portion_{3}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();

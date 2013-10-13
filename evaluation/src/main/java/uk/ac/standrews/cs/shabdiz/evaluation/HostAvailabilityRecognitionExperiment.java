@@ -17,14 +17,14 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.AUTH;
 /**
  * Investigates how long it takes for a network to recognise availablility of added hosts.
  * A host is considered available if it is in {@link ApplicationState#AUTH} state as defined by {@link ExperimentManager}.
- *
  * For a given network size and a host provider:
  * - Adds all hosts to a network
  * - enables status scanner
  * - awaits {@link ApplicationState#AUTH} state
  * - shuts down the network
  *
- * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class HostAvailabilityRecognitionExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostAvailabilityRecognitionExperiment.class);
@@ -34,11 +34,11 @@ public class HostAvailabilityRecognitionExperiment extends Experiment {
         super(network_size, host_provider, new NoOpExperimentManager());
     }
 
-    @Parameterized.Parameters(name = "{index}__size_{0}__on_{1}")
+    @Parameterized.Parameters(name = "network_size_{0}__on_{1}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }

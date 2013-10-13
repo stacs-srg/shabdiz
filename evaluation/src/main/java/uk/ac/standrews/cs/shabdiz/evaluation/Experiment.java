@@ -4,6 +4,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
@@ -41,10 +43,15 @@ import static org.mashti.jetson.util.CloseableUtil.closeQuietly;
 @RunWith(ExperiementRunner.class)
 public abstract class Experiment {
 
+    public static final String EXPERIMENT_STATUS = "status";
+    public static final String SUCCESS = "SUCCESS";
+    public static final String FAILURE = "FAILURE";
+    public static final String EXPERIMENT_FAILURE_CAUSE = "failure.cause";
+    public static final String EXPERIMENT_DURATION = "duration";
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final File RESULTS_HOME = new File("results");
-    static final int TIMEOUT = 1000 * 60 * 20; // 20 minutes timeout for an experiment
+    static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 5;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
@@ -88,7 +95,7 @@ public abstract class Experiment {
         protected void failed(final Throwable e, final Description description) {
             super.failed(e, description);
             properties.setProperty("watcher." + description, "failed: " + e);
-            LOGGER.error("failed test {} due to assumption violation", description);
+            LOGGER.error("failed test {} due to error", description);
             LOGGER.error("failed test error", e);
         }
 
@@ -127,10 +134,26 @@ public abstract class Experiment {
 
     @Test
     @Category(Experiment.class)
+    public final void experiment() throws Exception {
+        final long start = System.nanoTime();
+        try {
+            doExperiment();
+            setProperty(EXPERIMENT_STATUS, SUCCESS);
+        }
+        catch (Exception e) {
+            setProperty(EXPERIMENT_STATUS, FAILURE);
+            setProperty(EXPERIMENT_FAILURE_CAUSE, e);
+        }
+        finally {
+            final long duration = System.nanoTime() - start;
+            setProperty(EXPERIMENT_DURATION, duration);
+        }
+    }
+
     public abstract void doExperiment() throws Exception;
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
         try {
             LOGGER.info("persisting experiment properties...");
@@ -140,8 +163,11 @@ public abstract class Experiment {
             LOGGER.info("shuttin down the network...");
             network.shutdown();
         }
+        catch (Throwable e) {
+            LOGGER.error("error occured while taring down experiment", e);
+        }
         finally {
-            if (host_provider instanceof BlubHostProvider) {
+            if (isLocalHostBlubHeadNode()) {
                 LOGGER.info("killing all java processes on blub nodes...");
                 killAllJavaProcessesOnBlubNodes();
             }
@@ -149,13 +175,29 @@ public abstract class Experiment {
         }
     }
 
-    private static void killAllJavaProcessesOnBlubNodes() throws IOException, InterruptedException {
+    private boolean isLocalHostBlubHeadNode() {
+        try {
+            return InetAddress.getLocalHost().getHostName().equals("blub-cs.st-andrews.ac.uk");
+        }
+        catch (UnknownHostException e) {
+            LOGGER.error("failed to check if the local host is blub head node", e);
+            return false;
+        }
+    }
+
+    private static void killAllJavaProcessesOnBlubNodes() {
 
         final ProcessBuilder builder = new ProcessBuilder("bash", "-c", "rocks run host \"killall java\";");
         builder.redirectErrorStream(true);
-        final Process start = builder.start();
-        final String output = ProcessUtil.awaitNormalTerminationAndGetOutput(start);
-        LOGGER.info("output from killing all java processes on blub nodes: \n{}", output);
+        final Process start;
+        try {
+            start = builder.start();
+            final String output = ProcessUtil.awaitNormalTerminationAndGetOutput(start);
+            LOGGER.info("output from killing all java processes on blub nodes: \n{}", output);
+        }
+        catch (Exception e) {
+            LOGGER.error("faield to kill all java processes on blub", e);
+        }
     }
 
     private void registerMetrics() {

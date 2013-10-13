@@ -16,7 +16,6 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#AUTH} from {@link ApplicationState#RUNNING} state after killing all application instances.
- *
  * For a given network size, a host provider and a manager:
  * - Adds all hosts to a network
  * - enables status scanner
@@ -29,7 +28,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  * - shuts down the network
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
- * */
+ */
 public class KillTimeExperiment extends Experiment {
 
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD};
@@ -41,11 +40,11 @@ public class KillTimeExperiment extends Experiment {
         super(network_size, host_provider, manager);
     }
 
-    @Parameterized.Parameters(name = "{index}__size_{0}__on_{1}__{2}")
+    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }

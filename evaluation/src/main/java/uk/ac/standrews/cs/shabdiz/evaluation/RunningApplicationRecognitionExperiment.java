@@ -42,7 +42,7 @@ public class RunningApplicationRecognitionExperiment extends Experiment {
         super(network_size, host_provider, manager);
     }
 
-    @Parameterized.Parameters(name = "{index}__size_{0}__on_{1}__{2}")
+    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
