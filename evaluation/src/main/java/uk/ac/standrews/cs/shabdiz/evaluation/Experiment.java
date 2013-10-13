@@ -23,6 +23,7 @@ import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
 import org.mashti.gauge.Timer;
 import org.mashti.gauge.jvm.MemoryUsageGauge;
+import org.mashti.gauge.jvm.SystemLoadAverageGauge;
 import org.mashti.gauge.jvm.ThreadCountGauge;
 import org.mashti.gauge.jvm.ThreadCpuUsageGauge;
 import org.mashti.gauge.reporter.CsvReporter;
@@ -69,6 +70,7 @@ public abstract class Experiment {
     private final MemoryUsageGauge memory_gauge = new MemoryUsageGauge();
     private final ThreadCpuUsageGauge cpu_gauge = new ThreadCpuUsageGauge();
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
+    private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
     private final Properties properties = new Properties();
     private final Provider<Host> host_provider;
     private final ExperimentManager manager;
@@ -207,6 +209,7 @@ public abstract class Experiment {
         registerMetric("memory_gauge", memory_gauge);
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
+        registerMetric("system_load_average_gauge", system_load_average_gauge);
     }
 
     protected String constructName() {
