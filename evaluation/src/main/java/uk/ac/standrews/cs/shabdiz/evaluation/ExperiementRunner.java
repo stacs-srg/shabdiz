@@ -37,10 +37,12 @@ public class ExperiementRunner extends Parameterized {
     static final String REPETITIONS_HOME_NAME = "repetitions";
     static final String RESULT_PROPERTY_KEY = "RESULT";
     static final Duration TEST_OUTPUT_TIMEOUT = new Duration(1, TimeUnit.HOURS);
+    static final int MAX_RETRY_COUNT = 5;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperiementRunner.class);
     private static final File RESULTS_HOME = new File("results");
     private final LocalHost local_host;
     private final String runner_jar_path;
+    private int retry_count = 1;
 
     public ExperiementRunner(final Class<?> klass) throws Throwable {
 
@@ -111,19 +113,27 @@ public class ExperiementRunner extends Parameterized {
     }
 
     @Override
-    protected void runChild(final Runner runner, final RunNotifier notifier) {
+    protected synchronized void runChild(final Runner runner, final RunNotifier notifier) {
 
         final int index = getRunnerIndex(runner);
         final Description description = runner.getDescription();
         final File working_directory = constructWorkingDirectoryByDescription(description);
+
+        boolean successful;
+
         try {
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             FileUtils.forceMkdir(working_directory);
             final String command = "java -jar " + runner_jar_path + " " + getTestClass().getName() + " " + index + " " + (index + 1);
             LOGGER.debug("running command {}", command);
             final Process test_process = local_host.execute(working_directory.getAbsolutePath(), command);
-            final String result_in_base64 = ProcessUtil.scanProcessOutput(test_process, RESULT_PROPERTY_KEY, TEST_OUTPUT_TIMEOUT);
-            test_process.destroy();
+            final String result_in_base64;
+            try {
+                result_in_base64 = ProcessUtil.scanProcessOutput(test_process, RESULT_PROPERTY_KEY, TEST_OUTPUT_TIMEOUT);
+            }
+            finally {
+                test_process.destroy();
+            }
 
             eachNotifier.fireTestStarted();
             final List<Description> descriptions = getMethodDescriptions(runner);
@@ -132,7 +142,8 @@ public class ExperiementRunner extends Parameterized {
             }
 
             final Result result = JUnitBootstrapCore.deserializeAsBase64(result_in_base64);
-            if (result.wasSuccessful()) {
+            successful = result.wasSuccessful();
+            if (successful) {
                 eachNotifier.fireTestFinished();
             }
 
@@ -150,9 +161,26 @@ public class ExperiementRunner extends Parameterized {
                 notifier.fireTestFinished(description1);
             }
         }
-        catch (Exception e) {
+        catch (Throwable e) {
+            successful = false;
             notifier.fireTestFailure(new Failure(description, e));
+
+            if (Experiment.isLocalHostBlubHeadNode()) {
+                LOGGER.info("killing all java processes on blub nodes...");
+                Experiment.killAllJavaProcessesOnBlubNodes();
+            }
         }
+
+        if (!successful) {
+            retry_count++;
+            LOGGER.info("retrying {} with retry count {}", description, retry_count);
+
+            if (retry_count <= MAX_RETRY_COUNT) {
+                runChild(runner, notifier);
+            }
+
+        }
+        retry_count = 1;
     }
 
     private List<Description> getMethodDescriptions(final Runner runner) {

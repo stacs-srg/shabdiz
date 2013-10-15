@@ -35,7 +35,6 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.testing.junit.Retry;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -83,12 +82,6 @@ public abstract class Experiment {
     public TestWatcher watcher = new TestWatcher() {
 
         @Override
-        protected void starting(final Description description) {
-            //TODO add description to properties
-            super.starting(description);
-        }
-
-        @Override
         protected void succeeded(final Description description) {
             super.succeeded(description);
             setProperty("watcher." + description, "succeeded");
@@ -124,8 +117,6 @@ public abstract class Experiment {
             }
         }
     };
-    @Rule
-    public Retry retry = new Retry(MAX_RETRY_COUNT);
 
     protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
@@ -167,7 +158,6 @@ public abstract class Experiment {
         finally {
             final long duration = System.nanoTime() - start;
             setProperty(EXPERIMENT_DURATION_NANOS, duration);
-            setProperty("retry_count", retry.getCurrentRetryCount());
         }
     }
 
@@ -194,7 +184,7 @@ public abstract class Experiment {
         }
     }
 
-    private boolean isLocalHostBlubHeadNode() {
+    static boolean isLocalHostBlubHeadNode() {
         try {
             return InetAddress.getLocalHost().getHostName().equals("blub-cs.st-andrews.ac.uk");
         }
@@ -204,7 +194,7 @@ public abstract class Experiment {
         }
     }
 
-    private static void killAllJavaProcessesOnBlubNodes() {
+    static void killAllJavaProcessesOnBlubNodes() {
 
         final ProcessBuilder builder = new ProcessBuilder("bash", "-c", "rocks run host \"killall java\";");
         builder.redirectErrorStream(true);
@@ -214,7 +204,7 @@ public abstract class Experiment {
             final String output = ProcessUtil.awaitNormalTerminationAndGetOutput(start);
             LOGGER.info("output from killing all java processes on blub nodes: \n{}", output);
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             LOGGER.error("faield to kill all java processes on blub", e);
         }
     }

@@ -41,6 +41,7 @@ public class Retry implements TestRule {
                         successful = false;
                         LOGGER.error("retry of {} failed after {} retry", description, retry_count);
                         LOGGER.error("retry failure cause", error);
+                        afterRetryFails();
                     }
                 }
 
@@ -53,6 +54,10 @@ public class Retry implements TestRule {
 
     public int getCurrentRetryCount() {
         return retry_count;
+    }
+
+    protected void afterRetryFails() {
+
     }
 
     private boolean hasMaxRetryCountReached() {
