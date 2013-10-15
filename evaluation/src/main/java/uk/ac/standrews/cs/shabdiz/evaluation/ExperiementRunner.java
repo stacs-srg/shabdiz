@@ -33,10 +33,10 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ExperiementRunner extends Parameterized {
 
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS");
-    public static final String REPETITIONS_HOME_NAME = "repetitions";
-    public static final String RESULT_PROPERTY_KEY = "RESULT";
-    public static final Duration TEST_OUTPUT_TIMEOUT = new Duration(30, TimeUnit.MINUTES);
+    static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS");
+    static final String REPETITIONS_HOME_NAME = "repetitions";
+    static final String RESULT_PROPERTY_KEY = "RESULT";
+    static final Duration TEST_OUTPUT_TIMEOUT = new Duration(1, TimeUnit.HOURS);
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperiementRunner.class);
     private static final File RESULTS_HOME = new File("results");
     private final LocalHost local_host;

@@ -35,6 +35,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.testing.junit.Retry;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -48,7 +49,9 @@ public abstract class Experiment {
     public static final String SUCCESS = "SUCCESS";
     public static final String FAILURE = "FAILURE";
     public static final String EXPERIMENT_FAILURE_CAUSE = "failure.cause";
-    public static final String EXPERIMENT_DURATION = "duration";
+    public static final String EXPERIMENT_DURATION_NANOS = "experiment.duration_nanos";
+    public static final int MAX_RETRY_COUNT = 5;
+    public static final String EXPERIMENT_START_TIME_NANOS = "experiment.start_time_nanos";
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final File RESULTS_HOME = new File("results");
@@ -56,13 +59,12 @@ public abstract class Experiment {
     static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 5;
     static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    //    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new LocalHostProvider()};
     static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[] {new BlubHostProvider()};
     static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {
             ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM
     };
+    static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
-    private static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     protected final ApplicationNetwork network;
     protected final Integer network_size;
     private final Timer timer = new Timer();
@@ -89,14 +91,14 @@ public abstract class Experiment {
         @Override
         protected void succeeded(final Description description) {
             super.succeeded(description);
-            properties.setProperty("watcher." + description, "succeeded");
+            setProperty("watcher." + description, "succeeded");
             LOGGER.info("succeeded test {}", description);
         }
 
         @Override
         protected void failed(final Throwable e, final Description description) {
             super.failed(e, description);
-            properties.setProperty("watcher." + description, "failed: " + e);
+            setProperty("watcher." + description, "failed: " + e);
             LOGGER.error("failed test {} due to error", description);
             LOGGER.error("failed test error", e);
         }
@@ -104,11 +106,26 @@ public abstract class Experiment {
         @Override
         protected void skipped(final AssumptionViolatedException e, final Description description) {
             super.skipped(e, description);
-            properties.setProperty("watcher." + description.getMethodName(), "skipped: " + e);
+            setProperty("watcher." + description.getMethodName(), "skipped: " + e);
             LOGGER.warn("skipped test {} due to assumption violation", description);
             LOGGER.warn("assumption violation", e);
         }
+
+        @Override
+        protected void finished(final Description description) {
+            super.finished(description);
+
+            LOGGER.info("persisting experiment properties...");
+            try {
+                persistProperties();
+            }
+            catch (IOException e) {
+                LOGGER.error("failed to persist properties of " + description, e);
+            }
+        }
     };
+    @Rule
+    public Retry retry = new Retry(MAX_RETRY_COUNT);
 
     protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
@@ -138,6 +155,7 @@ public abstract class Experiment {
     @Category(Experiment.class)
     public final void experiment() throws Exception {
         final long start = System.nanoTime();
+        setProperty(EXPERIMENT_START_TIME_NANOS, start);
         try {
             doExperiment();
             setProperty(EXPERIMENT_STATUS, SUCCESS);
@@ -148,7 +166,8 @@ public abstract class Experiment {
         }
         finally {
             final long duration = System.nanoTime() - start;
-            setProperty(EXPERIMENT_DURATION, duration);
+            setProperty(EXPERIMENT_DURATION_NANOS, duration);
+            setProperty("retry_count", retry.getCurrentRetryCount());
         }
     }
 
@@ -158,8 +177,6 @@ public abstract class Experiment {
     public void tearDown() {
 
         try {
-            LOGGER.info("persisting experiment properties...");
-            persistProperties();
             LOGGER.info("stopping reporter...");
             reporter.stop();
             LOGGER.info("shutting down the network...");
@@ -224,6 +241,7 @@ public abstract class Experiment {
         setProperty("manager", manager);
         setProperty("host_provider", host_provider);
         setProperty("working_directory", System.getProperty("user.dir"));
+        setProperty("report_interval", REPORT_INTERVAL);
     }
 
     protected void registerMetric(final String metric_name, final Metric metric) {

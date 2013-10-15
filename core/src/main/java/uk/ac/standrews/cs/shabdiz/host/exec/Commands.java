@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
 import org.slf4j.Logger;
@@ -172,19 +173,24 @@ public final class Commands {
     /** Recursively deletes a given file or directory. */
     public static final CommandBuilder DELETE_RECURSIVELY = new CommandBuilder() {
 
-        //FIXME only deletes files; daft windows has separate commands for deleteing directories called 'rd'
-        //        private static final String DEL = "del /F /Q ";
-        private static final String DEL = "RD /S /Q ";
-        private static final String RM = "rm -rf ";
+        /*
+          Windows Command Prompt does not have a single command like linux 'rm -f' that removes files *and* directories.
+         Hence, one has to execute 'rd' and 'del', ignore any errors, and hope that who ever designed Command Prompt gets cancer.
+
+         See: http://stackoverflow.com/questions/338895/what-ever-happened-to-deltree-and-whats-its-replacement
+         */
+
+        private static final String RD_AND_DEL_IGNORE_ERRORS = "rd /s /q %s 2> nul && del /f /q %s 2> nul";
+        private static final String RM = "rm -rf %s";
 
         /** Given a path to delete, which is expected as the first element in {@code parameters}, constructs a platform-dependent recursive path removal command. */
         @Override
         public String get(final Platform platform, final String... parameters) {
 
-            if (parameters.length != 1) { throw new IllegalArgumentException("one parameter, the file/directory to be removed, must be specified"); }
-            final String path = platform.quote(parameters[0]);
-            LOGGER.debug("path to delete: {}", path);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? RM : DEL, String.valueOf(platform.quote(path)));
+            if (parameters.length < 1) { throw new IllegalArgumentException("at least one path must be specified"); }
+            final String quoted_params = quoteAndConcatinateWithSpace(platform, parameters);
+            LOGGER.debug("path(s) to delete: {}", quoted_params);
+            return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? RM : RD_AND_DEL_IGNORE_ERRORS, quoted_params);
         }
     };
     public static final CommandBuilder MAKE_DIRECTORIES = new CommandBuilder() {

@@ -51,7 +51,7 @@ public class Retry implements TestRule {
         };
     }
 
-    int getCurrentRetryCount() {
+    public int getCurrentRetryCount() {
         return retry_count;
     }
 

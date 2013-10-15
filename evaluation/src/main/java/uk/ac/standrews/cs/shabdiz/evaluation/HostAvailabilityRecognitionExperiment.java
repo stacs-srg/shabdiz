@@ -30,7 +30,6 @@ public class HostAvailabilityRecognitionExperiment extends Experiment {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostAvailabilityRecognitionExperiment.class);
 
     public HostAvailabilityRecognitionExperiment(final Integer network_size, final Provider<Host> host_provider) {
-
         super(network_size, host_provider, new NoOpExperimentManager());
     }
 

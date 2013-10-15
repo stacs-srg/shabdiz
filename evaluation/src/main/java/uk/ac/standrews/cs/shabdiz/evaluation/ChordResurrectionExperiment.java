@@ -60,8 +60,8 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     private static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
     private static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM};
-    private static final Duration JOIN_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
-    private static final Duration JOIN_RETRY_INTERVAL = new Duration(2, TimeUnit.SECONDS);
+    private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
+    private static final Duration JOIN_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final int SEED = 78354;
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
@@ -175,6 +175,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
                         catch (final Exception e) {
                             LOGGER.error("node {}({}) failed to complete join within timeout", node.getCachedKey(), node.getCachedAddress());
                             LOGGER.error("failed join cauesed by", e);
+                            throw e;
                         }
                         return null; // Void task
                     }
