@@ -16,24 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.platform;
 
 /**
  * Presents a UNIX-based platform.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class UnixPlatform extends SimplePlatform {
 
-    static final String TEMP_DIR = "/tmp/";
+    static final String DEFAULT_TEMP_DIR = "/tmp/";
 
     /**
      * Instantiates a new platform.
-     * 
+     *
      * @param os_name the os_name
      */
     public UnixPlatform(final String os_name) {
 
-        super(os_name, UNIX_PATH_SEPARATOR, UNIX_SEPARATOR, TEMP_DIR);
+        this(os_name, DEFAULT_TEMP_DIR);
+    }
+
+    public UnixPlatform(final String os_name, String temp_dir) {
+
+        super(os_name, UNIX_PATH_SEPARATOR, UNIX_SEPARATOR, temp_dir);
     }
 }

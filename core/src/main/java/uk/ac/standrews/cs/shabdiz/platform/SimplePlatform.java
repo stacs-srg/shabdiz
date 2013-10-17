@@ -29,8 +29,8 @@ public class SimplePlatform implements Platform {
     private static final String DOUBLE_QUOTE = "\"";
     private final char path_separator;
     private final char separator;
-    private final String temp_dir;
     private final String os_name;
+    private volatile String temp_dir;
 
     /**
      * Instantiates a new platform.
@@ -45,7 +45,12 @@ public class SimplePlatform implements Platform {
         this.os_name = os_name;
         this.path_separator = path_separator;
         this.separator = separator;
-        this.temp_dir = addTailingSeparator(separator, temp_dir);
+        setTempDirectory(temp_dir);
+    }
+
+    public static String addTailingSeparator(final char separator, final String path) {
+
+        return path.endsWith(Character.toString(separator)) ? path : path + separator;
     }
 
     @Override
@@ -89,8 +94,8 @@ public class SimplePlatform implements Platform {
         return "SimplePlatform{" + "path_separator=" + path_separator + ", separator=" + separator + ", temp_dir='" + temp_dir + '\'' + ", os_name='" + os_name + '\'' + '}';
     }
 
-    public static String addTailingSeparator(final char separator, final String path) {
+    protected void setTempDirectory(final String temp_dir) {
 
-        return path.endsWith(Character.toString(separator)) ? path : path + separator;
+        this.temp_dir = addTailingSeparator(separator, temp_dir);
     }
 }

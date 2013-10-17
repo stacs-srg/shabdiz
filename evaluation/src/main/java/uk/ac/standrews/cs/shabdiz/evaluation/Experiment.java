@@ -64,6 +64,12 @@ public abstract class Experiment {
     };
     static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
+    public static final String USER_PROPERTY = "user";
+    public static final String NETWORK_SIZE_PROPERTY = "network_size";
+    public static final String MANAGER_PROPERTY = "manager";
+    public static final String HOST_PROVIDER_PROPERTY = "host_provider";
+    public static final String WORKING_DIRECTORY_PROPERTY = "working_directory";
+    public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
     protected final ApplicationNetwork network;
     protected final Integer network_size;
     private final Timer timer = new Timer();
@@ -226,12 +232,12 @@ public abstract class Experiment {
 
     private void populateProperties() {
 
-        setProperty("user", System.getProperty("user.name"));
-        setProperty("network_size", network_size);
-        setProperty("manager", manager);
-        setProperty("host_provider", host_provider);
-        setProperty("working_directory", System.getProperty("user.dir"));
-        setProperty("report_interval", REPORT_INTERVAL);
+        setProperty(USER_PROPERTY, System.getProperty("user.name"));
+        setProperty(NETWORK_SIZE_PROPERTY, network_size);
+        setProperty(MANAGER_PROPERTY, manager);
+        setProperty(HOST_PROVIDER_PROPERTY, host_provider);
+        setProperty(WORKING_DIRECTORY_PROPERTY, System.getProperty("user.dir"));
+        setProperty(REPORT_INTERVAL_PROPERTY, REPORT_INTERVAL);
     }
 
     protected void registerMetric(final String metric_name, final Metric metric) {

@@ -34,7 +34,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.UNKNOWN;
 public class RunningApplicationRecognitionExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RunningApplicationRecognitionExperiment.class);
-    private static final String TIME_TO_REACH_RUNNING_AFTER_RESET = "time_to_reach_running_after_reset";
+    static final String TIME_TO_REACH_RUNNING_AFTER_RESET = "time_to_reach_running_after_reset";
     private static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD};
 
     public RunningApplicationRecognitionExperiment(final Integer network_size, final Provider<Host> host_provider, ExperimentManager manager) {

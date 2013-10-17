@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Scanner;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -25,6 +24,7 @@ import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SSHjHost extends AbstractHost {
 
+    public static final char NEW_LINE = '\n';
     private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 10000;
     private static final int SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final int SSH_CONNECTION_TIMEOUT = SSH_TRANSPORT_TIMEOUT_MILLIS;
@@ -94,6 +94,7 @@ public class SSHjHost extends AbstractHost {
 
         //FIXME determination of ppid is unix specific; generify for windows
         final Session.Command command_exec = session.exec("echo $$;" + command);
+
         final int ppid = readParentProcessID(command_exec);
         return new Process() {
 
@@ -199,9 +200,23 @@ public class SSHjHost extends AbstractHost {
         scp_upload.copy(new FileSystemFile(source), destination + source.getName());
     }
 
-    private int readParentProcessID(final Session.Command command_exec) {
-        final Scanner scanner = new Scanner(command_exec.getInputStream());
-        return scanner.nextInt();
+    private int readParentProcessID(final Session.Command command_exec) throws IOException {
+
+        //TODO tidy this up.
+        // jdk scanner is evil.
+
+        final InputStream in = command_exec.getInputStream();
+        int next_byte;
+        final StringBuilder builder = new StringBuilder();
+        while ((next_byte = in.read()) != -1) {
+
+            final char next_char = (char) next_byte;
+            if (next_char == NEW_LINE) { //TODO investigate whether echo prints \n at the end on all platforms. is line separator platform dependant?
+                break;
+            }
+            builder.append(next_char);
+        }
+        return Integer.parseInt(builder.toString());
     }
 
     private void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {

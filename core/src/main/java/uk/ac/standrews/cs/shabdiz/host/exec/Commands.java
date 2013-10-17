@@ -67,7 +67,7 @@ public final class Commands {
             return Platforms.isUnixBased(platform) ? ECHO_HOME : ECHO_USERPROFILE;
         }
     };
-    /** Gets user home directory. */
+    /** checks whether a given path exists. */
     public static final CommandBuilder EXISTS = new CommandBuilder() {
 
         private static final String ECHO_HOME = "[ -e \"%s\" ] && echo true || echo false";
@@ -77,6 +77,19 @@ public final class Commands {
         public String get(final Platform platform, final String... params) {
 
             return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_HOME : ECHO_USERPROFILE, params);
+        }
+    };
+    public static final CommandBuilder GET_TEMP_DIR = new CommandBuilder() {
+
+        private static final String ECHO_TEMP = "echo %TEMP%";
+        private static final String ECHO_TMPDIR = "echo $TMPDIR";
+
+        @Override
+        public String get(final Platform platform, final String... params) {
+            if (params.length != 0) {
+                LOGGER.warn("ignoring passed parameters {}", params);
+            }
+            return Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_TMPDIR : ECHO_TEMP;
         }
     };
     /** Gets user name. */
