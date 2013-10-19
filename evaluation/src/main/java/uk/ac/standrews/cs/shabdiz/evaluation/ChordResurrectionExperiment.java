@@ -57,8 +57,8 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordResurrectionExperiment.class);
-    private static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
-    private static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
+    static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
+    static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM};
     private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration JOIN_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS);
@@ -168,6 +168,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
                     @Override
                     public Void call() throws Exception {
+
                         try {
                             final IChordRemoteReference known_node = joinWithRetry(node);
                             LOGGER.debug("node {}({}) successfully joined {}({})", node.getCachedKey(), node.getCachedAddress(), known_node.getCachedKey(), known_node.getCachedAddress());

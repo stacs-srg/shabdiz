@@ -67,7 +67,6 @@ public abstract class Bootstrap {
     private static final Attributes.Name FILES_TO_DELETE_ON_EXIT = new Attributes.Name("Delete-On-Exit");
     private static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
     private static final String FILE_PROTOCOL = "file";
-    private static final String PROPERTIES_ID_SUFFIX = ".properties:";
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.?[^=]+)=(.?[^=,]+)(,\\s)?");
     private static MavenDependencyResolver maven_dependency_resolver;
     private static String application_bootstrap_class_name;
@@ -216,7 +215,7 @@ public abstract class Bootstrap {
 
     private static String getPropertiesID(Class<? extends Bootstrap> bootstrap_class) {
 
-        return bootstrap_class.getName() + PROPERTIES_ID_SUFFIX;
+        return bootstrap_class.getName();
     }
 
     static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
@@ -244,6 +243,7 @@ public abstract class Bootstrap {
             }
 
             private Properties parseProperties(final String key_values) throws UnsupportedEncodingException {
+
                 final Properties properties;
                 if (key_values != null) {
                     properties = new Properties();

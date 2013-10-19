@@ -32,7 +32,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 public class DeployTimeExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeployTimeExperiment.class);
-    private static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
+    static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
 
     public DeployTimeExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager) {
 

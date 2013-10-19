@@ -51,6 +51,12 @@ public abstract class Experiment {
     public static final String EXPERIMENT_DURATION_NANOS = "experiment.duration_nanos";
     public static final int MAX_RETRY_COUNT = 5;
     public static final String EXPERIMENT_START_TIME_NANOS = "experiment.start_time_nanos";
+    public static final String USER_PROPERTY = "user";
+    public static final String NETWORK_SIZE_PROPERTY = "network_size";
+    public static final String MANAGER_PROPERTY = "manager";
+    public static final String HOST_PROVIDER_PROPERTY = "host_provider";
+    public static final String WORKING_DIRECTORY_PROPERTY = "working_directory";
+    public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
     protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final File RESULTS_HOME = new File("results");
@@ -64,12 +70,6 @@ public abstract class Experiment {
     };
     static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
-    public static final String USER_PROPERTY = "user";
-    public static final String NETWORK_SIZE_PROPERTY = "network_size";
-    public static final String MANAGER_PROPERTY = "manager";
-    public static final String HOST_PROVIDER_PROPERTY = "host_provider";
-    public static final String WORKING_DIRECTORY_PROPERTY = "working_directory";
-    public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
     protected final ApplicationNetwork network;
     protected final Integer network_size;
     private final Timer timer = new Timer();
@@ -89,6 +89,7 @@ public abstract class Experiment {
 
         @Override
         protected void succeeded(final Description description) {
+
             super.succeeded(description);
             setProperty("watcher." + description, "succeeded");
             LOGGER.info("succeeded test {}", description);
@@ -96,6 +97,7 @@ public abstract class Experiment {
 
         @Override
         protected void failed(final Throwable e, final Description description) {
+
             super.failed(e, description);
             setProperty("watcher." + description, "failed: " + e);
             LOGGER.error("failed test {} due to error", description);
@@ -104,6 +106,7 @@ public abstract class Experiment {
 
         @Override
         protected void skipped(final AssumptionViolatedException e, final Description description) {
+
             super.skipped(e, description);
             setProperty("watcher." + description.getMethodName(), "skipped: " + e);
             LOGGER.warn("skipped test {} due to assumption violation", description);
@@ -112,6 +115,7 @@ public abstract class Experiment {
 
         @Override
         protected void finished(final Description description) {
+
             super.finished(description);
 
             LOGGER.info("persisting experiment properties...");
@@ -134,6 +138,16 @@ public abstract class Experiment {
         reporter = new CsvReporter(registry);
     }
 
+    public Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size) {
+
+        this.network_size = network_size;
+        this.host_provider = host_provider;
+        this.manager = manager;
+        network = new ApplicationNetwork(getClass().getSimpleName(), scanner_interval, scanner_timeout, scanner_thread_pool_size);
+        registry = new MetricRegistry(getClass().getSimpleName());
+        reporter = new CsvReporter(registry);
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -151,6 +165,7 @@ public abstract class Experiment {
     @Test
     @Category(Experiment.class)
     public final void experiment() throws Exception {
+
         final long start = System.nanoTime();
         setProperty(EXPERIMENT_START_TIME_NANOS, start);
         try {
@@ -191,6 +206,7 @@ public abstract class Experiment {
     }
 
     static boolean isLocalHostBlubHeadNode() {
+
         try {
             return InetAddress.getLocalHost().getHostName().equals("blub-cs.st-andrews.ac.uk");
         }

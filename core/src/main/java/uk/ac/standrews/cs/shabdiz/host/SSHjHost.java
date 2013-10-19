@@ -87,14 +87,13 @@ public class SSHjHost extends AbstractHost {
         return execute(command, true);
     }
 
-    public Process execute(final String command, final boolean kill_child_processes) throws IOException {
+    public Process execute(final String command, final boolean kill_process_tree) throws IOException {
 
         final Session session = ssh.startSession();
         LOGGER.debug("executing on host {} command: {}", this, command);
 
         //FIXME determination of ppid is unix specific; generify for windows
         final Session.Command command_exec = session.exec("echo $$;" + command);
-
         final int ppid = readParentProcessID(command_exec);
         return new Process() {
 
@@ -143,20 +142,8 @@ public class SSHjHost extends AbstractHost {
                 try {
                     try {
 
-                        //FIXME kill is Unix specific; generify kill by parent process id
-                        if (kill_child_processes) {
-                            try {
-                                //taken from http://stackoverflow.com/questions/392022/best-way-to-kill-all-child-processes/6481337#6481337
-                                final Process kill = execute("CPIDS=$(pgrep -P " + ppid + "); (sleep 2 && kill -KILL $CPIDS &); kill -TERM $CPIDS", false);
-                                kill.waitFor();
-                                kill.destroy();
-                            }
-                            catch (IOException e) {
-                                LOGGER.error("failed to execute kill_process on host " + getName(), e);
-                            }
-                            catch (InterruptedException e) {
-                                LOGGER.error("interrupted while waiting for kill_process on host " + getName(), e);
-                            }
+                        if (kill_process_tree) {
+                            killProcessTree();
                         }
                         command_exec.close();
                     }
@@ -169,6 +156,23 @@ public class SSHjHost extends AbstractHost {
                 }
                 catch (ConnectionException e) {
                     LOGGER.error("failed to destroy process on host " + getName(), e);
+                }
+            }
+
+            private void killProcessTree() {
+
+                //FIXME kill is Unix specific; generify kill by parent process id
+                try {
+                    //taken from http://stackoverflow.com/questions/392022/best-way-to-kill-all-child-processes/6481337#6481337
+                    final Process kill = execute("CPIDS=$(pgrep -P " + ppid + "); (sleep 0.5 && kill -KILL $CPIDS &); kill -TERM $CPIDS", false);
+                    kill.waitFor();
+                    kill.destroy();
+                }
+                catch (IOException e) {
+                    LOGGER.error("failed to execute kill_process on host " + getName(), e);
+                }
+                catch (InterruptedException e) {
+                    LOGGER.error("interrupted while waiting for kill_process on host " + getName(), e);
                 }
             }
         };
@@ -196,6 +200,7 @@ public class SSHjHost extends AbstractHost {
     }
 
     private void upload(File source, String destination, SCPUploadClient scp_upload) throws IOException {
+
         LOGGER.trace("sending {} to {}", source, destination);
         scp_upload.copy(new FileSystemFile(source), destination + source.getName());
     }

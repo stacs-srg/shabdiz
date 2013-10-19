@@ -24,6 +24,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  * - awaits {@link ApplicationState#RUNNING} state
  * - disables status scanner
  * - kills all
+ * - re-enable status scanner
  * - awaits {@link ApplicationState#AUTH} state
  * - shuts down the network
  *
@@ -33,7 +34,7 @@ public class KillTimeExperiment extends Experiment {
 
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD};
     private static final Logger LOGGER = LoggerFactory.getLogger(KillTimeExperiment.class);
-    private static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
+    static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
 
     public KillTimeExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager) {
 
@@ -71,6 +72,9 @@ public class KillTimeExperiment extends Experiment {
 
         LOGGER.info("killing all application instances");
         network.killAll();
+
+        LOGGER.info("re-enabling status scanner");
+        network.setStatusScannerEnabled(true);
 
         LOGGER.info("awaiting AUTH afte after kill...");
         final long time_to_reach_auth_from_running = timeUniformNetworkStateInNanos(AUTH);

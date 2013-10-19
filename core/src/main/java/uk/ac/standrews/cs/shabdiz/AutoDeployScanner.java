@@ -19,7 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz;
 
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -33,12 +32,11 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  */
 public class AutoDeployScanner extends AbstractConcurrentScanner {
 
-    private static final Duration DEPLOY_CHECK_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScanner.class);
 
-    protected AutoDeployScanner(final Duration cycle_delay) {
+    protected AutoDeployScanner(final Duration cycle_delay, Duration timeout) {
 
-        super(cycle_delay, DEPLOY_CHECK_TIMEOUT, false);
+        super(cycle_delay, timeout, false);
     }
 
     @Override

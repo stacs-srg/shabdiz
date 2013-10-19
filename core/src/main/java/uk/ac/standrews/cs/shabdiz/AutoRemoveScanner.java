@@ -19,7 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz;
 
-import java.util.concurrent.TimeUnit;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 /**
@@ -30,11 +29,9 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  */
 public class AutoRemoveScanner extends AbstractConcurrentScanner {
 
-    private static final Duration DROP_CHECK_TIMEOUT = new Duration(30, TimeUnit.SECONDS);
+    protected AutoRemoveScanner(final Duration cycle_delay, final Duration timeout) {
 
-    protected AutoRemoveScanner(final Duration cycle_delay) {
-
-        super(cycle_delay, DROP_CHECK_TIMEOUT, false);
+        super(cycle_delay, timeout, false);
     }
 
     protected boolean isRemovable(final ApplicationDescriptor application_descriptor) {

@@ -86,6 +86,7 @@ public final class Commands {
 
         @Override
         public String get(final Platform platform, final String... params) {
+
             if (params.length != 0) {
                 LOGGER.warn("ignoring passed parameters {}", params);
             }
@@ -136,14 +137,14 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            final String appender = Platforms.isUnixBased(platform) ? SEMICOLON : AND_AND;
+            final String appender = Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? SEMICOLON : AND_AND;
             final StringBuilder builder = new StringBuilder();
             if (params != null) {
 
                 final int params_length = params.length;
                 for (int i = 0; i < params_length; i++) {
                     builder.append(params[i]);
-                    if (i < params_length) {
+                    if (i < params_length - 1) {
                         builder.append(appender);
                     }
                 }
@@ -216,7 +217,7 @@ public final class Commands {
 
             if (parameters.length == 0) { throw new IllegalArgumentException("at least one directory must be specified"); }
             final String directories = quoteAndConcatinateWithSpace(platform, parameters);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? MKDIR_P : MKDIR, directories);
+            return concatinateWithSpace(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? MKDIR_P : MKDIR, directories);
         }
     };
     private static final String SPACE = " ";

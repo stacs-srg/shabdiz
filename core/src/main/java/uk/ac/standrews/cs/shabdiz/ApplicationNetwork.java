@@ -72,23 +72,28 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private final ListeningExecutorService network_executor_service;
 
     /**
-     * Instantiates a new application network.
+     * Instantiates a new application network with defaut scanner interval, scanner timeout and scanner thread pool size.
      *
      * @param application_name the name of the application
      */
     public ApplicationNetwork(final String application_name) {
 
+        this(application_name, DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT, DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
+    }
+
+    public ApplicationNetwork(final String application_name, Duration scenner_interval, Duration scanner_timeout, int scanenr_thread_pool_size) {
+
         this.application_name = application_name;
         application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
-        scanner_scheduler = createScannerScheduledExecutorService();
+        scanner_scheduler = createScannerScheduledExecutorService(scanenr_thread_pool_size);
         concurrent_scanner_executor = createScannerExecutorService();
         network_executor_service = createNetworkExecutorService();
 
-        auto_kill_scanner = new AutoKillScanner(DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT);
-        auto_deploy_scanner = new AutoDeployScanner(DEFAULT_SCANNER_CYCLE_DELAY);
-        auto_remove_scanner = new AutoRemoveScanner(DEFAULT_SCANNER_CYCLE_DELAY);
-        status_scanner = new StatusScanner(DEFAULT_SCANNER_CYCLE_DELAY);
+        auto_kill_scanner = new AutoKillScanner(scenner_interval, scanner_timeout);
+        auto_deploy_scanner = new AutoDeployScanner(scenner_interval, scanner_timeout);
+        auto_remove_scanner = new AutoRemoveScanner(scenner_interval, scanner_timeout);
+        status_scanner = new StatusScanner(scenner_interval);
 
         addScanner(auto_kill_scanner);
         addScanner(auto_deploy_scanner);
@@ -444,9 +449,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return application_name;
     }
 
-    protected ScheduledExecutorService createScannerScheduledExecutorService() {
+    protected ScheduledExecutorService createScannerScheduledExecutorService(int thread_pool_size) {
 
-        return new ScheduledThreadPoolExecutor(DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
+        return new ScheduledThreadPoolExecutor(thread_pool_size, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
     }
 
     protected ListeningExecutorService createScannerExecutorService() {
@@ -460,6 +465,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void closeHosts() {
+
         final List<ListenableFuture<Void>> host_closures = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             final ListenableFuture<Void> host_closure = network_executor_service.submit(new Callable<Void>() {
@@ -499,6 +505,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     private void killAllSilently() {
+
         final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
             final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {

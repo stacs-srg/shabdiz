@@ -13,6 +13,7 @@ import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
+import uk.ac.standrews.cs.shabdiz.platform.CygwinPlatform;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
@@ -343,7 +344,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
         final StringBuilder command = new StringBuilder();
         appendJavaBinPath(command, platform);
-        appendBootstrpAgent(command, bootstrap_jar);
+        appendBootstrpAgent(platform, command, bootstrap_jar);
         appendJVMArguments(command);
         appendClassPath(command, platform, remote_tmp_dir);
         appendMainClass(command);
@@ -351,10 +352,18 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return command.toString();
     }
 
-    private static void appendBootstrpAgent(final StringBuilder command, final String bootstrap_jar) {
+    private static void appendBootstrpAgent(Platform platform, final StringBuilder command, final String bootstrap_jar) {
 
+        final String quoted_bootstrap_jar_path = platform.quote(bootstrap_jar);
         command.append(JVM_PARAM_JAVAAGENT);
-        command.append(bootstrap_jar);
+        if (platform instanceof CygwinPlatform) {
+            command.append("`cygpath -wp ");
+            command.append(quoted_bootstrap_jar_path);
+            command.append("`");
+        }
+        else {
+            command.append(quoted_bootstrap_jar_path);
+        }
         command.append(SPACE);
     }
 
@@ -367,6 +376,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     private void checkMainClassName() {
+
         if (getMainClassName() == null) {
             throw new NullPointerException("main class must be specified");
         }
@@ -375,13 +385,14 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {
 
         final char path_separator = platform.getPathSeparator();
-
-        command.append("-cp .");
+        command.append("-cp \".");
         command.append(path_separator);
-        command.append(remote_tmp_dir);
-        command.append("*");
-        command.append(path_separator);
-        command.append(remote_tmp_dir);
+        if (getWorkingDirectory() != null) {
+            command.append(remote_tmp_dir);
+            command.append(path_separator);
+            command.append(remote_tmp_dir);
+        }
+        command.append("*\"");
         command.append(SPACE);
     }
 }
