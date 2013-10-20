@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConcurrentScanner.class);
-    private final ReentrantLock check_lock;
+    private final ReentrantLock scan_lock;
     private final List<Future<?>> scheduled_checks;
     private volatile ExecutorService executor;
     private volatile long cycle_start_time;
@@ -46,24 +47,24 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     protected AbstractConcurrentScanner(final Duration min_cycle_time, final Duration check_timeout, final boolean enabled) {
 
         super(min_cycle_time, check_timeout, enabled);
-        check_lock = new ReentrantLock();
+        scan_lock = new ReentrantLock();
         scheduled_checks = new ArrayList<Future<?>>();
     }
 
     @Override
     public final void scan(final ApplicationNetwork network) {
 
-        check_lock.lock();
+        scan_lock.lock();
         try {
             beforeScan();
-            prepareForChecks();
-            scheduleConcurrentChecks(network);
-            awaitCheckCompletionUntilTimeoutIsElapsed();
-            cancelLingeringChecks();
+            prepareForScan();
+            scheduleConcurrentScans(network);
+            awaitScanCompletionUntilTimeoutIsElapsed();
+            cancelLingeringScans();
             afterScan();
         }
         finally {
-            check_lock.unlock();
+            scan_lock.unlock();
         }
     }
 
@@ -96,13 +97,13 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     }
 
-    private void prepareForChecks() {
+    private void prepareForScan() {
 
         cycle_start_time = System.nanoTime();
         scheduled_checks.clear();
     }
 
-    private void scheduleConcurrentChecks(final ApplicationNetwork network) {
+    private void scheduleConcurrentScans(final ApplicationNetwork network) {
 
         for (final ApplicationDescriptor descriptor : network) {
             final Future<?> future_check = scheduleCheck(network, descriptor);
@@ -117,18 +118,20 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
             @Override
             public void run() {
 
-                try {
-                    scan(network, descriptor);
-                }
-                catch (Throwable e) {
-                    LOGGER.error("failed to scan descriptor {} of network {} in scanner {}", descriptor, network, this);
-                    LOGGER.error("failure occured while scanning descriptor " + descriptor, e);
+                if (isEnabled()) {
+                    try {
+                        scan(network, descriptor);
+                    }
+                    catch (Throwable e) {
+                        LOGGER.error("failed to scan descriptor {} of network {} in scanner {}", descriptor, network, this);
+                        LOGGER.error("failure occured while scanning descriptor " + descriptor, e);
+                    }
                 }
             }
         });
     }
 
-    private void awaitCheckCompletionUntilTimeoutIsElapsed() {
+    private void awaitScanCompletionUntilTimeoutIsElapsed() {
 
         for (final Future<?> scheduled_check : scheduled_checks) {
 
@@ -143,7 +146,7 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
                 break;
             }
             catch (final CancellationException e) {
-                LOGGER.warn("schedule host check was cancelled", e);
+                LOGGER.warn("scheduled host check was cancelled", e);
             }
             catch (final ExecutionException e) {
                 LOGGER.warn("schedule host check failed", e.getCause());
@@ -153,11 +156,10 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private Duration getRemainingTime() {
 
-        final Duration elapsed_time = Duration.elapsedNano(cycle_start_time);
-        return getScanTimeout().subtract(elapsed_time);
+        return isEnabled() ? getScanTimeout().subtract(Duration.elapsedNano(cycle_start_time)) : Duration.ZERO;
     }
 
-    private void cancelLingeringChecks() {
+    private void cancelLingeringScans() {
 
         for (final Future<?> scheduled_check : scheduled_checks) {
             scheduled_check.cancel(true);

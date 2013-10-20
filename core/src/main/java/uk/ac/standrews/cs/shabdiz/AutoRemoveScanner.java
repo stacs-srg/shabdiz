@@ -21,10 +21,12 @@ package uk.ac.standrews.cs.shabdiz;
 
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
+import static uk.ac.standrews.cs.shabdiz.ApplicationState.INVALID;
+import static uk.ac.standrews.cs.shabdiz.ApplicationState.UNREACHABLE;
+
 /**
  * Scanner that checks for unreachable or invalid hosts, and drops them from the host list.
  *
- * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class AutoRemoveScanner extends AbstractConcurrentScanner {
@@ -37,7 +39,7 @@ public class AutoRemoveScanner extends AbstractConcurrentScanner {
     protected boolean isRemovable(final ApplicationDescriptor application_descriptor) {
 
         final ApplicationState state = application_descriptor.getApplicationState();
-        return state == ApplicationState.UNREACHABLE || state == ApplicationState.INVALID;
+        return state == UNREACHABLE || state == INVALID;
     }
 
     @Override

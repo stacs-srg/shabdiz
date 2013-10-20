@@ -38,7 +38,7 @@ public class HostAvailabilityRecognitionExperiment extends Experiment {
             new Duration(1, TimeUnit.MINUTES)
     };
 
-    private static final Integer[] SCANNER_THREAD_POOL_SIZES = {10};
+    private static final Integer[] SCANNER_THREAD_POOL_SIZES = {10, 100};
     public static final String SCANNER_INTERVAL_PROPERTY = "scanner.interval";
     public static final String SCANNER_TIMEOUT_PROPERTY = "scanner.timeout";
     public static final String SCANNER_THREAD_POOL_SIZE_PROPERTY = "scanner.thread_pool_size";

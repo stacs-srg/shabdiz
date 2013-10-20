@@ -44,9 +44,7 @@ public class AutoDeployScanner extends AbstractConcurrentScanner {
 
         if (isDeployable(descriptor)) {
             try {
-                final Object application_reference = descriptor.getApplicationManager().deploy(descriptor);
-                descriptor.setApplicationReference(application_reference);
-                descriptor.setApplicationState(ApplicationState.DEPLOYED);
+                network.deploy(descriptor);
             }
             catch (final Exception e) {
                 LOGGER.error("auto deployment failed", e);
