@@ -23,6 +23,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -58,7 +61,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private static final String NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX = "_network_executor_service_";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 10;
-    private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(10, TimeUnit.SECONDS);
+    private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(5, TimeUnit.SECONDS);
     private static final Duration DEFAULT_SCANNER_CYCLE_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
     protected final ConcurrentSkipListSet<ApplicationDescriptor> application_descriptors;
     protected final HashMap<Scanner, ScheduledFuture<?>> scheduled_scanners;
@@ -70,6 +73,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     private final ScheduledExecutorService scanner_scheduler;
     private final ListeningExecutorService concurrent_scanner_executor;
     private final ListeningExecutorService network_executor_service;
+    private final ScannerEnabledPropertyChangeListener enabled_change_listener = new ScannerEnabledPropertyChangeListener();
 
     /**
      * Instantiates a new application network with defaut scanner interval, scanner timeout and scanner thread pool size.
@@ -112,38 +116,6 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
-     * Attempts to concurrently {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
-     * If one deployment task fails all deployment tasks are cancelled.
-     *
-     * @throws Exception if any of the deployments fails
-     */
-    public void deployAll() throws Exception {
-
-        final List<ListenableFuture<Void>> deployments = new ArrayList<ListenableFuture<Void>>();
-        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            final ListenableFuture<Void> deployment = network_executor_service.submit(new Callable<Void>() {
-
-                @Override
-                public Void call() throws Exception {
-
-                    deploy(application_descriptor);
-                    return null;
-                }
-            });
-            deployments.add(deployment);
-        }
-
-        try {
-            Futures.allAsList(deployments).get();
-        }
-        finally {
-            for (ListenableFuture<Void> deployment : deployments) {
-                deployment.cancel(true);
-            }
-        }
-    }
-
-    /**
      * Attempts to deploy an application instance and sets the {@link ApplicationDescriptor#getApplicationReference() application reference} of the given application descriptor.
      * In the case where the descriptor is not added to this network, this method does not add the given descriptor to this network.
      *
@@ -159,18 +131,28 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     }
 
     /**
-     * Attempts to {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
+     * Attempts to concurrently {@link #deploy(ApplicationDescriptor) deploy} each of the application instances that are maintained by this network.
+     * If one deployment task fails all deployment tasks are cancelled.
      *
-     * @param host the host on which to terminate the application instances
-     * @throws Exception the termination fails
+     * @throws Exception if any of the deployments fails
      */
-    public void killAllOnHost(final Host host) throws Exception {
+    public void deployAll() throws Exception {
 
+        final List<ListenableFuture<Void>> deployments = new ArrayList<ListenableFuture<Void>>();
         for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            if (host.equals(application_descriptor.getHost())) {
-                kill(application_descriptor);
-            }
+            final ListenableFuture<Void> deployment = network_executor_service.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+
+                    deploy(application_descriptor);
+                    return null; // Void task
+                }
+            });
+            deployments.add(deployment);
         }
+
+        awaitCompletion(deployments);
     }
 
     /**
@@ -183,6 +165,57 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
         descriptor.getApplicationManager().kill(descriptor);
         descriptor.setApplicationState(ApplicationState.KILLED);
+    }
+
+    /**
+     * Attempts to concurrently terminate all the application instances that are managed by this network.
+     * If one termination task fails, all the termination tasks are cancelled.
+     *
+     * @throws Exception the exception
+     */
+    public void killAll() throws Exception {
+
+        final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+            final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+
+                    kill(application_descriptor);
+                    return null;
+                }
+            });
+            terminations.add(termination);
+        }
+        awaitCompletion(terminations);
+    }
+
+    /**
+     * Attempts to concurrently {@link #kill(ApplicationDescriptor) terminate} all the application instances that their {@link ApplicationDescriptor#getHost() host} is equal to the given {@code host}.
+     *
+     * @param host the host on which to terminate the application instances
+     * @throws Exception the termination fails
+     */
+    public void killAllOnHost(final Host host) throws Exception {
+
+        final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
+        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
+
+            if (host.equals(application_descriptor.getHost())) {
+                final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {
+
+                    @Override
+                    public Void call() throws Exception {
+
+                        kill(application_descriptor);
+                        return null;
+                    }
+                });
+                terminations.add(termination);
+            }
+        }
+        awaitCompletion(terminations);
     }
 
     /**
@@ -208,16 +241,11 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         }
 
         try {
-            Futures.allAsList(awaiting_state_futures).get();
+            awaitCompletion(awaiting_state_futures);
         }
         catch (ExecutionException e) {
             LOGGER.error("failure occured while awaiting uniform state", e);
             throw new InterruptedException("failure occured while awaiting uniform state");
-        }
-        finally {
-            for (ListenableFuture<Void> awaiting_state : awaiting_state_futures) {
-                awaiting_state.cancel(true);
-            }
         }
     }
 
@@ -231,7 +259,21 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public boolean addScanner(final Scanner scanner) {
 
         synchronized (scheduled_scanners) {
-            return isAddable(scanner) && scanner instanceof AbstractConcurrentScanner ? injectExecutorAndAdd(scanner) : add(scanner);
+
+            final boolean added;
+
+            if (!isAdded(scanner)) {
+                scanner.addEnabledPropertyChangeListener(enabled_change_listener);
+                final ScheduledFuture<?> scheduled_scanner = scanner.isEnabled() ? scheduleScanner(scanner) : null;
+                scheduled_scanners.put(scanner, scheduled_scanner);
+
+                added = true;
+            }
+            else {
+                added = false;
+            }
+
+            return added;
         }
     }
 
@@ -245,10 +287,19 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     public boolean removeScanner(final Scanner scanner) {
 
         final ScheduledFuture<?> scheduled_scanner;
+        final boolean removable;
         synchronized (scheduled_scanners) {
-            scheduled_scanner = scheduled_scanners.remove(scanner);
+            removable = isAdded(scanner);
+            scheduled_scanner = removable ? scheduled_scanners.remove(scanner) : null;
         }
-        return scheduled_scanner != null && scheduled_scanner.cancel(true);
+
+        if (scheduled_scanner != null) {
+            scheduled_scanner.cancel(true);
+        }
+        if (removable) {
+            scanner.removeEnabledPropertyChangeListener(enabled_change_listener);
+        }
+        return removable;
     }
 
     /**
@@ -390,38 +441,6 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return application_descriptors.size();
     }
 
-    /**
-     * Attempts to concurrently terminate all the application instances that are managed by this network.
-     * If one termination task fails, all the termination tasks are cancelled.
-     *
-     * @throws Exception the exception
-     */
-    public void killAll() throws Exception {
-
-        final List<ListenableFuture<Void>> terminations = new ArrayList<ListenableFuture<Void>>();
-        for (final ApplicationDescriptor application_descriptor : application_descriptors) {
-            final ListenableFuture<Void> termination = network_executor_service.submit(new Callable<Void>() {
-
-                @Override
-                public Void call() throws Exception {
-
-                    kill(application_descriptor);
-                    return null;
-                }
-            });
-            terminations.add(termination);
-        }
-
-        try {
-            Futures.allAsList(terminations).get();
-        }
-        finally {
-            for (ListenableFuture<Void> deployment : terminations) {
-                deployment.cancel(true);
-            }
-        }
-    }
-
     @Override
     public Iterator<ApplicationDescriptor> iterator() {
 
@@ -449,6 +468,18 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return application_name;
     }
 
+    private void awaitCompletion(final List<ListenableFuture<Void>> deployments) throws InterruptedException, ExecutionException {
+
+        try {
+            Futures.allAsList(deployments).get();
+        }
+        finally {
+            for (ListenableFuture<Void> deployment : deployments) {
+                deployment.cancel(true);
+            }
+        }
+    }
+
     protected ScheduledExecutorService createScannerScheduledExecutorService(int thread_pool_size) {
 
         return new ScheduledThreadPoolExecutor(thread_pool_size, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
@@ -462,6 +493,11 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     protected ListeningExecutorService createNetworkExecutorService() {
 
         return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name + NETWORK_EXECUTOR_SERVICE_NAMIN_SUFFIX)));
+    }
+
+    ExecutorService getConcurrentScannerExecutor() {
+
+        return concurrent_scanner_executor;
     }
 
     private void closeHosts() {
@@ -488,19 +524,19 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
             host_closures.add(host_closure);
         }
 
+        awaitCompletionScilently(host_closures);
+    }
+
+    private void awaitCompletionScilently(final List<ListenableFuture<Void>> host_closures) {
+
         try {
-            Futures.allAsList(host_closures).get();
+            awaitCompletion(host_closures);
         }
         catch (InterruptedException e) {
             LOGGER.debug("failed to kill all managed application descriptors", e);
         }
         catch (ExecutionException e) {
             LOGGER.debug("failed to kill all managed application descriptors", e);
-        }
-        finally {
-            for (ListenableFuture<Void> deployment : host_closures) {
-                deployment.cancel(true);
-            }
         }
     }
 
@@ -525,46 +561,23 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
             terminations.add(termination);
         }
 
-        try {
-            Futures.allAsList(terminations).get();
-        }
-        catch (InterruptedException e) {
-            LOGGER.debug("failed to kill all managed application descriptors", e);
-        }
-        catch (ExecutionException e) {
-            LOGGER.debug("failed to kill all managed application descriptors", e);
-        }
-        finally {
-            for (ListenableFuture<Void> deployment : terminations) {
-                deployment.cancel(true);
-            }
-        }
+        awaitCompletionScilently(terminations);
     }
 
     private void cancelScheduledScanners() {
 
         synchronized (scheduled_scanners) {
             for (final ScheduledFuture<?> scheduled_scanner : scheduled_scanners.values()) {
-                scheduled_scanner.cancel(true);
+                if (scheduled_scanner != null) {
+                    scheduled_scanner.cancel(true);
+                }
             }
         }
     }
 
-    private boolean injectExecutorAndAdd(final Scanner scanner) {
+    private boolean isAdded(final Scanner scanner) {
 
-        AbstractConcurrentScanner.class.cast(scanner).injectExecutorService(concurrent_scanner_executor);
-        return add(scanner);
-    }
-
-    private boolean add(final Scanner scanner) {
-
-        final ScheduledFuture<?> scheduled_scanner = scheduleScanner(scanner);
-        return scheduled_scanners.put(scanner, scheduled_scanner) == null;
-    }
-
-    private boolean isAddable(final Scanner scanner) {
-
-        return !scheduled_scanners.containsKey(scanner);
+        return scheduled_scanners.containsKey(scanner);
     }
 
     private ScheduledFuture<?> scheduleScanner(final Scanner scanner) {
@@ -576,10 +589,44 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
             @Override
             public void run() {
 
-                if (scanner.isEnabled()) {
-                    scanner.scan(ApplicationNetwork.this);
-                }
+                scanner.scan(ApplicationNetwork.this);
             }
         }, cycle_delay_length, cycle_delay_length, cycle_delay.getTimeUnit());
+    }
+
+    private class ScannerEnabledPropertyChangeListener implements PropertyChangeListener {
+
+        @Override
+        public void propertyChange(final PropertyChangeEvent event) {
+
+            final Object source = event.getSource();
+
+            if (source instanceof Scanner) {
+
+                final Scanner scanner = (Scanner) source;
+                final Boolean enabled = (Boolean) event.getNewValue();
+                synchronized (scheduled_scanners) {
+
+                    if (enabled) {
+                        final ScheduledFuture<?> future = scheduleScanner(scanner);
+                        final ScheduledFuture<?> old_future = scheduled_scanners.put(scanner, future);
+
+                        if (old_future != null && !old_future.isDone()) {
+                            LOGGER.warn("expected the old future of scanner {} to be done", scanner);
+                            old_future.cancel(true);
+                        }
+                    }
+                    else {
+                        final ScheduledFuture<?> future = scheduled_scanners.get(scanner);
+                        if (future != null) {
+                            future.cancel(true);
+                        }
+                    }
+                }
+            }
+            else {
+                LOGGER.warn("expected the source {} to be of type Scanner", source);
+            }
+        }
     }
 }

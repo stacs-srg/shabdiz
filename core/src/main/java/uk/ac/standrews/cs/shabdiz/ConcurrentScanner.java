@@ -36,19 +36,18 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class AbstractConcurrentScanner extends AbstractScanner {
+public abstract class ConcurrentScanner extends Scanner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConcurrentScanner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConcurrentScanner.class);
     private final ReentrantLock scan_lock;
-    private final List<Future<?>> scheduled_checks;
-    private volatile ExecutorService executor;
+    private final List<Future<?>> scheduled_scans;
     private volatile long cycle_start_time;
 
-    protected AbstractConcurrentScanner(final Duration min_cycle_time, final Duration check_timeout, final boolean enabled) {
+    protected ConcurrentScanner(final Duration min_cycle_time, final Duration check_timeout, final boolean enabled) {
 
         super(min_cycle_time, check_timeout, enabled);
         scan_lock = new ReentrantLock();
-        scheduled_checks = new ArrayList<Future<?>>();
+        scheduled_scans = new ArrayList<Future<?>>();
     }
 
     @Override
@@ -69,11 +68,6 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     }
 
     protected abstract void scan(ApplicationNetwork network, ApplicationDescriptor descriptor);
-
-    void injectExecutorService(final ExecutorService executor) {
-
-        this.executor = executor;
-    }
 
     /**
      * Method invoked prior to scanning the given network.
@@ -100,19 +94,20 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
     private void prepareForScan() {
 
         cycle_start_time = System.nanoTime();
-        scheduled_checks.clear();
+        scheduled_scans.clear();
     }
 
     private void scheduleConcurrentScans(final ApplicationNetwork network) {
 
         for (final ApplicationDescriptor descriptor : network) {
-            final Future<?> future_check = scheduleCheck(network, descriptor);
-            scheduled_checks.add(future_check);
+            final Future<?> future_scan = scheduleScan(network, descriptor);
+            scheduled_scans.add(future_scan);
         }
     }
 
-    private Future<?> scheduleCheck(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
+    private Future<?> scheduleScan(final ApplicationNetwork network, final ApplicationDescriptor descriptor) {
 
+        final ExecutorService executor = network.getConcurrentScannerExecutor();
         return executor.submit(new Runnable() {
 
             @Override
@@ -133,11 +128,11 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private void awaitScanCompletionUntilTimeoutIsElapsed() {
 
-        for (final Future<?> scheduled_check : scheduled_checks) {
+        for (final Future<?> scheduled_scan : scheduled_scans) {
 
             final Duration remaining_time = getRemainingTime();
             try {
-                scheduled_check.get(remaining_time.getLength(), remaining_time.getTimeUnit());
+                scheduled_scan.get(remaining_time.getLength(), remaining_time.getTimeUnit());
             }
             catch (final InterruptedException e) {
                 break;
@@ -161,8 +156,8 @@ public abstract class AbstractConcurrentScanner extends AbstractScanner {
 
     private void cancelLingeringScans() {
 
-        for (final Future<?> scheduled_check : scheduled_checks) {
-            scheduled_check.cancel(true);
+        for (final Future<?> scheduled_scan : scheduled_scans) {
+            scheduled_scan.cancel(true);
         }
     }
 }

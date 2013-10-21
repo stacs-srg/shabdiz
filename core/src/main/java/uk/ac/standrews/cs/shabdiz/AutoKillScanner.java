@@ -29,7 +29,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScanner extends AbstractConcurrentScanner {
+public class AutoKillScanner extends ConcurrentScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoKillScanner.class);
 

@@ -29,7 +29,7 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.UNREACHABLE;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoRemoveScanner extends AbstractConcurrentScanner {
+public class AutoRemoveScanner extends ConcurrentScanner {
 
     protected AutoRemoveScanner(final Duration cycle_delay, final Duration timeout) {
 

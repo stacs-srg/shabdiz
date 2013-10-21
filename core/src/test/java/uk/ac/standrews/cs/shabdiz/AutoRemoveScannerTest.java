@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
-public class AutoRemoveScannerTest extends ScannerTest {
+public class AutoRemoveScannerTest extends ScannerFunctionalityTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoRemoveScannerTest.class);
     public static final int NETWORK_EMPTINESS_CHECK_DELAY_MILLIS = 1000;
@@ -49,6 +49,7 @@ public class AutoRemoveScannerTest extends ScannerTest {
     }
 
     private void testRemovableInState(final ApplicationState state) throws InterruptedException, ExecutionException, TimeoutException {
+
         network.manager.setProbeStateResult(state);
         network.awaitAnyOfStates(state);
         awaitEmptyNetwork();
@@ -56,10 +57,12 @@ public class AutoRemoveScannerTest extends ScannerTest {
     }
 
     private void awaitEmptyNetwork() throws ExecutionException, InterruptedException, TimeoutException {
+
         TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
+
                 while (network.size() != 0) {
                     Thread.sleep(NETWORK_EMPTINESS_CHECK_DELAY_MILLIS);
                 }

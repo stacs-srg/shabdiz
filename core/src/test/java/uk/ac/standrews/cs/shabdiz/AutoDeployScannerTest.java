@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 
-public class AutoDeployScannerTest extends ScannerTest {
+public class AutoDeployScannerTest extends ScannerFunctionalityTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScannerTest.class);
 

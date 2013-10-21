@@ -30,7 +30,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoDeployScanner extends AbstractConcurrentScanner {
+public class AutoDeployScanner extends ConcurrentScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScanner.class);
 

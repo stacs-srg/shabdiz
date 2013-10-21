@@ -5,15 +5,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.AbstractScanner;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.Scanner;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 import uk.ac.standrews.cs.stachord.remote_management.ChordMonitoring;
 
-public class ChordRingSizeScanner extends AbstractScanner {
+public class ChordRingSizeScanner extends Scanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordRingSizeScanner.class);
     private static final String RING_SIZE_PROPERTY_NAME = "ring_size";

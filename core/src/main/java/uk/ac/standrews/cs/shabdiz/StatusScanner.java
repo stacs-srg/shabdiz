@@ -32,7 +32,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
  * @author Graham Kirby (graham.kirby@st-andrews.ac.uk)
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class StatusScanner extends AbstractConcurrentScanner {
+public class StatusScanner extends ConcurrentScanner {
 
     /** The default timeout for attempted status checks. */
     public static final Duration DEFAULT_STATUS_CHECK_TIMEOUT = new Duration(5, TimeUnit.MINUTES);

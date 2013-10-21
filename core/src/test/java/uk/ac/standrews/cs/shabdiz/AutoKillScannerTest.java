@@ -14,7 +14,7 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class AutoKillScannerTest extends ScannerTest {
+public class AutoKillScannerTest extends ScannerFunctionalityTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoKillScannerTest.class);
 
@@ -53,11 +53,13 @@ public class AutoKillScannerTest extends ScannerTest {
     }
 
     private void assertAwaitKilledStateTimeout() throws InterruptedException, ExecutionException {
+
         try {
             TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
+
                     network.awaitAnyOfStates(ApplicationState.KILLED);
                     return null;
                 }
