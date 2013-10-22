@@ -19,8 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -28,30 +26,28 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.mashti.jetson.ClientFactory;
-import org.mashti.jetson.json.JsonClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.sample_applications.echo.Echo;
+import uk.ac.standrews.cs.sample_applications.echo.EchoBootstrap;
+import uk.ac.standrews.cs.sample_applications.echo.EchoClient;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.example.echo.Echo;
-import uk.ac.standrews.cs.shabdiz.example.echo.EchoBootstrap;
-import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 
 abstract class EchoManager extends ExperimentManager {
 
-    static final ClientFactory<Echo> ECHO_PROXY_FACTORY = new JsonClientFactory<Echo>(Echo.class, new JsonFactory(new ObjectMapper()));
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
     static final URLBased URL_BASED = new URLBased();
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
-    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
+    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate("uk.ac.standrews.cs", "echo", "1.0-SNAPSHOT");
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
     protected EchoManager() {
@@ -75,16 +71,18 @@ abstract class EchoManager extends ExperimentManager {
         LOGGER.debug("waiting for properties of process on host {}...", host);
 
         final Properties properties = getPropertiesFromProcess(echo_service_process);
-        final Integer pid = Bootstrap.getPIDProperty(properties);
-        final InetSocketAddress address = EchoBootstrap.getAddressProperty(properties);
-        final Echo echo_proxy = ECHO_PROXY_FACTORY.get(address);
+        final Integer pid = EchoBootstrap.getPIDProperty(properties);
+        final String address_as_string = EchoBootstrap.getAddressPropertyAsString(properties);
+        final InetSocketAddress address = NetworkUtil.getAddressFromString(address_as_string);
+        final EchoClient echo_client = new EchoClient(address);
         descriptor.setAttribute(ADDRESS_KEY, address);
         descriptor.setAttribute(PROCESS_KEY, echo_service_process);
         descriptor.setAttribute(PID_KEY, pid);
-        return echo_proxy;
+        return echo_client;
     }
 
     private Properties getPropertiesFromProcess(final Process echo_service_process) throws Exception {
+
         try {
             return Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
         }

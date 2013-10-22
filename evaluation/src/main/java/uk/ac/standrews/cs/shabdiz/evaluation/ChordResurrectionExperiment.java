@@ -47,7 +47,6 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  * - kills a portion of network
  * - re-enables auto-deploy
  * - awaits {@link ApplicationState#RUNNING} state
- * - re-assemples ring
  * - awaits re-stabilized ring
  * - shuts down the network
  *
@@ -56,9 +55,9 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
     static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
+    public static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
+    public static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordResurrectionExperiment.class);
-    static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
-    static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM};
     private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration JOIN_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS);
@@ -102,14 +101,18 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         LOGGER.info("enabling status scanner");
         network.setStatusScannerEnabled(true);
 
-        LOGGER.info("awaiting AUTH state");
-        network.awaitAnyOfStates(AUTH);
+        LOGGER.info("awaiting AUTH state...");
+        final long time_to_reach_auth = timeUniformNetworkStateInNanos(AUTH);
+        setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
+        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_auth));
 
         LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);
 
-        LOGGER.info("awaiting RUNNING state");
-        network.awaitAnyOfStates(RUNNING);
+        LOGGER.info("awaiting RUNNING state...");
+        final long time_to_reach_running = timeUniformNetworkStateInNanos(RUNNING);
+        setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
+        LOGGER.info("reached RUNNING state in {} seconds", nanosToSeconds(time_to_reach_running));
 
         LOGGER.info("enabling ring size scanner");
         ring_size_scanner.setEnabled(true);
@@ -120,7 +123,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         LOGGER.info("awaiting stabilized ring");
         final long time_to_reach_stabilized_ring = timeRingStabilization();
         setProperty(TIME_TO_REACH_STABILIZED_RING, String.valueOf(time_to_reach_stabilized_ring));
-        LOGGER.info("reached stabilized ring in {} seconds", nanosToSeconds(time_to_reach_stabilized_ring));
+        LOGGER.info("reached stabilized ring of size {} in {} seconds", network_size, nanosToSeconds(time_to_reach_stabilized_ring));
 
         LOGGER.info("disabling auto deploy");
         network.setAutoDeployEnabled(false);
@@ -142,8 +145,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         LOGGER.info("awaiting stabilized ring after killing portion of network...");
         final long time_to_reach_stabilized_ring_after_kill = timeRingStabilization();
         setProperty(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL, String.valueOf(time_to_reach_stabilized_ring_after_kill));
-        LOGGER.info("reached stabilized ring in {} seconds after killing portion of network", nanosToSeconds(time_to_reach_stabilized_ring_after_kill));
-
+        LOGGER.info("reached stabilized ring of size {} in {} seconds after killing portion of network", network_size, nanosToSeconds(time_to_reach_stabilized_ring_after_kill));
     }
 
     @Override

@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.LocalHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -57,18 +57,18 @@ public abstract class Experiment {
     public static final String HOST_PROVIDER_PROPERTY = "host_provider";
     public static final String WORKING_DIRECTORY_PROPERTY = "working_directory";
     public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
-    protected static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
-    protected static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
+    public static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
+    public static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
     static final File RESULTS_HOME = new File("results");
     static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
-    static final String PROPERTOES_FILE_NAME = "experiment.properties";
+    public static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 5;
-    static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[] {new BlubHostProvider()};
+    public static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
+    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[] {new LocalHostProvider()};
     static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {
             ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM
     };
-    static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
+    public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     protected final ApplicationNetwork network;
     protected final Integer network_size;

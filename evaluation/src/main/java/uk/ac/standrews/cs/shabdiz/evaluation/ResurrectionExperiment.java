@@ -39,8 +39,8 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
 public class ResurrectionExperiment extends Experiment {
 
     public static final String KILL_PORTION = "kill_portion";
-    static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
-    static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
+    public static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
+    public static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
     private static final ExperimentManager[] ECHO_APPLICATION_MANAGERS = {EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD};
     private static final long RANDOM_SEED = 0x455fa4;
@@ -74,13 +74,17 @@ public class ResurrectionExperiment extends Experiment {
         network.setStatusScannerEnabled(true);
 
         LOGGER.info("awaiting AUTH state...");
-        network.awaitAnyOfStates(AUTH);
+        final long time_to_reach_auth = timeUniformNetworkStateInNanos(AUTH);
+        setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
+        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_auth));
 
         LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);
 
         LOGGER.info("awaiting RUNNING state...");
-        network.awaitAnyOfStates(RUNNING);
+        final long time_to_reach_running = timeUniformNetworkStateInNanos(RUNNING);
+        setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
+        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_running));
 
         LOGGER.info("disabling auto deploy");
         network.setAutoDeployEnabled(false);
@@ -122,6 +126,7 @@ public class ResurrectionExperiment extends Experiment {
 
                     @Override
                     public Void call() throws Exception {
+
                         kill(kill_candidate);
                         killed_descriptors.add(kill_candidate);
                         LOGGER.debug("killed {}", kill_candidate);

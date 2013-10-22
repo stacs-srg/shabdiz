@@ -19,7 +19,6 @@ import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
 import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
-import uk.ac.standrews.cs.shabdiz.example.util.Constants;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
@@ -41,7 +40,7 @@ public abstract class ChordManager extends ExperimentManager {
     private static final Duration DEFAULT_BIND_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
     private static final Duration DEFAULT_RETRY_DELAY = new Duration(10, TimeUnit.SECONDS);
     private static final long KEY_FACTORY_SEED = 0x585;
-    private static final String STACHORD_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(Constants.CS_GROUP_ID, "stachord", "2.0-SNAPSHOT");
+    private static final String STACHORD_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate("uk.ac.standrews.cs", "stachord", "2.0-SNAPSHOT");
     private static final DefaultArtifact STACHORD_MAVEN_ARTIFACT = new DefaultArtifact(STACHORD_MAVEN_ARTIFACT_COORDINATES);
     private final ChordNodeFactory node_factory = new ChordNodeFactory();
     private final SHA1KeyFactory key_factory = new SHA1KeyFactory(KEY_FACTORY_SEED);
@@ -65,7 +64,7 @@ public abstract class ChordManager extends ExperimentManager {
         LOGGER.debug("waiting for properties of process on host {}...", host);
         final Properties properties = getPropertiesFromProcess(node_process);
         final Integer pid = Bootstrap.getPIDProperty(properties);
-        final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.CHORD_NODE_LOCAL_ADDRESS_KEY));
+        final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.ADDRESS_PROPERTY_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
 
         descriptor.setAttribute(ADDRESS_KEY, address);
@@ -75,6 +74,7 @@ public abstract class ChordManager extends ExperimentManager {
     }
 
     private Properties getPropertiesFromProcess(final Process node_process) throws Exception {
+
         try {
             return Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
         }

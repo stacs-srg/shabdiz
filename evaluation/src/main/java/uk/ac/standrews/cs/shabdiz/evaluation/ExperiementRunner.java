@@ -34,7 +34,7 @@ import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 public class ExperiementRunner extends Parameterized {
 
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS");
-    static final String REPETITIONS_HOME_NAME = "repetitions";
+    public static final String REPETITIONS_HOME_NAME = "repetitions";
     static final String RESULT_PROPERTY_KEY = "RESULT";
     static final Duration TEST_OUTPUT_TIMEOUT = new Duration(1, TimeUnit.HOURS);
     static final int MAX_RETRY_COUNT = 5;

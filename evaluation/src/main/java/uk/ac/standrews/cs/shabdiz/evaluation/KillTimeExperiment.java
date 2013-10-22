@@ -34,7 +34,7 @@ public class KillTimeExperiment extends Experiment {
 
     static final ExperimentManager[] APPLICATION_MANAGERS = {ChordManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_COLD};
     private static final Logger LOGGER = LoggerFactory.getLogger(KillTimeExperiment.class);
-    static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
+    public static final String TIME_TO_REACH_AUTH_FROM_RUNNING = "time_to_reach_auth_from_running";
 
     public KillTimeExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager) {
 

@@ -65,6 +65,40 @@
             <artifactId>stachord</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_8m</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_16m</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_32m</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_64m</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>echo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>stachord</artifactId>
@@ -79,11 +113,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>shabdiz-job</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-example</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -111,6 +140,16 @@
             <artifactId>commons-configuration</artifactId>
             <version>1.9</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.visualization</groupId>
+            <artifactId>visualization-datasource</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
     </dependencies>
 
 
@@ -132,6 +171,11 @@
                             <includes>
                                 <include>**/*Experiment.class</include>
                             </includes>
+                            <excludes>
+                                <exclude>**/HostAvailabilityRecognitionExperiment.class</exclude>
+                                <exclude>**/ResurrectionExperiment.class</exclude>
+                                <exclude>**/RunningApplicationRecognitionExperiment.class</exclude>
+                            </excludes>
                             <!--<forkCount>1</forkCount>-->
                             <!--<parallel>all</parallel>-->
                             <!--<reuseForks>false</reuseForks>-->
