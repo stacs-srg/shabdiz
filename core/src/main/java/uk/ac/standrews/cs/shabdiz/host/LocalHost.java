@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
@@ -38,6 +39,7 @@ import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 public class LocalHost extends AbstractHost {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalHost.class);
+    private final Platform platform;
 
     /**
      * Instantiates a new host that presents the local machine.
@@ -48,6 +50,7 @@ public class LocalHost extends AbstractHost {
     public LocalHost() throws IOException {
 
         super(InetAddress.getLocalHost());
+        platform = LocalPlatform.getInstance();
     }
 
     @Override
@@ -89,7 +92,7 @@ public class LocalHost extends AbstractHost {
     @Override
     public Platform getPlatform() {
 
-        return LocalPlatform.getInstance();
+        return platform;
     }
 
     private ProcessBuilder createProcessBuilder(final String command, final String working_directory) {
@@ -107,8 +110,10 @@ public class LocalHost extends AbstractHost {
 
         if (source.isFile() && !source.getAbsolutePath().equals(destination.getAbsolutePath())) {
             LOGGER.debug("copying file {}, to {}", source, destination);
-            if (destination.isDirectory() && !source.getParentFile().getAbsolutePath().equals(destination.getAbsolutePath())) {
-                FileUtils.copyFileToDirectory(source, destination);
+            if (destination.isDirectory()) {
+                if (!source.getParentFile().getAbsolutePath().equals(destination.getAbsolutePath())) {
+                    FileUtils.copyFileToDirectory(source, destination);
+                }
             }
             else {
                 FileUtils.copyFile(source, destination);

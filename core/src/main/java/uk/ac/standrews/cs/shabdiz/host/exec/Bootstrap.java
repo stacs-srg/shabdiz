@@ -110,7 +110,7 @@ public abstract class Bootstrap {
         loadApplicationBootstrapClassName(configuration);
     }
 
-    public static Properties readProperties(Class<? extends Bootstrap> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
+    public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
 
         final String properties_id = getPropertiesID(bootstrap_class);
         final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
@@ -213,7 +213,7 @@ public abstract class Bootstrap {
         return properties_as_string.toString();
     }
 
-    private static String getPropertiesID(Class<? extends Bootstrap> bootstrap_class) {
+    private static String getPropertiesID(Class<?> bootstrap_class) {
 
         return bootstrap_class.getName();
     }

@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.host;
 
 import com.jcraft.jsch.Channel;
@@ -114,7 +115,7 @@ public class SSHHost extends AbstractHost {
 
         final long timeout_in_millis = TimeUnit.MILLISECONDS.convert(timeout, unit);
         //cast to integer to cope with the JSch's mad bad API
-        this.ssh_connection_timeout_in_millis = (int) timeout_in_millis;
+        ssh_connection_timeout_in_millis = (int) timeout_in_millis;
     }
 
     @Override
