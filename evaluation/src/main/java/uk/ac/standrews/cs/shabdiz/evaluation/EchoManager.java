@@ -34,7 +34,6 @@ import uk.ac.standrews.cs.sample_applications.echo.EchoClient;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
@@ -52,11 +51,12 @@ abstract class EchoManager extends ExperimentManager {
 
     protected EchoManager() {
 
+        super(EchoBootstrap.class);
     }
 
     protected EchoManager(Duration timeout) {
 
-        super(timeout);
+        super(timeout, EchoBootstrap.class);
     }
 
     @Override
@@ -81,18 +81,6 @@ abstract class EchoManager extends ExperimentManager {
         return echo_client;
     }
 
-    private Properties getPropertiesFromProcess(final Process echo_service_process) throws Exception {
-
-        try {
-            return Bootstrap.readProperties(EchoBootstrap.class, echo_service_process, PROCESS_START_TIMEOUT);
-        }
-        catch (final Exception e) {
-            LOGGER.error("failed to read properties of Echo process", e);
-            echo_service_process.destroy();
-            throw e;
-        }
-    }
-
     @Override
     protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
 
@@ -100,13 +88,6 @@ abstract class EchoManager extends ExperimentManager {
         final Echo echo_service = descriptor.getApplicationReference();
         final String echoed_message = echo_service.echo(random_message);
         if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but received " + echoed_message); }
-    }
-
-    @Override
-    protected void configure(final ApplicationNetwork network) throws Exception {
-
-        super.configure(network);
-        process_builder.setMainClass(EchoBootstrap.class);
     }
 
     private static String generateRandomString() {

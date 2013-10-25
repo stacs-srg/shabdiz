@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -21,6 +22,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
@@ -42,15 +44,18 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_STATE_PROBE_TIMEOUT = new Duration(1, TimeUnit.MINUTES);
     protected final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
     protected final MavenDependencyResolver resolver = new MavenDependencyResolver();
+    private final Class<?> main_class;
 
-    protected ExperimentManager() {
+    protected ExperimentManager(Class<?> main_class) {
 
-        this(DEFAULT_STATE_PROBE_TIMEOUT);
+        this(DEFAULT_STATE_PROBE_TIMEOUT, main_class);
     }
 
-    protected ExperimentManager(final Duration command_execution_timeout) {
+    protected ExperimentManager(final Duration command_execution_timeout, Class<?> main_class) {
 
         super(command_execution_timeout);
+        this.main_class = main_class;
+        process_builder.setMainClass(main_class);
     }
 
     @Override
@@ -61,6 +66,18 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         }
         finally {
             destroyProcess(descriptor);
+        }
+    }
+
+    protected Properties getPropertiesFromProcess(final Process process) throws Exception {
+
+        try {
+            return Bootstrap.readProperties(main_class, process, PROCESS_START_TIMEOUT);
+        }
+        catch (final Exception e) {
+            LOGGER.error("failed to read properties of " + main_class + " process", e);
+            process.destroy();
+            throw e;
         }
     }
 
@@ -125,6 +142,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     protected void clearCachedShabdizFilesOnAllHosts(ApplicationNetwork network) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
+        LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
         final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         try {
             final List<ListenableFuture<Void>> future_deletions = new ArrayList<ListenableFuture<Void>>();
@@ -162,6 +180,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     protected void resolveMavenArtifactOnAllHosts(ApplicationNetwork network, final String artifact_coordinate) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
+        LOGGER.info("Attemting to resolve {} on {} hosts", artifact_coordinate, network.size());
         final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         try {
             final List<ListenableFuture<Void>> future_resolutions = new ArrayList<ListenableFuture<Void>>();

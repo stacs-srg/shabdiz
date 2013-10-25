@@ -29,19 +29,13 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.AUTH;
  */
 public class HostAvailabilityRecognitionExperiment extends Experiment {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HostAvailabilityRecognitionExperiment.class);
-    private static final Duration[] SCANNER_INTERVALS = {
-            new Duration(1, TimeUnit.SECONDS), new Duration(3, TimeUnit.SECONDS), new Duration(5, TimeUnit.SECONDS), new Duration(7, TimeUnit.SECONDS), new Duration(9, TimeUnit.SECONDS), new Duration(20, TimeUnit.SECONDS)
-    };
-
-    private static final Duration[] SCANNER_TIMEOUTS = {
-            new Duration(1, TimeUnit.MINUTES)
-    };
-
-    private static final Integer[] SCANNER_THREAD_POOL_SIZES = {10, 100};
     public static final String SCANNER_INTERVAL_PROPERTY = "scanner.interval";
     public static final String SCANNER_TIMEOUT_PROPERTY = "scanner.timeout";
     public static final String SCANNER_THREAD_POOL_SIZE_PROPERTY = "scanner.thread_pool_size";
+    private static final Logger LOGGER = LoggerFactory.getLogger(HostAvailabilityRecognitionExperiment.class);
+    private static final Duration[] SCANNER_INTERVALS = {new Duration(1, TimeUnit.SECONDS), new Duration(3, TimeUnit.SECONDS), new Duration(5, TimeUnit.SECONDS), new Duration(7, TimeUnit.SECONDS), new Duration(9, TimeUnit.SECONDS), new Duration(20, TimeUnit.SECONDS)};
+    private static final Duration[] SCANNER_TIMEOUTS = {new Duration(1, TimeUnit.MINUTES)};
+    private static final Integer[] SCANNER_THREAD_POOL_SIZES = {10, 100};
 
     public HostAvailabilityRecognitionExperiment(final Integer network_size, final Provider<Host> host_provider, Duration scanner_interval, Duration scanner_timeout, Integer thread_pool_size) {
 
@@ -56,7 +50,7 @@ public class HostAvailabilityRecognitionExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, SCANNER_INTERVALS, SCANNER_TIMEOUTS, SCANNER_THREAD_POOL_SIZES});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, SCANNER_INTERVALS, SCANNER_TIMEOUTS, SCANNER_THREAD_POOL_SIZES});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -75,6 +69,11 @@ public class HostAvailabilityRecognitionExperiment extends Experiment {
     }
 
     static class NoOpExperimentManager extends ExperimentManager {
+
+        protected NoOpExperimentManager() {
+
+            super(NoOpExperimentManager.class);
+        }
 
         @Override
         public Object deploy(final ApplicationDescriptor descriptor) throws Exception {

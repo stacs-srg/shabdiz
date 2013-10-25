@@ -33,7 +33,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.LocalHostProvider;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -59,16 +59,15 @@ public abstract class Experiment {
     public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
     public static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     public static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
+    public static final String PROPERTOES_FILE_NAME = "experiment.properties";
+    public static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
+    public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     static final File RESULTS_HOME = new File("results");
     static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
-    public static final String PROPERTOES_FILE_NAME = "experiment.properties";
     static final int REPETITIONS = 5;
-    public static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[] {new LocalHostProvider()};
-    static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {
-            ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM
-    };
-    public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
+    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new BlubHostProvider()};
+    static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED,
+                    EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     protected final ApplicationNetwork network;
     protected final Integer network_size;
@@ -164,7 +163,7 @@ public abstract class Experiment {
 
     @Test
     @Category(Experiment.class)
-    public final void experiment() throws Exception {
+    public final void experiment() throws Throwable {
 
         final long start = System.nanoTime();
         setProperty(EXPERIMENT_START_TIME_NANOS, start);
@@ -172,9 +171,10 @@ public abstract class Experiment {
             doExperiment();
             setProperty(EXPERIMENT_STATUS, SUCCESS);
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             setProperty(EXPERIMENT_STATUS, FAILURE);
             setProperty(EXPERIMENT_FAILURE_CAUSE, e);
+            throw e;
         }
         finally {
             final long duration = System.nanoTime() - start;
@@ -239,11 +239,6 @@ public abstract class Experiment {
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
         registerMetric("system_load_average_gauge", system_load_average_gauge);
-    }
-
-    protected String constructName() {
-
-        return getClass().getSimpleName() + '_' + network_size + '_' + host_provider + '_' + manager;
     }
 
     private void populateProperties() {

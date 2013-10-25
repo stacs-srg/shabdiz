@@ -47,11 +47,12 @@ public abstract class ChordManager extends ExperimentManager {
 
     protected ChordManager() {
 
+        super(NodeServer.class);
     }
 
     public ChordManager(Duration timeout) {
 
-        super(timeout);
+        super(timeout, NodeServer.class);
     }
 
     @Override
@@ -62,6 +63,7 @@ public abstract class ChordManager extends ExperimentManager {
         int port = previous_address == null ? 0 : previous_address.getPort();
         final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
         LOGGER.debug("waiting for properties of process on host {}...", host);
+
         final Properties properties = getPropertiesFromProcess(node_process);
         final Integer pid = Bootstrap.getPIDProperty(properties);
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.ADDRESS_PROPERTY_KEY));
@@ -71,25 +73,6 @@ public abstract class ChordManager extends ExperimentManager {
         descriptor.setAttribute(PROCESS_KEY, node_process);
         descriptor.setAttribute(PID_KEY, pid);
         return node_reference;
-    }
-
-    private Properties getPropertiesFromProcess(final Process node_process) throws Exception {
-
-        try {
-            return Bootstrap.readProperties(NodeServer.class, node_process, PROCESS_START_TIMEOUT);
-        }
-        catch (final Exception e) {
-            LOGGER.error("failed to read properties of Chord process", e);
-            node_process.destroy();
-            throw e;
-        }
-    }
-
-    @Override
-    protected void configure(final ApplicationNetwork network) throws Exception {
-
-        super.configure(network);
-        process_builder.setMainClass(NodeServer.class);
     }
 
     private IChordRemoteReference bindWithRetry(final InetSocketAddress address) throws InterruptedException, ExecutionException, TimeoutException {

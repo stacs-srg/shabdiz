@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.inject.Provider;
+import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +37,18 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
+@RunWith(Parameterized.class)
 public class ResurrectionExperiment extends Experiment {
 
     public static final String KILL_PORTION = "kill_portion";
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
     public static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
-    private static final ExperimentManager[] ECHO_APPLICATION_MANAGERS = {EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD};
+    private static final ExperimentManager[] ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS = {EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD, HelloWorldManager.FILE_BASED_WARM,
+                    HelloWorldManager.FILE_BASED_COLD, HelloWorldManager.URL_BASED, HelloWorldManager.MAVEN_BASED_WARM, HelloWorldManager.MAVEN_BASED_COLD, HelloWorldManager.FILE_BASED_WARM_8M, HelloWorldManager.FILE_BASED_COLD_8M, HelloWorldManager.URL_BASED_8M,
+                    HelloWorldManager.MAVEN_BASED_WARM_8M, HelloWorldManager.MAVEN_BASED_COLD_8M, HelloWorldManager.FILE_BASED_WARM_16M, HelloWorldManager.FILE_BASED_COLD_16M, HelloWorldManager.URL_BASED_16M, HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M,
+                    HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M, HelloWorldManager.URL_BASED_32M, HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M, HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
+                    HelloWorldManager.URL_BASED_64M, HelloWorldManager.MAVEN_BASED_WARM_64M, HelloWorldManager.MAVEN_BASED_COLD_64M};
     private static final long RANDOM_SEED = 0x455fa4;
     protected final float kill_portion;
     private final Random random;
@@ -60,7 +66,7 @@ public class ResurrectionExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -101,16 +107,11 @@ public class ResurrectionExperiment extends Experiment {
         LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, nanosToSeconds(time_to_reach_running_after_kill));
     }
 
-    @Override
-    protected String constructName() {
-
-        return super.constructName() + '_' + kill_portion;
-    }
-
     protected List<ApplicationDescriptor> killPortionOfNetwork() throws Exception {
 
         final int kill_count = getNumberOfKillCandidates();
         LOGGER.info("killing {} out of {}...", kill_count, network_size);
+
         final List<ApplicationDescriptor> descriptors_list = new ArrayList<ApplicationDescriptor>(network.getApplicationDescriptors());
         final List<ApplicationDescriptor> killed_descriptors = new ArrayList<ApplicationDescriptor>();
         final int descriptors_count = descriptors_list.size();
