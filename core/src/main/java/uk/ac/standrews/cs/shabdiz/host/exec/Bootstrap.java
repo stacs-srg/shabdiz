@@ -43,6 +43,7 @@ public abstract class Bootstrap {
 
     public static final String PID_PROPERTY_KEY = "pid";
     public static final char NEW_LINE = '\n';
+    public static final char LINE_FEED = '\r';
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final String TEMP_HOME_NAME = "tmp";
@@ -52,7 +53,7 @@ public abstract class Bootstrap {
     static final String BOOTSTRAP_JAR_NAME = "bootstrap.jar";
     private static final String PROCESS_OUTPUT_ENCODING = "UTF-8";
     private static final File BOOTSTRAP_JAR = new File(LOCAL_BOOTSTRAP_HOME, BOOTSTRAP_JAR_NAME);
-    private static final String MVN_CENTRAL = "http://repo1.maven.org/maven2/";
+    private static final String MVN_CENTRAL = "http://central.maven.org/maven2/";
     private static final String SEPARATOR = "\t";
     private static final String CONFIG_FILE_ATTRIBUTES_NAME = "Shabdiz";
     private static final Attributes.Name DELETE_WD_ON_EXIT = new Attributes.Name("Delete-Working-Directory-On-Exit");
@@ -117,7 +118,7 @@ public abstract class Bootstrap {
         while ((next_byte = in.read()) != -1) {
 
             final char next_char = (char) next_byte;
-            if (next_char == NEW_LINE) { //TODO investigate whether echo prints \n at the end on all platforms. is line separator platform dependant?
+            if (next_char == NEW_LINE || next_char == LINE_FEED) { //TODO investigate whether echo prints \n at the end on all platforms. is line separator platform dependant?
                 break;
             }
             builder.append(next_char);
@@ -249,10 +250,8 @@ public abstract class Bootstrap {
                         final String key_values = matcher.group(1);
                         return parseProperties(key_values);
                     }
-                    else {
-                        //TODO log next line
-                        System.out.println(line);
-                    }
+                    //TODO log next line
+                    // System.out.println(line);
                 }
                 throw new InterruptedException();
             }
@@ -380,37 +379,31 @@ public abstract class Bootstrap {
     private static synchronized void loadEclipseAetherDependencies(final Instrumentation instrumentation) {
 
         assert maven_dependency_resolver == null;
+
         try {
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/guava/guava/11.0.2/guava-11.0.2.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/ning/async-http-client/1.7.6/async-http-client-1.7.6.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/netty/netty/3.4.4.Final/netty-3.4.4.Final.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-aether-provider/3.1.0/maven-aether-provider-3.1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model/3.1.0/maven-model-3.1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-model-builder/3.1.0/maven-model-builder-3.1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.16/plexus-interpolation-1.16.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "io/tesla/maven/maven-repository-metadata/3.1.0/maven-repository-metadata-3.1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M2a/org.eclipse.sisu.plexus-0.0.0.M2a.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/enterprise/cdi-api/1.0/cdi-api-1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/guava/guava/10.0.1/guava-10.0.1.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "aopalliance/aopalliance/1.0/aopalliance-1.0.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M2a/org.eclipse.sisu.inject-0.0.0.M2a.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "asm/asm/3.3.1/asm-3.3.1.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-aether-provider/3.1.1/maven-aether-provider-3.1.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-model-builder/3.1.1/maven-model-builder-3.1.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-model/3.1.1/maven-model-3.1.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-repository-metadata/3.1.1/maven-repository-metadata-3.1.1.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.10/plexus-utils-3.0.10.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.19/plexus-interpolation-1.19.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.15/plexus-utils-3.0.15.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-asynchttpclient/0.9.0.M2/aether-connector-asynchttpclient-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-file/0.9.0.M2/aether-connector-file-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.6.2/slf4j-api-1.6.2.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.3/sisu-guice-3.1.3.jar"));
         }
         catch (final Exception e) {
-            throw new RuntimeException("failed to load eclipse eather dependencies", e);
+            throw new RuntimeException("failed to load eclipse aether dependencies", e);
         }
     }
 

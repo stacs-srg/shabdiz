@@ -166,14 +166,14 @@ public class MavenDependencyResolver {
     private static DefaultRepositorySystemSession createRepositorySystemSession(final RepositorySystem system, final File repository_home) {
 
         final DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-        final LocalRepository localRepo = new LocalRepository(repository_home);
-        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+        final LocalRepository local_repository = new LocalRepository(repository_home);
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local_repository));
         return session;
     }
 
     private static RepositorySystem createRepositorySystem() {
 
-        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        final DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
         locator.addService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
 
