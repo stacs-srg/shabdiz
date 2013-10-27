@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +31,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
@@ -44,7 +42,7 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 public abstract class Bootstrap {
 
     public static final String PID_PROPERTY_KEY = "pid";
-    public static final String NEW_LINE = "\n";
+    public static final char NEW_LINE = '\n';
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final String TEMP_HOME_NAME = "tmp";
@@ -96,7 +94,7 @@ public abstract class Bootstrap {
             bootstrap.printProperties();
         }
         else {
-            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[] {args});
+            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
         }
     }
 
@@ -108,6 +106,23 @@ public abstract class Bootstrap {
         loadClassPathUrlsAsString(instrumentation, configuration.urls);
         loadShutdownHooks(configuration);
         loadApplicationBootstrapClassName(configuration);
+    }
+
+    public static String readLine(final InputStream in) throws IOException {
+
+        //TODO tidy this up.
+        // jdk scanner is evil.
+        int next_byte;
+        final StringBuilder builder = new StringBuilder();
+        while ((next_byte = in.read()) != -1) {
+
+            final char next_char = (char) next_byte;
+            if (next_char == NEW_LINE) { //TODO investigate whether echo prints \n at the end on all platforms. is line separator platform dependant?
+                break;
+            }
+            builder.append(next_char);
+        }
+        return builder.toString();
     }
 
     public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
@@ -226,17 +241,17 @@ public abstract class Bootstrap {
             public Properties call() throws Exception {
 
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
-                final Scanner scanner = new Scanner(in);
-                scanner.useDelimiter(NEW_LINE);
                 while (!Thread.currentThread().isInterrupted()) {
-                    if (scanner.hasNext(pattern)) {
-                        final MatchResult line_matcher = scanner.match();
-                        final String key_values = line_matcher.group(1);
+                    final String line = readLine(in);
+
+                    final Matcher matcher = pattern.matcher(line);
+                    if (matcher.matches()) {
+                        final String key_values = matcher.group(1);
                         return parseProperties(key_values);
                     }
                     else {
                         //TODO log next line
-                        scanner.nextLine();
+                        System.out.println(line);
                     }
                 }
                 throw new InterruptedException();

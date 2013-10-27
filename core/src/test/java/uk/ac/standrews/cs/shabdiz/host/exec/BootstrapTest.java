@@ -16,7 +16,7 @@ public class BootstrapTest {
     @Test
     public void testPropertiesScanner() throws Exception {
 
-        final String id = "uk.ac.standrews.cs.shabdiz.job.WorkerMain.properties:";
+        final String id = "uk.ac.standrews.cs.shabdiz.job.WorkerMain";
         final InputStream in = IOUtils.toInputStream("SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\n" + "SLF4J: Defaulting to no-operation (NOP) logger implementation\n" + "SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\n" + id
                         + "{worker.remote.address=138.251.195.136%3A54816, pid=33306}\n" + "SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\".\n" + "SLF4J: Defaulting to no-operation (NOP) logger implementation\n"
                         + "SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.\n");

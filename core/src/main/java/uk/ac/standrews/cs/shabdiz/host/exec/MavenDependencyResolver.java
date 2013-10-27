@@ -30,18 +30,24 @@ import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
 public class MavenDependencyResolver {
 
-    static final File REPOSITORY_HOME = new File(Bootstrap.LOCAL_SHABDIZ_HOME, "repository");
+    static final File SHABDIZ_REPOSITORY_HOME = new File(Bootstrap.LOCAL_SHABDIZ_HOME, "repository");
     private static final String COLON = ":";
     private static final String DEFAULT_REPOSITORY_TYPE = "default";
-    private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build();
+    private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
     private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
     private static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
-    private static final RepositorySystemSession REPOSITORY_SYSTEM_SESSION = createRepositorySystemSession(REPOSITORY_SYSTEM, REPOSITORY_HOME);
     private static final int URL_PING_TIMEOUT_MILLIS = 15000;
     private final List<RemoteRepository> repositories;
+    private final RepositorySystemSession session;
 
     public MavenDependencyResolver() {
 
+        this(SHABDIZ_REPOSITORY_HOME);
+    }
+
+    public MavenDependencyResolver(File repository_home) {
+
+        session = createRepositorySystemSession(REPOSITORY_SYSTEM, repository_home);
         repositories = new ArrayList<RemoteRepository>();
         addDefaultRepositories();
     }
@@ -86,7 +92,7 @@ public class MavenDependencyResolver {
         final DependencyRequest dep_request = new DependencyRequest();
         final DependencyNodeCollector node_collector = new DependencyNodeCollector();
         dep_request.setRoot(root_dependency);
-        REPOSITORY_SYSTEM.resolveDependencies(REPOSITORY_SYSTEM_SESSION, dep_request);
+        REPOSITORY_SYSTEM.resolveDependencies(session, dep_request);
         root_dependency.accept(node_collector);
         return node_collector.nodes;
     }
@@ -131,14 +137,14 @@ public class MavenDependencyResolver {
         return repositories.add(repository);
     }
 
-    private static CollectResult collectDependencies(final Artifact artifact, final List<RemoteRepository> repositories) throws DependencyCollectionException {
+    private CollectResult collectDependencies(final Artifact artifact, final List<RemoteRepository> repositories) throws DependencyCollectionException {
 
         final CollectResult collectResult;
         final CollectRequest collectRequest = new CollectRequest();
         final Dependency root_dependency = new Dependency(artifact, "");
         collectRequest.setRoot(root_dependency);
         collectRequest.setRepositories(repositories);
-        collectResult = REPOSITORY_SYSTEM.collectDependencies(REPOSITORY_SYSTEM_SESSION, collectRequest);
+        collectResult = REPOSITORY_SYSTEM.collectDependencies(session, collectRequest);
         return collectResult;
     }
 

@@ -105,7 +105,7 @@ abstract class HelloWorldManager extends ExperimentManager {
         final Process process = descriptor.getAttribute(PROCESS_KEY);
         try {
             final int exit_value = process.exitValue();
-            throw new Exception("expected hello world process to be running, instead recieved exit value of " + exit_value);
+            throw new Exception("expected hello world process to be running, instead received exit value of " + exit_value);
         }
         catch (final IllegalThreadStateException e) {
             LOGGER.trace("process seems to be running on {}", descriptor);
@@ -132,8 +132,8 @@ abstract class HelloWorldManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(maven_artifact);
-            for (URL url : dependenlcy_urls) {
+            final List<URL> dependency_urls = resolver.resolveAsRemoteURLs(maven_artifact);
+            for (URL url : dependency_urls) {
                 process_builder.addURL(url);
             }
         }
@@ -159,8 +159,8 @@ abstract class HelloWorldManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            final List<File> dependenlcy_files = resolver.resolve(maven_artifact);
-            for (File file : dependenlcy_files) {
+            final List<File> dependency_files = resolver.resolve(maven_artifact);
+            for (File file : dependency_files) {
                 process_builder.addFile(file);
             }
         }
@@ -189,14 +189,14 @@ abstract class HelloWorldManager extends ExperimentManager {
 
             super.configure(network);
 
-            final List<File> dependenlcy_files = resolver.resolve(maven_artifact);
-            LOGGER.info("resolved {} dependencies locally. total of {} files", artifact_id, dependenlcy_files.size());
+            final List<File> dependency_files = resolver.resolve(maven_artifact);
+            LOGGER.info("resolved {} dependencies locally. total of {} files", artifact_id, dependency_files.size());
 
             final String dependencies_home = "/tmp/" + artifact_id + "_dependencies/";
             LOGGER.info("uploading {} dependencies to {} hosts at {}", artifact_id, network.size(), dependencies_home);
-            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+            uploadToAllHosts(network, dependency_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
 
-            for (File file : dependenlcy_files) {
+            for (File file : dependency_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());
             }
         }

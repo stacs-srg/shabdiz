@@ -129,12 +129,7 @@ public abstract class Experiment {
 
     protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
-        this.network_size = network_size;
-        this.host_provider = host_provider;
-        this.manager = manager;
-        network = new ApplicationNetwork(getClass().getSimpleName());
-        registry = new MetricRegistry(getClass().getSimpleName());
-        reporter = new CsvReporter(registry);
+        this(network_size, host_provider, manager, new Duration(5, TimeUnit.SECONDS), ExperimentManager.PROCESS_START_TIMEOUT, 10);
     }
 
     public Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size) {
