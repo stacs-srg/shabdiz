@@ -15,8 +15,7 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.CollectResult;
 import org.eclipse.aether.collection.DependencyCollectionException;
-import org.eclipse.aether.connector.async.AsyncRepositoryConnectorFactory;
-import org.eclipse.aether.connector.file.FileRepositoryConnectorFactory;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
@@ -26,6 +25,9 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.file.FileTransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
 public class MavenDependencyResolver {
@@ -174,8 +176,19 @@ public class MavenDependencyResolver {
     private static RepositorySystem createRepositorySystem() {
 
         final DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-        locator.addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
-        locator.addService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+
+        locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
+
+            @Override
+            public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
+
+                //TODO do decent logging into /tmp/shabdiz/log/error.log
+                exception.printStackTrace();
+            }
+        });
 
         return locator.getService(RepositorySystem.class);
     }

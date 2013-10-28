@@ -310,9 +310,10 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private String uploadBootstrapJar(final Host host) throws IOException {
 
         final Platform platform = host.getPlatform();
+        final String bootstrap_home = getBootstrapHomeByPlatform(platform);
         final String bootstrap_jar = getBootstrapJarByPlatform(platform);
         if (always_upload_bootstrap || !existsOnHost(host, bootstrap_jar)) {
-            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_jar);
+            host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
         }
         else {
@@ -377,9 +378,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
 
     private void checkMainClassName() {
 
-        if (getMainClassName() == null) {
-            throw new NullPointerException("main class must be specified");
-        }
+        if (getMainClassName() == null) { throw new NullPointerException("main class must be specified"); }
     }
 
     private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {

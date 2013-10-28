@@ -30,20 +30,33 @@
     <artifactId>shabdiz-core</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/core</name>
+
     <properties>
-        <aetherVersion>0.9.0.M2</aetherVersion>
+        <aetherVersion>0.9.0.M3</aetherVersion>
         <mavenVersion>3.1.1</mavenVersion>
     </properties>
 
     <dependencies>
+
+        <!-- Required by MavenDependencyResolver -->
         <dependency>
             <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-connector-file</artifactId>
+            <artifactId>aether-impl</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-connector-asynchttpclient</artifactId>
+            <artifactId>aether-connector-basic</artifactId>
+            <version>${aetherVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.aether</groupId>
+            <artifactId>aether-transport-file</artifactId>
+            <version>${aetherVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.aether</groupId>
+            <artifactId>aether-transport-http</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
         <dependency>
@@ -51,6 +64,7 @@
             <artifactId>maven-aether-provider</artifactId>
             <version>${mavenVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>net.schmizz</groupId>
             <artifactId>sshj</artifactId>
