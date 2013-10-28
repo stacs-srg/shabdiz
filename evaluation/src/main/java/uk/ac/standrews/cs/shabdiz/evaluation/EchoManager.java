@@ -46,7 +46,7 @@ abstract class EchoManager extends ExperimentManager {
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
-    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate("uk.ac.standrews.cs", "echo", "1.0-SNAPSHOT");
+    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate("uk.ac.standrews.cs", "echo", "1.0");
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
     protected EchoManager() {
@@ -63,9 +63,8 @@ abstract class EchoManager extends ExperimentManager {
     public Echo deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
-
         final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
-        int port = previous_address == null ? 0 : previous_address.getPort();
+        final int port = previous_address == null ? 0 : previous_address.getPort();
 
         final Process echo_service_process = process_builder.start(host, String.valueOf(port));
         LOGGER.debug("waiting for properties of process on host {}...", host);
@@ -151,7 +150,7 @@ abstract class EchoManager extends ExperimentManager {
 
             final String dependencies_home = "/tmp/echo_dependencies/";
             LOGGER.info("uploading echo dependencies to {} hosts at {}", network.size(), dependencies_home);
-            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
 
             for (File file : dependenlcy_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());

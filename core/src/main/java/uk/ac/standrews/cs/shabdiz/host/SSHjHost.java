@@ -8,18 +8,18 @@ import java.util.Collection;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.userauth.method.AuthMethod;
 import net.schmizz.sshj.xfer.FileSystemFile;
-import net.schmizz.sshj.xfer.scp.SCPDownloadClient;
-import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
-import net.schmizz.sshj.xfer.scp.SCPUploadClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
+
+import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.readLine;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class SSHjHost extends AbstractHost {
@@ -56,29 +56,29 @@ public class SSHjHost extends AbstractHost {
     @Override
     public void upload(final File source, final String destination) throws IOException {
 
-        final SCPFileTransfer scp = ssh.newSCPFileTransfer();
-        final SCPUploadClient scp_upload = scp.newSCPUploadClient();
-        LOGGER.trace("sending {} to {}", source, destination);
-        scp_upload.copy(new FileSystemFile(source), destination);
+        final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
+        final SFTPClient sftp = ssh.newSFTPClient();
+        LOGGER.debug("Uploading {} to {} on host {} ", source, destination, getName());
+        upload(sftp, source, destination_path);
     }
 
     @Override
     public void upload(final Collection<File> sources, final String destination) throws IOException {
 
-        final SCPFileTransfer scp = ssh.newSCPFileTransfer();
-        final SCPUploadClient scp_upload = scp.newSCPUploadClient();
         final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
-        for (File source : sources) {
-            upload(source, destination_path, scp_upload);
+        final SFTPClient sftp = ssh.newSFTPClient();
+        for (final File source : sources) {
+            LOGGER.debug("Uploading {} to {} on host {} ", source, destination, getName());
+            upload(sftp, source, destination_path);
         }
     }
 
     @Override
     public void download(final String source, final File destination) throws IOException {
 
-        final SCPFileTransfer scp = ssh.newSCPFileTransfer();
-        final SCPDownloadClient scp_download = scp.newSCPDownloadClient();
-        scp_download.copy(source, new FileSystemFile(destination));
+        final SFTPClient sftp = ssh.newSFTPClient();
+        LOGGER.debug("downloading {} from host {} to {}", source, getName(), destination);
+        sftp.get(source, new FileSystemFile(destination));
     }
 
     @Override
@@ -199,29 +199,17 @@ public class SSHjHost extends AbstractHost {
         ssh.disconnect();
     }
 
-    private void upload(File source, String destination, SCPUploadClient scp_upload) throws IOException {
+    private void upload(final SFTPClient sftp, final File file, final String destination) throws IOException {
 
-        LOGGER.trace("sending {} to {}", source, destination);
-        scp_upload.copy(new FileSystemFile(source), destination + source.getName());
+        final String file_name = file.getName();
+        sftp.put(new FileSystemFile(file), destination + file_name);
     }
 
     private int readParentProcessID(final Session.Command command_exec) throws IOException {
 
-        //TODO tidy this up.
-        // jdk scanner is evil.
-
         final InputStream in = command_exec.getInputStream();
-        int next_byte;
-        final StringBuilder builder = new StringBuilder();
-        while ((next_byte = in.read()) != -1) {
-
-            final char next_char = (char) next_byte;
-            if (next_char == NEW_LINE) { //TODO investigate whether echo prints \n at the end on all platforms. is line separator platform dependant?
-                break;
-            }
-            builder.append(next_char);
-        }
-        return Integer.parseInt(builder.toString());
+        final String line = readLine(in);
+        return Integer.parseInt(line);
     }
 
     private void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {

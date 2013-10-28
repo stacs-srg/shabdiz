@@ -40,10 +40,10 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
 public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
 
     static final String KILL_PORTION = "kill_portion";
-    static final Integer[] NETWORK_SIZES = new Integer[] {4};
+    static final Integer[] NETWORK_SIZES = new Integer[]{4};
     static final Float[] KILL_PORTIONS = {0.5F};
     static final ExperimentManager[] APPLICATION_MANAGERS = {EchoManager.MAVEN_BASED_COLD};
-    static final Provider<Host>[] COROSS_LAB_HOST_PROVIDER = new Provider[] {new CrossLabHostProvider()};
+    static final Provider<Host>[] CROSS_LAB_HOST_PROVIDER = new Provider[]{new CrossLabHostProvider()};
 
     public CrossLabResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final float kill_portion) {
 
@@ -54,7 +54,7 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, COROSS_LAB_HOST_PROVIDER, APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, CROSS_LAB_HOST_PROVIDER, APPLICATION_MANAGERS, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }

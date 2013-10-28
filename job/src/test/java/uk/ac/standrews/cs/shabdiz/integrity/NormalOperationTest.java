@@ -52,6 +52,25 @@ public class NormalOperationTest {
     public static void setUp() throws Exception {
 
         localhost = new LocalHost();
+        //        final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
+        //        key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
+        //
+        //            @Override
+        //            public char[] reqPassword(final Resource<?> resource) {
+        //
+        //                return Input.readPassword("local private key password: ");
+        //            }
+        //
+        //            @Override
+        //            public boolean shouldRetry(final Resource<?> resource) {
+        //
+        //                return false;
+        //            }
+        //        });
+        //
+        //        final AuthMethod authentication = new AuthPublickey(key_provider);
+        //        localhost = new SSHjHost("project07.cs.st-andrews.ac.uk", authentication);
+
         network = new WorkerNetwork();
         network.add(localhost);
         network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");

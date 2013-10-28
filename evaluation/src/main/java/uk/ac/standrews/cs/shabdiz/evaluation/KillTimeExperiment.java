@@ -45,7 +45,7 @@ public class KillTimeExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -76,7 +76,7 @@ public class KillTimeExperiment extends Experiment {
         LOGGER.info("re-enabling status scanner");
         network.setStatusScannerEnabled(true);
 
-        LOGGER.info("awaiting AUTH afte after kill...");
+        LOGGER.info("awaiting AUTH after after kill...");
         final long time_to_reach_auth_from_running = timeUniformNetworkStateInNanos(AUTH);
         setProperty(TIME_TO_REACH_AUTH_FROM_RUNNING, time_to_reach_auth_from_running);
         LOGGER.info("reached AUTH state after kill all in {} seconds", nanosToSeconds(time_to_reach_auth_from_running));

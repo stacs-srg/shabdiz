@@ -79,7 +79,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -117,7 +117,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         LOGGER.info("enabling ring size scanner");
         ring_size_scanner.setEnabled(true);
 
-        LOGGER.info("assembing Chord ring");
+        LOGGER.info("assembling Chord ring");
         assembleRing();
 
         LOGGER.info("awaiting stabilized ring");
@@ -139,7 +139,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         setProperty(TIME_TO_REACH_RUNNING_AFTER_KILL, String.valueOf(time_to_reach_running_after_kill));
         LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, nanosToSeconds(time_to_reach_running_after_kill));
 
-        LOGGER.info("re-assembing Chord ring");
+        LOGGER.info("re-assembling Chord ring");
         assembleRing(killed_descriptors);
 
         LOGGER.info("awaiting stabilized ring after killing portion of network...");

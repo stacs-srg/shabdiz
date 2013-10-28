@@ -9,13 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.inject.Provider;
-import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.LocalHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 
@@ -38,24 +36,40 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-@RunWith(Parameterized.class)
 public class ResurrectionExperiment extends Experiment {
 
     public static final String KILL_PORTION = "kill_portion";
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
-    public static final Float[] KILL_PORTIONS = {0.5F};
-    public static final Integer[] NETWORK_SIZES = {1};
-    //    public static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
-    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new LocalHostProvider()};
+    public static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
+    //@formatter:off
     private static final ExperimentManager[] ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS = {
-    //            EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.URL_BASED, EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD, HelloWorldManager.FILE_BASED_WARM,
-    //                    HelloWorldManager.FILE_BASED_COLD, HelloWorldManager.URL_BASED, HelloWorldManager.MAVEN_BASED_WARM, HelloWorldManager.MAVEN_BASED_COLD, HelloWorldManager.FILE_BASED_WARM_8M, HelloWorldManager.FILE_BASED_COLD_8M, HelloWorldManager.URL_BASED_8M,
-    //                    HelloWorldManager.MAVEN_BASED_WARM_8M, HelloWorldManager.MAVEN_BASED_COLD_8M, HelloWorldManager.FILE_BASED_WARM_16M, HelloWorldManager.FILE_BASED_COLD_16M, HelloWorldManager.URL_BASED_16M, HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M,
-    //                    HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M, HelloWorldManager.URL_BASED_32M, HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M, HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
-    //                    HelloWorldManager.URL_BASED_64M,
-    //                    HelloWorldManager.MAVEN_BASED_WARM_64M,
-    HelloWorldManager.MAVEN_BASED_COLD_64M};
+            EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD,
+            EchoManager.URL_BASED,
+            EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD,
+
+            HelloWorldManager.FILE_BASED_WARM, HelloWorldManager.FILE_BASED_COLD,
+            HelloWorldManager.URL_BASED,
+            HelloWorldManager.MAVEN_BASED_WARM, HelloWorldManager.MAVEN_BASED_COLD
+
+//            HelloWorldManager.FILE_BASED_WARM_8M, HelloWorldManager.FILE_BASED_COLD_8M,
+//            HelloWorldManager.URL_BASED_8M,
+//            HelloWorldManager.MAVEN_BASED_WARM_8M, HelloWorldManager.MAVEN_BASED_COLD_8M,
+//
+//            HelloWorldManager.FILE_BASED_WARM_16M, HelloWorldManager.FILE_BASED_COLD_16M,
+//            HelloWorldManager.URL_BASED_16M,
+//            HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M,
+//
+//            HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M,
+//            HelloWorldManager.URL_BASED_32M,
+//            HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M,
+//
+//            HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
+//            HelloWorldManager.URL_BASED_64M,
+//            HelloWorldManager.MAVEN_BASED_WARM_64M, HelloWorldManager.MAVEN_BASED_COLD_64M
+
+            };
+    //@formatter:on
     private static final long RANDOM_SEED = 0x455fa4;
     protected final float kill_portion;
     private final Random random;
@@ -74,9 +88,10 @@ public class ResurrectionExperiment extends Experiment {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
         final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS, KILL_PORTIONS});
-        for (int i = 0; i < REPETITIONS; i++) {
+        for (int i = 0; i < 2; i++) {
             parameters.addAll(combinations);
         }
+        System.out.println(parameters.size());
         return parameters;
     }
 

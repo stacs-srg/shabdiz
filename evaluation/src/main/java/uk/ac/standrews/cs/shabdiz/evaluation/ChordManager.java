@@ -178,7 +178,7 @@ public abstract class ChordManager extends ExperimentManager {
 
             final String dependencies_home = "/tmp/chord_dependencies/";
             LOGGER.info("uploading chord dependencies to {} hosts at {}", network.size(), dependencies_home);
-            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
 
             for (File file : dependenlcy_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());

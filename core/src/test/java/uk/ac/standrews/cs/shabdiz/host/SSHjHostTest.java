@@ -1,7 +1,8 @@
 package uk.ac.standrews.cs.shabdiz.host;
 
 import java.io.File;
-import java.net.InetAddress;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,9 +21,14 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
+import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
+import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
+import uk.ac.standrews.cs.shabdiz.platform.Platforms;
+import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.Input;
-import uk.ac.standrews.cs.shabdiz.util.JarUtils;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.test.category.Ignore;
@@ -32,23 +38,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @Category(Ignore.class)
-public class SSHjHostTest {
+public class SSHjHostTest extends Bootstrap {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHostTest.class);
     private static SSHjHost host;
-
-    public static void main(String[] args) throws InterruptedException {
-
-        while (!Thread.currentThread().isInterrupted())
-            Thread.sleep(1000);
-    }
+    private static String host_name;
 
     @BeforeClass
     public static void setUp() throws Exception {
 
+        assumeTrue(Platforms.getCurrentUser().equals("masih"));
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
 
@@ -66,7 +69,26 @@ public class SSHjHostTest {
         });
 
         final AuthMethod authentication = new AuthPublickey(key_provider);
-        host = new SSHjHost(InetAddress.getLocalHost().getHostName(), authentication);
+
+        //        final AuthMethod authentication = new AuthPassword(new PasswordFinder() {
+        //
+        //            @Override
+        //            public char[] reqPassword(final Resource<?> resource) {
+        //
+        //                return Input.readPassword("local private key password: ");
+        //            }
+        //
+        //            @Override
+        //            public boolean shouldRetry(final Resource<?> resource) {
+        //
+        //                return false;
+        //            }
+        //        });
+
+        //        host = new SSHjHost(InetAddress.getLocalHost().getHostName(), authentication);
+        host_name = "masih.host.cs.st-andrews.ac.uk";
+        host = new SSHjHost(host_name, authentication);
+        //                host = new LocalHost();
     }
 
     @AfterClass
@@ -76,25 +98,20 @@ public class SSHjHostTest {
     }
 
     @Test
-    public void testUpload() throws Exception {
+    public void testJavaProcessBuilding() throws Exception {
 
-        final String content = "some_text";
-        final File temp_file = File.createTempFile("text", ".text");
-        final File destination = new File(temp_file.getAbsolutePath() + ".copy");
-        temp_file.deleteOnExit();
-        destination.deleteOnExit();
-
-        FileUtils.writeStringToFile(temp_file, content);
-        assertTrue(temp_file.exists());
-        assertFalse(destination.exists());
-
-        host.upload(temp_file, destination.getAbsolutePath());
-        assertTrue(destination.exists());
-        assertEquals(content, FileUtils.readFileToString(destination));
+        AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
+        builder.addCurrentJVMClasspath();
+        builder.setMainClass(SSHjHostTest.class);
+        final Process start = builder.start(host);
+        final Properties properties = Bootstrap.readProperties(SSHjHostTest.class, start, new Duration(50, TimeUnit.SECONDS));
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            System.out.println(entry.getKey() + "\t\t\t" + entry.getValue());
+        }
     }
 
     @Test
-    public void testDownload() throws Exception {
+    public void testFileUploadDownload() throws Exception {
 
         final String content = "some_text";
         final File temp_file = File.createTempFile("text", ".text");
@@ -106,7 +123,17 @@ public class SSHjHostTest {
         assertTrue(temp_file.exists());
         assertFalse(destination.exists());
 
-        host.download(temp_file.getAbsolutePath(), destination);
+        final Platform platform = host.getPlatform();
+        final String host_tmp = platform.getTempDirectory();
+
+        host.upload(temp_file, host_tmp);
+        final String tmp_file_path_on_host = host_tmp + platform.getSeparator() + temp_file.getName();
+        final String exists_command = Commands.EXISTS.get(platform, tmp_file_path_on_host);
+        final Process exists_process = host.execute(exists_command);
+        final String exists_process_output = ProcessUtil.awaitNormalTerminationAndGetOutput(exists_process);
+        assertTrue(Boolean.valueOf(exists_process_output));
+
+        host.download(tmp_file_path_on_host, destination);
         assertTrue(destination.exists());
         assertEquals(content, FileUtils.readFileToString(destination));
     }
@@ -114,18 +141,18 @@ public class SSHjHostTest {
     @Test
     public void testExecute() throws Exception {
 
-        final Process pwd = host.execute("pwd");
-        final String pwd_output = ProcessUtil.awaitNormalTerminationAndGetOutput(pwd);
-        assertEquals(System.getProperty("user.home"), pwd_output);
+        final Process uname = host.execute("uname");
+        final String uname_output = ProcessUtil.awaitNormalTerminationAndGetOutput(uname);
+        assertEquals(host.getPlatform().getOperatingSystemName().toLowerCase(), uname_output.toLowerCase());
     }
 
     @Test
     public void testExecuteWithWorkingDirectory() throws Exception {
 
-        final String temp_directory = FileUtils.getTempDirectory().getAbsolutePath();
+        final String temp_directory = host.getPlatform().getTempDirectory();
         final Process pwd = host.execute(temp_directory, "pwd");
         final String pwd_output = ProcessUtil.awaitNormalTerminationAndGetOutput(pwd);
-        assertEquals(temp_directory, pwd_output);
+        assertEquals(temp_directory, SimplePlatform.addTailingSeparator(host.getPlatform().getSeparator(), pwd_output));
     }
 
     @Test
@@ -134,8 +161,6 @@ public class SSHjHostTest {
         //TODO improve testing of platform
         final Platform platform = host.getPlatform();
         assertNotNull(platform);
-        assertEquals(File.separatorChar, platform.getSeparator());
-        assertEquals(File.pathSeparatorChar, platform.getPathSeparator());
     }
 
     @Test(expected = TimeoutException.class)
@@ -162,13 +187,14 @@ public class SSHjHostTest {
     }
 
     @Test
-    public void testProcessDistruction() throws Exception {
+    public void testProcessDestruction() throws Exception {
 
-        final File jar = File.createTempFile("test", ".jar");
-        jar.deleteOnExit();
-        JarUtils.currentClasspathToExecutableJar(jar, SSHjHostTest.class);
-        final String command = "java -jar " + jar.getAbsolutePath();
-        final Process process = host.execute(command);
+        AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
+        builder.setMainClass(NeverEndingProgram.class);
+        builder.addCurrentJVMClasspath();
+        builder.addMavenDependency("uk.ac.standrews.cs:stachord:2.0-SNAPSHOT");
+
+        final Process process = builder.start(host);
 
         try {
             TimeoutExecutorService.awaitCompletion(new Callable<Integer>() {
@@ -187,9 +213,30 @@ public class SSHjHostTest {
         }
         process.destroy();
         //http://quicksilver.hg.cs.st-andrews.ac.uk/shabdiz/file/f17823cbf606/src/main/java/uk/ac/standrews/cs/shabdiz/impl/RemoteSSHHost.java
-        final Process check_process_exists = host.execute("ps -o pid,command -ax | grep '\\" + command + "\\E' | sed 's/^[a-z]*[ ]*\\([0-9]*\\).*/\\1/' | tr '\\n' ',' | sed 's/,$//g'", false);
+        final String check_process_command = "ps -o pid,command -a | grep " + NeverEndingProgram.class.getSimpleName() + " | sed 's/^[a-z]*[ ]*\\([0-9]*\\).*/\\1/' | tr '\\n' ',' | sed 's/,$//g'";
+        System.out.println(check_process_command);
+        final Process check_process_exists = host.execute(check_process_command, false);
         final String pids = ProcessUtil.awaitNormalTerminationAndGetOutput(check_process_exists);
+        System.out.println(pids);
         assertFalse(pids.contains(","));
 
     }
+
+    @Override
+    protected void deploy(final String... args) throws Exception {
+
+        setProperty("A", "B");
+    }
+
+    public static class NeverEndingProgram {
+
+        public static void main(String[] args) throws InterruptedException {
+
+            while (!Thread.currentThread().isInterrupted()) {
+                Thread.sleep(1000);
+            }
+
+        }
+    }
+
 }

@@ -36,11 +36,11 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 abstract class HelloWorldManager extends ExperimentManager {
 
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT = new DefaultArtifact("uk.ac.standrews.cs:hello_world:1.0-SNAPSHOT");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_8M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_8m:1.0-SNAPSHOT");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_16M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_16m:1.0-SNAPSHOT");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_32M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_32m:1.0-SNAPSHOT");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_64M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_64m:1.0-SNAPSHOT");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT = new DefaultArtifact("uk.ac.standrews.cs:hello_world:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_8M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_8m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_16M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_16m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_32M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_32m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_64M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_64m:1.0");
 
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
@@ -194,7 +194,7 @@ abstract class HelloWorldManager extends ExperimentManager {
 
             final String dependencies_home = "/tmp/" + artifact_id + "_dependencies/";
             LOGGER.info("uploading {} dependencies to {} hosts at {}", artifact_id, network.size(), dependencies_home);
-            uploadToAllHosts(network, dependency_files, dependencies_home, OVERRIDE_FILES_IN_WARN);
+            uploadToAllHosts(network, dependency_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
 
             for (File file : dependency_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());

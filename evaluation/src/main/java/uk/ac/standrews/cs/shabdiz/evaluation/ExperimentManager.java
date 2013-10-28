@@ -37,7 +37,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     protected static final AttributeKey<Process> PROCESS_KEY = new AttributeKey<Process>();
     protected static final AttributeKey<Integer> PID_KEY = new AttributeKey<Integer>();
     static final Duration PROCESS_START_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
-    static final boolean OVERRIDE_FILES_IN_WARN = false;
+    static final boolean OVERRIDE_FILES_IN_WARM = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentManager.class);
     private static final Duration FILE_UPLOAD_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration CACHE_DELETION_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
@@ -180,7 +180,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     protected void resolveMavenArtifactOnAllHosts(ApplicationNetwork network, final String artifact_coordinate) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
-        LOGGER.info("Attemting to resolve {} on {} hosts", artifact_coordinate, network.size());
+        LOGGER.info("Attempting to resolve {} on {} hosts", artifact_coordinate, network.size());
         final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         try {
             final List<ListenableFuture<Void>> future_resolutions = new ArrayList<ListenableFuture<Void>>();
@@ -223,8 +223,8 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     private void uploadToHost(final Host host, final String destination, final boolean override, final List<File> files) throws IOException, InterruptedException {
 
-        final boolean already_exists;
         final Platform platform = host.getPlatform();
+        final boolean already_exists;
         if (!override) {
             final Process exists = host.execute(Commands.EXISTS.get(platform, destination));
             already_exists = Boolean.valueOf(ProcessUtil.awaitNormalTerminationAndGetOutput(exists));
@@ -236,13 +236,13 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         if (!already_exists) {
             final String delete_destination = Commands.DELETE_RECURSIVELY.get(platform, destination);
             final String mkdir_destination = Commands.MAKE_DIRECTORIES.get(platform, destination);
-            final String delete_and_make = Commands.APPENDER.get(platform, delete_destination, mkdir_destination);
-            final Process rm_mkdir_process = host.execute(delete_and_make);
+            final String delete_and_mkdir = Commands.APPENDER.get(platform, delete_destination, mkdir_destination);
+            final Process delete_and_mkdir_process = host.execute(delete_and_mkdir);
             try {
-                rm_mkdir_process.waitFor();
+                delete_and_mkdir_process.waitFor();
             }
             finally {
-                rm_mkdir_process.destroy();
+                delete_and_mkdir_process.destroy();
             }
             host.upload(files, destination);
         }

@@ -29,11 +29,23 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class DeployTimeExperiment extends Experiment {
+public class ApplicationSizeExperiment extends Experiment {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeployTimeExperiment.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationSizeExperiment.class);
+    //@formatter:off
+    private static final ExperimentManager[] APPLICATION_MANAGERS = {
+            ChordManager.FILE_BASED_COLD,
+            HelloWorldManager.FILE_BASED_COLD,
+            HelloWorldManager.FILE_BASED_COLD_8M,
+            HelloWorldManager.FILE_BASED_COLD_16M,
+            HelloWorldManager.FILE_BASED_COLD_32M,
+            HelloWorldManager.FILE_BASED_COLD_64M,
+    };
+    //@formatter:on
 
-    public DeployTimeExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager) {
+    private static final Integer[] NETWORK_SIZES = {48};
+
+    public ApplicationSizeExperiment(int network_size, final Provider<Host> host_provider, ExperimentManager manager) {
 
         super(network_size, host_provider, manager);
     }
@@ -42,7 +54,7 @@ public class DeployTimeExperiment extends Experiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][] {NETWORK_SIZES, BLUB_HOST_PROVIDER, ALL_APPLICATION_MANAGERS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, APPLICATION_MANAGERS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -56,7 +68,9 @@ public class DeployTimeExperiment extends Experiment {
         network.setStatusScannerEnabled(true);
 
         LOGGER.info("awaiting AUTH state");
-        network.awaitAnyOfStates(AUTH);
+        final long time_to_reach_auth = timeUniformNetworkStateInNanos(AUTH);
+        setProperty(TIME_TO_REACH_AUTH, time_to_reach_auth);
+        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_auth));
 
         LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);

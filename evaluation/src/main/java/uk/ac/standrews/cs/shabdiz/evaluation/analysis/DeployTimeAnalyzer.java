@@ -20,13 +20,13 @@ import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.evaluation.DeployTimeExperiment;
+import uk.ac.standrews.cs.shabdiz.evaluation.ApplicationSizeExperiment;
 import uk.ac.standrews.cs.shabdiz.evaluation.Experiment;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class DeployTimeAnalyzer {
 
-    private static final File COMBINATIONS_HOME = new File("/Users/masih/Desktop/results/DeployTimeExperiment");
+    private static final File COMBINATIONS_HOME = new File("/Users/masih/Desktop/results/ApplicationSizeExperiment");
     private static final Logger LOGGER = LoggerFactory.getLogger(DeployTimeAnalyzer.class);
 
     public static void main(String[] args) throws IOException, TypeMismatchException {
@@ -56,12 +56,12 @@ public class DeployTimeAnalyzer {
 
                 if (status != null && !status.equalsIgnoreCase("failure")) {
 
-                    final String time_to_reach_auth_string = p.getProperty(DeployTimeExperiment.TIME_TO_REACH_RUNNING);
+                    final String time_to_reach_auth_string = p.getProperty(ApplicationSizeExperiment.TIME_TO_REACH_RUNNING);
                     if (time_to_reach_auth_string != null) {
                         statistics.addSample(Long.parseLong(time_to_reach_auth_string));
                     }
                     else {
-                        LOGGER.warn("combination {} does not have {} property", combination, DeployTimeExperiment.TIME_TO_REACH_RUNNING);
+                        LOGGER.warn("combination {} does not have {} property", combination, ApplicationSizeExperiment.TIME_TO_REACH_RUNNING);
                     }
                 }
                 else {
