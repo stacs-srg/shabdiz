@@ -64,14 +64,14 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNN
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public abstract class ResurrectionExperiment extends Experiment {
+public class ResurrectionExperiment extends Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
     private static final long RANDOM_SEED = 4546468;
     protected final int kill_portion;
     private final Random random;
 
-    protected ResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
+    public ResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
         super(network_size, host_provider, manager, scanner_interval, scanner_timeout, scheduler_thread_pool_size, concurrent_scanner_thread_pool_size);
         validateKillPortion(kill_portion);
@@ -178,7 +178,7 @@ public abstract class ResurrectionExperiment extends Experiment {
 
     private static void validateKillPortion(final float kill_portion) {
 
-        if (kill_portion > 0 || kill_portion < 100) { throw new IllegalArgumentException("kill portion must be between 0.0 (exclusive) to 1.0 (inclusive)"); }
+        if (kill_portion < 0 || kill_portion > 100) { throw new IllegalArgumentException("kill portion must be between 0.0 (exclusive) to 1.0 (inclusive)"); }
     }
 
     protected List<ApplicationDescriptor> killPortionOfNetwork() throws Exception {

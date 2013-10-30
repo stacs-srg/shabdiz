@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,6 +35,8 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplicationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesInGangliaGauge;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesOutGangliaGauge;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubPacketsInGangliaGauge;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubPacketsOutGangliaGauge;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
@@ -82,6 +85,8 @@ public abstract class Experiment {
     public ExperimentWatcher watcher = new ExperimentWatcher(this);
     private BlubBytesInGangliaGauge ganglia_bytes_in;
     private BlubBytesOutGangliaGauge ganglia_bytes_out;
+    private BlubPacketsInGangliaGauge ganglia_packets_in;
+    private BlubPacketsOutGangliaGauge ganglia_packets_out;
 
     protected Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
@@ -112,6 +117,8 @@ public abstract class Experiment {
 
         ganglia_bytes_in = new BlubBytesInGangliaGauge();
         ganglia_bytes_out = new BlubBytesOutGangliaGauge();
+        ganglia_packets_in = new BlubPacketsInGangliaGauge();
+        ganglia_packets_out = new BlubPacketsOutGangliaGauge();
         populateProperties();
         disableAllNetworkScanners();
         populateNetwork();
@@ -203,6 +210,8 @@ public abstract class Experiment {
         registerMetric("system_load_average_gauge", system_load_average_gauge);
         registerMetric("ganglia_bytes_in", ganglia_bytes_in);
         registerMetric("ganglia_bytes_out", ganglia_bytes_out);
+        registerMetric("ganglia_packets_in", ganglia_packets_in);
+        registerMetric("ganglia_packets_out", ganglia_packets_out);
     }
 
     private void populateProperties() {
@@ -257,7 +266,8 @@ public abstract class Experiment {
 
     protected long timeUniformNetworkState(String start_property, String duration_property, ApplicationState... states) throws InterruptedException {
 
-        LOGGER.info("awaiting {} state(s)...", states);
+        final String states_as_string = Arrays.toString(states);
+        LOGGER.info("awaiting {} state(s)...", states_as_string);
         final Timer.Time time = timer.time();
         network.awaitAnyOfStates(states);
         final long duration = time.stop();
@@ -265,7 +275,7 @@ public abstract class Experiment {
 
         setProperty(duration_property, duration);
         setProperty(start_property, start);
-        LOGGER.info("reached {} state(s) in {} seconds", start, toSeconds(duration));
+        LOGGER.info("reached {} state(s) in {} seconds", states_as_string, toSeconds(duration));
 
         return duration;
     }
