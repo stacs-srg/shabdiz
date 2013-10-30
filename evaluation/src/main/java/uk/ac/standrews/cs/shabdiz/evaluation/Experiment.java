@@ -32,7 +32,9 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplciationStateCounters;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplicationStateCounters;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesInGangliaGauge;
+import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesOutGangliaGauge;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -59,7 +61,7 @@ public abstract class Experiment {
     public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
     public static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
     public static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
-    public static final String PROPERTOES_FILE_NAME = "experiment.properties";
+    public static final String PROPERTIES_FILE_NAME = "experiment.properties";
     public static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
     public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     static final File RESULTS_HOME = new File("results");
@@ -126,13 +128,15 @@ public abstract class Experiment {
             }
         }
     };
+    private BlubBytesInGangliaGauge ganglia_bytes_in;
+    private BlubBytesOutGangliaGauge ganglia_bytes_out;
 
     protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
 
         this(network_size, host_provider, manager, new Duration(5, TimeUnit.SECONDS), ExperimentManager.PROCESS_START_TIMEOUT, 10);
     }
 
-    public Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size) {
+    protected Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;
@@ -145,6 +149,8 @@ public abstract class Experiment {
     @Before
     public void setUp() throws Exception {
 
+        ganglia_bytes_in = new BlubBytesInGangliaGauge();
+        ganglia_bytes_out = new BlubBytesOutGangliaGauge();
         populateProperties();
         disableAllNetworkScanners();
         populateNetwork();
@@ -203,7 +209,7 @@ public abstract class Experiment {
     static boolean isLocalHostBlubHeadNode() {
 
         try {
-            return InetAddress.getLocalHost().getHostName().equals("blub-cs.st-andrews.ac.uk");
+            return "blub-cs.st-andrews.ac.uk".equals(InetAddress.getLocalHost().getHostName());
         }
         catch (UnknownHostException e) {
             LOGGER.error("failed to check if the local host is blub head node", e);
@@ -222,18 +228,20 @@ public abstract class Experiment {
             LOGGER.info("output from killing all java processes on blub nodes: \n{}", output);
         }
         catch (Throwable e) {
-            LOGGER.error("faield to kill all java processes on blub", e);
+            LOGGER.error("failed to kill all java processes on blub", e);
         }
     }
 
     private void registerMetrics() {
 
-        final ApplciationStateCounters application_state_counters = new ApplciationStateCounters(network);
+        final ApplicationStateCounters application_state_counters = new ApplicationStateCounters(network);
         application_state_counters.registerTo(registry);
         registerMetric("memory_gauge", memory_gauge);
         registerMetric("cpu_gauge", cpu_gauge);
         registerMetric("thread_count_gauge", thread_count_gauge);
         registerMetric("system_load_average_gauge", system_load_average_gauge);
+        registerMetric("ganglia_bytes_in", ganglia_bytes_in);
+        registerMetric("ganglia_bytes_out", ganglia_bytes_out);
     }
 
     private void populateProperties() {
@@ -273,7 +281,7 @@ public abstract class Experiment {
 
         BufferedOutputStream out = null;
         try {
-            out = new BufferedOutputStream(new FileOutputStream(new File(PROPERTOES_FILE_NAME), false));
+            out = new BufferedOutputStream(new FileOutputStream(new File(PROPERTIES_FILE_NAME), false));
             properties.store(out, "");
         }
         finally {

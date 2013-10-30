@@ -10,12 +10,12 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class ApplciationStateCounters implements PropertyChangeListener {
+public class ApplicationStateCounters implements PropertyChangeListener {
 
     private final Iterable<ApplicationDescriptor> descriptors;
     private final Map<ApplicationState, Counter> counters;
 
-    public ApplciationStateCounters(Iterable<ApplicationDescriptor> descriptors) {
+    public ApplicationStateCounters(Iterable<ApplicationDescriptor> descriptors) {
 
         this.descriptors = descriptors;
         counters = new HashMap<ApplicationState, Counter>();

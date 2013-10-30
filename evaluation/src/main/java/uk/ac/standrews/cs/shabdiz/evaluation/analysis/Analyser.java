@@ -44,9 +44,8 @@ public class Analyser {
     };
     public static final Rectangle BOUNDS = new Rectangle(0, 0, 600, 400);
     private static final File RESULTS_HOME = new File("/Users/masih/Desktop/results/");
-    private static final String[] GAUGE_FILES = {
-            "auth_state_counter.csv", "cpu_gauge.csv", "deployed_state_counter.csv", "invalid_state_counter.csv", "killed_state_counter.csv", "launched_state_counter.csv", "memory_gauge.csv", "no_auth_state_counter.csv", "running_state_counter.csv", "thread_count_gauge.csv", "unknown_state_counter.csv", "unreachable_state_counter.csv", "system_load_average_gauge.csv"
-    };
+    private static final String[] GAUGE_FILES = {"auth_state_counter.csv", "cpu_gauge.csv", "deployed_state_counter.csv", "invalid_state_counter.csv", "killed_state_counter.csv", "launched_state_counter.csv", "memory_gauge.csv", "no_auth_state_counter.csv", "running_state_counter.csv",
+                    "thread_count_gauge.csv", "unknown_state_counter.csv", "unreachable_state_counter.csv", "system_load_average_gauge.csv"};
     private static final boolean SKIP_IF_ANALYSIS_EXISTS = false;
     private final File observations_directory;
 
@@ -57,12 +56,12 @@ public class Analyser {
 
     public static List<Properties> getAllPropertiesAt(File directory) throws IOException {
 
-        final Collection<File> properties_files = FileUtils.listFiles(directory, new String[] {"properties"}, true);
+        final Collection<File> properties_files = FileUtils.listFiles(directory, new String[]{"properties"}, true);
         final List<Properties> properties = new ArrayList<Properties>();
 
         for (File file : properties_files) {
 
-            if (file.getName().equals(Experiment.PROPERTOES_FILE_NAME)) {
+            if (file.getName().equals(Experiment.PROPERTIES_FILE_NAME)) {
 
                 final Properties p = new Properties();
                 FileReader reader = null;
@@ -153,7 +152,7 @@ public class Analyser {
         final Properties properties = new Properties();
         BufferedInputStream in = null;
         try {
-            in = new BufferedInputStream(new FileInputStream(new File(observations_directory, Experiment.PROPERTOES_FILE_NAME)));
+            in = new BufferedInputStream(new FileInputStream(new File(observations_directory, Experiment.PROPERTIES_FILE_NAME)));
             properties.load(in);
         }
         finally {
@@ -165,9 +164,7 @@ public class Analyser {
     private static String getFileNameByState(final ApplicationState state) {
 
         for (String g : GAUGE_FILES) {
-            if (g.startsWith(state.name().toLowerCase())) {
-                return g;
-            }
+            if (g.startsWith(state.name().toLowerCase())) { return g; }
         }
 
         throw new RuntimeException("no file with state " + state);
