@@ -7,9 +7,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -36,9 +40,11 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RANDOM_
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RETRY_INTERVAL;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_TIMEOUT;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_MANAGER_FILE_WARM;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_48;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_1_MINUTE;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION;
@@ -88,16 +94,32 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     @Parameterized.Parameters(name = "network_{0}_{1}_{2}_kill_{3}_interval_{4}_timeout_{5}_sch_pool_{6}_conc_pool_{7}")
     public static Collection<Object[]> getParameters() {
 
-        final List<Object[]> parameters = new ArrayList<Object[]>();
+        final Set<Object[]> unique_parameters = new TreeSet<Object[]>(new Comparator<Object[]>() {
+
+            @Override
+            public int compare(final Object[] o1, final Object[] o2) {
+
+                return Arrays.toString(o1).compareTo(Arrays.toString(o2));
+            }
+        });
         //@formatter:off
         final List<Object[]> scanner_interval_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
-                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES});
+                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+
+        final List<Object[]> concurrent_scanner_pool_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES});
         //@formatter:on
+
+        unique_parameters.addAll(scanner_interval_effect);
+        unique_parameters.addAll(concurrent_scanner_pool_size_effect);
+
+        final List<Object[]> parameters_with_repetitions = new ArrayList<Object[]>();
         for (int i = 0; i < REPETITIONS; i++) {
-            parameters.addAll(scanner_interval_effect);
+            parameters_with_repetitions.addAll(unique_parameters);
         }
-        return parameters;
+        return parameters_with_repetitions;
     }
 
     @Override
