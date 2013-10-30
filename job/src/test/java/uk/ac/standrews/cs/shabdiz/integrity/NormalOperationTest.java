@@ -23,11 +23,13 @@ import java.util.concurrent.Future;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
+@Category(Ignore.class)
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";

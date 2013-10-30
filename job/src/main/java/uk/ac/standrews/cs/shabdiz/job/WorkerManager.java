@@ -74,8 +74,6 @@ class WorkerManager extends AbstractApplicationManager {
         final Worker worker = new Worker(network, worker_remote, worker_process, worker_remote_address);
         worker.setWorkerProcessId(pid);
         LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, pid);
-        //        final DefaultWorkerRemote worker_remote = new DefaultWorkerRemote(NetworkUtil.getLocalIPv4InetSocketAddress(0), network.getCallbackAddress());
-        //        final Worker worker = new Worker(network, worker_remote, null, worker_remote.getAddress());
         return worker;
     }
 
@@ -135,7 +133,6 @@ class WorkerManager extends AbstractApplicationManager {
         final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-core", SHABDIZ_VERSION);
         process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
         process_builder.setAlwaysUploadBootstrap(true);
         return process_builder;
