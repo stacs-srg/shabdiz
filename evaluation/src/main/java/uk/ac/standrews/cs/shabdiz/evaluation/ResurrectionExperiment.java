@@ -147,7 +147,7 @@ public class ResurrectionExperiment extends Experiment {
             LOGGER.info("disabling auto deploy");
             network.setAutoDeployEnabled(false);
 
-            LOGGER.info("killing {} portion of network", kill_portion);
+            LOGGER.info("killing {}% of network", kill_portion);
             final List<ApplicationDescriptor> killed_instances = killPortionOfNetwork();
 
             LOGGER.info("re-enabling auto deploy");

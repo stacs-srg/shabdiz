@@ -14,7 +14,7 @@
         </encoder>
     </appender>
 
-    <logger name="uk.ac.standrews.cs" level="DEBUG"/>
+    <!--<logger name="uk.ac.standrews.cs" level="DEBUG"/>-->
     <!--<logger name="org.mashti" level="TRACE"/>-->
     <logger name="net.schmizz" level="ERROR"/>
 
