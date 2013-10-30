@@ -42,9 +42,9 @@ import static org.junit.Assume.assumeTrue;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @Category(Ignore.class)
-public class SSHjHostTest extends Bootstrap {
+public class SupervisedSSHjHostTest extends Bootstrap {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHostTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedSSHjHostTest.class);
     private static SSHjHost host;
     private static String host_name;
 
@@ -69,26 +69,8 @@ public class SSHjHostTest extends Bootstrap {
         });
 
         final AuthMethod authentication = new AuthPublickey(key_provider);
-
-        //        final AuthMethod authentication = new AuthPassword(new PasswordFinder() {
-        //
-        //            @Override
-        //            public char[] reqPassword(final Resource<?> resource) {
-        //
-        //                return Input.readPassword("local private key password: ");
-        //            }
-        //
-        //            @Override
-        //            public boolean shouldRetry(final Resource<?> resource) {
-        //
-        //                return false;
-        //            }
-        //        });
-
-        //        host = new SSHjHost(InetAddress.getLocalHost().getHostName(), authentication);
         host_name = "masih.host.cs.st-andrews.ac.uk";
         host = new SSHjHost(host_name, authentication);
-        //                host = new LocalHost();
     }
 
     @AfterClass
@@ -102,9 +84,9 @@ public class SSHjHostTest extends Bootstrap {
 
         AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
         builder.addCurrentJVMClasspath();
-        builder.setMainClass(SSHjHostTest.class);
+        builder.setMainClass(SupervisedSSHjHostTest.class);
         final Process start = builder.start(host);
-        final Properties properties = Bootstrap.readProperties(SSHjHostTest.class, start, new Duration(50, TimeUnit.SECONDS));
+        final Properties properties = Bootstrap.readProperties(SupervisedSSHjHostTest.class, start, new Duration(50, TimeUnit.SECONDS));
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             System.out.println(entry.getKey() + "\t\t\t" + entry.getValue());
         }

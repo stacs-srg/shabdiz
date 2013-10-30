@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
+import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -36,7 +37,9 @@ import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.shabdiz.job.util.Attributes;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Input;
+import uk.ac.standrews.cs.test.category.Ignore;
 
+@Category(Ignore.class)
 public class SupervisedRemoteTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedRemoteTest.class);

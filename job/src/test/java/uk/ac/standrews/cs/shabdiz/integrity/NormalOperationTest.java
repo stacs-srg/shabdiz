@@ -21,7 +21,6 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -29,6 +28,9 @@ import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests whether a deployed job returns expected result.
@@ -52,25 +54,6 @@ public class NormalOperationTest {
     public static void setUp() throws Exception {
 
         localhost = new LocalHost();
-        //        final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
-        //        key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
-        //
-        //            @Override
-        //            public char[] reqPassword(final Resource<?> resource) {
-        //
-        //                return Input.readPassword("local private key password: ");
-        //            }
-        //
-        //            @Override
-        //            public boolean shouldRetry(final Resource<?> resource) {
-        //
-        //                return false;
-        //            }
-        //        });
-        //
-        //        final AuthMethod authentication = new AuthPublickey(key_provider);
-        //        localhost = new SSHjHost("project07.cs.st-andrews.ac.uk", authentication);
-
         network = new WorkerNetwork();
         network.add(localhost);
         network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");
@@ -100,7 +83,7 @@ public class NormalOperationTest {
     public void sayHelloTest() throws Exception {
 
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
-        Assert.assertEquals(HELLO, future.get());
+        assertEquals(HELLO, future.get());
     }
 
     /**
@@ -109,7 +92,7 @@ public class NormalOperationTest {
      * @throws Exception the exception
      */
     @Test
-    public void throwExeptionTest() throws Exception {
+    public void throwExceptionTest() throws Exception {
 
         final NullPointerException npe = new NullPointerException(TEST_EXCEPTION_MESSAGE);
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeThrowExceptionJob(npe));
@@ -119,9 +102,9 @@ public class NormalOperationTest {
         }
         catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
-            Assert.assertTrue(cause != null);
-            Assert.assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
-            Assert.assertEquals(NullPointerException.class, cause.getClass());
+            assertNotNull(cause);
+            assertEquals(TEST_EXCEPTION_MESSAGE, cause.getMessage());
+            assertEquals(NullPointerException.class, cause.getClass());
         }
     }
 }
