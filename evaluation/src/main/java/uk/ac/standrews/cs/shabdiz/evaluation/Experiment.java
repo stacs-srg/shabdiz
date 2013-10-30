@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
 import org.junit.After;
@@ -14,10 +16,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.internal.AssumptionViolatedException;
-import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.mashti.gauge.Metric;
 import org.mashti.gauge.MetricRegistry;
@@ -35,41 +34,35 @@ import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplicationStateCounters;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesInGangliaGauge;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubBytesOutGangliaGauge;
-import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 import static org.mashti.jetson.util.CloseableUtil.closeQuietly;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.EXPERIMENT_DURATION_NANOS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.EXPERIMENT_FAILURE_CAUSE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.EXPERIMENT_START_TIME_NANOS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.EXPERIMENT_STATUS_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.EXPERIMENT_TIMEOUT;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.FAILURE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.HOST_PROVIDER_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.MANAGER_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.PROPERTIES_FILE_NAME;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPORT_INTERVAL;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPORT_INTERVAL_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_SCHEDULER_THREAD_POOL_SIZE_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SUCCESS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.USER_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.WORKING_DIRECTORY_PROPERTY;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ExperiementRunner.class)
 public abstract class Experiment {
 
-    public static final String EXPERIMENT_STATUS = "status";
-    public static final String SUCCESS = "SUCCESS";
-    public static final String FAILURE = "FAILURE";
-    public static final String EXPERIMENT_FAILURE_CAUSE = "failure.cause";
-    public static final String EXPERIMENT_DURATION_NANOS = "experiment.duration_nanos";
-    public static final int MAX_RETRY_COUNT = 5;
-    public static final String EXPERIMENT_START_TIME_NANOS = "experiment.start_time_nanos";
-    public static final String USER_PROPERTY = "user";
-    public static final String NETWORK_SIZE_PROPERTY = "network_size";
-    public static final String MANAGER_PROPERTY = "manager";
-    public static final String HOST_PROVIDER_PROPERTY = "host_provider";
-    public static final String WORKING_DIRECTORY_PROPERTY = "working_directory";
-    public static final String REPORT_INTERVAL_PROPERTY = "report_interval";
-    public static final String TIME_TO_REACH_AUTH = "time_to_reach_auth";
-    public static final String TIME_TO_REACH_RUNNING = "time_to_reach_running";
-    public static final String PROPERTIES_FILE_NAME = "experiment.properties";
-    public static final Integer[] NETWORK_SIZES = {10, 20, 30, 40, 48};
-    public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
-    static final File RESULTS_HOME = new File("results");
-    static final int TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
-    static final int REPETITIONS = 5;
-    static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new BlubHostProvider()};
-    static final ExperimentManager[] ALL_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM, EchoManager.FILE_BASED_COLD, EchoManager.FILE_BASED_WARM, EchoManager.URL_BASED,
-                    EchoManager.MAVEN_BASED_COLD, EchoManager.MAVEN_BASED_WARM};
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     protected final ApplicationNetwork network;
     protected final Integer network_size;
@@ -84,66 +77,34 @@ public abstract class Experiment {
     private final ExperimentManager manager;
     private final CsvReporter reporter;
     @Rule
-    public Timeout experiment_timeout = new Timeout(TIMEOUT);
+    public Timeout experiment_timeout = new Timeout(EXPERIMENT_TIMEOUT);
     @Rule
-    public TestWatcher watcher = new TestWatcher() {
-
-        @Override
-        protected void succeeded(final Description description) {
-
-            super.succeeded(description);
-            setProperty("watcher." + description, "succeeded");
-            LOGGER.info("succeeded test {}", description);
-        }
-
-        @Override
-        protected void failed(final Throwable e, final Description description) {
-
-            super.failed(e, description);
-            setProperty("watcher." + description, "failed: " + e);
-            LOGGER.error("failed test {} due to error", description);
-            LOGGER.error("failed test error", e);
-        }
-
-        @Override
-        protected void skipped(final AssumptionViolatedException e, final Description description) {
-
-            super.skipped(e, description);
-            setProperty("watcher." + description.getMethodName(), "skipped: " + e);
-            LOGGER.warn("skipped test {} due to assumption violation", description);
-            LOGGER.warn("assumption violation", e);
-        }
-
-        @Override
-        protected void finished(final Description description) {
-
-            super.finished(description);
-
-            LOGGER.info("persisting experiment properties...");
-            try {
-                persistProperties();
-            }
-            catch (IOException e) {
-                LOGGER.error("failed to persist properties of " + description, e);
-            }
-        }
-    };
+    public ExperimentWatcher watcher = new ExperimentWatcher(this);
     private BlubBytesInGangliaGauge ganglia_bytes_in;
     private BlubBytesOutGangliaGauge ganglia_bytes_out;
 
-    protected Experiment(Integer network_size, Provider<Host> host_provider, ExperimentManager manager) {
-
-        this(network_size, host_provider, manager, new Duration(5, TimeUnit.SECONDS), ExperimentManager.PROCESS_START_TIMEOUT, 10);
-    }
-
-    protected Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size) {
+    protected Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;
         this.manager = manager;
-        network = new ApplicationNetwork(getClass().getSimpleName(), scanner_interval, scanner_timeout, scanner_thread_pool_size);
+        network = new ApplicationNetwork(getClass().getSimpleName(), scanner_interval, scanner_timeout, scanner_scheduler_thread_pool_size) {
+
+            @Override
+            protected ExecutorService createScannerExecutorService() {
+
+                final ThreadPoolExecutor executor = (ThreadPoolExecutor) super.createScannerExecutorService();
+                executor.setMaximumPoolSize(concurrent_scanner_thread_pool_size);
+                return executor;
+            }
+        };
         registry = new MetricRegistry(getClass().getSimpleName());
         reporter = new CsvReporter(registry);
+
+        setProperty(SCANNER_INTERVAL_PROPERTY, scanner_interval);
+        setProperty(SCANNER_TIMEOUT_PROPERTY, scanner_timeout);
+        setProperty(SCANNER_SCHEDULER_THREAD_POOL_SIZE_PROPERTY, scanner_scheduler_thread_pool_size);
+        setProperty(CONCURRENT_SCANNER_THREAD_POOL_SIZE_PROPERTY, concurrent_scanner_thread_pool_size);
     }
 
     @Before
@@ -158,22 +119,22 @@ public abstract class Experiment {
             manager.configure(network);
         }
         registerMetrics();
-        LOGGER.info("starting experimentation...");
-        startReporter();
     }
 
     @Test
     @Category(Experiment.class)
     public final void experiment() throws Throwable {
 
+        LOGGER.info("starting experimentation...");
         final long start = System.nanoTime();
         setProperty(EXPERIMENT_START_TIME_NANOS, start);
+        startReporter();
         try {
             doExperiment();
-            setProperty(EXPERIMENT_STATUS, SUCCESS);
+            setProperty(EXPERIMENT_STATUS_PROPERTY, SUCCESS);
         }
         catch (Throwable e) {
-            setProperty(EXPERIMENT_STATUS, FAILURE);
+            setProperty(EXPERIMENT_STATUS_PROPERTY, FAILURE);
             setProperty(EXPERIMENT_FAILURE_CAUSE, e);
             throw e;
         }
@@ -195,7 +156,7 @@ public abstract class Experiment {
             network.shutdown();
         }
         catch (Throwable e) {
-            LOGGER.error("error occured while taring down experiment", e);
+            LOGGER.error("error occurred while taring down experiment", e);
         }
         finally {
             if (isLocalHostBlubHeadNode()) {
@@ -277,12 +238,12 @@ public abstract class Experiment {
         network.add(new ApplicationDescriptor(host, manager));
     }
 
-    private void persistProperties() throws IOException {
+    protected void persistProperties(String comment) throws IOException {
 
         BufferedOutputStream out = null;
         try {
             out = new BufferedOutputStream(new FileOutputStream(new File(PROPERTIES_FILE_NAME), false));
-            properties.store(out, "");
+            properties.store(out, comment);
         }
         finally {
             closeQuietly(out);
@@ -294,11 +255,19 @@ public abstract class Experiment {
         network.setScanEnabled(false);
     }
 
-    protected long timeUniformNetworkStateInNanos(ApplicationState state) throws InterruptedException {
+    protected long timeUniformNetworkState(String start_property, String duration_property, ApplicationState... states) throws InterruptedException {
 
+        LOGGER.info("awaiting {} state(s)...", states);
         final Timer.Time time = timer.time();
-        network.awaitAnyOfStates(state);
-        return time.stop();
+        network.awaitAnyOfStates(states);
+        final long duration = time.stop();
+        final long start = time.getStartTimeInNanos();
+
+        setProperty(duration_property, duration);
+        setProperty(start_property, start);
+        LOGGER.info("reached {} state(s) in {} seconds", start, toSeconds(duration));
+
+        return duration;
     }
 
     protected Object setProperty(String key, Object value) {
@@ -311,8 +280,8 @@ public abstract class Experiment {
         return timer.time();
     }
 
-    protected long nanosToSeconds(final long nanos) {
+    protected long toSeconds(final long nanoseconds) {
 
-        return TimeUnit.SECONDS.convert(nanos, TimeUnit.NANOSECONDS);
+        return TimeUnit.SECONDS.convert(nanoseconds, TimeUnit.NANOSECONDS);
     }
 }

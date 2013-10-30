@@ -28,8 +28,8 @@ import org.mashti.gauge.util.GaugeLineChart;
 import org.mashti.jetson.util.CloseableUtil;
 import org.mashti.sight.PlainChartTheme;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
+import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 import uk.ac.standrews.cs.shabdiz.evaluation.ExperiementRunner;
-import uk.ac.standrews.cs.shabdiz.evaluation.Experiment;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Analyser {
@@ -61,7 +61,7 @@ public class Analyser {
 
         for (File file : properties_files) {
 
-            if (file.getName().equals(Experiment.PROPERTIES_FILE_NAME)) {
+            if (file.getName().equals(Constants.PROPERTIES_FILE_NAME)) {
 
                 final Properties p = new Properties();
                 FileReader reader = null;
@@ -116,7 +116,7 @@ public class Analyser {
                     FileUtils.forceMkdir(jfc_home);
 
                     combiner.addRepetitions(repetitions, state_counter_file_name);
-                    combiner.combine(combined, Experiment.REPORT_INTERVAL.getLength(), Experiment.REPORT_INTERVAL.getTimeUnit());
+                    combiner.combine(combined, Constants.REPORT_INTERVAL.getLength(), Constants.REPORT_INTERVAL.getTimeUnit());
 
                     final GaugeLineChart chart_generator = new GaugeLineChart(state_counter_file_name, combined);
                     final JFreeChart chart = chart_generator.getChart();
@@ -152,7 +152,7 @@ public class Analyser {
         final Properties properties = new Properties();
         BufferedInputStream in = null;
         try {
-            in = new BufferedInputStream(new FileInputStream(new File(observations_directory, Experiment.PROPERTIES_FILE_NAME)));
+            in = new BufferedInputStream(new FileInputStream(new File(observations_directory, Constants.PROPERTIES_FILE_NAME)));
             properties.load(in);
         }
         finally {

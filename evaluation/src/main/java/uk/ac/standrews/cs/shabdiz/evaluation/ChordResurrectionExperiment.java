@@ -29,8 +29,22 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 
-import static uk.ac.standrews.cs.shabdiz.ApplicationState.AUTH;
-import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_SCANNER_INTERVALS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.BLUB_HOST_PROVIDER;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RANDOM_SEED;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RETRY_INTERVAL;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_TIMEOUT;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_MANAGER_FILE_WARM;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_48;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_1_MINUTE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_START;
 
 /**
  * Investigates how long it takes for a chord network to reach {@link ApplicationState#RUNNING} state and a stabilized ring after a portion of application instances are killed.
@@ -54,34 +68,34 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  */
 public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
-    static final Boolean[] HOT_COLD = {Boolean.FALSE, Boolean.TRUE};
-    public static final String TIME_TO_REACH_STABILIZED_RING = "time_to_reach_stabilized_ring";
-    public static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL = "time_to_reach_stabilized_ring_after_kill";
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordResurrectionExperiment.class);
-    private static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM};
     private static final Duration JOIN_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
     private static final Duration JOIN_RETRY_INTERVAL = new Duration(5, TimeUnit.SECONDS);
-    private static final int SEED = 78354;
+    private static final int JOIN_RANDOM_SEED = 78354;
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
     private final List<IChordRemoteReference> joined_nodes = new ArrayList<IChordRemoteReference>();
     private final Random random;
 
-    public ChordResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final float kill_portion) {
+    public ChordResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
 
-        super(network_size, host_provider, manager, kill_portion);
+        super(network_size, host_provider, manager, kill_portion, scanner_interval, scanner_timeout, scheduler_pool_size, concurrent_scanner_pool_size);
         ring_size_scanner = new ChordRingSizeScanner();
         ring_size_gauge = new RingSizeGauge();
-        random = new Random(SEED);
+        random = new Random(JOIN_RANDOM_SEED);
     }
 
-    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}__kill_portion_{3}")
+    @Parameterized.Parameters(name = "network_{0}_{1}_{2}_kill_{3}_interval_{4}_timeout_{5}_sch_pool_{6}_conc_pool_{7}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, CHORD_APPLICATION_MANAGERS, KILL_PORTIONS});
+        //@formatter:off
+        final List<Object[]> scanner_interval_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
+                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES});
+        //@formatter:on
         for (int i = 0; i < REPETITIONS; i++) {
-            parameters.addAll(combinations);
+            parameters.addAll(scanner_interval_effect);
         }
         return parameters;
     }
@@ -91,28 +105,17 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
         registerMetric("ring_size_gauge", ring_size_gauge);
         network.addScanner(ring_size_scanner);
-        setProperty("join_timeout", JOIN_TIMEOUT);
+        setProperty(CHORD_JOIN_TIMEOUT, JOIN_TIMEOUT);
+        setProperty(CHORD_JOIN_RETRY_INTERVAL, JOIN_RETRY_INTERVAL);
+        setProperty(CHORD_JOIN_RANDOM_SEED, JOIN_RANDOM_SEED);
+
         super.setUp();
     }
 
     @Override
-    public void doExperiment() throws Exception {
+    protected void afterDeploy() throws Exception {
 
-        LOGGER.info("enabling status scanner");
-        network.setStatusScannerEnabled(true);
-
-        LOGGER.info("awaiting AUTH state...");
-        final long time_to_reach_auth = timeUniformNetworkStateInNanos(AUTH);
-        setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
-        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_auth));
-
-        LOGGER.info("enabling auto deploy");
-        network.setAutoDeployEnabled(true);
-
-        LOGGER.info("awaiting RUNNING state...");
-        final long time_to_reach_running = timeUniformNetworkStateInNanos(RUNNING);
-        setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
-        LOGGER.info("reached RUNNING state in {} seconds", nanosToSeconds(time_to_reach_running));
+        super.afterDeploy();
 
         LOGGER.info("enabling ring size scanner");
         ring_size_scanner.setEnabled(true);
@@ -120,32 +123,19 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         LOGGER.info("assembling Chord ring");
         assembleRing();
 
-        LOGGER.info("awaiting stabilized ring");
-        final long time_to_reach_stabilized_ring = timeRingStabilization();
-        setProperty(TIME_TO_REACH_STABILIZED_RING, String.valueOf(time_to_reach_stabilized_ring));
-        LOGGER.info("reached stabilized ring of size {} in {} seconds", network_size, nanosToSeconds(time_to_reach_stabilized_ring));
+        timeRingStabilization(TIME_TO_REACH_STABILIZED_RING_START, TIME_TO_REACH_STABILIZED_RING_DURATION);
+    }
 
-        LOGGER.info("disabling auto deploy");
-        network.setAutoDeployEnabled(false);
+    @Override
+    protected void afterResurrection(final List<ApplicationDescriptor> killed_instances) throws Exception {
 
-        LOGGER.info("killing {} portion of network", kill_portion);
-        final List<ApplicationDescriptor> killed_descriptors = killPortionOfNetwork();
-
-        LOGGER.info("re-enabling auto deploy");
-        network.setAutoDeployEnabled(true);
-
-        LOGGER.info("awaiting RUNNING state after killing portion of network...");
-        final long time_to_reach_running_after_kill = timeUniformNetworkStateInNanos(RUNNING);
-        setProperty(TIME_TO_REACH_RUNNING_AFTER_KILL, String.valueOf(time_to_reach_running_after_kill));
-        LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, nanosToSeconds(time_to_reach_running_after_kill));
-
-        LOGGER.info("re-assembling Chord ring");
-        assembleRing(killed_descriptors);
+        super.afterResurrection(killed_instances);
+        LOGGER.info("re-assembling Chord ring by re-joining {} instances", killed_instances.size());
+        assembleRing(killed_instances);
 
         LOGGER.info("awaiting stabilized ring after killing portion of network...");
-        final long time_to_reach_stabilized_ring_after_kill = timeRingStabilization();
-        setProperty(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL, String.valueOf(time_to_reach_stabilized_ring_after_kill));
-        LOGGER.info("reached stabilized ring of size {} in {} seconds after killing portion of network", network_size, nanosToSeconds(time_to_reach_stabilized_ring_after_kill));
+        timeRingStabilization(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START, TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
+
     }
 
     @Override
@@ -177,7 +167,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
                         }
                         catch (final Exception e) {
                             LOGGER.error("node {}({}) failed to complete join within timeout", node.getCachedKey(), node.getCachedAddress());
-                            LOGGER.error("failed join cauesed by", e);
+                            LOGGER.error("failed join caused by", e);
                             throw e;
                         }
                         return null; // Void task
@@ -236,8 +226,9 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         assembleRing(network);
     }
 
-    private long timeRingStabilization() throws InterruptedException {
+    private void timeRingStabilization(final String start_property, final String duration_property) throws InterruptedException {
 
+        LOGGER.info("awaiting ring stabilisation...");
         final CountDownLatch stabilization_latch = new CountDownLatch(1);
         final PropertyChangeListener latched_ring_size_change_listener = new PropertyChangeListener() {
 
@@ -250,11 +241,19 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
                 }
             }
         };
+
         ring_size_scanner.addRingSizeChangeListener(latched_ring_size_change_listener);
 
         final Timer.Time time = time();
         stabilization_latch.await();
-        return time.stop();
+        final long duration = time.stop();
+        final long start = time.getStartTimeInNanos();
+
+        ring_size_scanner.removeRingSizeChangeListener(latched_ring_size_change_listener);
+
+        setProperty(start_property, start);
+        setProperty(duration_property, duration);
+        LOGGER.info("reached stabilized ring of size {} in {} seconds", network_size, toSeconds(duration));
     }
 
     private final class RingSizeGauge implements Gauge<Integer> {

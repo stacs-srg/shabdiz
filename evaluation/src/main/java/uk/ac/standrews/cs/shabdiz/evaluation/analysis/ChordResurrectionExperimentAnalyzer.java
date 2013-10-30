@@ -18,9 +18,7 @@ import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.evaluation.ChordResurrectionExperiment;
-import uk.ac.standrews.cs.shabdiz.evaluation.Experiment;
-import uk.ac.standrews.cs.shabdiz.evaluation.ResurrectionExperiment;
+import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ChordResurrectionExperimentAnalyzer {
@@ -30,9 +28,9 @@ public class ChordResurrectionExperimentAnalyzer {
 
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
-        new ChordResurrectionExperimentAnalyzer().analyze(ChordResurrectionExperiment.TIME_TO_REACH_RUNNING_AFTER_KILL);
-        new ChordResurrectionExperimentAnalyzer().analyze(ChordResurrectionExperiment.TIME_TO_REACH_STABILIZED_RING);
-        new ChordResurrectionExperimentAnalyzer().analyze(ChordResurrectionExperiment.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL);
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION);
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_DURATION);
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
 
     }
 
@@ -51,10 +49,10 @@ public class ChordResurrectionExperimentAnalyzer {
 
             Category2 category = new Category2();
             for (Properties p : properties) {
-                final String status = p.getProperty(Experiment.EXPERIMENT_STATUS);
-                category.network_size = Integer.parseInt(p.getProperty(Experiment.NETWORK_SIZE_PROPERTY));
-                category.manager = p.getProperty(Experiment.MANAGER_PROPERTY).replace("EchoManager.", "");
-                category.kill_portion = p.getProperty(ResurrectionExperiment.KILL_PORTION);
+                final String status = p.getProperty(Constants.EXPERIMENT_STATUS_PROPERTY);
+                category.network_size = Integer.parseInt(p.getProperty(Constants.NETWORK_SIZE_PROPERTY));
+                category.manager = p.getProperty(Constants.MANAGER_PROPERTY).replace("EchoManager.", "");
+                category.kill_portion = p.getProperty(Constants.KILL_PORTION_PROPERTY);
 
                 if (status != null && !status.equalsIgnoreCase("failure")) {
 
@@ -73,7 +71,7 @@ public class ChordResurrectionExperimentAnalyzer {
             availability_statistics.put(category, statistics);
         }
 
-        for (Integer network_size : ResurrectionExperiment.NETWORK_SIZES) {
+        for (Integer network_size : Constants.ALL_NETWORK_SIZES) {
 
             DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
             for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
@@ -87,7 +85,8 @@ public class ChordResurrectionExperimentAnalyzer {
                 }
             }
 
-            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing portions of network size " + network_size, "Percentage of killed instances", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL, true, false, false);
+            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing portions of network size " + network_size, "Percentage of killed instances", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL,
+                            true, false, false);
             new PlainChartTheme().apply(chart);
             StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
             statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
@@ -98,7 +97,7 @@ public class ChordResurrectionExperimentAnalyzer {
             GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, property_name + "_by_network_size_" + network_size + ".svg"));
         }
 
-        for (Float kill_portion : ResurrectionExperiment.KILL_PORTIONS) {
+        for (int kill_portion : Constants.ALL_KILL_PORTIONS) {
 
             DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
             for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
@@ -111,7 +110,8 @@ public class ChordResurrectionExperimentAnalyzer {
                 }
             }
 
-            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing " + decorateKillPortion(kill_portion) + " of instances", "Network Size", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL, true, false, false);
+            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing " + decorateKillPortion(kill_portion) + " of instances", "Network Size", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL, true,
+                            false, false);
             new PlainChartTheme().apply(chart);
             StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
             statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
@@ -126,15 +126,15 @@ public class ChordResurrectionExperimentAnalyzer {
 
     static String decorateKillPortion(String kill_portion) {
 
-        return decorateKillPortion(Float.valueOf(kill_portion));
+        return decorateKillPortion(Integer.parseInt(kill_portion));
     }
 
-    static String decorateKillPortion(Float kill_portion) {
+    static String decorateKillPortion(int kill_portion) {
 
-        return (int) (kill_portion * 100) + "%";
+        return kill_portion + "%";
     }
 
-    static class Category2 extends RunningApplicationRecognitionAnalyzer.Category {
+    static class Category2 extends Category {
 
         String kill_portion;
 
@@ -142,6 +142,29 @@ public class ChordResurrectionExperimentAnalyzer {
         public String toString() {
 
             return super.toString() + " " + kill_portion;
+        }
+    }
+
+    static class Category implements Comparable<Category> {
+
+        int network_size;
+        String manager;
+
+        @Override
+        public int compareTo(final Category o) {
+
+            return toString().compareTo(o.toString());
+        }
+
+        @Override
+        public String toString() {
+
+            return network_size + " " + manager;
+        }
+
+        public void setManager(final String manager) {
+
+            this.manager = manager.contains("Chord") ? "Chord" : manager.contains("Echo") ? "Echo" : manager;
         }
     }
 

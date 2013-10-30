@@ -58,7 +58,14 @@
                 </configuration>
             </plugin>
         </plugins>
+
     </build>
+
+    <properties>
+        <hello_world.version>1.0</hello_world.version>
+    </properties>
+
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -69,19 +76,31 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>hello_world</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${hello_world.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_2m</artifactId>
+            <version>${hello_world.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hello_world_4m</artifactId>
+            <version>${hello_world.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>hello_world_8m</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${hello_world.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>hello_world_16m</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${hello_world.version}</version>
         </dependency>
 
         <dependency>
@@ -92,7 +111,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>hello_world_64m</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${hello_world.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

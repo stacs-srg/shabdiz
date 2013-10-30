@@ -18,9 +18,9 @@ import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.evaluation.Experiment;
-import uk.ac.standrews.cs.shabdiz.evaluation.ResurrectionExperiment;
+import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 
+import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.ChordResurrectionExperimentAnalyzer.decorateKillPortion;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.HostAvailabilityRecognitionAnalyzer.toSecond;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -50,19 +50,19 @@ public class ResurrectionExperimentAnalyzer {
 
             Category2 category = new Category2();
             for (Properties p : properties) {
-                final String status = p.getProperty(Experiment.EXPERIMENT_STATUS);
-                category.network_size = Integer.parseInt(p.getProperty(Experiment.NETWORK_SIZE_PROPERTY));
-                category.manager = p.getProperty(Experiment.MANAGER_PROPERTY).replace("EchoManager.", "");
-                category.kill_portion = p.getProperty(ResurrectionExperiment.KILL_PORTION);
+                final String status = p.getProperty(Constants.EXPERIMENT_STATUS_PROPERTY);
+                category.network_size = Integer.parseInt(p.getProperty(Constants.NETWORK_SIZE_PROPERTY));
+                category.manager = p.getProperty(Constants.MANAGER_PROPERTY).replace("EchoManager.", "");
+                category.kill_portion = p.getProperty(Constants.KILL_PORTION_PROPERTY);
 
                 if (status != null && !status.equalsIgnoreCase("failure")) {
 
-                    final String time_to_reach_auth_string = p.getProperty(ResurrectionExperiment.TIME_TO_REACH_RUNNING_AFTER_KILL);
+                    final String time_to_reach_auth_string = p.getProperty(Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION);
                     if (time_to_reach_auth_string != null) {
                         statistics.addSample(Long.parseLong(time_to_reach_auth_string));
                     }
                     else {
-                        LOGGER.warn("combination {} does not have {} property", combination, ResurrectionExperiment.TIME_TO_REACH_RUNNING_AFTER_KILL);
+                        LOGGER.warn("combination {} does not have {} property", combination, Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION);
                     }
                 }
                 else {
@@ -72,7 +72,7 @@ public class ResurrectionExperimentAnalyzer {
             availability_statistics.put(category, statistics);
         }
 
-        for (Integer network_size : ResurrectionExperiment.NETWORK_SIZES) {
+        for (Integer network_size : Constants.ALL_NETWORK_SIZES) {
 
             DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
             for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
@@ -97,7 +97,7 @@ public class ResurrectionExperimentAnalyzer {
             GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, "by_network_size_" + network_size + ".svg"));
         }
 
-        for (Float kill_portion : ResurrectionExperiment.KILL_PORTIONS) {
+        for (int kill_portion : Constants.ALL_KILL_PORTIONS) {
 
             DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
             for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
@@ -123,17 +123,7 @@ public class ResurrectionExperimentAnalyzer {
 
     }
 
-    static String decorateKillPortion(String kill_portion) {
-
-        return decorateKillPortion(Float.valueOf(kill_portion));
-    }
-
-    static String decorateKillPortion(Float kill_portion) {
-
-        return (int) (kill_portion * 100) + "%";
-    }
-
-    static class Category2 extends RunningApplicationRecognitionAnalyzer.Category {
+    static class Category2 extends ChordResurrectionExperimentAnalyzer.Category {
 
         String kill_portion;
 

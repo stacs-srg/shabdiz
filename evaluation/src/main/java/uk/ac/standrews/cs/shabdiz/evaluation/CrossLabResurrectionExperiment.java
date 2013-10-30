@@ -11,14 +11,21 @@ import net.schmizz.sshj.userauth.method.AuthMethod;
 import net.schmizz.sshj.userauth.method.AuthPublickey;
 import net.schmizz.sshj.userauth.password.PasswordFinder;
 import net.schmizz.sshj.userauth.password.Resource;
-import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHCredentials;
 import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.Input;
+
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_KILL_PORTIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_MANAGERS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_NETWORK_SIZES;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
 
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#RUNNING} state after a portion of application instances are killed.
@@ -36,25 +43,20 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-@RunWith(Parameterized.class)
 public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
 
-    static final String KILL_PORTION = "kill_portion";
-    static final Integer[] NETWORK_SIZES = new Integer[]{4};
-    static final Float[] KILL_PORTIONS = {0.5F};
-    static final ExperimentManager[] APPLICATION_MANAGERS = {EchoManager.MAVEN_BASED_COLD};
-    static final Provider<Host>[] CROSS_LAB_HOST_PROVIDER = new Provider[]{new CrossLabHostProvider()};
+    private static final Logger LOGGER = LoggerFactory.getLogger(CrossLabResurrectionExperiment.class);
 
-    public CrossLabResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final float kill_portion) {
+    public CrossLabResurrectionExperiment(final int network_size, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
 
-        super(network_size, host_provider, manager, kill_portion);
+        super(network_size, new CrossLabHostProvider(), manager, kill_portion, scanner_interval, scanner_timeout, scheduler_pool_size, concurrent_scanner_pool_size);
     }
 
-    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}__kill_portion_{3}")
+    @Parameterized.Parameters(name = "network_{0}_{1}_{2}_kill_{3}_interval_{4}_timeout_{5}_sch_pool_{6}_conc_pool_{7}")
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, CROSS_LAB_HOST_PROVIDER, APPLICATION_MANAGERS, KILL_PORTIONS});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{ALL_NETWORK_SIZES, ALL_MANAGERS, ALL_KILL_PORTIONS});
         for (int i = 0; i < REPETITIONS; i++) {
             parameters.addAll(combinations);
         }
@@ -63,27 +65,13 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
 
     static class CrossLabHostProvider implements Provider<Host> {
 
-        static final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
+        private static final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         private static final AuthMethod authentication = new AuthPublickey(key_provider);
-
+        private static final String RSA_PRIVATE_KEY_FILE_NAME = "id_rsa";
+        private static final File RSA_PRIVATE_KEY_FILE = new File(SSHCredentials.DEFAULT_SSH_HOME, RSA_PRIVATE_KEY_FILE_NAME);
         static {
-            final char[] passphrase = Input.readPassword("Please enter local private key password: ");
-            key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
-
-                @Override
-                public char[] reqPassword(final Resource<?> resource) {
-
-                    return passphrase;
-                }
-
-                @Override
-                public boolean shouldRetry(final Resource<?> resource) {
-
-                    return false;
-                }
-            });
+            key_provider.init(RSA_PRIVATE_KEY_FILE, new CachedPasswordFinder());
         }
-
         private final List<Host> hosts;
         private int index;
 
@@ -97,6 +85,7 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
                 hosts.add(new SSHjHost("pc2-042-l.cs.st-andrews.ac.uk", authentication));
             }
             catch (IOException e) {
+                LOGGER.error("failed to add predefined hosts", e);
                 throw new RuntimeException(e);
             }
         }
@@ -105,6 +94,31 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
         public Host get() {
 
             return hosts.get(index++);
+        }
+
+        private static class CachedPasswordFinder implements PasswordFinder {
+
+            private char[] passphrase;
+
+            public CachedPasswordFinder() {
+
+            }
+
+            @Override
+            public synchronized char[] reqPassword(final Resource<?> resource) {
+
+                if (passphrase == null) {
+                    passphrase = Input.readPassword("Please enter local private key password: ");
+                }
+
+                return passphrase;
+            }
+
+            @Override
+            public boolean shouldRetry(final Resource<?> resource) {
+
+                return false;
+            }
         }
     }
 }

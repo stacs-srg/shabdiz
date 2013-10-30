@@ -20,9 +20,9 @@ import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.standrews.cs.shabdiz.evaluation.Experiment;
-import uk.ac.standrews.cs.shabdiz.evaluation.KillTimeExperiment;
+import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 
+import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.ChordResurrectionExperimentAnalyzer.Category;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.HostAvailabilityRecognitionAnalyzer.toSecond;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
@@ -41,7 +41,7 @@ public class KillTimeAnalyzer {
 
         final File[] combinations = COMBINATIONS_HOME.listFiles(Analyser.DIRECTORY_FILTER);
 
-        Map<RunningApplicationRecognitionAnalyzer.Category, Statistics> availability_statistics = new TreeMap<RunningApplicationRecognitionAnalyzer.Category, Statistics>();
+        Map<Category, Statistics> availability_statistics = new TreeMap<Category, Statistics>();
 
         for (File combination : combinations) {
 
@@ -50,20 +50,20 @@ public class KillTimeAnalyzer {
 
             //TODO assert that network size and manager for properties are the same
 
-            RunningApplicationRecognitionAnalyzer.Category category = new RunningApplicationRecognitionAnalyzer.Category();
+            Category category = new Category();
             for (Properties p : properties) {
-                final String status = p.getProperty(Experiment.EXPERIMENT_STATUS);
-                category.network_size = Integer.parseInt(p.getProperty(Experiment.NETWORK_SIZE_PROPERTY));
-                category.setManager(p.getProperty(Experiment.MANAGER_PROPERTY));
+                final String status = p.getProperty(Constants.EXPERIMENT_STATUS_PROPERTY);
+                category.network_size = Integer.parseInt(p.getProperty(Constants.NETWORK_SIZE_PROPERTY));
+                category.setManager(p.getProperty(Constants.MANAGER_PROPERTY));
 
                 if (status != null && !status.equalsIgnoreCase("failure")) {
 
-                    final String time_to_reach_auth_string = p.getProperty(KillTimeExperiment.TIME_TO_REACH_AUTH_FROM_RUNNING);
+                    final String time_to_reach_auth_string = p.getProperty(Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION);
                     if (time_to_reach_auth_string != null) {
                         statistics.addSample(Long.parseLong(time_to_reach_auth_string));
                     }
                     else {
-                        LOGGER.warn("combination {} does not have {} property", combination, KillTimeExperiment.TIME_TO_REACH_AUTH_FROM_RUNNING);
+                        LOGGER.warn("combination {} does not have {} property", combination, Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION);
                     }
                 }
                 else {
@@ -74,7 +74,7 @@ public class KillTimeAnalyzer {
         }
 
         DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
-        for (Map.Entry<RunningApplicationRecognitionAnalyzer.Category, Statistics> s : availability_statistics.entrySet()) {
+        for (Map.Entry<Category, Statistics> s : availability_statistics.entrySet()) {
             final double mean = s.getValue().getMean().doubleValue();
             final double ci = s.getValue().getConfidenceInterval(0.95D).doubleValue();
             dataset.add(toSecond(mean), toSecond(ci), s.getKey().manager, String.valueOf(s.getKey().network_size));

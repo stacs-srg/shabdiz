@@ -91,7 +91,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = createScannerScheduledExecutorService(scanner_thread_pool_size);
-        concurrent_scanner_executor = createScannerExecutorService();
+        concurrent_scanner_executor = MoreExecutors.listeningDecorator(createScannerExecutorService());
         network_executor_service = createNetworkExecutorService();
 
         auto_kill_scanner = new AutoKillScanner(scanner_interval, scanner_timeout);
@@ -485,9 +485,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return new ScheduledThreadPoolExecutor(thread_pool_size, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
     }
 
-    protected ListeningExecutorService createScannerExecutorService() {
+    protected ExecutorService createScannerExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name + SCANNER_EXECUTOR_NAMING_SUFFIX)));
+        return Executors.newCachedThreadPool(new NamedThreadFactory(application_name + SCANNER_EXECUTOR_NAMING_SUFFIX));
     }
 
     protected ListeningExecutorService createNetworkExecutorService() {

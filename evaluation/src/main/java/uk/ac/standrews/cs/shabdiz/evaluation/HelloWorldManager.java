@@ -37,41 +37,54 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 abstract class HelloWorldManager extends ExperimentManager {
 
     static final Artifact HELLO_WORLD_MAVEN_ARTIFACT = new DefaultArtifact("uk.ac.standrews.cs:hello_world:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_2M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_2m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_4M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_4m:1.0");
     static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_8M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_8m:1.0");
     static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_16M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_16m:1.0");
     static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_32M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_32m:1.0");
     static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_64M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_64m:1.0");
-
+    // HELLO WORLD
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final URLBased URL_BASED = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
-
+    // HELLO WORLD 2M
+    static final FileBasedCold FILE_BASED_COLD_2M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_2m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_2M);
+    static final FileBasedWarm FILE_BASED_WARM_2M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_2m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_2M);
+    static final URLBased URL_BASED_2M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_2m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_2M);
+    static final MavenBasedWarm MAVEN_BASED_WARM_2M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_2m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_2M);
+    static final MavenBasedCold MAVEN_BASED_COLD_2M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_2m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_2M);
+    // HELLO WORLD 4M
+    static final FileBasedCold FILE_BASED_COLD_4M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_4m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_4M);
+    static final FileBasedWarm FILE_BASED_WARM_4M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_4m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_4M);
+    static final URLBased URL_BASED_4M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_4m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_4M);
+    static final MavenBasedWarm MAVEN_BASED_WARM_4M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_4m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_4M);
+    static final MavenBasedCold MAVEN_BASED_COLD_4M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_4m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_4M);
+    // HELLO WORLD 8M
     static final FileBasedCold FILE_BASED_COLD_8M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_8m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_8M);
     static final FileBasedWarm FILE_BASED_WARM_8M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_8m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_8M);
     static final URLBased URL_BASED_8M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_8m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_8M);
     static final MavenBasedWarm MAVEN_BASED_WARM_8M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_8m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_8M);
     static final MavenBasedCold MAVEN_BASED_COLD_8M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_8m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_8M);
-
+    // HELLO WORLD 16M
     static final FileBasedCold FILE_BASED_COLD_16M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_16m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_16M);
     static final FileBasedWarm FILE_BASED_WARM_16M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_16m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_16M);
     static final URLBased URL_BASED_16M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_16m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_16M);
     static final MavenBasedWarm MAVEN_BASED_WARM_16M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_16m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_16M);
     static final MavenBasedCold MAVEN_BASED_COLD_16M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_16m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_16M);
-
+    // HELLO WORLD 32M
     static final FileBasedCold FILE_BASED_COLD_32M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_32m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_32M);
     static final FileBasedWarm FILE_BASED_WARM_32M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_32m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_32M);
     static final URLBased URL_BASED_32M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_32m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_32M);
     static final MavenBasedWarm MAVEN_BASED_WARM_32M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_32m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_32M);
     static final MavenBasedCold MAVEN_BASED_COLD_32M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_32m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_32M);
-
+    // HELLO WORLD 64M
     static final FileBasedCold FILE_BASED_COLD_64M = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_64m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_64M);
     static final FileBasedWarm FILE_BASED_WARM_64M = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_64m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_64M);
     static final URLBased URL_BASED_64M = new URLBased(uk.ac.standrews.cs.sample_applications.hello_world_64m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_64M);
     static final MavenBasedWarm MAVEN_BASED_WARM_64M = new MavenBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world_64m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_64M);
     static final MavenBasedCold MAVEN_BASED_COLD_64M = new MavenBasedCold(uk.ac.standrews.cs.sample_applications.hello_world_64m.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT_64M);
-
     private static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldManager.class);
 
     protected HelloWorldManager(Class<?> main_class) {

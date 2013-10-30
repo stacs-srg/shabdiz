@@ -1,9 +1,13 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,9 +20,33 @@ import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 import static uk.ac.standrews.cs.shabdiz.ApplicationState.AUTH;
 import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_KILL_PORTIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_MANAGERS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_MANAGERS_FILE_COLD;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_NETWORK_SIZES;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.BLUB_HOST_PROVIDER;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_PROPERTY;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_RANDOM_SEED;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_48;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_1_MINUTE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_START;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_START;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_START;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_START;
 
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#RUNNING} state after a portion of application instances are killed.
@@ -36,63 +64,68 @@ import static uk.ac.standrews.cs.shabdiz.ApplicationState.RUNNING;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public class ResurrectionExperiment extends Experiment {
+public abstract class ResurrectionExperiment extends Experiment {
 
-    public static final String KILL_PORTION = "kill_portion";
-    public static final String TIME_TO_REACH_RUNNING_AFTER_KILL = "time_to_reach_running_after_kill";
-    public static final Float[] KILL_PORTIONS = {0.1F, 0.3F, 0.5F, 0.7F, 0.9F};
     private static final Logger LOGGER = LoggerFactory.getLogger(ResurrectionExperiment.class);
-    //@formatter:off
-    private static final ExperimentManager[] ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS = {
-            EchoManager.FILE_BASED_WARM, EchoManager.FILE_BASED_COLD,
-            EchoManager.URL_BASED,
-            EchoManager.MAVEN_BASED_WARM, EchoManager.MAVEN_BASED_COLD,
-
-            HelloWorldManager.FILE_BASED_WARM, HelloWorldManager.FILE_BASED_COLD,
-            HelloWorldManager.URL_BASED,
-            HelloWorldManager.MAVEN_BASED_WARM, HelloWorldManager.MAVEN_BASED_COLD
-
-//            HelloWorldManager.FILE_BASED_WARM_8M, HelloWorldManager.FILE_BASED_COLD_8M,
-//            HelloWorldManager.URL_BASED_8M,
-//            HelloWorldManager.MAVEN_BASED_WARM_8M, HelloWorldManager.MAVEN_BASED_COLD_8M,
-//
-//            HelloWorldManager.FILE_BASED_WARM_16M, HelloWorldManager.FILE_BASED_COLD_16M,
-//            HelloWorldManager.URL_BASED_16M,
-//            HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M,
-//
-//            HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M,
-//            HelloWorldManager.URL_BASED_32M,
-//            HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M,
-//
-//            HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
-//            HelloWorldManager.URL_BASED_64M,
-//            HelloWorldManager.MAVEN_BASED_WARM_64M, HelloWorldManager.MAVEN_BASED_COLD_64M
-
-            };
-    //@formatter:on
-    private static final long RANDOM_SEED = 0x455fa4;
-    protected final float kill_portion;
+    private static final long RANDOM_SEED = 4546468;
+    protected final int kill_portion;
     private final Random random;
 
-    public ResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final float kill_portion) {
+    protected ResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
-        super(network_size, host_provider, manager);
-        if (kill_portion <= 0 || kill_portion > 1) { throw new IllegalArgumentException("kill portion must be between 0.0 (exclusive) to 1.0 (inclusive)"); }
+        super(network_size, host_provider, manager, scanner_interval, scanner_timeout, scheduler_thread_pool_size, concurrent_scanner_thread_pool_size);
+        validateKillPortion(kill_portion);
         this.kill_portion = kill_portion;
         random = new Random(RANDOM_SEED);
-        setProperty(KILL_PORTION, kill_portion);
     }
 
-    @Parameterized.Parameters(name = "network_size_{0}__on_{1}__{2}__kill_portion_{3}")
+    @Parameterized.Parameters(name = "network_{0}_{1}_{2}_kill_{3}_interval_{4}_timeout_{5}_sch_pool_{6}_conc_pool_{7}")
     public static Collection<Object[]> getParameters() {
 
-        final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{NETWORK_SIZES, BLUB_HOST_PROVIDER, ECHO_AND_HELLO_WORLD_APPLICATION_MANAGERS, KILL_PORTIONS});
-        for (int i = 0; i < 2; i++) {
-            parameters.addAll(combinations);
+        final Set<Object[]> unique_parameters = new TreeSet<Object[]>(new Comparator<Object[]>() {
+
+            @Override
+            public int compare(final Object[] o1, final Object[] o2) {
+
+                return Arrays.toString(o1).compareTo(Arrays.toString(o2));
+            }
+        });
+        //@formatter:off
+        final List<Object[]> network_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                ALL_NETWORK_SIZES, BLUB_HOST_PROVIDER, CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS, KILL_PORTION_50,
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+
+        final List<Object[]> application_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                NETWORK_SIZE_48, BLUB_HOST_PROVIDER, ALL_MANAGERS_FILE_COLD, KILL_PORTION_50,
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+
+        final List<Object[]> deployment_strategy_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                NETWORK_SIZE_48, BLUB_HOST_PROVIDER, ALL_MANAGERS, KILL_PORTION_50,
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+
+        final List<Object[]> kill_portion_effect = Combinations.generateArgumentCombinations(new Object[][]{
+                NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS, ALL_KILL_PORTIONS,
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+        //@formatter:on
+
+        unique_parameters.addAll(network_size_effect);
+        unique_parameters.addAll(application_size_effect);
+        unique_parameters.addAll(deployment_strategy_effect);
+        unique_parameters.addAll(kill_portion_effect);
+
+        final List<Object[]> parameters_with_repetitions = new ArrayList<Object[]>();
+        for (int i = 0; i < REPETITIONS; i++) {
+            parameters_with_repetitions.addAll(unique_parameters);
         }
-        System.out.println(parameters.size());
-        return parameters;
+        return parameters_with_repetitions;
+    }
+
+    @Override
+    public void setUp() throws Exception {
+
+        super.setUp();
+        setProperty(KILL_PORTION_PROPERTY, kill_portion);
+        setProperty(KILL_PORTION_RANDOM_SEED, RANDOM_SEED);
     }
 
     @Override
@@ -101,32 +134,51 @@ public class ResurrectionExperiment extends Experiment {
         LOGGER.info("enabling status scanner");
         network.setStatusScannerEnabled(true);
 
-        LOGGER.info("awaiting AUTH state...");
-        final long time_to_reach_auth = timeUniformNetworkStateInNanos(AUTH);
-        setProperty(TIME_TO_REACH_AUTH, String.valueOf(time_to_reach_auth));
-        LOGGER.info("reached AUTH state in {} seconds", nanosToSeconds(time_to_reach_auth));
+        timeUniformNetworkState(TIME_TO_REACH_AUTH_START, TIME_TO_REACH_AUTH_DURATION, AUTH);
 
         LOGGER.info("enabling auto deploy");
         network.setAutoDeployEnabled(true);
 
-        LOGGER.info("awaiting RUNNING state...");
-        final long time_to_reach_running = timeUniformNetworkStateInNanos(RUNNING);
-        setProperty(TIME_TO_REACH_RUNNING, String.valueOf(time_to_reach_running));
-        LOGGER.info("reached RUNNING state in {} seconds", nanosToSeconds(time_to_reach_running));
+        timeUniformNetworkState(TIME_TO_REACH_RUNNING_START, TIME_TO_REACH_RUNNING_DURATION, RUNNING);
 
-        LOGGER.info("disabling auto deploy");
+        afterDeploy();
+
+        if (kill_portion > 0) {
+            LOGGER.info("disabling auto deploy");
+            network.setAutoDeployEnabled(false);
+
+            LOGGER.info("killing {} portion of network", kill_portion);
+            final List<ApplicationDescriptor> killed_instances = killPortionOfNetwork();
+
+            LOGGER.info("re-enabling auto deploy");
+            network.setAutoDeployEnabled(true);
+
+            timeUniformNetworkState(TIME_TO_REACH_RUNNING_AFTER_KILL_START, TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION, RUNNING);
+
+            afterResurrection(killed_instances);
+        }
+
+        LOGGER.info("disabling auto deploy prior to kill all");
         network.setAutoDeployEnabled(false);
 
-        LOGGER.info("killing {} portion of network", kill_portion);
-        killPortionOfNetwork();
+        LOGGER.info("enabling auto kill");
+        network.setAutoKillEnabled(true);
 
-        LOGGER.info("re-enabling auto deploy");
-        network.setAutoDeployEnabled(true);
+        timeUniformNetworkState(TIME_TO_REACH_AUTH_FROM_RUNNING_START, TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION, AUTH);
+    }
 
-        LOGGER.info("awaiting RUNNING state after killing a portion of network...");
-        final long time_to_reach_running_after_kill = timeUniformNetworkStateInNanos(RUNNING);
-        setProperty(TIME_TO_REACH_RUNNING_AFTER_KILL, String.valueOf(time_to_reach_running_after_kill));
-        LOGGER.info("reached RUNNING state after killing {} portion of network in {} seconds", kill_portion, nanosToSeconds(time_to_reach_running_after_kill));
+    protected void afterResurrection(final List<ApplicationDescriptor> killed_instances) throws Exception {
+
+        assert killed_instances != null;
+    }
+
+    protected void afterDeploy() throws Exception {
+
+    }
+
+    private static void validateKillPortion(final float kill_portion) {
+
+        if (kill_portion > 0 || kill_portion < 100) { throw new IllegalArgumentException("kill portion must be between 0.0 (exclusive) to 1.0 (inclusive)"); }
     }
 
     protected List<ApplicationDescriptor> killPortionOfNetwork() throws Exception {
@@ -175,7 +227,7 @@ public class ResurrectionExperiment extends Experiment {
 
     private int getNumberOfKillCandidates() {
 
-        final int kill_count = (int) (network_size * kill_portion);
+        final int kill_count = network_size * kill_portion / 100;
         if (kill_count == 0) {
             LOGGER.warn("the number of instances to kill is zero for network size of {} and kill portion of {}", network_size, kill_portion);
         }
