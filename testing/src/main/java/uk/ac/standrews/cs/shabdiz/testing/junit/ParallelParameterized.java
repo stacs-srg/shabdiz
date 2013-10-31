@@ -36,6 +36,7 @@ public class ParallelParameterized extends Parameterized {
     static final String TEST_PARAM_INDEX = "test.param.index";
     private final Integer parameter_index;
     private final AgentBasedJavaProcessBuilder process_builder;
+    private final Parallelization configuration;
     private volatile int next_host_index;
     private List<Host> hosts;
     private ExecutorService executor_service;
@@ -46,9 +47,9 @@ public class ParallelParameterized extends Parameterized {
         super(test_class);
         final String index_as_string = System.getProperty(TEST_PARAM_INDEX);
         parameter_index = index_as_string != null ? Integer.valueOf(index_as_string) : null;
-        final Parallelization annotation = getParallelizationAnnotation();
+        configuration = getParallelizationAnnotation();
         process_builder = new AgentBasedJavaProcessBuilder();
-        configure(annotation);
+        configure(configuration);
         setScheduler(new RunnerScheduler() {
 
             @Override
@@ -174,6 +175,11 @@ public class ParallelParameterized extends Parameterized {
             final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
             try {
                 final Host host = nextHost();
+
+                if (configuration.clearAllShabdizCachedFiles()) {
+                    AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
+                }
+
                 Process test_process = null;
                 final String test_class_name = getTestClass().getJavaClass().getName();
                 final String parameter_index = String.valueOf(index);
@@ -296,6 +302,8 @@ public class ParallelParameterized extends Parameterized {
         int threadCount() default 1;
 
         String hostProvider() default "";
+
+        boolean clearAllShabdizCachedFiles() default false;
 
     }
 }

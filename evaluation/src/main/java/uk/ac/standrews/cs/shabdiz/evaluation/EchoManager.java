@@ -125,8 +125,8 @@ abstract class EchoManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
-            for (File file : dependenlcy_files) {
+            final List<File> dependency_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
+            for (File file : dependency_files) {
                 process_builder.addFile(file);
             }
         }
@@ -145,14 +145,14 @@ abstract class EchoManager extends ExperimentManager {
 
             super.configure(network);
 
-            final List<File> dependenlcy_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
-            LOGGER.info("resolved echo dependencies locally. total of {} files", dependenlcy_files.size());
+            final List<File> dependency_files = resolver.resolve(ECHO_MAVEN_ARTIFACT_COORDINATES);
+            LOGGER.info("resolved echo dependencies locally. total of {} files", dependency_files.size());
 
             final String dependencies_home = "/tmp/echo_dependencies/";
             LOGGER.info("uploading echo dependencies to {} hosts at {}", network.size(), dependencies_home);
-            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
+            uploadToAllHosts(network, dependency_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
 
-            for (File file : dependenlcy_files) {
+            for (File file : dependency_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());
             }
         }
@@ -170,7 +170,7 @@ abstract class EchoManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
+            LOGGER.info("Attempting to remove all shabdiz cached files on {} hosts", network.size());
             clearCachedShabdizFilesOnAllHosts(network);
             process_builder.addMavenDependency(ECHO_MAVEN_ARTIFACT_COORDINATES);
         }
@@ -188,7 +188,7 @@ abstract class EchoManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            LOGGER.info("Attemting to resolve {} on {} hosts", ECHO_MAVEN_ARTIFACT_COORDINATES, network.size());
+            LOGGER.info("Attempting to resolve {} on {} hosts", ECHO_MAVEN_ARTIFACT_COORDINATES, network.size());
             resolveMavenArtifactOnAllHosts(network, ECHO_MAVEN_ARTIFACT_COORDINATES);
             process_builder.addMavenDependency(ECHO_MAVEN_ARTIFACT_COORDINATES);
         }

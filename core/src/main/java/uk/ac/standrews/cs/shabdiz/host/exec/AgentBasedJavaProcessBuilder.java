@@ -214,19 +214,19 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return addMavenDependency(group_id, artifact_id, version, null);
     }
 
-    /** Adds current JVM's classpath to this builder's collection of classpath files. */
+    /** Adds current JVM classpath to this builder's collection of classpath files. */
     public void addCurrentJVMClasspath() {
 
         for (final String classpath_entry : SYSTEM_CLASSPATH.split(File.pathSeparator)) {
             if (!classpath_entry.isEmpty()) {
-                final File classphath_file = new File(classpath_entry);
-                if (classphath_file.isDirectory()) {
-                    for (String sub_cp : classphath_file.list()) {
-                        addFile(new File(classphath_file, sub_cp));
+                final File classpath_file = new File(classpath_entry);
+                if (classpath_file.isDirectory()) {
+                    for (String sub_cp : classpath_file.list()) {
+                        addFile(new File(classpath_file, sub_cp));
                     }
                 }
                 else {
-                    addFile(classphath_file);
+                    addFile(classpath_file);
                 }
             }
         }

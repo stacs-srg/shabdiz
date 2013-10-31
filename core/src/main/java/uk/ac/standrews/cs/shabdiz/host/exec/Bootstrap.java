@@ -37,6 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
+import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class Bootstrap {
@@ -313,9 +314,11 @@ public abstract class Bootstrap {
             addClassToJar(MavenDependencyResolver.class, jar_stream);
             addClassToJar(MavenDependencyResolver.FileCollector.class, jar_stream);
             addClassToJar(MavenDependencyResolver.DependencyNodeCollector.class, jar_stream);
+            addClassToJar(MavenDependencyResolver.ServiceLocatorErrorHandler.class, jar_stream);
             addClassToJar(Bootstrap.class, jar_stream);
             addClassToJar(BootstrapConfiguration.class, jar_stream);
             addClassToJar(Duration.class, jar_stream);
+            addClassToJar(URLUtils.class, jar_stream);
             addClassToJar(FileDeletionHook.class, jar_stream);
         }
         finally {
@@ -380,35 +383,24 @@ public abstract class Bootstrap {
 
         assert maven_dependency_resolver == null;
 
-        //TODO this list could be optimized once the new version of maven aether provider looses dependency to eclipse aether 9.0.0M2
         try {
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "com/google/guava/guava/11.0.2/guava-11.0.2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "commons-codec/commons-codec/1.6/commons-codec-1.6.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "javax/inject/javax.inject/1/javax.inject-1.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/httpcomponents/httpclient/4.2.5/httpclient-4.2.5.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/httpcomponents/httpcore/4.2.4/httpcore-4.2.4.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/httpcomponents/httpcore/4.2.5/httpcore-4.2.5.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-aether-provider/3.1.1/maven-aether-provider-3.1.1.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-model-builder/3.1.1/maven-model-builder-3.1.1.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-model/3.1.1/maven-model-3.1.1.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/apache/maven/maven-repository-metadata/3.1.1/maven-repository-metadata-3.1.1.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-interpolation/1.19/plexus-interpolation-1.19.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/codehaus/plexus/plexus-utils/3.0.15/plexus-utils-3.0.15.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-api/0.9.0.M3/aether-api-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-basic/0.9.0.M3/aether-connector-basic-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M3/aether-impl-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-spi/0.9.0.M3/aether-spi-0.9.0.M3.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-impl/0.9.0.M3/aether-impl-0.9.0.M3.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M3/aether-util-0.9.0.M3.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-basic/0.9.0.M3/aether-connector-basic-0.9.0.M3.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-transport-file/0.9.0.M3/aether-transport-file-0.9.0.M3.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-transport-http/0.9.0.M3/aether-transport-http-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-util/0.9.0.M3/aether-util-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/jcl-over-slf4j/1.6.2/jcl-over-slf4j-1.6.2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.6.2/slf4j-api-1.6.2.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/sonatype/sisu/sisu-guice/3.1.3/sisu-guice-3.1.3.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/jcl-over-slf4j/1.7.5/jcl-over-slf4j-1.7.5.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"));
         }
         catch (final Exception e) {
             throw new RuntimeException("failed to load eclipse aether dependencies", e);

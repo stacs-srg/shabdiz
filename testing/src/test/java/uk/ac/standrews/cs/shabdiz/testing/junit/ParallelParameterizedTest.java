@@ -15,8 +15,7 @@ import static org.junit.Assert.assertNotNull;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
-//@RunWith(Parameterized.class)
-@ParallelParameterized.Parallelization(threadCount = 4, hostProvider = "local")
+@ParallelParameterized.Parallelization(threadCount = 4, hostProvider = "local", clearAllShabdizCachedFiles = true)
 public class ParallelParameterizedTest {
 
     private final String a;

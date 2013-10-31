@@ -35,6 +35,7 @@ public class MavenDependencyResolver {
     static final File SHABDIZ_REPOSITORY_HOME = new File(Bootstrap.LOCAL_SHABDIZ_HOME, "repository");
     private static final String COLON = ":";
     private static final String DEFAULT_REPOSITORY_TYPE = "default";
+    private static final ServiceLocatorErrorHandler DEFAULT_ERROR_HANDLER = new ServiceLocatorErrorHandler();
     private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
     private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
     private static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
@@ -179,16 +180,7 @@ public class MavenDependencyResolver {
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
         locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
-
-        locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
-
-            @Override
-            public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
-
-                //TODO do decent logging into /tmp/shabdiz/log/error.log
-                exception.printStackTrace();
-            }
-        });
+        locator.setErrorHandler(DEFAULT_ERROR_HANDLER);
 
         return locator.getService(RepositorySystem.class);
     }
@@ -212,6 +204,16 @@ public class MavenDependencyResolver {
         url_as_string.append(artifact.getExtension());
 
         return new URL(url_as_string.toString());
+    }
+
+    static class ServiceLocatorErrorHandler extends DefaultServiceLocator.ErrorHandler {
+
+        @Override
+        public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
+
+            //TODO do decent logging into /tmp/shabdiz/log/error.log
+            exception.printStackTrace();
+        }
     }
 
     static class FileCollector implements DependencyVisitor {
