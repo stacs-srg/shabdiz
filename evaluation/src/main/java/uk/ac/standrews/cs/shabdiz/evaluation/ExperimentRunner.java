@@ -31,22 +31,22 @@ import uk.ac.standrews.cs.shabdiz.util.JarUtils;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class ExperiementRunner extends Parameterized {
+public class ExperimentRunner extends Parameterized {
 
     static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS");
     public static final String REPETITIONS_HOME_NAME = "repetitions";
     static final String RESULT_PROPERTY_KEY = "RESULT";
     static final Duration TEST_OUTPUT_TIMEOUT = new Duration(1, TimeUnit.HOURS);
     static final int MAX_RETRY_COUNT = 5;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExperiementRunner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentRunner.class);
     private static final File RESULTS_HOME = new File("results");
     private final LocalHost local_host;
     private final String runner_jar_path;
     private int retry_count = 1;
 
-    public ExperiementRunner(final Class<?> klass) throws Throwable {
+    public ExperimentRunner(final Class<?> experiment_class) throws Throwable {
 
-        super(klass);
+        super(experiment_class);
         local_host = new LocalHost();
         runner_jar_path = initRunnerJar().getAbsolutePath();
     }
@@ -99,7 +99,7 @@ public class ExperiementRunner extends Parameterized {
 
         final File runner_jar = File.createTempFile("experiment_runner", ".jar");
 
-        JarUtils.currentClasspathToExecutableJar(runner_jar, ExperiementRunner.class);
+        JarUtils.currentClasspathToExecutableJar(runner_jar, ExperimentRunner.class);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override

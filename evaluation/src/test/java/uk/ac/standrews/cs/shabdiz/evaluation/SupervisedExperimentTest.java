@@ -20,7 +20,7 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
 import uk.ac.standrews.cs.test.category.Ignore;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(ExperiementRunner.class)
+@RunWith(ExperimentRunner.class)
 @Category(Ignore.class)
 public class SupervisedExperimentTest {
 

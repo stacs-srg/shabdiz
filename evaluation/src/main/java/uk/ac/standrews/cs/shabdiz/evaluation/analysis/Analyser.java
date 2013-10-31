@@ -29,7 +29,7 @@ import org.mashti.jetson.util.CloseableUtil;
 import org.mashti.sight.PlainChartTheme;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
-import uk.ac.standrews.cs.shabdiz.evaluation.ExperiementRunner;
+import uk.ac.standrews.cs.shabdiz.evaluation.ExperimentRunner;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class Analyser {
@@ -90,7 +90,7 @@ public class Analyser {
 
             for (File combination : combinations) {
 
-                final File repetitions = new File(combination, ExperiementRunner.REPETITIONS_HOME_NAME);
+                final File repetitions = new File(combination, ExperimentRunner.REPETITIONS_HOME_NAME);
                 final File analysis = new File(combination, "analysis");
 
                 if (SKIP_IF_ANALYSIS_EXISTS && analysis.isDirectory()) {

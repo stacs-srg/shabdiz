@@ -44,7 +44,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>uk.ac.standrews.cs.shabdiz.evaluation.ExperiementRunner</mainClass>
+                            <mainClass>uk.ac.standrews.cs.shabdiz.evaluation.ExperimentRunner</mainClass>
                         </manifest>
 
                     </archive>

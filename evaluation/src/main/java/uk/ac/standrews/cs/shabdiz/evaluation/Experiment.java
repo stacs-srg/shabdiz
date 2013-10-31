@@ -63,7 +63,7 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.USER_PROPERTY;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.WORKING_DIRECTORY_PROPERTY;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(ExperiementRunner.class)
+@RunWith(ExperimentRunner.class)
 public abstract class Experiment {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
