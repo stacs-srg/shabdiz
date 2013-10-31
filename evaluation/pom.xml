@@ -190,18 +190,6 @@
                             <includes>
                                 <include>**/*Experiment.class</include>
                             </includes>
-                            <excludes>
-                                <exclude>**/HostAvailabilityRecognitionExperiment.class</exclude>
-                                <exclude>**/ResurrectionExperiment.class</exclude>
-                                <exclude>**/RunningApplicationRecognitionExperiment.class</exclude>
-                            </excludes>
-                            <!--<forkCount>1</forkCount>-->
-                            <!--<parallel>all</parallel>-->
-                            <!--<reuseForks>false</reuseForks>-->
-                            <!--<threadCount>1</threadCount>-->
-                            <!--<perCoreThreadCount>false</perCoreThreadCount>-->
-                            <!--<argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>-->
-                            <!--<workingDirectory>results</workingDirectory>-->
                         </configuration>
                     </plugin>
                 </plugins>
