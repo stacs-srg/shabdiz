@@ -187,7 +187,7 @@ public class ParallelParameterized extends Parameterized {
                 eachNotifier.fireTestStarted();
                 try {
                     test_process = process_builder.start(host, test_class_name, parameter_index);
-                    properties = JUnitBootstrapCore.readProperties(JUnitBootstrapCore.class, test_process, Duration.MAX_DURATION);
+                    properties = JUnitBootstrapCore.readProperties(JUnitBootstrapCore.class, test_process, Duration.MAX_DURATION, configuration.printProcessOutputs());
                 }
                 finally {
                     if (test_process != null) {
@@ -270,7 +270,7 @@ public class ParallelParameterized extends Parameterized {
         throw new NoSuchElementException("No matching runner " + runner);
     }
 
-    /** Specifies a collection of {@link Host hosts} on which to strat JVMs. */
+    /** Specifies a collection of {@link Host hosts} on which to start JVMs. */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     public @interface HostProvider {
@@ -305,5 +305,6 @@ public class ParallelParameterized extends Parameterized {
 
         boolean clearAllShabdizCachedFiles() default false;
 
+        boolean printProcessOutputs() default true;
     }
 }

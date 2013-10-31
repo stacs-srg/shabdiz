@@ -129,8 +129,13 @@ public abstract class Bootstrap {
 
     public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
 
+        return readProperties(bootstrap_class, process, timeout, false);
+    }
+
+    public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout, boolean print_lines) throws ExecutionException, InterruptedException, TimeoutException {
+
         final String properties_id = getPropertiesID(bootstrap_class);
-        final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id);
+        final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id, print_lines);
         return TimeoutExecutorService.awaitCompletion(scan_task, timeout.getLength(), timeout.getTimeUnit());
     }
 
@@ -237,6 +242,11 @@ public abstract class Bootstrap {
 
     static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id) {
 
+        return newProcessOutputScannerTask(in, properties_id, false);
+    }
+
+    static Callable<Properties> newProcessOutputScannerTask(final InputStream in, final String properties_id, final boolean print_lines) {
+
         return new Callable<Properties>() {
 
             @Override
@@ -251,8 +261,9 @@ public abstract class Bootstrap {
                         final String key_values = matcher.group(1);
                         return parseProperties(key_values);
                     }
-                    //TODO log next line
-                    // System.out.println(line);
+                    if (print_lines) {
+                        System.out.println(line);
+                    }
                 }
                 throw new InterruptedException();
             }
