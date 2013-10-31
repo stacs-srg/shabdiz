@@ -41,7 +41,7 @@ public class ParallelParameterized extends Parameterized {
     private List<Host> hosts;
     private ExecutorService executor_service;
 
-    /** Coppied from super constructor: Only called reflectively. Do not use programmatically. */
+    /** Coppied from super constructor: Only called reflectively. Do not use problematically. */
     public ParallelParameterized(final Class<?> test_class) throws Throwable {
 
         super(test_class);
