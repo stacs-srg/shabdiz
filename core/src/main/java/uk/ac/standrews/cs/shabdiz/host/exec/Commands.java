@@ -194,7 +194,7 @@ public final class Commands {
          See: http://stackoverflow.com/questions/338895/what-ever-happened-to-deltree-and-whats-its-replacement
          */
 
-        private static final String RD_AND_DEL_IGNORE_ERRORS = "rd /s /q %s 2> nul && del /f /q %s 2> nul";
+        private static final String RD_AND_DEL_IGNORE_ERRORS = "set del_path=%s && rd /s /q %del_path% 2> nul && del /f /q %del_path% 2> nul";
         private static final String RM = "rm -rf %s";
 
         /** Given a path to delete, which is expected as the first element in {@code parameters}, constructs a platform-dependent recursive path removal command. */
