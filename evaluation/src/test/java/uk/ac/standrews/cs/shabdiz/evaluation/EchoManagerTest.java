@@ -1,7 +1,5 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
@@ -15,22 +13,10 @@ import uk.ac.standrews.cs.test.category.Ignore;
 @Category(Ignore.class)
 public class EchoManagerTest {
 
-    private EchoManager manager;
-
-    @Before
-    public void setUp() throws Exception {
-
-        manager = new EchoManager.MavenBasedCold();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
-    @Test
+    @Test(timeout = 10000)
     public void testMavenBasedCold() throws Exception {
 
+        final EchoManager manager = new EchoManager.MavenBasedCold();
         Host host = new LocalHost();
 
         ApplicationDescriptor descriptor = new ApplicationDescriptor(host, manager);

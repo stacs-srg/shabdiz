@@ -45,7 +45,7 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_48;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_1_MINUTE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_5_MINUTE;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START;
@@ -105,11 +105,11 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         //@formatter:off
         final List<Object[]> scanner_interval_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
-                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
 
         final List<Object[]> concurrent_scanner_pool_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
-                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_1_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES});
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES});
         //@formatter:on
 
         unique_parameters.addAll(scanner_interval_effect);

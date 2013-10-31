@@ -19,7 +19,7 @@ public final class Constants {
     public static final Integer[] ALL_NETWORK_SIZES = {10, 20, 30, 40, 48};
     public static final Integer[] NETWORK_SIZE_48 = {48};
     public static final Duration[] SCANNER_INTERVAL_1_SECOND = {new Duration(1, TimeUnit.SECONDS)};
-    public static final Duration[] SCANNER_TIMEOUT_1_MINUTE = {new Duration(1, TimeUnit.MINUTES)};
+    public static final Duration[] SCANNER_TIMEOUT_5_MINUTE = {new Duration(5, TimeUnit.MINUTES)};
     public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);
     public static final ChordManager[] CHORD_APPLICATION_MANAGERS = {ChordManager.FILE_BASED_COLD, ChordManager.FILE_BASED_WARM, ChordManager.URL_BASED, ChordManager.MAVEN_BASED_COLD, ChordManager.MAVEN_BASED_WARM};
     public static final String TIME_TO_REACH_AUTH_START = "time_to_reach_auth.start_nanos";
@@ -71,10 +71,13 @@ public final class Constants {
             EchoManager.FILE_BASED_COLD,
             ChordManager.FILE_BASED_COLD,
             HelloWorldManager.FILE_BASED_COLD,
+            HelloWorldManager.FILE_BASED_COLD_2M,
+            HelloWorldManager.FILE_BASED_COLD_4M,
             HelloWorldManager.FILE_BASED_COLD_8M,
-            HelloWorldManager.FILE_BASED_COLD_16M,
-            HelloWorldManager.FILE_BASED_COLD_32M,
-            HelloWorldManager.FILE_BASED_COLD_64M,
+            HelloWorldManager.FILE_BASED_COLD_16M
+
+//            HelloWorldManager.FILE_BASED_COLD_32M,
+//            HelloWorldManager.FILE_BASED_COLD_64M,
 
     };
     public static final ExperimentManager[] ALL_MANAGERS = {
@@ -91,21 +94,29 @@ public final class Constants {
             HelloWorldManager.URL_BASED,
             HelloWorldManager.MAVEN_BASED_WARM, HelloWorldManager.MAVEN_BASED_COLD,
 
+            HelloWorldManager.FILE_BASED_WARM_2M, HelloWorldManager.FILE_BASED_COLD_2M,
+            HelloWorldManager.URL_BASED_2M,
+            HelloWorldManager.MAVEN_BASED_WARM_2M, HelloWorldManager.MAVEN_BASED_COLD_2M,
+
+            HelloWorldManager.FILE_BASED_WARM_4M, HelloWorldManager.FILE_BASED_COLD_4M,
+            HelloWorldManager.URL_BASED_4M,
+            HelloWorldManager.MAVEN_BASED_WARM_4M, HelloWorldManager.MAVEN_BASED_COLD_4M,
+
             HelloWorldManager.FILE_BASED_WARM_8M, HelloWorldManager.FILE_BASED_COLD_8M,
             HelloWorldManager.URL_BASED_8M,
             HelloWorldManager.MAVEN_BASED_WARM_8M, HelloWorldManager.MAVEN_BASED_COLD_8M,
 
             HelloWorldManager.FILE_BASED_WARM_16M, HelloWorldManager.FILE_BASED_COLD_16M,
             HelloWorldManager.URL_BASED_16M,
-            HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M,
+            HelloWorldManager.MAVEN_BASED_WARM_16M, HelloWorldManager.MAVEN_BASED_COLD_16M
 
-            HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M,
-            HelloWorldManager.URL_BASED_32M,
-            HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M,
-
-            HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
-            HelloWorldManager.URL_BASED_64M,
-            HelloWorldManager.MAVEN_BASED_WARM_64M, HelloWorldManager.MAVEN_BASED_COLD_64M
+//            HelloWorldManager.FILE_BASED_WARM_32M, HelloWorldManager.FILE_BASED_COLD_32M,
+//            HelloWorldManager.URL_BASED_32M,
+//            HelloWorldManager.MAVEN_BASED_WARM_32M, HelloWorldManager.MAVEN_BASED_COLD_32M,
+//
+//            HelloWorldManager.FILE_BASED_WARM_64M, HelloWorldManager.FILE_BASED_COLD_64M,
+//            HelloWorldManager.URL_BASED_64M,
+//            HelloWorldManager.MAVEN_BASED_WARM_64M, HelloWorldManager.MAVEN_BASED_COLD_64M
 
     };
     public static final Duration[] ALL_SCANNER_INTERVALS = {
