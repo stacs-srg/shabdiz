@@ -27,6 +27,7 @@ import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
+import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
 import uk.ac.standrews.cs.test.category.Ignore;
@@ -57,6 +58,7 @@ public class NormalOperationTest {
     public static void setUp() throws Exception {
 
         localhost = new LocalHost();
+        AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(localhost);
         network = new WorkerNetwork();
         network.add(localhost);
         network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");
