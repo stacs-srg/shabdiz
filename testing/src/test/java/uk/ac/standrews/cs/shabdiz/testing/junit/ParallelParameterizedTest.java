@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(ParallelParameterized.class)
-@ParallelParameterized.Parallelization(threadCount = 4, hostProvider = "local", clearAllShabdizCachedFiles = true)
+@ParallelParameterized.Parallelization(threadCount = 1, hostProvider = "local", clearAllShabdizCachedFiles = true)
 public class ParallelParameterizedTest {
 
     private final String a;
@@ -36,7 +36,7 @@ public class ParallelParameterizedTest {
     @ParallelParameterized.HostProvider(name = "local")
     public static Collection<Host> getHosts() throws IOException {
 
-        List<Host> hosts = new ArrayList<Host>();
+        final List<Host> hosts = new ArrayList<Host>();
         final LocalHost localHost = new LocalHost();
         hosts.add(localHost);
         return hosts;
