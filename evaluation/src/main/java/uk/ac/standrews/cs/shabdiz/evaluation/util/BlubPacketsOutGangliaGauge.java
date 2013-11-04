@@ -16,6 +16,6 @@ public class BlubPacketsOutGangliaGauge extends BlubGangliaGauge<Float> {
     @Override
     public Float get() {
 
-        return Float.valueOf(ganglia_metric.get());
+        return getAsFloat();
     }
 }

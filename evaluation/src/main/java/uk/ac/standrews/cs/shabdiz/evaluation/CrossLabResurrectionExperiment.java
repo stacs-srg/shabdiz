@@ -22,10 +22,12 @@ import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_KILL_PORTIONS;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_MANAGERS;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_NETWORK_SIZES;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ECHO_FILE_WARM_MANAGERS;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_5_MINUTE;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
 
 /**
  * Investigates how long it takes for a network to reach {@link ApplicationState#RUNNING} state after a portion of application instances are killed.
@@ -56,8 +58,8 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{ALL_NETWORK_SIZES, ALL_MANAGERS, ALL_KILL_PORTIONS});
-        for (int i = 0; i < REPETITIONS; i++) {
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{new Integer[]{10}, ECHO_FILE_WARM_MANAGERS, KILL_PORTION_50, SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+        for (int i = 0; i < 1; i++) {
             parameters.addAll(combinations);
         }
         return parameters;
@@ -81,8 +83,14 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
             try {
                 hosts.add(new SSHjHost("mac1-001-m.cs.st-andrews.ac.uk", authentication));
                 hosts.add(new SSHjHost("mac1-002-m.cs.st-andrews.ac.uk", authentication));
-                hosts.add(new SSHjHost("pc2-037-l.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("mac1-003-m.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("mac1-004-m.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("mac1-005-m.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("pc2-036-l.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("pc2-039-l.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("pc2-041-l.cs.st-andrews.ac.uk", authentication));
                 hosts.add(new SSHjHost("pc2-042-l.cs.st-andrews.ac.uk", authentication));
+                hosts.add(new SSHjHost("pc2-043-l.cs.st-andrews.ac.uk", authentication));
             }
             catch (IOException e) {
                 LOGGER.error("failed to add predefined hosts", e);

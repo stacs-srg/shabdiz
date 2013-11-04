@@ -10,6 +10,7 @@ import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.transport.TransportException;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.method.AuthMethod;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class SSHjHost extends AbstractHost {
     private static final int SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final int SSH_CONNECTION_TIMEOUT = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHost.class);
+    public static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
     private final SSHClient ssh;
     private final Platform platform;
 
@@ -212,9 +214,10 @@ public class SSHjHost extends AbstractHost {
         return Integer.parseInt(line);
     }
 
-    private void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
+    protected void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
 
         ssh.loadKnownHosts();
+        ssh.addHostKeyVerifier(PROMISCUOUS_HOST_VERIFIER); //FIXME for debug only
         ssh.connect(host_name, ssh_port);
         ssh.setConnectTimeout(SSH_CONNECTION_TIMEOUT);
         ssh.auth(Platforms.getCurrentUser(), authentication);

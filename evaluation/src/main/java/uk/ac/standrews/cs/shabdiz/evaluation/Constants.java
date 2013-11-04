@@ -29,7 +29,7 @@ public final class Constants {
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL_START = "time_to_reach_running_after_kill.start_nanos";
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION = "time_to_reach_running_after_kill.duration_nanos";
     public static final String TIME_TO_REACH_AUTH_FROM_RUNNING_START = "time_to_reach_auth_from_running.start_nanos";
-    public static final String TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION = "time_to_reach_auth_from_running.duration.nanos";
+    public static final String TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION = "time_to_reach_auth_from_running.duration_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_START = "time_to_reach_stabilized_ring.start_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_DURATION = "time_to_reach_stabilized_ring.duration_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START = "time_to_reach_stabilized_ring_after_kill.start_nanos";
@@ -60,6 +60,7 @@ public final class Constants {
     public static final int REPETITIONS = 5;
     public static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new BlubHostProvider()};
     public static final ExperimentManager[] CHORD_MANAGER_FILE_WARM = {ChordManager.FILE_BASED_WARM};
+    public static final ExperimentManager[] ECHO_FILE_WARM_MANAGERS = {EchoManager.FILE_BASED_WARM};
     //@formatter:off
     public static final ExperimentManager[] CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS = {
             ChordManager.FILE_BASED_WARM,

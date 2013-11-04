@@ -23,21 +23,24 @@ import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ChordResurrectionExperimentAnalyzer {
 
-    private static final File COMBINATIONS_HOME = new File("/Users/masih/Desktop/results/ChordResurrectionExperiment");
+    private static final File COMBINATIONS_HOME = new File("/Users/masih/Desktop/results/Experiment 1 Network Size");
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordResurrectionExperimentAnalyzer.class);
 
     public static void main(String[] args) throws IOException, TypeMismatchException {
 
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_AUTH_DURATION);
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_RUNNING_DURATION);
         new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION);
-        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_DURATION);
-        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
+        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION);
+        //        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_DURATION);
+        //        new ChordResurrectionExperimentAnalyzer().analyze(Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
 
     }
 
     public void analyze(final String property_name) throws IOException, TypeMismatchException {
 
         final File[] combinations = COMBINATIONS_HOME.listFiles(Analyser.DIRECTORY_FILTER);
-
+        final String human_readable_p_name = property_name.replace(".duration.nanos", "").replace(".duration_nanos", "").replace("_", " ");
         Map<Category2, Statistics> availability_statistics = new TreeMap<Category2, Statistics>();
 
         for (File combination : combinations) {
@@ -51,7 +54,7 @@ public class ChordResurrectionExperimentAnalyzer {
             for (Properties p : properties) {
                 final String status = p.getProperty(Constants.EXPERIMENT_STATUS_PROPERTY);
                 category.network_size = Integer.parseInt(p.getProperty(Constants.NETWORK_SIZE_PROPERTY));
-                category.manager = p.getProperty(Constants.MANAGER_PROPERTY).replace("EchoManager.", "");
+                category.manager = p.getProperty(Constants.MANAGER_PROPERTY).replace("Manager", "").replace(".FileWarm", "").replace(".FileCold", "").replace("_", " ");
                 category.kill_portion = p.getProperty(Constants.KILL_PORTION_PROPERTY);
 
                 if (status != null && !status.equalsIgnoreCase("failure")) {
@@ -71,57 +74,56 @@ public class ChordResurrectionExperimentAnalyzer {
             availability_statistics.put(category, statistics);
         }
 
-        for (Integer network_size : Constants.ALL_NETWORK_SIZES) {
-
-            DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
-            for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
-                final Category2 category = s.getKey();
-
-                if (category.network_size == network_size) {
-                    final double mean = s.getValue().getMean().doubleValue();
-                    final double ci = s.getValue().getConfidenceInterval(0.95D).doubleValue();
-                    dataset.add(HostAvailabilityRecognitionAnalyzer.toSecond(mean), HostAvailabilityRecognitionAnalyzer.toSecond(ci), category.manager, decorateKillPortion(category.kill_portion));
-                    //                    dataset.add(toSecond(mean), toSecond(ci), category.kill_portion, category.manager);
-                }
-            }
-
-            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing portions of network size " + network_size, "Percentage of killed instances", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL,
-                            true, false, false);
-            new PlainChartTheme().apply(chart);
-            StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
-            statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
-            statisticalbarrenderer.setItemMargin(0.02);
-            chart.getCategoryPlot().setRenderer(statisticalbarrenderer);
-            chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
-            chart.getCategoryPlot().getRangeAxis().setUpperBound(350);
-            GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, property_name + "_by_network_size_" + network_size + ".svg"));
-        }
+        //                for (Integer network_size : Constants.ALL_NETWORK_SIZES) {
+        //
+        //                    DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
+        //                    for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
+        //                        final Category2 category = s.getKey();
+        //
+        //                        if (category.network_size == network_size) {
+        //                            final double mean = s.getValue().getMean().doubleValue();
+        //                            final double ci = s.getValue().getConfidenceInterval(0.95D).doubleValue();
+        //                            dataset.add(HostAvailabilityRecognitionAnalyzer.toSecond(mean), HostAvailabilityRecognitionAnalyzer.toSecond(ci), category.manager, decorateKillPortion(category.kill_portion));
+        //                            //                    dataset.add(toSecond(mean), toSecond(ci), category.kill_portion, category.manager);
+        //                        }
+        //                    }
+        //
+        //                    JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing portions of network size " + network_size, "Percentage of killed instances", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL,
+        //                                    true, false, false);
+        //                    new PlainChartTheme().apply(chart);
+        //                    StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
+        //                    statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
+        //                    statisticalbarrenderer.setItemMargin(0.02);
+        //                    chart.getCategoryPlot().setRenderer(statisticalbarrenderer);
+        //                    chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
+        //        //            chart.getCategoryPlot().getRangeAxis().setUpperBound(350);
+        //                    GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, property_name + "_by_network_size_" + network_size + ".svg"));
+        //                }
 
         for (int kill_portion : Constants.ALL_KILL_PORTIONS) {
+            if (kill_portion == 50) {
+                DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
+                for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
+                    final Category2 category = s.getKey();
 
-            DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
-            for (Map.Entry<Category2, Statistics> s : availability_statistics.entrySet()) {
-                final Category2 category = s.getKey();
-
-                if (category.kill_portion.equals(String.valueOf(kill_portion))) {
-                    final double mean = s.getValue().getMean().doubleValue();
-                    final double ci = s.getValue().getConfidenceInterval(0.95D).doubleValue();
-                    dataset.add(HostAvailabilityRecognitionAnalyzer.toSecond(mean), HostAvailabilityRecognitionAnalyzer.toSecond(ci), category.manager, String.valueOf(category.network_size));
+                    if (category.kill_portion.equals(String.valueOf(kill_portion))) {
+                        final double mean = s.getValue().getMean().doubleValue();
+                        final double ci = s.getValue().getConfidenceInterval(0.95D).doubleValue();
+                        dataset.add(HostAvailabilityRecognitionAnalyzer.toSecond(mean), HostAvailabilityRecognitionAnalyzer.toSecond(ci), category.manager, String.valueOf(category.network_size));
+                    }
                 }
+
+                JFreeChart chart = ChartFactory.createLineChart(human_readable_p_name, "Network Size", human_readable_p_name + " (s)", dataset, PlotOrientation.VERTICAL, true, false, false);
+                new PlainChartTheme().apply(chart);
+                StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
+                statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
+                statisticalbarrenderer.setItemMargin(0.02);
+                chart.getCategoryPlot().setRenderer(statisticalbarrenderer);
+                chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
+                //            chart.getCategoryPlot().getRangeAxis().setUpperBound(350);
+                GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, property_name + "_by_kill_portion_" + kill_portion + ".svg"));
             }
-
-            JFreeChart chart = ChartFactory.createLineChart(property_name.replace("_", " ").replace(" after kill", "") + " after killing " + decorateKillPortion(kill_portion) + " of instances", "Network Size", "Time to reach RUNNING state after kill (s)", dataset, PlotOrientation.VERTICAL, true,
-                            false, false);
-            new PlainChartTheme().apply(chart);
-            StatisticalBarRenderer statisticalbarrenderer = new StatisticalBarRenderer();
-            statisticalbarrenderer.setErrorIndicatorPaint(Color.BLACK);
-            statisticalbarrenderer.setItemMargin(0.02);
-            chart.getCategoryPlot().setRenderer(statisticalbarrenderer);
-            chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
-            chart.getCategoryPlot().getRangeAxis().setUpperBound(350);
-            GaugeLineChart.saveAsSVG(chart, Analyser.BOUNDS, new File(COMBINATIONS_HOME, property_name + "_by_kill_portion_" + kill_portion + ".svg"));
         }
-
     }
 
     static String decorateKillPortion(String kill_portion) {

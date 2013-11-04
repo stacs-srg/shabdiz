@@ -17,4 +17,10 @@ abstract class BlubGangliaGauge<Value> implements Gauge<Value> {
         ganglia_metric = new GangliaMetricGauge(BLUB_CLUSTER_NAME, BLUB_HEAD_NODE_NAME, metric_name);
     }
 
+    protected Float getAsFloat() {
+
+        final String metric_as_string = ganglia_metric.get();
+        return metric_as_string != null ? Float.valueOf(metric_as_string) : null;
+    }
+
 }
