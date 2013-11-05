@@ -24,7 +24,7 @@ public class BlubHostProvider implements Provider<Host> {
     private static final int MAX_BLUB_NODES_COUNT = MAX_INDEX + 1;
     private static final SSHPublicKeyCredentials INTERNAL_PUBLIC_KEY_CREDENTIALS = SSHPublicKeyCredentials.getDefaultRSACredentials(new char[0]);
     private static final String BLUB_NODE_HOST_NAME_PREFIX = "compute-0-";
-    private static final AuthPublickey SSHJ_AUTH;
+    public static final AuthPublickey SSHJ_AUTH;
 
     static {
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
