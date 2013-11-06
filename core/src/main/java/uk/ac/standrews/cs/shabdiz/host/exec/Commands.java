@@ -209,15 +209,18 @@ public final class Commands {
     };
     public static final CommandBuilder MAKE_DIRECTORIES = new CommandBuilder() {
 
-        private static final String MKDIR = "mkdir ";
-        private static final String MKDIR_P = "mkdir -p ";
+        /*
+            Ignore errors of mkdir in windows because there is no flag to tell the damn thing to be quiet if directory already exits (i.e like -p on bash). Get cancer and die Command Prompt.
+         */
+        private static final String MKDIR = "mkdir %s 2> nul";
+        private static final String MKDIR_P = "mkdir -p %s";
 
         @Override
         public String get(final Platform platform, final String... parameters) {
 
             if (parameters.length == 0) { throw new IllegalArgumentException("at least one directory must be specified"); }
             final String directories = quoteAndConcatinateWithSpace(platform, parameters);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? MKDIR_P : MKDIR, directories);
+            return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? MKDIR_P : MKDIR, directories);
         }
     };
     private static final String SPACE = " ";

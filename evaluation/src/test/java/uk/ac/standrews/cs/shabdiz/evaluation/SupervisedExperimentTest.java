@@ -10,7 +10,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
@@ -20,7 +19,6 @@ import uk.ac.standrews.cs.shabdiz.util.Input;
 import uk.ac.standrews.cs.test.category.Ignore;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-@RunWith(ExperimentRunner.class)
 @Category(Ignore.class)
 public class SupervisedExperimentTest {
 

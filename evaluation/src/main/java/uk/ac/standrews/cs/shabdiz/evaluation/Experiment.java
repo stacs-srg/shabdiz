@@ -121,7 +121,9 @@ public abstract class Experiment {
         ganglia_packets_out = new BlubPacketsOutGangliaGauge();
         populateProperties();
         disableAllNetworkScanners();
+        LOGGER.info("populating network...");
         populateNetwork();
+        LOGGER.info("finished populating network size of {}", network_size);
         if (manager != null) {
             manager.configure(network);
         }

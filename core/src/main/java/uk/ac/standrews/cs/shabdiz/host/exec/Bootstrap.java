@@ -124,6 +124,7 @@ public abstract class Bootstrap {
             }
             builder.append(next_char);
         }
+        if (next_byte == -1) { throw new IOException("eof"); }
         return builder.toString();
     }
 
@@ -255,7 +256,6 @@ public abstract class Bootstrap {
                 final Pattern pattern = Pattern.compile(Pattern.quote(properties_id) + "\\{(.*)?\\}");
                 while (!Thread.currentThread().isInterrupted()) {
                     final String line = readLine(in);
-
                     final Matcher matcher = pattern.matcher(line);
                     if (matcher.matches()) {
                         final String key_values = matcher.group(1);

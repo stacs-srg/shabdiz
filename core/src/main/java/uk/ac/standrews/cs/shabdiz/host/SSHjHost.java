@@ -26,11 +26,11 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.readLine;
 public class SSHjHost extends AbstractHost {
 
     public static final char NEW_LINE = '\n';
-    private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 10000;
+    public static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
+    private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 15000;
     private static final int SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final int SSH_CONNECTION_TIMEOUT = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHost.class);
-    public static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
     private final SSHClient ssh;
     private final Platform platform;
 
@@ -216,12 +216,12 @@ public class SSHjHost extends AbstractHost {
 
     protected void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
 
+        ssh.setConnectTimeout(SSH_CONNECTION_TIMEOUT);
+        ssh.getTransport().setTimeoutMs(SSH_TRANSPORT_TIMEOUT_MILLIS);
+        ssh.getConnection().setTimeoutMs(SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS);
         ssh.loadKnownHosts();
         ssh.addHostKeyVerifier(PROMISCUOUS_HOST_VERIFIER); //FIXME for debug only
         ssh.connect(host_name, ssh_port);
-        ssh.setConnectTimeout(SSH_CONNECTION_TIMEOUT);
         ssh.auth(Platforms.getCurrentUser(), authentication);
-        ssh.getTransport().setTimeoutMs(SSH_TRANSPORT_TIMEOUT_MILLIS);
-        ssh.getConnection().setTimeoutMs(SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS);
     }
 }

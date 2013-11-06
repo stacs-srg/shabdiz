@@ -20,11 +20,14 @@
 package uk.ac.standrews.cs.shabdiz;
 
 import com.jcraft.jsch.JSchException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import net.schmizz.sshj.transport.TransportException;
+import net.schmizz.sshj.userauth.UserAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -92,9 +95,13 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
         else {
             try {
-                resolveAddressByHostName(host.getName());
-                checkAuthorityByCommandExecution(host);
-                state = ApplicationState.AUTH;
+                if (isReachable(host.getName())) {
+                    checkAuthorityByCommandExecution(host);
+                    state = ApplicationState.AUTH;
+                }
+                else {
+                    state = ApplicationState.UNREACHABLE;
+                }
             }
             catch (final Throwable e) {
                 LOGGER.debug("attempting to resolve state by exception", e);
@@ -117,6 +124,12 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         else if (throwable instanceof JSchException) {
             state = ApplicationState.NO_AUTH;
         }
+        else if (throwable instanceof UserAuthException) {
+            state = ApplicationState.NO_AUTH;
+        }
+        else if (throwable instanceof TransportException) {
+            state = ApplicationState.UNREACHABLE;
+        }
         else if (throwable instanceof TimeoutException) {
             state = ApplicationState.UNREACHABLE;
         }
@@ -132,7 +145,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
 
     private void checkAuthorityByCommandExecution(final Host host) throws Throwable {
 
-        LOGGER.debug("attemting to execute a minimal command on {} to check for authority with the timeout {}", host.getName(), command_execution_timeout);
+        LOGGER.debug("attempting to execute a minimal command on {} to check for authority with the timeout {}", host.getName(), command_execution_timeout);
         TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
 
             @Override
@@ -149,9 +162,9 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }, command_execution_timeout);
     }
 
-    private static void resolveAddressByHostName(final String host_name) throws UnknownHostException {
+    private static boolean isReachable(final String host_name) throws IOException {
 
-        LOGGER.debug("attempting to resolve address from host name {}", host_name);
-        InetAddress.getByName(host_name);
+        LOGGER.debug("attempting to reach {}", host_name);
+        return InetAddress.getByName(host_name).isReachable(5000);
     }
 }
