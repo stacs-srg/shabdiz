@@ -1,7 +1,7 @@
 
 Welcome to the Shabdiz Project
 ==============================
-Shabdiz is a distributed application instance management framework. 
+Shabdiz is a distributed application instance management framework.
 It allows deployment termination and monitoring of distributed applications across multiple machines.
 Shabdiz is written in pure Java.
 
@@ -39,41 +39,19 @@ The API documentation of the latest Shabdiz build is available here:
 
 Build
 -----
-Shabdiz is a Maven compliant project. 
+Shabdiz is a Maven compliant project.
 Please make sure Maven 3.0+ is installed on your machine before attempting to build Shabdiz.
 For more information on how to install Maven, please visit:
  - http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html
 
 To build Shabdiz:
  1. Clone shabdiz HG repository:
-		hg clone http://code.staticiser.com/shabdiz
+		hg clone http://quicksilver.hg.cs.st-andrews.ac.uk/shabdiz/
  2. Change current directory to the cloned shabdiz repository.
  3. Build using Maven:
- 		mvn clean package 
+ 		mvn clean package
 
 To review the build history of Shabdiz, please visit:
  - https://builds.cs.st-andrews.ac.uk/job/shabdiz/
 
-Issues
-------
-We would love to hear bad (as well as good) things about Shabdiz!
-If things are not the way they should be, please share your thoughts with us here:
- - http://code.staticiser.com/shabdiz/issues
 
-Contributions
-------------
-Please visit:
- - http://code.staticiser.com/shabdiz/pull-requests
-
-Wiki
-----
-The incomplete wiki can be found here:
- - http://code.staticiser.com/shabdiz/wiki
-
-License
---------
-Shabdiz is under GNU GPLv3 license.
-For more information, please visit:
- - http://www.tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)
- - http://opensource.org/licenses/gpl-3.0.html
- 

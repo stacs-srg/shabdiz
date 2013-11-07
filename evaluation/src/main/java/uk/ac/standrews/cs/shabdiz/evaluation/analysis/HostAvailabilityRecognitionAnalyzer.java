@@ -55,7 +55,7 @@ public class HostAvailabilityRecognitionAnalyzer {
                 category.network_size = network_size;
                 category.manager = p.getProperty(Constants.SCANNER_INTERVAL_PROPERTY);
 
-                if (status != null || !status.equalsIgnoreCase("failure")) {
+                if (status != null && !status.equalsIgnoreCase("failure")) {
 
                     final String time_to_reach_auth_string = p.getProperty(Constants.TIME_TO_REACH_AUTH_DURATION);
                     if (time_to_reach_auth_string != null) {
