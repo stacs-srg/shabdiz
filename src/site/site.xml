@@ -13,7 +13,6 @@
             <!--<theme>bootswatch-cerulean</theme>-->
             <highlightJs>true</highlightJs>
             <highlightJsTheme>github</highlightJsTheme>
-            <skinAttribution>true</skinAttribution>
             <bottomNav maxSpan="10">
                 <column>reports</column>
                 <column>modules</column>

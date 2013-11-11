@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
@@ -98,9 +99,7 @@ public abstract class Experiment {
             @Override
             protected ExecutorService createScannerExecutorService() {
 
-                final ThreadPoolExecutor executor = (ThreadPoolExecutor) super.createScannerExecutorService();
-                executor.setMaximumPoolSize(concurrent_scanner_thread_pool_size);
-                return executor;
+                return new ThreadPoolExecutor(0, concurrent_scanner_thread_pool_size, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
             }
         };
         registry = new MetricRegistry(getClass().getSimpleName());

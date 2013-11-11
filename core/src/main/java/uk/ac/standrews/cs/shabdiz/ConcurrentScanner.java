@@ -62,6 +62,9 @@ public abstract class ConcurrentScanner extends Scanner {
             cancelLingeringScans();
             afterScan();
         }
+        catch (Exception e) {
+            LOGGER.error("failed to scan concurrently", e);
+        }
         finally {
             scan_lock.unlock();
         }
@@ -72,7 +75,7 @@ public abstract class ConcurrentScanner extends Scanner {
     /**
      * Method invoked prior to scanning the given network.
      * This implementation does nothing, but may be customised in subclasses.
-     * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
+     * Note: To properly nest multiple overrides, subclasses should generally invoke super.beforeExecute at the end of this method.
      *
      * @see Scanner#scan(ApplicationNetwork)
      */
@@ -83,7 +86,7 @@ public abstract class ConcurrentScanner extends Scanner {
     /**
      * Method invoked upon successful completion of scanning the given network.
      * This implementation does nothing, but may be customised in subclasses.
-     * Note: To properly nest multiple overridings, subclasses should generally invoke super.beforeExecute at the end of this method.
+     * Note: To properly nest multiple overrides, subclasses should generally invoke super.beforeExecute at the end of this method.
      *
      * @see Scanner#scan(ApplicationNetwork)
      */
@@ -119,7 +122,7 @@ public abstract class ConcurrentScanner extends Scanner {
                     }
                     catch (Throwable e) {
                         LOGGER.error("failed to scan descriptor {} of network {} in scanner {}", descriptor, network, this);
-                        LOGGER.error("failure occured while scanning descriptor " + descriptor, e);
+                        LOGGER.error("failure occurred while scanning descriptor " + descriptor, e);
                     }
                 }
             }
