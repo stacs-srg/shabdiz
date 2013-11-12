@@ -38,9 +38,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
@@ -82,16 +84,16 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
      */
     public ApplicationNetwork(final String application_name) {
 
-        this(application_name, DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT, DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE);
+        this(application_name, DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT, DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE, Integer.MAX_VALUE);
     }
 
-    public ApplicationNetwork(final String application_name, Duration scanner_interval, Duration scanner_timeout, int scanner_thread_pool_size) {
+    public ApplicationNetwork(final String application_name, Duration scanner_interval, Duration scanner_timeout, int scanner_thread_pool_size, int concurrent_scanner_thread_pool_size) {
 
         this.application_name = application_name;
         application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = createScannerScheduledExecutorService(scanner_thread_pool_size);
-        concurrent_scanner_executor = MoreExecutors.listeningDecorator(createScannerExecutorService());
+        concurrent_scanner_executor = MoreExecutors.listeningDecorator(createScannerExecutorService(concurrent_scanner_thread_pool_size));
         network_executor_service = createNetworkExecutorService();
 
         auto_kill_scanner = new AutoKillScanner(scanner_interval, scanner_timeout);
@@ -485,9 +487,9 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return new ScheduledThreadPoolExecutor(thread_pool_size, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
     }
 
-    protected ExecutorService createScannerExecutorService() {
+    protected ExecutorService createScannerExecutorService(final int pool_size) {
 
-        return Executors.newCachedThreadPool(new NamedThreadFactory(application_name + SCANNER_EXECUTOR_NAMING_SUFFIX));
+        return new ThreadPoolExecutor(0, pool_size, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     protected ListeningExecutorService createNetworkExecutorService() {

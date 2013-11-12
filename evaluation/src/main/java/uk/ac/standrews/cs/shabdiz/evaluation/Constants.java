@@ -28,8 +28,8 @@ public final class Constants {
     public static final String TIME_TO_REACH_RUNNING_DURATION = "time_to_reach_running.duration_nanos";
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL_START = "time_to_reach_running_after_kill.start_nanos";
     public static final String TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION = "time_to_reach_running_after_kill.duration_nanos";
-    public static final String TIME_TO_REACH_AUTH_FROM_RUNNING_START = "time_to_reach_auth_from_running.start_nanos";
-    public static final String TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION = "time_to_reach_auth_from_running.duration_nanos";
+    public static final String TIME_TO_REACH_AUTH_AFTER_KILL_START = "time_to_reach_auth_from_running.start_nanos";
+    public static final String TIME_TO_REACH_AUTH_AFTER_KILL_DURATION = "time_to_reach_auth_from_running.duration_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_START = "time_to_reach_stabilized_ring.start_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_DURATION = "time_to_reach_stabilized_ring.duration_nanos";
     public static final String TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START = "time_to_reach_stabilized_ring_after_kill.start_nanos";

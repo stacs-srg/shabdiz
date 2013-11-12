@@ -39,9 +39,9 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_TIMEOUT_5_MINUTE;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_POOL_SIZE_10;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_AFTER_KILL_DURATION;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_AFTER_KILL_START;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_DURATION;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_FROM_RUNNING_START;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_AUTH_START;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_START;
@@ -164,7 +164,7 @@ public class ResurrectionExperiment extends Experiment {
         LOGGER.info("enabling auto kill");
         network.setAutoKillEnabled(true);
 
-        timeUniformNetworkState(TIME_TO_REACH_AUTH_FROM_RUNNING_START, TIME_TO_REACH_AUTH_FROM_RUNNING_DURATION, AUTH);
+        timeUniformNetworkState(TIME_TO_REACH_AUTH_AFTER_KILL_START, TIME_TO_REACH_AUTH_AFTER_KILL_DURATION, AUTH);
     }
 
     protected void afterResurrection(final List<ApplicationDescriptor> killed_instances) throws Exception {

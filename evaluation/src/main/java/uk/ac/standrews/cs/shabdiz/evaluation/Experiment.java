@@ -8,9 +8,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Provider;
 import org.junit.After;
@@ -94,14 +91,7 @@ public abstract class Experiment {
         this.network_size = network_size;
         this.host_provider = host_provider;
         this.manager = manager;
-        network = new ApplicationNetwork(getClass().getSimpleName(), scanner_interval, scanner_timeout, scanner_scheduler_thread_pool_size) {
-
-            @Override
-            protected ExecutorService createScannerExecutorService() {
-
-                return new ThreadPoolExecutor(0, concurrent_scanner_thread_pool_size, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-            }
-        };
+        network = new ApplicationNetwork(getClass().getSimpleName(), scanner_interval, scanner_timeout, scanner_scheduler_thread_pool_size, concurrent_scanner_thread_pool_size);
         registry = new MetricRegistry(getClass().getSimpleName());
         reporter = new CsvReporter(registry);
 

@@ -51,9 +51,11 @@ public class CrossLabHostProvider implements Provider<Host> {
 
         if (host_names.isEmpty()) {
             LOGGER.info("initializing host names..");
+            host_names.addAll(discoverReachableHosts("compute-0-%d.local", 0, 50));
             host_names.addAll(discoverReachableHosts("mac1-%03d-m.cs.st-andrews.ac.uk", 0, 200));
-            //            host_names.addAll(discoverReachableHosts("pc1-%03d-l.cs.st-andrews.ac.uk", 0, 200));
-            //            host_names.addAll(discoverReachableHosts("pc2-%03d-l.cs.st-andrews.ac.uk", 0, 200));
+            host_names.addAll(discoverReachableHosts("pc1-%03d-l.cs.st-andrews.ac.uk", 0, 200));
+            host_names.addAll(discoverReachableHosts("pc2-%03d-l.cs.st-andrews.ac.uk", 0, 200));
+            host_names.addAll(discoverReachableHosts("pc2-%03d-l.cs.st-andrews.ac.uk", 0, 200));
             LOGGER.info("initialized total of {} host names", host_names.size());
         }
         final int host_index = index++;

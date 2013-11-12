@@ -26,7 +26,7 @@ public class ApplicationStateCounters implements PropertyChangeListener {
     public void registerTo(MetricRegistry registry) {
 
         for (Map.Entry<ApplicationState, Counter> entry : counters.entrySet()) {
-            final String metric_name = geNameByState(entry.getKey());
+            final String metric_name = getNameByState(entry.getKey());
             final Counter counter = entry.getValue();
             registry.register(metric_name, counter);
         }
@@ -57,7 +57,7 @@ public class ApplicationStateCounters implements PropertyChangeListener {
         }
     }
 
-    private static String geNameByState(final ApplicationState state) {
+    public static String getNameByState(final ApplicationState state) {
 
         return state.name().toLowerCase() + "_state_counter";
     }
