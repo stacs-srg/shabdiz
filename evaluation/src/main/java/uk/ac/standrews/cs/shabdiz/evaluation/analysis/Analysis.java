@@ -22,7 +22,7 @@ public class Analysis {
 
         final File cross_lab_results = new File("/Users/masih/Desktop/results/Experiment 7 Cross-lab");
         generateGenericCharts(cross_lab_results);
-        saveAsSVG(cross_lab_results, new TimeToReachStateAnalyzer(cross_lab_results));
+        saveAsSVG(cross_lab_results, new TimeToReachStateAllInOneAnalyzer(cross_lab_results));
 
         final File kill_portion_results = new File("/Users/masih/Desktop/results/Experiment 6 Kill Portion Effect");
         generateGenericCharts(kill_portion_results);
