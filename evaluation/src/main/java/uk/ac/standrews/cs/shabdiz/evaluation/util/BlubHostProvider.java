@@ -11,27 +11,25 @@ import net.schmizz.sshj.userauth.method.AuthPublickey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
 import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 import uk.ac.standrews.cs.shabdiz.platform.UnixPlatform;
+import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class BlubHostProvider implements Provider<Host> {
 
     public static final UnixPlatform LINUX_PLATFORM = new UnixPlatform("Linux");
+    public static final AuthPublickey SSHJ_AUTH;
     private static final Logger LOGGER = LoggerFactory.getLogger(BlubHostProvider.class);
     private static final int MAX_INDEX = 47;
     private static final int MAX_BLUB_NODES_COUNT = MAX_INDEX + 1;
-    private static final SSHPublicKeyCredentials INTERNAL_PUBLIC_KEY_CREDENTIALS = SSHPublicKeyCredentials.getDefaultRSACredentials(new char[0]);
     private static final String BLUB_NODE_HOST_NAME_PREFIX = "compute-0-";
-    public static final AuthPublickey SSHJ_AUTH;
-
+    private static final Integer[] EXCLUDED_INDICES = {39};
     static {
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
         SSHJ_AUTH = new AuthPublickey(key_provider);
     }
-
     private final AtomicInteger next_host_index;
 
     public BlubHostProvider() {
@@ -50,7 +48,7 @@ public class BlubHostProvider implements Provider<Host> {
     @Override
     public Host get() {
 
-        final int host_index = next_host_index.getAndIncrement();
+        final int host_index = getNextHostIndex();
         try {
             return getHostByIndex(host_index);
         }
@@ -64,6 +62,21 @@ public class BlubHostProvider implements Provider<Host> {
     public String toString() {
 
         return "Blub";
+    }
+
+    private int getNextHostIndex() {
+
+        int host_index;
+        do {
+            host_index = next_host_index.getAndIncrement();
+        }
+        while (isHostIndexExcluded(host_index));
+        return host_index;
+    }
+
+    private boolean isHostIndexExcluded(final int host_index) {
+
+        return ArrayUtil.contains(host_index, EXCLUDED_INDICES);
     }
 
     private static Host getHostByIndex(final int host_index) throws IOException {

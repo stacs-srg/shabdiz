@@ -38,11 +38,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
@@ -73,7 +71,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
     protected final StatusScanner status_scanner;
     private final String application_name;
     private final ScheduledExecutorService scanner_scheduler;
-    private final ListeningExecutorService concurrent_scanner_executor;
+    private final ExecutorService concurrent_scanner_executor;
     private final ListeningExecutorService network_executor_service;
     private final ScannerEnabledPropertyChangeListener enabled_change_listener = new ScannerEnabledPropertyChangeListener();
 
@@ -93,7 +91,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
         scheduled_scanners = new HashMap<Scanner, ScheduledFuture<?>>();
         scanner_scheduler = createScannerScheduledExecutorService(scanner_thread_pool_size);
-        concurrent_scanner_executor = MoreExecutors.listeningDecorator(createScannerExecutorService(concurrent_scanner_thread_pool_size));
+        concurrent_scanner_executor = createScannerExecutorService(concurrent_scanner_thread_pool_size);
         network_executor_service = createNetworkExecutorService();
 
         auto_kill_scanner = new AutoKillScanner(scanner_interval, scanner_timeout);
@@ -246,8 +244,8 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
             awaitCompletion(awaiting_state_futures);
         }
         catch (ExecutionException e) {
-            LOGGER.error("failure occured while awaiting uniform state", e);
-            throw new InterruptedException("failure occured while awaiting uniform state");
+            LOGGER.error("failure occurred while awaiting uniform state", e);
+            throw new InterruptedException("failure occurred while awaiting uniform state");
         }
     }
 
@@ -489,7 +487,8 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     protected ExecutorService createScannerExecutorService(final int pool_size) {
 
-        return new ThreadPoolExecutor(0, pool_size, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        final NamedThreadFactory thread_factory = new NamedThreadFactory(SCANNER_EXECUTOR_NAMING_SUFFIX);
+        return pool_size != Integer.MAX_VALUE ? Executors.newFixedThreadPool(pool_size, thread_factory) : Executors.newCachedThreadPool(thread_factory);
     }
 
     protected ListeningExecutorService createNetworkExecutorService() {
