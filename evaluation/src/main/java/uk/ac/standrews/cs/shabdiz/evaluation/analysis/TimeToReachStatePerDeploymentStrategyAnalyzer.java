@@ -18,6 +18,8 @@ public class TimeToReachStatePerDeploymentStrategyAnalyzer extends TimeToReachSt
     private TimeToReachStatePerDeploymentStrategyAnalyzer(String name, File results_path, String duration_property) throws IOException {
 
         super(name, results_path, duration_property);
+        showLegend = true;
+        x_axis_label = "Deployment Strategy";
 
     }
 

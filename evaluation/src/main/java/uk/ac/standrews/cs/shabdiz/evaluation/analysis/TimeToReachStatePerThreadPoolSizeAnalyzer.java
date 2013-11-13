@@ -3,31 +3,21 @@ package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.StatisticalBarRenderer;
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
-import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.GROUP_DELIMITER;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.NANOSECOND_TO_SECOND;
+import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.decoratePoolSize;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class TimeToReachStatePerThreadPoolSizeAnalyzer implements Analyser {
-
-    private final Properties[] experiment_properties;
-    private final String name;
-    private final String duration_property;
+public class TimeToReachStatePerThreadPoolSizeAnalyzer extends TimeToReachStateAnalyzer {
 
     private TimeToReachStatePerThreadPoolSizeAnalyzer(String name, File results_path, String duration_property) throws IOException {
 
-        this.name = name;
-        this.duration_property = duration_property;
-        experiment_properties = AnalyticsUtil.getAllExperimentPropertiesInPath(results_path);
+        super(name, results_path, duration_property);
+        x_axis_label = "Thread pool Size";
     }
 
     @Override
@@ -37,7 +27,7 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer implements Analyser {
     }
 
     @Override
-    public JFreeChart getChart() throws IOException {
+    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
@@ -47,16 +37,10 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer implements Analyser {
             final double ci = statistics.getConfidenceInterval95Percent().doubleValue();
 
             final String[] groups = entry.getKey().split(GROUP_DELIMITER);
-            final String pool_size = groups[0];
+            final String pool_size = decoratePoolSize(groups[0]);
             dataset.add(mean, ci, "", pool_size);
         }
-
-        final JFreeChart chart = ChartFactory.createLineChart(getName(), "Application", "Time to reach " + name + " (s)", dataset, PlotOrientation.VERTICAL, false, false, false);
-        final StatisticalBarRenderer renderer = new StatisticalBarRenderer();
-        chart.getCategoryPlot().setRenderer(renderer);
-        chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
-        PlainChartTheme.applyTheme(chart);
-        return chart;
+        return dataset;
     }
 
     static TimeToReachStatePerThreadPoolSizeAnalyzer auth(File results_path) throws IOException {

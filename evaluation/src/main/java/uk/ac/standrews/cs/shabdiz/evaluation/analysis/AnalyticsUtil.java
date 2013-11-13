@@ -1,6 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,6 +30,7 @@ import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
+import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 final class AnalyticsUtil {
@@ -212,9 +214,27 @@ final class AnalyticsUtil {
         return s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
     }
 
+    static String decoratePoolSize(final String pool_size) {
+
+        final int size = Integer.parseInt(pool_size);
+        return size != Integer.MAX_VALUE ? pool_size : "Maximum";
+    }
+
     static String decorateKillPortion(final String kill_portion) {
 
         return kill_portion + "%";
+    }
+
+    static File[] listSubDirectoriesExcluding(final File results_path, final String... excludes) {
+
+        return results_path.listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(final File file) {
+
+                return file.isDirectory() && !ArrayUtil.contains(file.getName(), excludes);
+            }
+        });
     }
 
     interface NumberConverter {
