@@ -164,11 +164,11 @@ public class ExperimentRunner extends Parameterized {
         catch (Throwable e) {
             successful = false;
             notifier.fireTestFailure(new Failure(description, e));
+        }
 
-            if (Experiment.isLocalHostBlubHeadNode()) {
-                LOGGER.info("killing all java processes on blub nodes...");
-                Experiment.killAllJavaProcessesOnBlubNodes();
-            }
+        if (Experiment.isLocalHostBlubHeadNode()) {
+            LOGGER.info("FROM RUNNER: killing all java processes on blub nodes...");
+            Experiment.killAllJavaProcessesOnBlubNodes();
         }
 
         if (!successful) {
