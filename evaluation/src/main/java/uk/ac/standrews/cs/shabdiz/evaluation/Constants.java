@@ -16,8 +16,8 @@ public final class Constants {
     public static final Integer[] SCHEDULER_THREAD_POOL_SIZE_10 = {10};
     public static final Integer[] ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES = {1, 10, 20, 30, 40, 50, Integer.MAX_VALUE};
     public static final Integer[] CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX = {Integer.MAX_VALUE};
-    public static final Integer[] ALL_NETWORK_SIZES = {10, 20, 30, 40, 47};
-    public static final Integer[] NETWORK_SIZE_48 = {47};
+    public static final Integer[] ALL_NETWORK_SIZES = {10, 20, 30, 40, 48};
+    public static final Integer[] NETWORK_SIZE_48 = {48};
     public static final Duration[] SCANNER_INTERVAL_1_SECOND = {new Duration(1, TimeUnit.SECONDS)};
     public static final Duration[] SCANNER_TIMEOUT_5_MINUTE = {new Duration(5, TimeUnit.MINUTES)};
     public static final Duration REPORT_INTERVAL = new Duration(5, TimeUnit.SECONDS);

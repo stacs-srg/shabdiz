@@ -24,7 +24,7 @@ public class BlubHostProvider implements Provider<Host> {
     private static final int MAX_INDEX = 47;
     private static final int MAX_BLUB_NODES_COUNT = MAX_INDEX + 1;
     private static final String BLUB_NODE_HOST_NAME_PREFIX = "compute-0-";
-    private static final Integer[] EXCLUDED_INDICES = {39};
+    private static final Integer[] EXCLUDED_INDICES = {};
     static {
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
