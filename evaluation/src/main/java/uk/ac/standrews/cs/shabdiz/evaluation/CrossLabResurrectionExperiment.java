@@ -10,7 +10,7 @@ import uk.ac.standrews.cs.shabdiz.evaluation.util.CrossLabHostProvider;
 import uk.ac.standrews.cs.shabdiz.util.Combinations;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ECHO_FILE_WARM_MANAGERS;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCANNER_INTERVAL_1_SECOND;
@@ -47,7 +47,7 @@ public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
     public static Collection<Object[]> getParameters() {
 
         final List<Object[]> parameters = new ArrayList<Object[]>();
-        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{new Integer[]{50}, ECHO_FILE_WARM_MANAGERS, KILL_PORTION_50, SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+        final List<Object[]> combinations = Combinations.generateArgumentCombinations(new Object[][]{new Integer[]{50}, ECHO_FILE_WARM_MANAGERS, KILL_PORTION_50, SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX});
         for (int i = 0; i < 1; i++) {
             parameters.addAll(combinations);
         }

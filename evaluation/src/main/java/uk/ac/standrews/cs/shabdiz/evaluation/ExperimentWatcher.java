@@ -19,6 +19,13 @@ public class ExperimentWatcher extends TestWatcher {
     }
 
     @Override
+    protected void starting(final Description description) {
+
+        super.starting(description);
+        LOGGER.info("starting experiment: {}", description);
+    }
+
+    @Override
     protected void succeeded(final Description description) {
 
         super.succeeded(description);

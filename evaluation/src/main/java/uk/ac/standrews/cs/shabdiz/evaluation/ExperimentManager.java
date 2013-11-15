@@ -61,12 +61,7 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     @Override
     public void kill(final ApplicationDescriptor descriptor) throws Exception {
 
-        try {
-            killByProcessID(descriptor);
-        }
-        finally {
-            destroyProcess(descriptor);
-        }
+        destroyProcess(descriptor);
     }
 
     protected Properties getPropertiesFromProcess(final Process process) throws Exception {

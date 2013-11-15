@@ -33,6 +33,7 @@ public class SSHjHost extends AbstractHost {
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHost.class);
     private final SSHClient ssh;
     private final Platform platform;
+    private boolean destroy_process_forcefully;
 
     public SSHjHost(final String host_name, AuthMethod authentication) throws IOException {
 
@@ -165,8 +166,9 @@ public class SSHjHost extends AbstractHost {
 
                 //FIXME kill is Unix specific; generify kill by parent process id
                 try {
+
                     //taken from http://stackoverflow.com/questions/392022/best-way-to-kill-all-child-processes/6481337#6481337
-                    final Process kill = execute("CPIDS=$(pgrep -P " + ppid + "); (sleep 0.5 && kill -KILL $CPIDS &); kill -TERM $CPIDS", false);
+                    final Process kill = execute(getKillCommand(), false);
                     kill.waitFor();
                     kill.destroy();
                 }
@@ -176,6 +178,11 @@ public class SSHjHost extends AbstractHost {
                 catch (InterruptedException e) {
                     LOGGER.error("interrupted while waiting for kill_process on host " + getName(), e);
                 }
+            }
+
+            private String getKillCommand() {
+
+                return "CPIDS=$(pgrep -P " + ppid + "); " + (!destroy_process_forcefully ? "(sleep 0.5 && kill -KILL $CPIDS &); kill -TERM $CPIDS" : "kill -KILL $CPIDS");
             }
         };
     }
@@ -199,6 +206,16 @@ public class SSHjHost extends AbstractHost {
 
         super.close();
         ssh.disconnect();
+    }
+
+    public boolean isDestroyProcessForcefully() {
+
+        return destroy_process_forcefully;
+    }
+
+    public void setDestroyProcessForcefully(final boolean destroy_process_forcefully) {
+
+        this.destroy_process_forcefully = destroy_process_forcefully;
     }
 
     private void upload(final SFTPClient sftp, final File file, final String destination) throws IOException {

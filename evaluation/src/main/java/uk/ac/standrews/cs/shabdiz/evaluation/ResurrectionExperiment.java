@@ -30,7 +30,7 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_MANAGERS_FILE_
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.ALL_NETWORK_SIZES;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.BLUB_HOST_PROVIDER;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_PROPERTY;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_RANDOM_SEED;
@@ -93,19 +93,23 @@ public class ResurrectionExperiment extends Experiment {
         //@formatter:off
         final List<Object[]> network_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 ALL_NETWORK_SIZES, BLUB_HOST_PROVIDER, CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS, KILL_PORTION_50,
-                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX
+        });
 
         final List<Object[]> application_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, ALL_MANAGERS_FILE_COLD, KILL_PORTION_50,
-                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX
+        });
 
         final List<Object[]> deployment_strategy_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, ALL_MANAGERS, KILL_PORTION_50,
-                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX
+        });
 
         final List<Object[]> kill_portion_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_ECHO_HELLO_WORLD_FILE_WARM_MANAGERS, ALL_KILL_PORTIONS,
-                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                SCANNER_INTERVAL_1_SECOND, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX
+        });
         //@formatter:on
 
         unique_parameters.addAll(network_size_effect);

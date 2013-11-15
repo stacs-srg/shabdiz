@@ -1,7 +1,6 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
 import java.beans.PropertyChangeListener;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +16,7 @@ public class ChordRingSizeScanner extends Scanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChordRingSizeScanner.class);
     private static final String RING_SIZE_PROPERTY_NAME = "ring_size";
-    private static final Duration DELAY = new Duration(3, TimeUnit.SECONDS);
-    private static final Duration TIMEOUT = new Duration(10, TimeUnit.MINUTES);
     private final AtomicInteger ring_size;
-
-    public ChordRingSizeScanner() {
-
-        this(DELAY, TIMEOUT);
-    }
 
     public ChordRingSizeScanner(Duration delay, Duration timeout) {
 

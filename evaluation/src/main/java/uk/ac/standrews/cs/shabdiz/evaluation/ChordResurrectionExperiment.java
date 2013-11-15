@@ -40,7 +40,7 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RANDOM_
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_RETRY_INTERVAL;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_JOIN_TIMEOUT;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CHORD_MANAGER_FILE_WARM;
-import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX;
+import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.KILL_PORTION_50;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.NETWORK_SIZE_48;
 import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.REPETITIONS;
@@ -86,7 +86,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     public ChordResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
 
         super(network_size, host_provider, manager, kill_portion, scanner_interval, scanner_timeout, scheduler_pool_size, concurrent_scanner_pool_size);
-        ring_size_scanner = new ChordRingSizeScanner();
+        ring_size_scanner = new ChordRingSizeScanner(scanner_interval, scanner_timeout);
         ring_size_gauge = new RingSizeGauge();
         random = new Random(JOIN_RANDOM_SEED);
     }
@@ -105,7 +105,8 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         //@formatter:off
         final List<Object[]> scanner_interval_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,
-                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX});
+                ALL_SCANNER_INTERVALS, SCANNER_TIMEOUT_5_MINUTE, SCHEDULER_THREAD_POOL_SIZE_10, CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX
+        });
 
         final List<Object[]> concurrent_scanner_pool_size_effect = Combinations.generateArgumentCombinations(new Object[][]{
                 NETWORK_SIZE_48, BLUB_HOST_PROVIDER, CHORD_MANAGER_FILE_WARM, KILL_PORTION_50,

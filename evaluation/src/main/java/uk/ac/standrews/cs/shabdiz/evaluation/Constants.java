@@ -14,8 +14,8 @@ public final class Constants {
     public static final Integer[] KILL_PORTION_50 = {50}; // percent
     public static final Integer[] ALL_SCHEDULER_THREAD_POOL_SIZES = {10, 100};
     public static final Integer[] SCHEDULER_THREAD_POOL_SIZE_10 = {10};
-    public static final Integer[] ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES = {1, 10, 20, 30, 40, 50, Integer.MAX_VALUE};
-    public static final Integer[] CONCURRENT_SCANNER_THREAD_POOL_SIZE_MAX = {Integer.MAX_VALUE};
+    public static final Integer[] ALL_CONCURRENT_SCANNER_THREAD_POOL_SIZES = {1, 5, 10, 15, 20, Integer.MAX_VALUE};
+    public static final Integer[] CONCURRENT_SCANNER_THREAD_POOL_SIZE_5_AND_MAX = {5, Integer.MAX_VALUE};
     public static final Integer[] ALL_NETWORK_SIZES = {10, 20, 30, 40, 48};
     public static final Integer[] NETWORK_SIZE_48 = {48};
     public static final Duration[] SCANNER_INTERVAL_1_SECOND = {new Duration(1, TimeUnit.SECONDS)};
@@ -121,7 +121,7 @@ public final class Constants {
 
     };
     public static final Duration[] ALL_SCANNER_INTERVALS = {
-//            Duration.ZERO,
+            new Duration(1, TimeUnit.NANOSECONDS),
             new Duration(1, TimeUnit.SECONDS),
             new Duration(3, TimeUnit.SECONDS),
             new Duration(5, TimeUnit.SECONDS),
@@ -129,6 +129,7 @@ public final class Constants {
             new Duration(9, TimeUnit.SECONDS),
             new Duration(20, TimeUnit.SECONDS)
     };
+    
     public static final Duration[] ALL_SCANNER_TIMEOUTS = {
             new Duration(30, TimeUnit.SECONDS),
             new Duration(1, TimeUnit.MINUTES),
