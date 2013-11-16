@@ -25,7 +25,7 @@ public class ChordRingSizeScanner extends Scanner {
     }
 
     @Override
-    public void scan(final ApplicationNetwork network) {
+    public synchronized void scan(final ApplicationNetwork network) {
 
         final IChordRemoteReference start = getFirstRunningPeer(network);
         try {
@@ -69,7 +69,7 @@ public class ChordRingSizeScanner extends Scanner {
         firePropertyChange(RING_SIZE_PROPERTY_NAME, old_ring_size, new_ring_size);
     }
 
-    private static IChordRemoteReference getFirstRunningPeer(final ApplicationNetwork network) {
+    private IChordRemoteReference getFirstRunningPeer(final ApplicationNetwork network) {
 
         for (final ApplicationDescriptor descriptor : network) {
             if (descriptor.isInAnyOfStates(ApplicationState.RUNNING)) { return descriptor.getApplicationReference(); }

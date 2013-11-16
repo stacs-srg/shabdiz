@@ -22,6 +22,7 @@ import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
+import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.stachord.impl.ChordNodeFactory;
@@ -31,6 +32,7 @@ import uk.ac.standrews.cs.stachord.servers.NodeServer;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ChordManager extends ExperimentManager {
 
+    protected static final AttributeKey<IKey> NODE_KEY_KEY = new AttributeKey<IKey>();
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold();
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm();
     static final URLBased URL_BASED = new URLBased();
@@ -59,9 +61,14 @@ public abstract class ChordManager extends ExperimentManager {
     public Object deploy(final ApplicationDescriptor descriptor) throws Exception {
 
         final Host host = descriptor.getHost();
+
         final InetSocketAddress previous_address = descriptor.getAttribute(ADDRESS_KEY);
         int port = previous_address == null ? 0 : previous_address.getPort();
-        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + nextPeerKey().toString(Key.DEFAULT_RADIX));
+
+        final IKey previous_key = descriptor.getAttribute(NODE_KEY_KEY);
+        final IKey node_key = previous_key == null ? nextPeerKey() : previous_key;
+
+        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + node_key.toString(Key.DEFAULT_RADIX));
         LOGGER.debug("waiting for properties of process on host {}...", host);
 
         final Properties properties = getPropertiesFromProcess(node_process);
@@ -69,9 +76,11 @@ public abstract class ChordManager extends ExperimentManager {
         final InetSocketAddress address = NetworkUtil.getAddressFromString(properties.getProperty(NodeServer.ADDRESS_PROPERTY_KEY));
         final IChordRemoteReference node_reference = bindWithRetry(new InetSocketAddress(host.getAddress(), address.getPort()));
 
+        descriptor.setAttribute(NODE_KEY_KEY, node_key);
         descriptor.setAttribute(ADDRESS_KEY, address);
         descriptor.setAttribute(PROCESS_KEY, node_process);
         descriptor.setAttribute(PID_KEY, pid);
+
         return node_reference;
     }
 
@@ -117,8 +126,8 @@ public abstract class ChordManager extends ExperimentManager {
 
             super.configure(network);
 
-            final List<URL> dependenlcy_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
-            for (URL url : dependenlcy_urls) {
+            final List<URL> dependency_urls = resolver.resolveAsRemoteURLs(STACHORD_MAVEN_ARTIFACT);
+            for (URL url : dependency_urls) {
                 process_builder.addURL(url);
             }
         }
@@ -145,8 +154,8 @@ public abstract class ChordManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
-            for (File file : dependenlcy_files) {
+            final List<File> dependency_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+            for (File file : dependency_files) {
                 process_builder.addFile(file);
             }
         }
@@ -173,14 +182,14 @@ public abstract class ChordManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            final List<File> dependenlcy_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
-            LOGGER.info("resolved chord dependencies locally. total of {} files", dependenlcy_files.size());
+            final List<File> dependency_files = resolver.resolve(STACHORD_MAVEN_ARTIFACT_COORDINATES);
+            LOGGER.info("resolved chord dependencies locally. total of {} files", dependency_files.size());
 
             final String dependencies_home = "/tmp/chord_dependencies/";
             LOGGER.info("uploading chord dependencies to {} hosts at {}", network.size(), dependencies_home);
-            uploadToAllHosts(network, dependenlcy_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
+            uploadToAllHosts(network, dependency_files, dependencies_home, OVERRIDE_FILES_IN_WARM);
 
-            for (File file : dependenlcy_files) {
+            for (File file : dependency_files) {
                 process_builder.addRemoteFile(dependencies_home + file.getName());
             }
         }
@@ -207,7 +216,7 @@ public abstract class ChordManager extends ExperimentManager {
         protected void configure(final ApplicationNetwork network) throws Exception {
 
             super.configure(network);
-            LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
+            LOGGER.info("Attempting to remove all shabdiz cached files on {} hosts", network.size());
             clearCachedShabdizFilesOnAllHosts(network);
             process_builder.addMavenDependency(STACHORD_MAVEN_ARTIFACT_COORDINATES);
         }
@@ -235,7 +244,7 @@ public abstract class ChordManager extends ExperimentManager {
 
             super.configure(network);
 
-            LOGGER.info("Attemting to resolve {} on {} hosts", STACHORD_MAVEN_ARTIFACT_COORDINATES, network.size());
+            LOGGER.info("Attempting to resolve {} on {} hosts", STACHORD_MAVEN_ARTIFACT_COORDINATES, network.size());
             resolveMavenArtifactOnAllHosts(network, STACHORD_MAVEN_ARTIFACT_COORDINATES);
             process_builder.addMavenDependency(STACHORD_MAVEN_ARTIFACT_COORDINATES);
         }

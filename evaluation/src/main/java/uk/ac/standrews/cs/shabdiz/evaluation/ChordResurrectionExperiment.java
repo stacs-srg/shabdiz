@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -80,7 +82,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     private static final int JOIN_RANDOM_SEED = 78354;
     private final ChordRingSizeScanner ring_size_scanner;
     private final RingSizeGauge ring_size_gauge;
-    private final List<IChordRemoteReference> joined_nodes = new ArrayList<IChordRemoteReference>();
+    private final Set<ApplicationDescriptor> joined_nodes = new HashSet<ApplicationDescriptor>();
     private final Random random;
 
     public ChordResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
@@ -154,19 +156,28 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
         super.afterResurrection(killed_instances);
         LOGGER.info("re-assembling Chord ring by re-joining {} instances", killed_instances.size());
-        assembleRing(killed_instances);
+        reAssembleRing(killed_instances);
 
         LOGGER.info("awaiting stabilized ring after killing portion of network...");
         timeRingStabilization(TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_START, TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
 
     }
 
+    private void reAssembleRing(final List<ApplicationDescriptor> killed_instances) throws Exception {
+
+        //TODO investigate why ring does not stabilize if assembly is only done for killed instances
+        //        assembleRing(killed_instances);
+        // For now we just assemble the whole network again
+        joined_nodes.clear();
+        assembleRing();
+    }
+
     @Override
     protected void kill(final ApplicationDescriptor kill_candidate) throws Exception {
 
         super.kill(kill_candidate);
-        synchronized (joined_nodes) {
-            joined_nodes.remove(kill_candidate.getApplicationReference());
+        synchronized (this) {
+            joined_nodes.remove(kill_candidate);
         }
     }
 
@@ -176,8 +187,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         try {
 
-            for (ApplicationDescriptor descriptor : descriptors) {
-                final IChordRemoteReference node = descriptor.getApplicationReference();
+            for (final ApplicationDescriptor descriptor : descriptors) {
 
                 final ListenableFuture<Void> future_join = executor.submit(new Callable<Void>() {
 
@@ -185,11 +195,11 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
                     public Void call() throws Exception {
 
                         try {
-                            final IChordRemoteReference known_node = joinWithRetry(node);
-                            LOGGER.debug("node {}({}) successfully joined {}({})", node.getCachedKey(), node.getCachedAddress(), known_node.getCachedKey(), known_node.getCachedAddress());
+                            final ApplicationDescriptor known_node = joinWithRetry(descriptor);
+                            LOGGER.debug("node {} successfully joined {}", descriptor, known_node);
                         }
                         catch (final Exception e) {
-                            LOGGER.error("node {}({}) failed to complete join within timeout", node.getCachedKey(), node.getCachedAddress());
+                            LOGGER.error("node {} failed to complete join within timeout", descriptor);
                             LOGGER.error("failed join caused by", e);
                             throw e;
                         }
@@ -208,40 +218,54 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
         }
     }
 
-    private IChordRemoteReference joinWithRetry(final IChordRemoteReference joiner) throws Exception {
+    private ApplicationDescriptor joinWithRetry(final ApplicationDescriptor joiner_descriptor) throws Exception {
 
-        return TimeoutExecutorService.retry(new Callable<IChordRemoteReference>() {
+        return TimeoutExecutorService.retry(new Callable<ApplicationDescriptor>() {
 
             @Override
-            public IChordRemoteReference call() throws Exception {
+            public ApplicationDescriptor call() throws Exception {
 
-                final IChordRemoteReference known_node = getRandomJoinedNode(joiner);
-                joiner.getRemote().join(known_node);
-                if (!known_node.equals(joiner)) {
-                    synchronized (joined_nodes) {
-                        joined_nodes.add(joiner);
+                final ApplicationDescriptor known_node = getRandomJoinedNode(joiner_descriptor);
+                final IChordRemoteReference joiner = joiner_descriptor.getApplicationReference();
+                final IChordRemoteReference joinee = known_node.getApplicationReference();
+                joiner.getRemote().join(joinee);
+                synchronized (this) {
+                    if (!joined_nodes.contains(joiner_descriptor)) {
+                        joined_nodes.add(joiner_descriptor);
                     }
                 }
                 return known_node;
             }
         }, JOIN_TIMEOUT, JOIN_RETRY_INTERVAL);
+
     }
 
-    private IChordRemoteReference getRandomJoinedNode(IChordRemoteReference joiner) {
+    private synchronized ApplicationDescriptor getRandomJoinedNode(ApplicationDescriptor joiner) {
 
-        synchronized (joined_nodes) {
-            final IChordRemoteReference joined_node;
-            if (joined_nodes.isEmpty()) {
-                joined_nodes.add(joiner);
-                joined_node = joiner;
-            }
-            else {
-                int candidate_index = random.nextInt(joined_nodes.size());
-                joined_node = joined_nodes.get(candidate_index);
-                assert joined_node != null;
-            }
-            return joined_node;
+        ApplicationDescriptor joined_node = null;
+        if (joined_nodes.isEmpty()) {
+            joined_nodes.add(joiner);
+            joined_node = joiner;
         }
+        else {
+            final int size = joined_nodes.size();
+            final int candidate_index = random.nextInt(size);
+            final Iterator<ApplicationDescriptor> iterator = joined_nodes.iterator();
+            int index = 0;
+            while (iterator.hasNext()) {
+                final ApplicationDescriptor candidate = iterator.next();
+                if (index == candidate_index) {
+                    joined_node = candidate;
+                }
+                index++;
+            }
+        }
+
+        if (joined_node == null) {
+            LOGGER.warn("null join node; possible concurrency bug");
+        }
+
+        return joined_node;
     }
 
     private void assembleRing() throws Exception {
@@ -259,6 +283,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
             public synchronized void propertyChange(final PropertyChangeEvent event) {
 
                 final Integer new_ring_size = (Integer) event.getNewValue();
+                LOGGER.info("ring size changed from {} to {}", event.getOldValue(), new_ring_size);
                 if (new_ring_size.equals(network_size)) {
                     stabilization_latch.countDown();
                 }
