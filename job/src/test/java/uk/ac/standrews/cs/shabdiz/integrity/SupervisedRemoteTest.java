@@ -22,6 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
+import net.schmizz.sshj.userauth.method.AuthPublickey;
+import net.schmizz.sshj.userauth.password.PasswordFinder;
+import net.schmizz.sshj.userauth.password.Resource;
 import org.apache.commons.io.IOUtils;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
@@ -29,8 +33,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
-import uk.ac.standrews.cs.shabdiz.host.SSHPublicKeyCredentials;
+import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
@@ -51,8 +54,22 @@ public class SupervisedRemoteTest {
         Worker worker = null;
 
         try {
-            //            remoteHost = new SSHHost("beast.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter Password")));
-            remoteHost = new SSHHost("project07.cs.st-andrews.ac.uk", SSHPublicKeyCredentials.getDefaultRSACredentials(Input.readPassword("Enter Password")));
+            OpenSSHKeyFile provider = new OpenSSHKeyFile();
+            provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"), new PasswordFinder() {
+
+                @Override
+                public char[] reqPassword(final Resource<?> resource) {
+
+                    return Input.readPassword("Enter local ssh private key password: ");
+                }
+
+                @Override
+                public boolean shouldRetry(final Resource<?> resource) {
+
+                    return false;
+                }
+            });
+            remoteHost = new SSHjHost("project07.cs.st-andrews.ac.uk", new AuthPublickey(provider));
             final Process worker_process = remoteHost.execute("echo $PATH");
             LOGGER.info("ERR: {}", IOUtils.toString(worker_process.getErrorStream()));
             LOGGER.info("OUT: {}", IOUtils.toString(worker_process.getInputStream()));

@@ -6,12 +6,11 @@
         <artifactId>reflow-maven-skin</artifactId>
         <version>1.0.0</version>
     </skin>
-    <publishDate position="bottom" format="dd MMM. yyyy"/>
-    <version position="bottom"/>
     <custom>
         <reflowSkin>
             <highlightJs>true</highlightJs>
             <highlightJsTheme>github</highlightJsTheme>
+            
             <bottomNav maxSpan="10">
                 <column>reports</column>
                 <column>modules</column>
@@ -25,17 +24,39 @@
             <titleTemplate>%2$s | %1$s</titleTemplate>
             <breadcrumbs>true</breadcrumbs>
 
+            <!--Do not display the creator of skin-->
             <skinAttribution>false</skinAttribution>
         </reflowSkin>
     </custom>
 
+    <!-- Workaround for bug in skin that generates spurious closing header tag. -->
+    <bannerRight>
+        <name> </name>
+    </bannerRight>
+    <bannerLeft>
+        <name> </name>
+    </bannerLeft>
+
     <body>
+        <head>
+            <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Bitter:400,700" rel="stylesheet" type="text/css"/>
+            <link href="/css/override.css" rel="stylesheet" type="text/css"/>
+        </head>
+
         <links>
-            <item name="Javadoc" href="apidocs"/>
+            <item name="Home" href="index.html"/>
+            <item name="Software" href="software.html"/>
+            <item name="Contact" href="contact.html"/>
         </links>
 
         <menu ref="modules"/>
         <menu name="Maven documentation" ref="reports" inherit="bottom"/>
         <menu ref="parent"/>
     </body>
+
+    <!--Show the last publish date at the bottom of the page-->
+    <publishDate position="bottom" format="dd MMM. yyyy"/>
+
+    <!--Do not display the version-->
+    <version position="none"/>
 </project>

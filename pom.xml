@@ -108,4 +108,11 @@
         </repository>
     </repositories>
 
+    <distributionManagement>
+        <site>
+            <id>website</id>
+            <url>file:///cs/home/shabdiz/public_html_shabdiz</url>
+        </site>
+    </distributionManagement>
+
 </project>
