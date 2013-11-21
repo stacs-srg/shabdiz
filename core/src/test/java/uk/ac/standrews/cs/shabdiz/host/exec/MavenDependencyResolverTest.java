@@ -23,7 +23,7 @@ public class MavenDependencyResolverTest {
     @Test
     public void testResolveByCoordinate() throws Exception {
 
-        final List<URL> resolve = maven_dependency_resolver.resolveAsRemoteURLs(new DefaultArtifact("uk.ac.standrews.cs:hello_world_64m:1.0-SNAPSHOT"));
+        final List<URL> resolve = maven_dependency_resolver.resolveAsRemoteURLs(new DefaultArtifact("uk.ac.standrews.cs.sample_applications:hello_world_64m:1.0-SNAPSHOT"));
         for (URL url : resolve) {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             try {
