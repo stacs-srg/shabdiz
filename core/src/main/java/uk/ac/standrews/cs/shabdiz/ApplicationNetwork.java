@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -41,8 +42,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -56,9 +57,9 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
  */
 public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
-    private static final String SCANNER_EXECUTOR_NAMING_SUFFIX = "_scanner_executor_";
-    private static final String SCANNER_SCHEDULER_NAMING_SUFFIX = "_scanner_scheduler_";
-    private static final String NETWORK_EXECUTOR_SERVICE_NAMING_SUFFIX = "_network_executor_service_";
+    private static final String SCANNER_EXECUTOR_THREAD_NAME_FORMAT = "_scanner_executor_%d";
+    private static final String SCANNER_SCHEDULER_THREAD_NAME_FORMAT = "_scanner_scheduler_%d";
+    private static final String NETWORK_EXECUTOR_THREAD_NAME_FORMAT = "_network_executor_service_%d";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationNetwork.class);
     private static final int DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE = 10;
     private static final Duration DEFAULT_SCANNER_CYCLE_DELAY = new Duration(5, TimeUnit.SECONDS);
@@ -482,18 +483,23 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     protected ScheduledExecutorService createScannerScheduledExecutorService(int thread_pool_size) {
 
-        return new ScheduledThreadPoolExecutor(thread_pool_size, new NamedThreadFactory(application_name + SCANNER_SCHEDULER_NAMING_SUFFIX));
+        return new ScheduledThreadPoolExecutor(thread_pool_size, createThreadFactory(SCANNER_SCHEDULER_THREAD_NAME_FORMAT));
     }
 
     protected ExecutorService createScannerExecutorService(final int pool_size) {
 
-        final NamedThreadFactory thread_factory = new NamedThreadFactory(SCANNER_EXECUTOR_NAMING_SUFFIX);
+        final ThreadFactory thread_factory = createThreadFactory(SCANNER_EXECUTOR_THREAD_NAME_FORMAT);
         return pool_size != Integer.MAX_VALUE ? Executors.newFixedThreadPool(pool_size, thread_factory) : Executors.newCachedThreadPool(thread_factory);
+    }
+
+    protected ThreadFactory createThreadFactory(String format) {
+
+        return new ThreadFactoryBuilder().setNameFormat(application_name + format).build();
     }
 
     protected ListeningExecutorService createNetworkExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory(application_name + NETWORK_EXECUTOR_SERVICE_NAMING_SUFFIX)));
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(createThreadFactory(NETWORK_EXECUTOR_THREAD_NAME_FORMAT)));
     }
 
     ExecutorService getConcurrentScannerExecutor() {

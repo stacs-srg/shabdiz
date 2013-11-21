@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.io.FileUtils;
-import org.mashti.jetson.util.CloseableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -17,6 +16,7 @@ import uk.ac.standrews.cs.shabdiz.platform.CygwinPlatform;
 import uk.ac.standrews.cs.shabdiz.platform.Platform;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_HOME_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.BOOTSTRAP_JAR_NAME;
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.LOCAL_SHABDIZ_TMP_HOME;
@@ -295,7 +295,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
             configuration.write(out);
         }
         finally {
-            CloseableUtil.closeQuietly(out);
+            closeQuietly(out);
         }
         return config_file;
     }

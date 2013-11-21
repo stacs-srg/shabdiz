@@ -19,6 +19,7 @@
 
 package uk.ac.standrews.cs.shabdiz.host.exec;
 
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.platform.CygwinPlatform;
@@ -76,7 +77,7 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_HOME : ECHO_USERPROFILE, params);
+            return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_HOME : ECHO_USERPROFILE, params[0]);
         }
     };
     public static final CommandBuilder GET_TEMP_DIR = new CommandBuilder() {
@@ -88,7 +89,7 @@ public final class Commands {
         public String get(final Platform platform, final String... params) {
 
             if (params.length != 0) {
-                LOGGER.warn("ignoring passed parameters {}", params);
+                LOGGER.warn("ignoring passed parameters {}", Arrays.toString(params));
             }
             return Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? ECHO_TMPDIR : ECHO_TEMP;
         }

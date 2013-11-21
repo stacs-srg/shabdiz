@@ -30,18 +30,12 @@
     <artifactId>shabdiz-example</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/example</name>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.5.2</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <cobertura.skip>true</cobertura.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

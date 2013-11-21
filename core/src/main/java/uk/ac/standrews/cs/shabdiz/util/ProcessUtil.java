@@ -19,6 +19,7 @@
 
 package uk.ac.standrews.cs.shabdiz.util;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.RuntimeMXBean;
@@ -28,9 +29,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.io.IOUtils;
-import org.mashti.jetson.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -54,33 +55,6 @@ public final class ProcessUtil {
     }
 
     /**
-     * Attempts to get a PID from a given runtime MXBean name.
-     * The expected format is {@code <pid>@<machine_name>}.
-     * Returns {@code null} if the given MXBean name does not match the above pattern.
-     *
-     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
-     * @see RuntimeMXBean#getName()
-     */
-    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
-
-        Integer pid = null;
-        final int index_of_at = runtime_mxbean_name.indexOf("@");
-        if (index_of_at != -1) {
-            pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
-        }
-        return pid;
-    }
-
-    public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
-
-        final Platform platform = host.getPlatform();
-        final String kill_command = Commands.FORCE_KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
-        //        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
-        final Process kill = host.execute(kill_command);
-        awaitNormalTerminationAndGetOutput(kill);
-    }
-
-    /**
      * Awaits normal termination of a given {@code process} and returns its output from {@link Process#getInputStream()}.
      * A process is considered to have terminated normally when: its exit value is equal to {@code 0}, or on output was produced from its {@link Process#getErrorStream()}.
      * The output produced by the process's {@link Process#getErrorStream()} is wrapped around an {@link IOException} and thrown.
@@ -92,7 +66,8 @@ public final class ProcessUtil {
      */
     public static String awaitNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
-        final ExecutorService executor = Executors.newFixedThreadPool(2, new NamedThreadFactory("process_util_"));
+        final ThreadFactory thread_factory = new ThreadFactoryBuilder().setNameFormat("process_util_%d").build();
+        final ExecutorService executor = Executors.newFixedThreadPool(2, thread_factory);
         try {
             final Future<Void> future_error = executor.submit(new Callable<Void>() {
 
@@ -135,6 +110,33 @@ public final class ProcessUtil {
     }
 
     /**
+     * Attempts to get a PID from a given runtime MXBean name.
+     * The expected format is {@code <pid>@<machine_name>}.
+     * Returns {@code null} if the given MXBean name does not match the above pattern.
+     *
+     * @return the pid from the given name or {@code null} if the name does not match the expected pattern
+     * @see RuntimeMXBean#getName()
+     */
+    public static Integer getPIDFromRuntimeMXBeanName(final String runtime_mxbean_name) {
+
+        Integer pid = null;
+        final int index_of_at = runtime_mxbean_name.indexOf("@");
+        if (index_of_at != -1) {
+            pid = Integer.parseInt(runtime_mxbean_name.substring(0, index_of_at));
+        }
+        return pid;
+    }
+
+    public static void killProcessOnHostByPID(Host host, int pid) throws IOException, InterruptedException {
+
+        final Platform platform = host.getPlatform();
+        final String kill_command = Commands.FORCE_KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        //        final String kill_command = Commands.KILL_BY_PROCESS_ID.get(platform, String.valueOf(pid));
+        final Process kill = host.execute(kill_command);
+        awaitNormalTerminationAndGetOutput(kill);
+    }
+
+    /**
      * Prints a line containing the given {@code key value} pair to the given stream.
      * This method is thread-safe.
      *
@@ -144,9 +146,7 @@ public final class ProcessUtil {
      */
     public static void printKeyValue(final PrintStream out, final String key, final Object value) {
 
-        synchronized (out) {
-            out.println(key + DELIMITER + value);
-        }
+        out.println(key + DELIMITER + value);
     }
 
     /**

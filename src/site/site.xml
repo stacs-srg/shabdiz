@@ -10,7 +10,6 @@
     <version position="bottom"/>
     <custom>
         <reflowSkin>
-            <!--<theme>bootswatch-cerulean</theme>-->
             <highlightJs>true</highlightJs>
             <highlightJsTheme>github</highlightJsTheme>
             <bottomNav maxSpan="10">

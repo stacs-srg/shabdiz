@@ -53,7 +53,7 @@ public class SupervisedSSHjHostTest extends Bootstrap {
 
         assumeTrue(Platforms.getCurrentUser().equals("masih"));
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
-        key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
+        key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"), new PasswordFinder() {
 
             @Override
             public char[] reqPassword(final Resource<?> resource) {

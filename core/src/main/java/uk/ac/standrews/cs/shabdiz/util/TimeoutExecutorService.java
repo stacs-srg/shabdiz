@@ -18,6 +18,7 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -25,7 +26,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.mashti.jetson.util.NamedThreadFactory;
 
 /**
  * A utility {@link ThreadPoolExecutor} that is used to execute tasks with timeout.
@@ -41,7 +41,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private TimeoutExecutorService() {
 
-        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory("TimeoutExecutorService_"));
+        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("TimeoutExecutorService_%d").build());
     }
 
     /**

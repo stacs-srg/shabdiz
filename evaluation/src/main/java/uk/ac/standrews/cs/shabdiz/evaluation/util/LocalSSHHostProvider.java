@@ -2,19 +2,17 @@ package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
 import java.io.IOException;
 import javax.inject.Provider;
-import uk.ac.standrews.cs.nds.util.Input;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHHost;
-import uk.ac.standrews.cs.shabdiz.host.SSHPasswordCredentials;
+import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class LocalSSHHostProvider implements Provider<Host> {
 
-    private final SSHHost local_ssh_host;
+    private final Host local_ssh_host;
 
     public LocalSSHHostProvider() throws IOException {
 
-        local_ssh_host = new SSHHost("localhost", new SSHPasswordCredentials(Input.readPassword("password: ")));
+        local_ssh_host = new SSHjHost("localhost", BlubHostProvider.SSHJ_AUTH);
     }
 
     @Override

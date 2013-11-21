@@ -19,7 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz;
 
-import com.jcraft.jsch.JSchException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -120,9 +119,6 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
         else if (throwable instanceof UnknownHostException) {
             state = ApplicationState.INVALID;
-        }
-        else if (throwable instanceof JSchException) {
-            state = ApplicationState.NO_AUTH;
         }
         else if (throwable instanceof UserAuthException) {
             state = ApplicationState.NO_AUTH;
