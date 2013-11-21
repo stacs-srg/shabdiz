@@ -53,6 +53,11 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer extends TimeToReachStateA
         return new TimeToReachStatePerThreadPoolSizeAnalyzer("RUNNING", results_path, Constants.TIME_TO_REACH_RUNNING_DURATION);
     }
 
+    static TimeToReachStatePerThreadPoolSizeAnalyzer stabilize(File results_path) throws IOException {
+
+        return new TimeToReachStatePerThreadPoolSizeAnalyzer("stabilized ring", results_path, Constants.TIME_TO_REACH_STABILIZED_RING_DURATION);
+    }
+
     static TimeToReachStatePerThreadPoolSizeAnalyzer authAfterKill(File results_path) throws IOException {
 
         return new TimeToReachStatePerThreadPoolSizeAnalyzer("AUTH after kill", results_path, Constants.TIME_TO_REACH_AUTH_AFTER_KILL_DURATION);
@@ -61,5 +66,10 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer extends TimeToReachStateA
     static TimeToReachStatePerThreadPoolSizeAnalyzer runningAfterKill(File results_path) throws IOException {
 
         return new TimeToReachStatePerThreadPoolSizeAnalyzer("RUNNING after kill", results_path, Constants.TIME_TO_REACH_RUNNING_AFTER_KILL_DURATION);
+    }
+
+    static TimeToReachStatePerThreadPoolSizeAnalyzer stabilizeAfterKill(File results_path) throws IOException {
+
+        return new TimeToReachStatePerThreadPoolSizeAnalyzer("stabilized ring after kill", results_path, Constants.TIME_TO_REACH_STABILIZED_RING_AFTER_KILL_DURATION);
     }
 }

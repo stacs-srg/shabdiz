@@ -34,15 +34,17 @@ import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
+import static uk.ac.standrews.cs.shabdiz.evaluation.EchoManager.SAMPLE_APPLICATIONS_GROUP_ID;
+
 abstract class HelloWorldManager extends ExperimentManager {
 
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT = new DefaultArtifact("uk.ac.standrews.cs:hello_world:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_2M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_2m:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_4M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_4m:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_8M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_8m:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_16M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_16m:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_32M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_32m:1.0");
-    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_64M = new DefaultArtifact("uk.ac.standrews.cs:hello_world_64m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_2M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_2m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_4M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_4m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_8M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_8m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_16M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_16m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_32M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_32m:1.0");
+    static final Artifact HELLO_WORLD_MAVEN_ARTIFACT_64M = new DefaultArtifact(SAMPLE_APPLICATIONS_GROUP_ID + ":hello_world_64m:1.0");
     // HELLO WORLD
     static final FileBasedCold FILE_BASED_COLD = new FileBasedCold(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);
     static final FileBasedWarm FILE_BASED_WARM = new FileBasedWarm(uk.ac.standrews.cs.sample_applications.hello_world.PeriodicHelloWorld.class, HELLO_WORLD_MAVEN_ARTIFACT);

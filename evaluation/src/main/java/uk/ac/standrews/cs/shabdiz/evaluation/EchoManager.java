@@ -45,8 +45,9 @@ abstract class EchoManager extends ExperimentManager {
     static final URLBased URL_BASED = new URLBased();
     static final MavenBasedWarm MAVEN_BASED_WARM = new MavenBasedWarm();
     static final MavenBasedCold MAVEN_BASED_COLD = new MavenBasedCold();
+    static final String SAMPLE_APPLICATIONS_GROUP_ID = "uk.ac.standrews.cs.sample_applications";
     private static final Logger LOGGER = LoggerFactory.getLogger(EchoManager.class);
-    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate("uk.ac.standrews.cs", "echo", "1.0");
+    private static final String ECHO_MAVEN_ARTIFACT_COORDINATES = MavenDependencyResolver.toCoordinate(SAMPLE_APPLICATIONS_GROUP_ID, "echo", "1.0");
     private static final DefaultArtifact ECHO_MAVEN_ARTIFACT = new DefaultArtifact(ECHO_MAVEN_ARTIFACT_COORDINATES);
 
     protected EchoManager() {
