@@ -13,7 +13,6 @@ import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.host.SSHCredentials;
 import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 import uk.ac.standrews.cs.test.category.Ignore;
@@ -28,7 +27,7 @@ public class SupervisedExperimentTest {
     public static void setUp() throws Exception {
 
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
-        key_provider.init(new File(SSHCredentials.DEFAULT_SSH_HOME, "id_rsa"), new PasswordFinder() {
+        key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"), new PasswordFinder() {
 
             @Override
             public char[] reqPassword(final Resource<?> resource) {
