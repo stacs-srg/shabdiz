@@ -19,7 +19,6 @@ public class TimeToReachStatePerKillPortionAnalyzer extends TimeToReachStateAnal
 
         super(name, results_path, duration_property);
         x_axis_label = "Portion of killed instances (%)";
-        showLegend = true;
     }
 
     @Override

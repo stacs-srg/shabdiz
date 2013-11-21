@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Properties;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.StatisticalBarRenderer;
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
@@ -33,8 +35,12 @@ abstract class TimeToReachStateAnalyzer implements Analyser {
         final DefaultStatisticalCategoryDataset dataset = getStatisticalCategoryDataset();
         final JFreeChart chart = ChartFactory.createLineChart(getName(), x_axis_label, "Time to reach " + name + " (s)", dataset, PlotOrientation.VERTICAL, showLegend, false, false);
         final StatisticalBarRenderer renderer = new StatisticalBarRenderer();
-        chart.getCategoryPlot().setRenderer(renderer);
-        chart.getCategoryPlot().getRangeAxis().setLowerBound(0);
+        final CategoryPlot category_plot = chart.getCategoryPlot();
+        category_plot.setRenderer(renderer);
+
+        final ValueAxis range_axis = category_plot.getRangeAxis();
+        range_axis.setLowerBound(0);
+
         PlainChartTheme.applyTheme(chart);
         return chart;
     }

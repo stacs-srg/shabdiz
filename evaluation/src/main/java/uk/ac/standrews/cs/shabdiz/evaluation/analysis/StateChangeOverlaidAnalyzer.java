@@ -17,13 +17,13 @@ import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplicationStateCounters;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFilesByName;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class StateChangeAnalyzer implements Analyser {
+public class StateChangeOverlaidAnalyzer implements Analyser {
 
     private final List<GaugeCsvAnalyzer> state_analysers;
     private JFreeChart chart;
     private YIntervalSeriesCollection series_collection;
 
-    public StateChangeAnalyzer(File results_path) {
+    public StateChangeOverlaidAnalyzer(File results_path) {
 
         state_analysers = new ArrayList<GaugeCsvAnalyzer>();
         InitializeStateAnalyzers(results_path);

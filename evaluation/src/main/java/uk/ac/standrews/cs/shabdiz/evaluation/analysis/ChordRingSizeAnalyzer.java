@@ -8,7 +8,7 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFi
 public class ChordRingSizeAnalyzer extends GaugeCsvAnalyzer {
 
     public static final String RING_SIZE = "Ring Size";
-    static final String GAUGE_CSV = "ring_size_gauge.csv.csv";
+    static final String GAUGE_CSV = "ring_size_gauge.csv";
 
     public ChordRingSizeAnalyzer(File results_path) {
 

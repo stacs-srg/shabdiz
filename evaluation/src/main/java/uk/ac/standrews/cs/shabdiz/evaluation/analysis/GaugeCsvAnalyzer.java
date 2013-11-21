@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
@@ -55,6 +53,16 @@ class GaugeCsvAnalyzer implements Analyser {
         show_error_bars = true;
     }
 
+    public String getChartTitle() {
+
+        return chart_title;
+    }
+
+    public String getYAxisLabel() {
+
+        return y_axis_label;
+    }
+
     @Override
     public String getName() {
 
@@ -77,10 +85,8 @@ class GaugeCsvAnalyzer implements Analyser {
             final XYItemRenderer error_renderer = getXYItemRenderer();
             final XYDataset dataset = getXYDataset();
             plot = new XYPlot(dataset, x_axis, y_axis, error_renderer);
-            plot.getRangeAxis().setLowerBound(0);
-            final TickUnits tickUnits = new TickUnits();
-            tickUnits.add(new NumberTickUnit(5));
-            plot.getDomainAxis().setStandardTickUnits(tickUnits);
+            final ValueAxis range_axis = plot.getRangeAxis();
+            range_axis.setLowerBound(0);
         }
         return plot;
     }
