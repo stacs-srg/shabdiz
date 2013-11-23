@@ -7,11 +7,11 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFi
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class ThreadCountAnalyzer extends GaugeCsvAnalyzer {
 
-    public static final String NUMBER_OF_THREADS = "Number of Threads";
+    public static final String NAME = "Number of Threads";
     static final String GAUGE_CSV = "thread_count_gauge.csv";
 
     public ThreadCountAnalyzer(File results_path) {
 
-        super(NUMBER_OF_THREADS, getFilesByName(results_path, GAUGE_CSV), NUMBER_OF_THREADS, NUMBER_OF_THREADS);
+        super(NAME, getFilesByName(results_path, GAUGE_CSV), NAME, NAME);
     }
 }

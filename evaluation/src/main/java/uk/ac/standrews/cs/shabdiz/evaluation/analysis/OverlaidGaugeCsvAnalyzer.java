@@ -2,6 +2,9 @@ package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -14,7 +17,7 @@ import org.mashti.sight.PlainChartTheme;
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class OverlaidGaugeCsvAnalyzer implements Analyser {
 
-    private final List<GaugeCsvAnalyzer> analyzers;
+    private final NavigableMap<String, GaugeCsvAnalyzer> labeled_analyzers;
     private final String chart_title;
     private final String y_axis_label;
     private final String name;
@@ -23,9 +26,15 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
 
     public OverlaidGaugeCsvAnalyzer(List<GaugeCsvAnalyzer> analyzers) {
 
-        if (analyzers.size() == 0) { throw new IllegalArgumentException("at least one analyser must be given"); }
-        this.analyzers = analyzers;
-        final GaugeCsvAnalyzer first_analyzer = analyzers.get(0);
+        this(labelAsRepetitions(analyzers));
+
+    }
+
+    public OverlaidGaugeCsvAnalyzer(NavigableMap<String, GaugeCsvAnalyzer> labeled_analyzers) {
+
+        if (labeled_analyzers.isEmpty()) { throw new IllegalArgumentException("at least one analyser must be given"); }
+        this.labeled_analyzers = labeled_analyzers;
+        final GaugeCsvAnalyzer first_analyzer = labeled_analyzers.firstEntry().getValue();
         chart_title = first_analyzer.getChartTitle();
         y_axis_label = first_analyzer.getYAxisLabel();
         name = first_analyzer.getName();
@@ -51,7 +60,6 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
             final XYPlot plot = chart.getXYPlot();
             plot.getRangeAxis().setLowerBound(0);
             plot.setRenderer(error_renderer);
-
             PlainChartTheme.applyTheme(chart);
         }
         return chart;
@@ -61,14 +69,23 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
 
         if (series_collection == null) {
             series_collection = new YIntervalSeriesCollection();
-            int repetition = 1;
-            for (GaugeCsvAnalyzer analyzer : analyzers) {
-                final YIntervalSeries series = analyzer.getYIntervalSeries();
-                series.setKey("Repetition " + repetition);
+            for (Map.Entry<String, GaugeCsvAnalyzer> labeled_analyzer : labeled_analyzers.entrySet()) {
+                final YIntervalSeries series = labeled_analyzer.getValue().getYIntervalSeries();
+                series.setKey(labeled_analyzer.getKey());
                 series_collection.addSeries(series);
-                repetition++;
             }
         }
         return series_collection;
+    }
+
+    private static NavigableMap<String, GaugeCsvAnalyzer> labelAsRepetitions(final List<GaugeCsvAnalyzer> analyzers) {
+
+        final TreeMap<String, GaugeCsvAnalyzer> labeled_analyzers = new TreeMap<String, GaugeCsvAnalyzer>();
+        int i = 1;
+        for (GaugeCsvAnalyzer analyzer : analyzers) {
+            labeled_analyzers.put("Repetition " + i, analyzer);
+            i++;
+        }
+        return labeled_analyzers;
     }
 }

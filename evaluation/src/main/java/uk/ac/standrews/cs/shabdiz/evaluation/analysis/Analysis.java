@@ -78,6 +78,24 @@ public class Analysis {
         saveAsSVG(deployment_strategy_results_pool_5, TimeToReachStatePerDeploymentStrategyAnalyzer.authAfterKill(deployment_strategy_results_pool_5));
 
         final File scanner_interval_results = new File(RESULTS_HOME, "Experiment 4 Scanner Intervals");
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.cpuUsage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.memoryUsage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.kilobytesInPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.kilobytesOutPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.packetsInPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.packetsOutPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.systemLoadAverage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, OverlaidResourceConsumptionPerScannerInterval.threadCount(scanner_interval_results));
+
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.cpuUsage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.memoryUsage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.kilobytesInPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.kilobytesOutPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.packetsInPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.packetsOutPerSecond(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.systemLoadAverage(scanner_interval_results));
+        saveAsSVG(scanner_interval_results, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.threadCount(scanner_interval_results));
+
         generateGenericChartsForSubDirectories(scanner_interval_results, true);
         generateOverlaidGenericChartsForRepetitions(scanner_interval_results, true);
         saveAsSVG(scanner_interval_results, TimeToReachStatePerScannerIntervalAnalyzer.auth(scanner_interval_results));
@@ -88,6 +106,24 @@ public class Analysis {
         saveAsSVG(scanner_interval_results, TimeToReachStatePerScannerIntervalAnalyzer.stabilizeAfterKill(scanner_interval_results));
 
         final File scanner_interval_results_pool_5 = new File(RESULTS_HOME, "Experiment 4 Scanner Intervals pool 5");
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.cpuUsage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.memoryUsage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.kilobytesInPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.kilobytesOutPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.packetsInPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.packetsOutPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.systemLoadAverage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, OverlaidResourceConsumptionPerScannerInterval.threadCount(scanner_interval_results_pool_5));
+
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.cpuUsage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.memoryUsage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.kilobytesInPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.kilobytesOutPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.packetsInPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.packetsOutPerSecond(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.systemLoadAverage(scanner_interval_results_pool_5));
+        saveAsSVG(scanner_interval_results_pool_5, AggregatedResourceConsumptionPerScannerIntervalAnalyzer.threadCount(scanner_interval_results_pool_5));
+
         generateGenericChartsForSubDirectories(scanner_interval_results_pool_5, true);
         generateOverlaidGenericChartsForRepetitions(scanner_interval_results_pool_5, true);
         saveAsSVG(scanner_interval_results_pool_5, TimeToReachStatePerScannerIntervalAnalyzer.auth(scanner_interval_results_pool_5));
@@ -153,8 +189,8 @@ public class Analysis {
             saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(ThreadCountAnalyzer.class, repetition_home));
             saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(PacketsOutPerSecondAnalyzer.class, repetition_home));
             saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(PacketsInPerSecondAnalyzer.class, repetition_home));
-            saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(BytesOutPerSecondAnalyzer.class, repetition_home));
-            saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(BytesInPerSecondAnalyzer.class, repetition_home));
+            saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(KilobytesOutPerSecondAnalyzer.class, repetition_home));
+            saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(KilobytesInPerSecondAnalyzer.class, repetition_home));
             saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(CpuUsageAnalyzer.class, repetition_home));
             saveAsSVG(repetition_home.getParentFile(), getOverlaidAnalyzer(MemoryUsageAnalyzer.class, repetition_home));
             if (include_ring_size) {
@@ -163,15 +199,15 @@ public class Analysis {
         }
     }
 
-    private static void generateGenericCharts(final File results_path, boolean include_ring_size) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private static void generateGenericCharts(final File results_path, boolean include_ring_size) throws IOException {
 
         saveAsSVG(results_path, new StateChangeOverlaidAnalyzer(results_path));
         saveAsSVG(results_path, new SystemLoadAverageAnalyzer(results_path));
         saveAsSVG(results_path, new ThreadCountAnalyzer(results_path));
         saveAsSVG(results_path, new PacketsOutPerSecondAnalyzer(results_path));
         saveAsSVG(results_path, new PacketsInPerSecondAnalyzer(results_path));
-        saveAsSVG(results_path, new BytesOutPerSecondAnalyzer(results_path));
-        saveAsSVG(results_path, new BytesInPerSecondAnalyzer(results_path));
+        saveAsSVG(results_path, new KilobytesOutPerSecondAnalyzer(results_path));
+        saveAsSVG(results_path, new KilobytesInPerSecondAnalyzer(results_path));
         saveAsSVG(results_path, new CpuUsageAnalyzer(results_path));
         saveAsSVG(results_path, new MemoryUsageAnalyzer(results_path));
 

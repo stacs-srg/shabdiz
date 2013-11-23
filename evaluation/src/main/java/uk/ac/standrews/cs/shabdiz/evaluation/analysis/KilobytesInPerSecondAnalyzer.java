@@ -8,15 +8,15 @@ import org.supercsv.util.CsvContext;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFilesByName;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class BytesInPerSecondAnalyzer extends GaugeCsvAnalyzer {
+public class KilobytesInPerSecondAnalyzer extends GaugeCsvAnalyzer {
 
-    private static final String BYTES_RECEIVED_PER_SECOND = "Kilobytes received per second";
+     static final String NAME = "Kilobytes received per second";
     static final String GAUGE_CSV = "ganglia_bytes_in.csv";
     static final ConvertBytesToKiloBytes CONVERT_BYTES_TO_KILO_BYTES = new ConvertBytesToKiloBytes();
 
-    public BytesInPerSecondAnalyzer(File results_path) {
+    public KilobytesInPerSecondAnalyzer(File results_path) {
 
-        super(BYTES_RECEIVED_PER_SECOND, getFilesByName(results_path, GAUGE_CSV), BYTES_RECEIVED_PER_SECOND, BYTES_RECEIVED_PER_SECOND);
+        super(NAME, getFilesByName(results_path, GAUGE_CSV), NAME, NAME);
     }
 
     @Override

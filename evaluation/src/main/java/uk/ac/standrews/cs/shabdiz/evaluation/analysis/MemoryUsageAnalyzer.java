@@ -12,12 +12,14 @@ public class MemoryUsageAnalyzer extends GaugeCsvAnalyzer {
 
     public static final ConvertByteToMegabyte CONVERT_BYTE_TO_MEGABYTE = new ConvertByteToMegabyte();
     public static final String MEMORY_USAGE = "Memory Usage";
+    public static final String NAME = MEMORY_USAGE;
     static final String GAUGE_CSV = "memory_gauge.csv";
     private static final int ONE_MEGABYTE_IN_BYTES = 1000 * 1000;
+    public static final String Y_AXIS_LABEL = "Memory Usage (MB)";
 
     public MemoryUsageAnalyzer(File results_path) {
 
-        super(MEMORY_USAGE, getFilesByName(results_path, GAUGE_CSV), "Memory Usage (MB)", MEMORY_USAGE);
+        super(NAME, getFilesByName(results_path, GAUGE_CSV), Y_AXIS_LABEL, MEMORY_USAGE);
     }
 
     @Override

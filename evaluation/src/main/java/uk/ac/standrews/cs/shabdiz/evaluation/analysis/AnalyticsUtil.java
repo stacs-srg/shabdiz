@@ -131,7 +131,7 @@ final class AnalyticsUtil {
         }
         return found_properties;
     }
-
+    
     static Collection<File> getFilesByName(File search_path, String name) {
 
         return FileUtils.listFiles(search_path, new FileFilterByName(name), TrueFileFilter.INSTANCE);
@@ -184,16 +184,41 @@ final class AnalyticsUtil {
         return point_statistics;
     }
 
+    static Statistics getAgregatedCsvStatistic(final Collection<File> csv_files, CellProcessor[] processors, Integer column_index, boolean header) throws IOException {
+
+        final Statistics statistics = new Statistics();
+        for (File csv : csv_files) {
+            final CsvListReader reader = getCsvListReader(csv, header);
+            try {
+                List<Object> row;
+                while ((row = reader.read(processors)) != null) {
+                    statistics.addSample((Number) row.get(column_index));
+                }
+            }
+            finally {
+                IOUtils.closeQuietly(reader);
+            }
+        }
+
+        return statistics;
+    }
+
     private static List<CsvListReader> getCsvListReaders(final Collection<File> csv_files, final boolean header) throws IOException {
 
         final List<CsvListReader> readers = new ArrayList<CsvListReader>();
         for (File csv : csv_files) {
 
-            final CsvListReader reader = new CsvListReader(new FileReader(csv), CsvPreference.STANDARD_PREFERENCE);
+            final CsvListReader reader = getCsvListReader(csv, header);
             readers.add(reader);
-            reader.getHeader(header);
         }
         return readers;
+    }
+
+    private static CsvListReader getCsvListReader(final File csv, boolean header) throws IOException {
+
+        final CsvListReader reader = new CsvListReader(new FileReader(csv), CsvPreference.STANDARD_PREFERENCE);
+        reader.getHeader(header);
+        return reader;
     }
 
     static String decorateManagerAsApplicationName(final String manager) {

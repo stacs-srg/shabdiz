@@ -6,19 +6,19 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFilesByName;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class BytesOutPerSecondAnalyzer extends GaugeCsvAnalyzer {
+public class KilobytesOutPerSecondAnalyzer extends GaugeCsvAnalyzer {
 
-    public static final String BYTES_SENT_PER_SECOND = "Kilobytes sent per second";
+     static final String NAME = "Kilobytes sent per second";
     static final String GAUGE_CSV = "ganglia_bytes_out.csv";
 
-    public BytesOutPerSecondAnalyzer(File results_path) {
+    public KilobytesOutPerSecondAnalyzer(File results_path) {
 
-        super(BYTES_SENT_PER_SECOND, getFilesByName(results_path, GAUGE_CSV), BYTES_SENT_PER_SECOND, BYTES_SENT_PER_SECOND);
+        super(NAME, getFilesByName(results_path, GAUGE_CSV), NAME, NAME);
     }
 
     @Override
     protected CellProcessor getValueCellProcessor() {
 
-        return BytesInPerSecondAnalyzer.CONVERT_BYTES_TO_KILO_BYTES;
+        return KilobytesInPerSecondAnalyzer.CONVERT_BYTES_TO_KILO_BYTES;
     }
 }

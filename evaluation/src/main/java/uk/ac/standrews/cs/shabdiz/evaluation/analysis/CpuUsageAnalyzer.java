@@ -10,12 +10,16 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFi
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public class CpuUsageAnalyzer extends GaugeCsvAnalyzer {
 
-    public static final ParseCpuUsagePercent PARSE_CPU_USAGE_PERCENT = new ParseCpuUsagePercent();
+    static final ParseCpuUsagePercent PARSE_CPU_USAGE_PERCENT = new ParseCpuUsagePercent();
     static final String GAUGE_CSV = "cpu_gauge.csv";
+    public static final String NAME = "CPU Usage";
+    public static final String Y_AXIS_LABEL = "CPU Usage (%)";
+    public static final String CHART_TITLE = "CPU Usage Percentage";
 
     public CpuUsageAnalyzer(File results_path) {
 
-        super("CPU Usage", getFilesByName(results_path, GAUGE_CSV), "CPU Usage (%)", "CPU Usage Percentage");
+        super(NAME, getFilesByName(results_path, GAUGE_CSV), Y_AXIS_LABEL, CHART_TITLE);
+        
     }
 
     @Override
