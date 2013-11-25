@@ -41,7 +41,7 @@ public final class Commands {
         @Override
         public String get(final Platform platform, final String... params) {
 
-            return ECHO + concatinateWithSpace(params);
+            return ECHO + concatenateWithSpace(params);
         }
     };
     /** Gets the current working directory. */
@@ -166,7 +166,7 @@ public final class Commands {
             if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
             final Integer pid = Integer.parseInt(parameters[0]);
             LOGGER.debug("generating kill command for pid: {}", pid);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL : TASKKILL_PID, String.valueOf(pid));
+            return concatenateWithSpace(Platforms.isUnixBased(platform) ? KILL : TASKKILL_PID, String.valueOf(pid));
         }
     };
     /** Force kill by PID command builder. */
@@ -182,7 +182,7 @@ public final class Commands {
             if (parameters.length != 1) { throw new IllegalArgumentException("one argument, the pid, is expected as the first parameter"); }
             final Integer pid = Integer.parseInt(parameters[0]);
             LOGGER.debug("generating kill command for pid: {}", pid);
-            return concatinateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
+            return concatenateWithSpace(Platforms.isUnixBased(platform) ? KILL_9 : TASKKILL_PID, String.valueOf(pid));
         }
     };
     /** Recursively deletes a given file or directory. */
@@ -203,11 +203,12 @@ public final class Commands {
         public String get(final Platform platform, final String... parameters) {
 
             if (parameters.length < 1) { throw new IllegalArgumentException("at least one path must be specified"); }
-            final String quoted_params = quoteAndConcatinateWithSpace(platform, parameters);
+            final String quoted_params = quoteAndConcatenateWithSpace(platform, parameters);
             LOGGER.debug("path(s) to delete: {}", quoted_params);
             return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? RM : RD_AND_DEL_IGNORE_ERRORS, quoted_params);
         }
     };
+    /** The make directory command builder. */
     public static final CommandBuilder MAKE_DIRECTORIES = new CommandBuilder() {
 
         /*
@@ -220,7 +221,7 @@ public final class Commands {
         public String get(final Platform platform, final String... parameters) {
 
             if (parameters.length == 0) { throw new IllegalArgumentException("at least one directory must be specified"); }
-            final String directories = quoteAndConcatinateWithSpace(platform, parameters);
+            final String directories = quoteAndConcatenateWithSpace(platform, parameters);
             return String.format(Platforms.isUnixBased(platform) || platform instanceof CygwinPlatform ? MKDIR_P : MKDIR, directories);
         }
     };
@@ -231,7 +232,7 @@ public final class Commands {
 
     }
 
-    static String concatinateWithSpace(final String... params) {
+    static String concatenateWithSpace(final String... params) {
 
         final StringBuilder string_builder = new StringBuilder();
         if (params != null) {
@@ -244,7 +245,7 @@ public final class Commands {
         return string_builder.toString();
     }
 
-    static String quoteAndConcatinateWithSpace(Platform platform, final String... params) {
+    static String quoteAndConcatenateWithSpace(final Platform platform, final String... params) {
 
         final StringBuilder string_builder = new StringBuilder();
         if (params != null) {

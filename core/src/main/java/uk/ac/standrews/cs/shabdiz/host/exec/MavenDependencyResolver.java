@@ -30,6 +30,12 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
+/**
+ * Resolves Maven artifact dependencies into a list of Jar files.
+ * By default uses Maven central repository and the St Andrews School of Computer Science Maven repository. 
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class MavenDependencyResolver {
 
     static final File SHABDIZ_REPOSITORY_HOME = new File(Bootstrap.LOCAL_SHABDIZ_HOME, "repository");
@@ -43,11 +49,19 @@ public class MavenDependencyResolver {
     private final List<RemoteRepository> repositories;
     private final RepositorySystemSession session;
 
+    /**
+     * Instantiates a new Maven dependency resolver using the default shabdiz repository home.
+     */
     public MavenDependencyResolver() {
 
         this(SHABDIZ_REPOSITORY_HOME);
     }
 
+    /**
+     * Instantiates a new Maven dependency resolver at the given {@code repository_home}.
+     *
+     * @param repository_home the local repository home
+     */
     public MavenDependencyResolver(File repository_home) {
 
         session = createRepositorySystemSession(REPOSITORY_SYSTEM, repository_home);
@@ -55,6 +69,15 @@ public class MavenDependencyResolver {
         addDefaultRepositories();
     }
 
+    /**
+     * Constructs Maven artifact coordinates from group ID, artifact ID, version and maven artifact classifier.
+     *
+     * @param group_id the group ID
+     * @param artifact_id the artifact ID
+     * @param version the artifact version
+     * @param classifier the artifact classifier
+     * @return the Maven artifact coordinates
+     */
     public static String toCoordinate(final String group_id, final String artifact_id, final String version, String classifier) {
 
         final StringBuilder builder = new StringBuilder();
@@ -66,29 +89,96 @@ public class MavenDependencyResolver {
         return builder.toString();
     }
 
+    /**
+     * Constructs Maven artifact coordinates from group ID, artifact ID and version.
+     *
+     * @param group_id the group ID
+     * @param artifact_id the artifact ID
+     * @param version the artifact version
+     * @return the Maven artifact coordinates
+     */
     public static String toCoordinate(final String group_id, final String artifact_id, final String version) {
 
         return toCoordinate(group_id, artifact_id, version, null);
     }
 
+    /**
+     * Resolves dependencies of a given Maven artifact coordinates as a list of local Jar files.
+     *
+     * @param artifact_coordinates the artifact coordinates
+     * @return the dependency jar files of the given artifact coordinate
+     * @throws DependencyCollectionException if unable to collect dependencies
+     * @throws DependencyResolutionException if unable to resolve dependencies
+     */
     public List<File> resolve(String artifact_coordinates) throws DependencyCollectionException, DependencyResolutionException {
 
         return resolve(new DefaultArtifact(artifact_coordinates));
     }
 
+    /**
+     * Resolves dependencies of a given Maven artifact as a list of local Jar files.
+     *
+     * @param artifact the artifact
+     * @return the dependency jar files of the given artifact
+     * @throws DependencyCollectionException if unable to collect dependencies
+     * @throws DependencyResolutionException if unable to resolve dependencies
+     */
     public List<File> resolve(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
 
         final List<DependencyNode> nodes = resolveAsDependencyNode(artifact);
         return getFiles(nodes);
     }
 
+    /**
+     * Resolves dependencies of a given Maven artifact as a list of remote URLs to Jar files.
+     *
+     * @param artifact the artifact
+     * @return the dependency jar files of the given artifact as remote URLs
+     * @throws DependencyCollectionException if unable to collect dependencies
+     * @throws DependencyResolutionException if unable to resolve dependencies
+     */
     public List<URL> resolveAsRemoteURLs(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException, IOException {
 
         final List<DependencyNode> nodes = resolveAsDependencyNode(artifact);
         return getRemoteURLs(nodes);
     }
 
-    public List<DependencyNode> resolveAsDependencyNode(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
+    /**
+     * Adds the given URL to the lis of Maven repositories used for dependency resolution.
+     *
+     * @param url the url
+     * @return whether the url was added successfully
+     * @throws MalformedURLException if the url is malformed
+     */
+    public boolean addRepository(final String url) throws MalformedURLException {
+
+        return addRepository(new URL(url));
+    }
+
+    /**
+     * Adds the given URL to the lis of Maven repositories used for dependency resolution.
+     *
+     * @param url the url
+     * @return whether the url was added successfully
+     * @throws MalformedURLException if the url is malformed
+     */
+    public boolean addRepository(final URL url) {
+
+        return addRepository(toRemoteRepository(url));
+    }
+
+    /**
+     * Adds the given repository to the lis of Maven repositories used for dependency resolution.
+     *
+     * @param repository the repository to add
+     * @return whether the repository was added successfully
+     */
+    public boolean addRepository(final RemoteRepository repository) {
+
+        return repositories.add(repository);
+    }
+
+    private List<DependencyNode> resolveAsDependencyNode(final Artifact artifact) throws DependencyCollectionException, DependencyResolutionException {
 
         final CollectResult collect_result = collectDependencies(artifact, repositories);
         final DependencyNode root_dependency = collect_result.getRoot();
@@ -135,11 +225,6 @@ public class MavenDependencyResolver {
         addRepository(ST_ANDREWS_CS_MAVEN_REPOSITORY);
     }
 
-    private boolean addRepository(final RemoteRepository repository) {
-
-        return repositories.add(repository);
-    }
-
     private CollectResult collectDependencies(final Artifact artifact, final List<RemoteRepository> repositories) throws DependencyCollectionException {
 
         final CollectResult collectResult;
@@ -149,16 +234,6 @@ public class MavenDependencyResolver {
         collectRequest.setRepositories(repositories);
         collectResult = REPOSITORY_SYSTEM.collectDependencies(session, collectRequest);
         return collectResult;
-    }
-
-    boolean addRepository(final String url) throws MalformedURLException {
-
-        return addRepository(new URL(url));
-    }
-
-    boolean addRepository(final URL url) {
-
-        return addRepository(toRemoteRepository(url));
     }
 
     private static RemoteRepository toRemoteRepository(final URL url) {
@@ -216,7 +291,7 @@ public class MavenDependencyResolver {
         }
     }
 
-    static class FileCollector implements DependencyVisitor {
+    static final class FileCollector implements DependencyVisitor {
 
         private final List<File> files;
 
@@ -238,7 +313,7 @@ public class MavenDependencyResolver {
         }
     }
 
-    static class DependencyNodeCollector implements DependencyVisitor {
+    static final class DependencyNodeCollector implements DependencyVisitor {
 
         private final List<DependencyNode> nodes;
 

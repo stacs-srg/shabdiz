@@ -54,7 +54,8 @@ import uk.ac.standrews.cs.shabdiz.util.URLUtils;
  * */
 public abstract class Bootstrap {
 
-    protected static final String PID_PROPERTY_KEY = "pid";
+    /** The key of PID property. */
+    public static final String PID_PROPERTY_KEY = "pid";
     protected static final char NEW_LINE = '\n';
     protected static final char LINE_FEED = '\r';
     static final String SHABDIZ_HOME_NAME = "shabdiz";
@@ -312,7 +313,7 @@ public abstract class Bootstrap {
         loadClassPathJAR(instrumentation, new JarFile(file));
     }
 
-    synchronized static File getBootstrapJar(final boolean force_reconstruction) throws IOException {
+    static synchronized File getBootstrapJar(final boolean force_reconstruction) throws IOException {
 
         if (force_reconstruction || !BOOTSTRAP_JAR.isFile()) {
             reconstructBootstrapJar();
@@ -650,7 +651,7 @@ public abstract class Bootstrap {
         }
     }
 
-    private static class FileDeletionHook extends Thread {
+    private static final class FileDeletionHook extends Thread {
 
         private final List<File> files;
 
