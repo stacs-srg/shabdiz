@@ -50,6 +50,7 @@ final class AnalyticsUtil {
 
     }
 
+    
     static Statistics getPropertyStatistics(String property_key, Properties[] properties_collection) {
 
         return getPropertyStatistics(property_key, properties_collection, AS_IS_CONVERTER);
