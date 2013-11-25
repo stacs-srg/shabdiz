@@ -35,6 +35,7 @@
         <sample_applications.version>1.0</sample_applications.version>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <cobertura.skip>true</cobertura.skip>
+        <checkstyle.skip>true</checkstyle.skip>
         <sample_applications.groupId>uk.ac.standrews.cs.sample_applications</sample_applications.groupId>
     </properties>
 
