@@ -37,7 +37,7 @@ public interface WorkerRemote {
      *
      * @param job the job to submit
      * @return the unique identifier of the submitted job on this worker
-     * @throws RPCException signals that an RPC error has occured
+     * @throws RPCException signals that an RPC error has occurred
      * @see ExecutorService#submit(Callable)
      */
     UUID submit(Job<? extends Serializable> job) throws RPCException;
@@ -52,7 +52,7 @@ public interface WorkerRemote {
      * @param may_interrupt whether the thread executing this task should be interrupted, or the in-progress task shuld be allowed to complete
      * @return {@code false} if the task could not be cancelled, typically because it has already completed normally; {@code true} otherwise
      * @throws UnknownJobException if the given job id is not recognised by this worker
-     * @throws RPCException signals that an RPC error has occured
+     * @throws RPCException signals that an RPC error has occurred
      * @see Future#cancel(boolean)
      */
     boolean cancel(UUID job_id, final boolean may_interrupt) throws RPCException;

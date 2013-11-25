@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.internal.runners.model.EachTestNotifier;
 import org.junit.runner.Description;
@@ -37,7 +38,7 @@ public class ParallelParameterized extends Parameterized {
     private final Integer parameter_index;
     private final AgentBasedJavaProcessBuilder process_builder;
     private final Parallelization configuration;
-    private volatile int next_host_index;
+    private final AtomicInteger next_host_index;
     private List<Host> hosts;
     private ExecutorService executor_service;
 
@@ -46,6 +47,7 @@ public class ParallelParameterized extends Parameterized {
 
         super(test_class);
         final String index_as_string = System.getProperty(TEST_PARAM_INDEX);
+        next_host_index = new AtomicInteger();
         parameter_index = index_as_string != null ? Integer.valueOf(index_as_string) : null;
         configuration = getParallelizationAnnotation();
         process_builder = new AgentBasedJavaProcessBuilder();
@@ -128,6 +130,7 @@ public class ParallelParameterized extends Parameterized {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Collection<Host> getHostProviderByName(final String host_provider_name) throws Throwable {
 
         final FrameworkMethod host_provider = getHostProviderMethodByName(host_provider_name);
@@ -240,19 +243,20 @@ public class ParallelParameterized extends Parameterized {
         return descriptions;
     }
 
-    private Host nextHost() {
+    private synchronized Host nextHost() {
 
-        if (hosts == null) { return null; }
-
-        synchronized (this) {
-
-            final Host host = hosts.get(next_host_index);
-            next_host_index++;
-            if (next_host_index > hosts.size() - 1) {
-                next_host_index = 0;
+        final Host host;
+        if (hosts != null) {
+            host = hosts.get(next_host_index.get());
+            next_host_index.getAndIncrement();
+            if (next_host_index.get() > hosts.size() - 1) {
+                next_host_index.set(0);
             }
-            return host;
         }
+        else {
+            host = null;
+        }
+        return host;
     }
 
     private boolean isParameterIndexSpecified() {

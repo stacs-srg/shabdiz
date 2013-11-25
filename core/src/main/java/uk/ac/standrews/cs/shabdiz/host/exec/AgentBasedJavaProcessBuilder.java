@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -42,7 +43,6 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private static final String JVM_PARAM_JAVAAGENT = "-javaagent:";
     private static final boolean FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION = false;
     private static final String SYSTEM_CLASSPATH = System.getProperty("java.class.path");
-    private static final String BOOTSTRAP_CLASS_NAME = Bootstrap.class.getName();
     private final Bootstrap.BootstrapConfiguration configuration;
     private final Set<File> uploads;
     private boolean always_upload_bootstrap;
@@ -261,7 +261,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
             ProcessUtil.awaitNormalTerminationAndGetOutput(mkdir_process);
         }
         catch (InterruptedException e) {
-            LOGGER.error("failed to make remote temp directory '" + directories + "' on host " + host + " due to interruption", e);
+            LOGGER.error("failed to make remote temp directory '" + Arrays.toString(directories) + "' on host " + host + " due to interruption", e);
             throw new IOException("interrupted while making remote directory on host " + host.getName(), e);
         }
         finally {

@@ -211,7 +211,7 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
      *
      * @return the cached state of the application instance that is described by this descriptor
      */
-    public ApplicationState getApplicationState() {
+    public synchronized ApplicationState getApplicationState() {
 
         return state.get();
     }
@@ -227,7 +227,8 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
-    public synchronized boolean compareAndSetApplicationState(final ApplicationState expect, final ApplicationState new_state) {
+    public boolean compareAndSetApplicationState(final ApplicationState expect, final ApplicationState new_state) {
+
         final boolean successfully_set = state.compareAndSet(expect, new_state);
         if (successfully_set) {
             property_change_support.firePropertyChange(STATE_PROPERTY_NAME, expect, new_state);
