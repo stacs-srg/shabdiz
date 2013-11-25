@@ -44,4 +44,15 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>org.mashti.maven</id>
+            <name>Mashti Maven Repository</name>
+            <url>http://maven.mashti.org/</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
 </project>

@@ -31,11 +31,11 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>shabdiz</name>
-    <url>https://builds.cs.st-andrews.ac.uk/job/shabdiz</url>
+    <url>https://shabdiz.cs.st-andrews.ac.uk</url>
 
     <properties>
         <repository.type>hg</repository.type>
-        <repository.location>http://quicksilver.hg.cs.st-andrews.ac.uk/shabdiz</repository.location>
+        <repository.location>http://shabdiz.hg.cs.st-andrews.ac.uk/shabdiz</repository.location>
     </properties>
 
     <ciManagement>
@@ -46,7 +46,7 @@
     <scm>
         <connection>scm:${repository.type}:${repository.location}</connection>
         <developerConnection>scm:${repository.type}:${repository.location}</developerConnection>
-        <url>scm:${repository.type}:${repository.location}</url>
+        <url>${repository.location}</url>
     </scm>
 
     <modules>
@@ -80,10 +80,13 @@
                         <version>1.7</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
                 <configuration>
-                    <generateReports>true</generateReports>
-                    <inputEncoding>UTF-8</inputEncoding>
-                    <outputEncoding>UTF-8</outputEncoding>
+                    <excludePackageNames>${project.groupId}.${project.artifactId}.example,${project.groupId}.${project.artifactId}.evaluation</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>
@@ -94,14 +97,6 @@
             <id>uk.ac.standrews.cs.maven.repository</id>
             <name>School of Computer Science Maven Repository</name>
             <url>http://maven.cs.st-andrews.ac.uk/</url>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>org.mashti.maven</id>
-            <name>Mashti Maven Repository</name>
-            <url>http://maven.mashti.org/</url>
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>

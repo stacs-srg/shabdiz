@@ -50,7 +50,6 @@ final class AnalyticsUtil {
 
     }
 
-    
     static Statistics getPropertyStatistics(String property_key, Properties[] properties_collection) {
 
         return getPropertyStatistics(property_key, properties_collection, AS_IS_CONVERTER);
@@ -132,7 +131,7 @@ final class AnalyticsUtil {
         }
         return found_properties;
     }
-    
+
     static Collection<File> getFilesByName(File search_path, String name) {
 
         return FileUtils.listFiles(search_path, new FileFilterByName(name), TrueFileFilter.INSTANCE);
@@ -317,10 +316,6 @@ final class AnalyticsUtil {
 
         private Long first_time;
 
-        ParseRelativeTime() {
-
-        }
-
         ParseRelativeTime(final LongCellProcessor next) {
 
             super(next);
@@ -333,8 +328,7 @@ final class AnalyticsUtil {
             if (first_time == null) {
                 first_time = time;
             }
-            final Long relative_time = time - first_time;
-            return relative_time;
+            return time - first_time;
         }
     }
 

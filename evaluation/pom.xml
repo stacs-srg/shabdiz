@@ -32,63 +32,61 @@
     <name>shabdiz/evaluation</name>
 
     <properties>
-        <hello_world.version>1.0</hello_world.version>
+        <sample_applications.version>1.0</sample_applications.version>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <cobertura.skip>true</cobertura.skip>
+        <sample_applications.groupId>uk.ac.standrews.cs.sample_applications</sample_applications.groupId>
     </properties>
 
-
     <dependencies>
+
+        <!-- Sample applications-->
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_2m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_4m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_8m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_16m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_32m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>hello_world_64m</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${sample_applications.groupId}</groupId>
+            <artifactId>echo</artifactId>
+            <version>${sample_applications.version}</version>
+        </dependency>
+
+        <!-- St Andrews Chord implementation with tests-->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>stachord</artifactId>
             <version>2.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_2m</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_4m</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_8m</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_16m</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_32m</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hello_world_64m</artifactId>
-            <version>${hello_world.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>echo</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -96,6 +94,8 @@
             <version>2.0-SNAPSHOT</version>
             <type>test-jar</type>
         </dependency>
+
+        <!-- Shabdiz Modules-->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>shabdiz-core</artifactId>
@@ -111,6 +111,8 @@
             <artifactId>shabdiz-testing</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!--Core evaluation mechanism dependencies-->
         <dependency>
             <groupId>org.mashti</groupId>
             <artifactId>gauge</artifactId>
@@ -127,23 +129,25 @@
             <version>1</version>
         </dependency>
         <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.visualization</groupId>
-            <artifactId>visualization-datasource</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>org.mashti.maven</id>
+            <name>Mashti Maven Repository</name>
+            <url>http://maven.mashti.org/</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
+
+    <!-- Evaluation Profile-->
     <profiles>
         <profile>
             <id>evaluation</id>
