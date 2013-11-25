@@ -38,7 +38,6 @@ public class TimeToReachStatePerDeploymentStrategyAnalyzer extends TimeToReachSt
             final Statistics statistics = entry.getValue();
             final double mean = statistics.getMean().doubleValue();
             final double ci = statistics.getConfidenceInterval95Percent().doubleValue();
-
             final String[] groups = entry.getKey().split(GROUP_DELIMITER);
             final String application = decorateManagerAsApplicationName(groups[0]);
             final String strategy = decorateManagerAsDeploymentStrategy(groups[0]);

@@ -19,7 +19,6 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-import static java.lang.Double.NaN;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.RELATIVE_TIME_IN_SECONDS_PROCESSOR;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getCombinedGaugeCsvStatistics;
 
@@ -102,14 +101,12 @@ class GaugeCsvAnalyzer implements Analyser {
 
     private ValueAxis getYAxis() {
 
-        final NumberAxis axis = new NumberAxis(y_axis_label);
-        return axis;
+        return new NumberAxis(y_axis_label);
     }
 
     private ValueAxis getXAxis() {
 
-        final NumberAxis axis = new NumberAxis(X_AXIS_LABEL);
-        return axis;
+        return new NumberAxis(X_AXIS_LABEL);
     }
 
     private synchronized XYItemRenderer getXYItemRenderer() {
@@ -123,19 +120,6 @@ class GaugeCsvAnalyzer implements Analyser {
         }
         else {
             return null;
-        }
-    }
-
-    protected boolean showErrorBars() {
-
-        return show_error_bars;
-    }
-
-    protected synchronized void setShowErrorBars(boolean show_error_bars) {
-
-        if (this.show_error_bars != show_error_bars) {
-            this.show_error_bars = show_error_bars;
-            plot = null;
         }
     }
 
@@ -166,12 +150,11 @@ class GaugeCsvAnalyzer implements Analyser {
             final long bucket_size = report_interval.getLength(TimeUnit.SECONDS);
             long time_bucket = 0;
             for (Statistics[] row_statistics : rows_statistics) {
-
                 final double mean = row_statistics[1].getMean().doubleValue();
                 final double ci = row_statistics[1].getConfidenceInterval95Percent().doubleValue();
                 final double low = mean - ci;
                 final double high = mean + ci;
-                series.add(time_bucket, mean == NaN ? 0 : mean, low == NaN ? 0 : low, high == NaN ? 0 : high);
+                series.add(time_bucket, Double.isNaN(mean) ? 0 : mean, Double.isNaN(low) ? 0 : low, Double.isNaN(high) ? 0 : high);
                 time_bucket += bucket_size;
             }
         }

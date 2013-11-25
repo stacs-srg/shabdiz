@@ -34,7 +34,6 @@ public class TimeToReachStatePerApplicationAnalyzer extends TimeToReachStateAnal
             final Statistics statistics = entry.getValue();
             final double mean = statistics.getMean().doubleValue();
             final double ci = statistics.getConfidenceInterval95Percent().doubleValue();
-
             final String manager = decorateManagerAsApplicationName(entry.getKey().split(GROUP_DELIMITER)[0]);
             dataset.add(mean, ci, "Application", manager);
         }
