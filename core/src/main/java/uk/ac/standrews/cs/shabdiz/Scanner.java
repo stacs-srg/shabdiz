@@ -105,11 +105,21 @@ public abstract class Scanner {
         firePropertyChange(ENABLED_PROPERTY_NAME, old_enabled, enabled);
     }
 
+    /**
+     * enables the given {@code listener} to receive notifications when this scanner is enabled or disabled.
+     *
+     * @param listener the listener to receive notifications when this scanner is enabled or disabled
+     */
     public void addEnabledPropertyChangeListener(final PropertyChangeListener listener) {
 
         addPropertyChangeListener(ENABLED_PROPERTY_NAME, listener);
     }
 
+    /**
+     * Removes the given {@code listener} from the list of listeners that receive notifications when this scanner is enabled or disabled.
+     *
+     * @param listener the listener to remove from the list of listeners that receive notifications when this scanner is enabled or disabled
+     */
     public void removeEnabledPropertyChangeListener(final PropertyChangeListener listener) {
 
         removePropertyChangeListener(ENABLED_PROPERTY_NAME, listener);
@@ -155,6 +165,14 @@ public abstract class Scanner {
         property_change_support.removePropertyChangeListener(property_name, listener);
     }
 
+    /**
+     * Fires property change for a given property name. A property change event is fired if and only if the given new and old values are not equal.
+     * This is a convenience method for internal use only
+     *
+     * @param property_name the name of the property for which to fire event
+     * @param old_value the old property value
+     * @param new_value the new property value
+     */
     protected void firePropertyChange(final String property_name, final Object old_value, final Object new_value) {
 
         property_change_support.firePropertyChange(property_name, old_value, new_value);

@@ -39,12 +39,24 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * A Java agent that is capable of adding jar to the JVM class path at runtime. 
+ * The jar files may be specified as Maven artifacts, URLs and local files in a configuration file called {@code bootstrap.config}.
+ * The bootstrap configuration file must be available in the class path for this class to work.
+ * This class automatically deletes the temporary directory at which it finds the bootstrap configuration file.
+ * Note by: this class is not designed to be used independently to resolve classpath entries. 
+ * To start a Java process using this bootstrap mechanism please use {@link AgentBasedJavaProcessBuilder}
+ * 
+ * If a sub class of this class overrides the {@code main} method, the {@link #printProperties()} method must be called at the end of main method. 
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) 
+ * @see AgentBasedJavaProcessBuilder
+ * */
 public abstract class Bootstrap {
 
-    public static final String PID_PROPERTY_KEY = "pid";
-    public static final char NEW_LINE = '\n';
-    public static final char LINE_FEED = '\r';
+    protected static final String PID_PROPERTY_KEY = "pid";
+    protected static final char NEW_LINE = '\n';
+    protected static final char LINE_FEED = '\r';
     static final String SHABDIZ_HOME_NAME = "shabdiz";
     static final String BOOTSTRAP_HOME_NAME = ".bootstrap";
     static final String TEMP_HOME_NAME = "tmp";
@@ -86,7 +98,7 @@ public abstract class Bootstrap {
         return pid_as_string != null ? Integer.parseInt(pid_as_string) : null;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
         final Class<?> application_bootstrap_class = Class.forName(application_bootstrap_class_name);
         if (Bootstrap.class.isAssignableFrom(application_bootstrap_class)) {
@@ -100,7 +112,7 @@ public abstract class Bootstrap {
         }
     }
 
-    public static void premain(String args, Instrumentation instrumentation) throws Exception {
+    public static void premain(final String args, final Instrumentation instrumentation) throws Exception {
 
         final BootstrapConfiguration configuration = getConfigurationFromFile();
         loadMavenArtifacts(instrumentation, configuration);
@@ -128,12 +140,12 @@ public abstract class Bootstrap {
         return builder.toString();
     }
 
-    public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
+    public static Properties readProperties(final Class<?> bootstrap_class, final Process process, final Duration timeout) throws ExecutionException, InterruptedException, TimeoutException {
 
         return readProperties(bootstrap_class, process, timeout, false);
     }
 
-    public static Properties readProperties(Class<?> bootstrap_class, Process process, Duration timeout, boolean print_lines) throws ExecutionException, InterruptedException, TimeoutException {
+    public static Properties readProperties(final Class<?> bootstrap_class, final Process process, final Duration timeout, final boolean print_lines) throws ExecutionException, InterruptedException, TimeoutException {
 
         final String properties_id = getPropertiesID(bootstrap_class);
         final Callable<Properties> scan_task = newProcessOutputScannerTask(process.getInputStream(), properties_id, print_lines);
@@ -170,7 +182,7 @@ public abstract class Bootstrap {
         if (configuration.delete_working_directory_on_exit) {
             files_to_delete.add(WORKING_DIRECTORY);
         }
-        for (String file : configuration.delete_on_exit) {
+        for (final String file : configuration.delete_on_exit) {
             files_to_delete.add(new File(file));
         }
 
@@ -185,12 +197,12 @@ public abstract class Bootstrap {
         setProperty(PID_PROPERTY_KEY, getPIDFromRuntimeMXBeanName());
     }
 
-    protected Object setProperty(Object key, Object value) {
+    protected Object setProperty(final Object key, final Object value) {
 
         return setProperty(String.valueOf(key), String.valueOf(value));
     }
 
-    protected Object setProperty(String key, String value) {
+    protected Object setProperty(final String key, final String value) {
 
         try {
             return properties.setProperty(URLEncoder.encode(key, PROCESS_OUTPUT_ENCODING), URLEncoder.encode(value, PROCESS_OUTPUT_ENCODING));
@@ -236,7 +248,7 @@ public abstract class Bootstrap {
         return properties_as_string.toString();
     }
 
-    private static String getPropertiesID(Class<?> bootstrap_class) {
+    private static String getPropertiesID(final Class<?> bootstrap_class) {
 
         return bootstrap_class.getName();
     }
@@ -290,7 +302,7 @@ public abstract class Bootstrap {
 
     private static void loadClassPathFiles(final Instrumentation instrumentation, final Set<String> files) throws IOException {
 
-        for (String file : files) {
+        for (final String file : files) {
             loadClassPathFile(instrumentation, file);
         }
     }
@@ -300,7 +312,7 @@ public abstract class Bootstrap {
         loadClassPathJAR(instrumentation, new JarFile(file));
     }
 
-    synchronized static File getBootstrapJar(boolean force_reconstruction) throws IOException {
+    synchronized static File getBootstrapJar(final boolean force_reconstruction) throws IOException {
 
         if (force_reconstruction || !BOOTSTRAP_JAR.isFile()) {
             reconstructBootstrapJar();
@@ -363,7 +375,7 @@ public abstract class Bootstrap {
 
     private static void resolveAndLoadMavenArtifacts(final Instrumentation instrumentation, final Set<String> maven_artifacts) throws Exception {
 
-        for (String artifact : maven_artifacts) {
+        for (final String artifact : maven_artifacts) {
             final List<File> resolved_urls = maven_dependency_resolver.resolve(artifact);
             loadClassPathFiles(instrumentation, resolved_urls);
         }
@@ -371,19 +383,19 @@ public abstract class Bootstrap {
 
     private static void loadClassPathUrlsAsString(final Instrumentation instrumentation, final Collection<String> urls) throws URISyntaxException, IOException {
 
-        for (String url : urls) {
+        for (final String url : urls) {
             loadClassPathURL(instrumentation, new URL(url));
         }
     }
 
     private static void loadClassPathFiles(final Instrumentation instrumentation, final Collection<File> files) throws IOException {
 
-        for (File file : files) {
+        for (final File file : files) {
             loadClassPathFile(instrumentation, file);
         }
     }
 
-    private static synchronized void initMavenDependencyResolver(Instrumentation instrumentation) {
+    private static synchronized void initMavenDependencyResolver(final Instrumentation instrumentation) {
 
         if (maven_dependency_resolver != null) { return; }
         loadEclipseAetherDependencies(instrumentation);
@@ -418,7 +430,7 @@ public abstract class Bootstrap {
         }
     }
 
-    private static void loadBootstrapClassPathURL(Instrumentation instrumentation, URL url) throws IOException {
+    private static void loadBootstrapClassPathURL(final Instrumentation instrumentation, final URL url) throws IOException {
 
         final File cache = new File(LOCAL_BOOTSTRAP_HOME, getFileName(url));
         if (!cache.isFile()) {
@@ -438,7 +450,7 @@ public abstract class Bootstrap {
         return url_file.substring(url_file.lastIndexOf('/') + 1);
     }
 
-    private static File copyUrlToFile(final URL url, File destination) throws IOException {
+    private static File copyUrlToFile(final URL url, final File destination) throws IOException {
 
         ReadableByteChannel byte_channel = null;
         FileOutputStream out = null;
@@ -459,7 +471,7 @@ public abstract class Bootstrap {
         return destination;
     }
 
-    private static void loadClassPathURL(Instrumentation instrumentation, URL url) throws URISyntaxException, IOException {
+    private static void loadClassPathURL(final Instrumentation instrumentation, final URL url) throws URISyntaxException, IOException {
 
         final File url_as_file;
         if (!isFile(url)) {
@@ -485,7 +497,7 @@ public abstract class Bootstrap {
 
     private static void addMavenRepositories(final Set<String> repositories) throws MalformedURLException {
 
-        for (String repository : repositories) {
+        for (final String repository : repositories) {
             maven_dependency_resolver.addRepository(new URL(repository));
         }
     }
@@ -510,7 +522,7 @@ public abstract class Bootstrap {
             delete_working_directory_on_exit = enabled;
         }
 
-        void write(OutputStream out) throws IOException {
+        void write(final OutputStream out) throws IOException {
 
             final Manifest manifest = toManifest();
             manifest.write(out);
@@ -532,10 +544,10 @@ public abstract class Bootstrap {
             return manifest;
         }
 
-        private static String toString(Collection<?> collection) {
+        private static String toString(final Collection<?> collection) {
 
             final StringBuilder string_builder = new StringBuilder();
-            for (Object element : collection) {
+            for (final Object element : collection) {
                 string_builder.append(element);
                 string_builder.append(SEPARATOR);
             }
@@ -543,13 +555,13 @@ public abstract class Bootstrap {
             return string_builder.toString().trim();
         }
 
-        static BootstrapConfiguration read(InputStream in) throws IOException {
+        static BootstrapConfiguration read(final InputStream in) throws IOException {
 
             final Manifest manifest = new Manifest(new BufferedInputStream(in));
             return fromManifest(manifest);
         }
 
-        private static BootstrapConfiguration fromManifest(Manifest manifest) {
+        private static BootstrapConfiguration fromManifest(final Manifest manifest) {
 
             final BootstrapConfiguration configuration = new BootstrapConfiguration();
             final Attributes attributes = manifest.getAttributes(CONFIG_FILE_ATTRIBUTES_NAME);
@@ -558,34 +570,34 @@ public abstract class Bootstrap {
             configuration.setApplicationBootstrapClassName(bootstrap);
 
             final String[] files = attributes.get(CLASSPATH_FILES).toString().split(SEPARATOR);
-            for (String file : files) {
+            for (final String file : files) {
                 if (!file.trim().isEmpty()) {
                     configuration.addClassPathFile(file);
                 }
             }
             final String[] urls = attributes.get(CLASSPATH_URLS).toString().split(SEPARATOR);
-            for (String url : urls) {
+            for (final String url : urls) {
                 if (!url.trim().isEmpty()) {
                     configuration.urls.add(url);
                 }
             }
 
             final String[] repos = attributes.get(MAVEN_REPOSITORIES).toString().split(SEPARATOR);
-            for (String repo : repos) {
+            for (final String repo : repos) {
                 if (!repo.trim().isEmpty()) {
                     configuration.maven_repositories.add(repo);
                 }
             }
 
             final String[] mvns = attributes.get(MAVEN_ARTIFACTS).toString().split(SEPARATOR);
-            for (String artifact_coordinate : mvns) {
+            for (final String artifact_coordinate : mvns) {
                 if (!artifact_coordinate.trim().isEmpty()) {
                     configuration.addMavenArtifact(artifact_coordinate);
                 }
             }
 
             final String[] delete_on_exit = attributes.get(FILES_TO_DELETE_ON_EXIT).toString().split(SEPARATOR);
-            for (String file : delete_on_exit) {
+            for (final String file : delete_on_exit) {
                 if (!file.trim().isEmpty()) {
                     configuration.addFileToDeleteOnExit(file);
                 }
@@ -597,37 +609,37 @@ public abstract class Bootstrap {
             return configuration;
         }
 
-        boolean addMavenArtifact(String artifact_coordinate) {
+        boolean addMavenArtifact(final String artifact_coordinate) {
 
             return maven_artifacts.add(artifact_coordinate);
         }
 
-        boolean addClassPathFile(String path) {
+        boolean addClassPathFile(final String path) {
 
             return files.add(path);
         }
 
-        void setApplicationBootstrapClassName(String class_name) {
+        void setApplicationBootstrapClassName(final String class_name) {
 
             application_bootstrap_class_name = class_name;
         }
 
-        boolean addMavenRepository(URL url) {
+        boolean addMavenRepository(final URL url) {
 
             return maven_repositories.add(url.toExternalForm());
         }
 
-        boolean addClassPathURL(URL url) {
+        boolean addClassPathURL(final URL url) {
 
             return urls.add(url.toExternalForm());
         }
 
-        boolean addFileToDeleteOnExit(String path) {
+        boolean addFileToDeleteOnExit(final String path) {
 
             return delete_on_exit.add(path);
         }
 
-        void setApplicationBootstrapClass(Class<?> bootstrap_class) {
+        void setApplicationBootstrapClass(final Class<?> bootstrap_class) {
 
             application_bootstrap_class_name = bootstrap_class.getName();
         }
@@ -642,7 +654,7 @@ public abstract class Bootstrap {
 
         private final List<File> files;
 
-        private FileDeletionHook(List<File> files) {
+        private FileDeletionHook(final List<File> files) {
 
             this.files = files;
         }
@@ -650,18 +662,18 @@ public abstract class Bootstrap {
         @Override
         public void run() {
 
-            for (File file : files) {
+            for (final File file : files) {
                 deleteRecursively(file);
             }
         }
 
-        void deleteRecursively(File file) {
+        void deleteRecursively(final File file) {
 
             if (file.exists()) {
                 if (file.isDirectory()) {
                     final File[] sub_files = file.listFiles();
                     if (sub_files != null) {
-                        for (File sub_file : sub_files) {
+                        for (final File sub_file : sub_files) {
                             deleteRecursively(sub_file);
                         }
                     }

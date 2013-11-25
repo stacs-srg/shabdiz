@@ -23,7 +23,7 @@ import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder.createTempDirByPlatform;
+import static uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder.createTempDirPathByPlatform;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(Parameterized.class)
@@ -63,7 +63,7 @@ public class MavenBasedColdManagerTest {
         for (ApplicationDescriptor descriptor : network) {
             final Host host = descriptor.getHost();
             final Platform platform = host.getPlatform();
-            final String tmp_on_host = createTempDirByPlatform(platform);
+            final String tmp_on_host = createTempDirPathByPlatform(platform);
             final String exists_command = Commands.EXISTS.get(platform, tmp_on_host);
 
             host.upload(test_file, tmp_on_host);

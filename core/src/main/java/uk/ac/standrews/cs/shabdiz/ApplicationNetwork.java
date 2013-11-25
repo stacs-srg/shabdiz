@@ -86,7 +86,16 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         this(application_name, DEFAULT_SCANNER_CYCLE_DELAY, DEFAULT_SCANNER_CYCLE_TIMEOUT, DEFAULT_SCANNER_EXECUTOR_THREAD_POOL_SIZE, Integer.MAX_VALUE);
     }
 
-    public ApplicationNetwork(final String application_name, Duration scanner_interval, Duration scanner_timeout, int scanner_thread_pool_size, int concurrent_scanner_thread_pool_size) {
+    /**
+     * Instantiates a new Application network.
+     *
+     * @param application_name the application name
+     * @param scanner_interval the scanner interval for all defaults scanners
+     * @param scanner_timeout the scanner timeout for all defaults scanners
+     * @param scanner_thread_pool_size the scanner scheduler thread pool size
+     * @param concurrent_scanner_thread_pool_size the size of the thread pool used by {@link ConcurrentScanner concurrent scans}
+     */
+    public ApplicationNetwork(final String application_name, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
         this.application_name = application_name;
         application_descriptors = new ConcurrentSkipListSet<ApplicationDescriptor>();
@@ -481,7 +490,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         }
     }
 
-    protected ScheduledExecutorService createScannerScheduledExecutorService(int thread_pool_size) {
+    protected ScheduledExecutorService createScannerScheduledExecutorService(final int thread_pool_size) {
 
         return new ScheduledThreadPoolExecutor(thread_pool_size, createThreadFactory(SCANNER_SCHEDULER_THREAD_NAME_FORMAT));
     }
@@ -492,7 +501,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
         return pool_size != Integer.MAX_VALUE ? Executors.newFixedThreadPool(pool_size, thread_factory) : Executors.newCachedThreadPool(thread_factory);
     }
 
-    protected ThreadFactory createThreadFactory(String format) {
+    protected ThreadFactory createThreadFactory(final String format) {
 
         return new ThreadFactoryBuilder().setNameFormat(application_name + format).build();
     }

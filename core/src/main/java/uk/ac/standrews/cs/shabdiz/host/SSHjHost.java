@@ -22,11 +22,14 @@ import uk.ac.standrews.cs.shabdiz.platform.SimplePlatform;
 
 import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.readLine;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * Presents a {@link Host} that uses SSH2 to upload, download and execute commands.
+ * 
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) 
+ */
 public class SSHjHost extends AbstractHost {
 
-    public static final char NEW_LINE = '\n';
-    public static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
+    private static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
     private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 15000;
     private static final int SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final int SSH_CONNECTION_TIMEOUT = SSH_TRANSPORT_TIMEOUT_MILLIS;
@@ -35,12 +38,27 @@ public class SSHjHost extends AbstractHost {
     private final Platform platform;
     private boolean destroy_process_forcefully;
 
-    public SSHjHost(final String host_name, AuthMethod authentication) throws IOException {
+    /**
+     * Instantiates a new SSH-managed host.
+     *
+     * @param host_name the host name
+     * @param authentication the authentication method
+     * @throws IOException if failure occurs while establishing SSH connection
+     */
+    public SSHjHost(final String host_name, final AuthMethod authentication) throws IOException {
 
         this(host_name, SSHClient.DEFAULT_PORT, authentication);
     }
 
-    public SSHjHost(final String host_name, int ssh_port, AuthMethod authentication) throws IOException {
+    /**
+     * Instantiates a new SSH-managed host.
+     *
+     * @param host_name the host name
+     * @param ssh_port the ssh port on this host
+     * @param authentication the authentication method
+     * @throws IOException if failure occurs while establishing SSH connection
+     */
+    public SSHjHost(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
 
         super(host_name);
         ssh = new SSHClient();
@@ -48,7 +66,16 @@ public class SSHjHost extends AbstractHost {
         platform = Platforms.detectPlatform(this);
     }
 
-    public SSHjHost(final String host_name, int ssh_port, AuthMethod authentication, Platform platform) throws IOException {
+    /**
+     * Instantiates a new SSH-managed host. Skips automatic platform detection and uses the given platform as the platform for this host.
+     *
+     * @param host_name the host name
+     * @param ssh_port the ssh port on this host
+     * @param authentication the authentication method
+     * @param platform the platform of this host
+     * @throws IOException if failure occurs while establishing SSH connection
+     */
+    public SSHjHost(final String host_name, final int ssh_port, final AuthMethod authentication, final Platform platform) throws IOException {
 
         super(host_name);
         this.platform = platform;
@@ -90,6 +117,15 @@ public class SSHjHost extends AbstractHost {
         return execute(command, true);
     }
 
+    /**
+     * Executes the given {@code command} on this host and returns a {@link Process} corresponding to the executed command. 
+     * This method allows to specify whether to kill the whole process tree when the returned process is {@link Process#destroy() destroyed}.
+     *
+     * @param command the command to execute on this host
+     * @param kill_process_tree whether to kill the process tree of the returned process at the time of destruction
+     * @return the spawned process on this host
+     * @throws IOException if a communication failure occurs 
+     */
     public Process execute(final String command, final boolean kill_process_tree) throws IOException {
 
         final Session session = ssh.startSession();
@@ -97,7 +133,7 @@ public class SSHjHost extends AbstractHost {
 
         //FIXME determination of ppid is unix specific; generify for windows
         final Session.Command command_exec = session.exec("echo $$;" + command);
-        final int ppid = readParentProcessID(command_exec);
+        final int parent_pid = readParentProcessID(command_exec);
         return new Process() {
 
             @Override
@@ -164,10 +200,7 @@ public class SSHjHost extends AbstractHost {
 
             private void killProcessTree() {
 
-                //FIXME kill is Unix specific; generify kill by parent process id
                 try {
-
-                    //taken from http://stackoverflow.com/questions/392022/best-way-to-kill-all-child-processes/6481337#6481337
                     final Process kill = execute(getKillCommand(), false);
                     kill.waitFor();
                     kill.destroy();
@@ -182,7 +215,7 @@ public class SSHjHost extends AbstractHost {
 
             private String getKillCommand() {
 
-                return "CPIDS=$(pgrep -P " + ppid + "); " + (!destroy_process_forcefully ? "(sleep 0.5 && kill -KILL $CPIDS &); kill -TERM $CPIDS" : "kill -KILL $CPIDS");
+                return "CPIDS=$(pgrep -P " + parent_pid + "); " + (!destroy_process_forcefully ? "(sleep 0.5 && kill -KILL $CPIDS &); kill -TERM $CPIDS" : "kill -KILL $CPIDS");
             }
         };
     }
@@ -208,11 +241,21 @@ public class SSHjHost extends AbstractHost {
         ssh.disconnect();
     }
 
+    /**
+     * Gets whether to destroy spawned processes forcefully.
+     *
+     * @return whether to destroy spawned processes forcefully
+     */
     public boolean isDestroyProcessForcefully() {
 
         return destroy_process_forcefully;
     }
 
+    /**
+     * Sets whether to destroy spawned processes forcefully.
+     *
+     * @param destroy_process_forcefully whether to destroy spawned processes forcefully
+     */
     public void setDestroyProcessForcefully(final boolean destroy_process_forcefully) {
 
         this.destroy_process_forcefully = destroy_process_forcefully;
@@ -231,13 +274,21 @@ public class SSHjHost extends AbstractHost {
         return Integer.parseInt(line);
     }
 
+    /**
+     * Configure sSH client.
+     *
+     * @param host_name the host _ name
+     * @param ssh_port the ssh _ port
+     * @param authentication the authentication
+     * @throws IOException the iO exception
+     */
     protected void configureSSHClient(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
 
         ssh.setConnectTimeout(SSH_CONNECTION_TIMEOUT);
         ssh.getTransport().setTimeoutMs(SSH_TRANSPORT_TIMEOUT_MILLIS);
         ssh.getConnection().setTimeoutMs(SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS);
         ssh.loadKnownHosts();
-        ssh.addHostKeyVerifier(PROMISCUOUS_HOST_VERIFIER); //FIXME for debug only
+        ssh.addHostKeyVerifier(PROMISCUOUS_HOST_VERIFIER);
         ssh.connect(host_name, ssh_port);
         ssh.auth(Platforms.getCurrentUser(), authentication);
     }

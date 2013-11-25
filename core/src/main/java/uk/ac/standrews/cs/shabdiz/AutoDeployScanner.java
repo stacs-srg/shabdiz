@@ -34,7 +34,7 @@ public class AutoDeployScanner extends ConcurrentScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeployScanner.class);
 
-    protected AutoDeployScanner(final Duration cycle_delay, Duration timeout) {
+    protected AutoDeployScanner(final Duration cycle_delay, final Duration timeout) {
 
         super(cycle_delay, timeout, false);
     }

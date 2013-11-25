@@ -44,6 +44,7 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
  */
 public abstract class AbstractApplicationManager implements ApplicationManager {
 
+    private static final int REACHABILITY_CHECK_TIMEOUT = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationManager.class);
     private static final Duration DEFAULT_COMMAND_EXECUTION_TIMEOUT = new Duration(15, TimeUnit.SECONDS);
     private final Duration command_execution_timeout;
@@ -161,6 +162,6 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     private static boolean isReachable(final String host_name) throws IOException {
 
         LOGGER.debug("attempting to reach {}", host_name);
-        return InetAddress.getByName(host_name).isReachable(5000);
+        return InetAddress.getByName(host_name).isReachable(REACHABILITY_CHECK_TIMEOUT);
     }
 }

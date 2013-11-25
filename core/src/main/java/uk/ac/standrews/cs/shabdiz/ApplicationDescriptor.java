@@ -227,6 +227,13 @@ public class ApplicationDescriptor implements Comparable<ApplicationDescriptor> 
         property_change_support.firePropertyChange(STATE_PROPERTY_NAME, old_state, new_state);
     }
 
+    /**
+     * Set application state if and only if its current value is equal to the given {@code expected} value.
+     *
+     * @param expect the expect application state
+     * @param new_state the new application state
+     * @return {@code true} if the state was set successfully, {@code fable} otherwise. 
+     */
     public boolean compareAndSetApplicationState(final ApplicationState expect, final ApplicationState new_state) {
 
         final boolean successfully_set = state.compareAndSet(expect, new_state);

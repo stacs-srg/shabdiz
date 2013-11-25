@@ -61,10 +61,10 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
      * @throws IOException if an error occurs while attempting to execute the deletion command
      * @throws InterruptedException if interrupted while waiting for deletion command to complete
      */
-    public static void clearCachedFilesOnHost(Host host) throws IOException, InterruptedException {
+    public static void clearCachedFilesOnHost(final Host host) throws IOException, InterruptedException {
 
         final Platform platform = host.getPlatform();
-        final String shabdiz_home_on_host = getShabdizHomeByPlatform(platform);
+        final String shabdiz_home_on_host = getShabdizHomePathByPlatform(platform);
         final Process delete_process = host.execute(Commands.DELETE_RECURSIVELY.get(platform, shabdiz_home_on_host));
         try {
             ProcessUtil.awaitNormalTerminationAndGetOutput(delete_process);
@@ -74,23 +74,47 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         }
     }
 
-    public static String createTempDirByPlatform(final Platform platform) {
+    /**
+     * Constructs a path to a shabdiz temporary directory by platform.
+     *
+     * @param platform the target platform
+     * @return the path to a shabdiz temporary directory  
+     */
+    public static String createTempDirPathByPlatform(final Platform platform) {
 
         final char separator = platform.getSeparator();
-        return getShabdizHomeByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString() + separator;
+        return getShabdizHomePathByPlatform(platform) + TEMP_HOME_NAME + separator + UUID.randomUUID().toString() + separator;
     }
 
-    public static String getBootstrapHomeByPlatform(final Platform platform) {
+    /**
+     * Gets the path to shabdiz bootstrap home by platform.
+     *
+     * @param platform the target platform
+     * @return the path to shabdiz bootstrap home by platform.
+     */
+    public static String getBootstrapHomePathByPlatform(final Platform platform) {
 
-        return getShabdizHomeByPlatform(platform) + BOOTSTRAP_HOME_NAME + platform.getSeparator();
+        return getShabdizHomePathByPlatform(platform) + BOOTSTRAP_HOME_NAME + platform.getSeparator();
     }
 
-    public static String getBootstrapJarByPlatform(final Platform platform) {
+    /**
+     * Gets the path to shabdiz bootstrap jar file by platform.
+     *
+     * @param platform the target platform
+     * @return the path to shabdiz bootstrap jar file by platform.
+     */
+    public static String getBootstrapJarPathByPlatform(final Platform platform) {
 
-        return getBootstrapHomeByPlatform(platform) + BOOTSTRAP_JAR_NAME;
+        return getBootstrapHomePathByPlatform(platform) + BOOTSTRAP_JAR_NAME;
     }
 
-    public static String getShabdizHomeByPlatform(final Platform platform) {
+    /**
+     * Gets the path to shabdiz home by platform.
+     *
+     * @param platform the target platform
+     * @return the path to shabdiz home by platform.
+     */
+    public static String getShabdizHomePathByPlatform(final Platform platform) {
 
         return platform.getTempDirectory() + SHABDIZ_HOME_NAME + platform.getSeparator();
     }
@@ -106,7 +130,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     }
 
     /**
-     * Sets whether to always upload bootstrap jar
+     * Sets whether to always upload bootstrap jar.
      *
      * @param always_upload_bootstrap whether to always upload bootstrap jar
      */
@@ -119,8 +143,8 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     public Process start(final Host host, final String... parameters) throws IOException {
 
         final Platform platform = host.getPlatform();
-        final String remote_tmp_dir = createTempDirByPlatform(platform);
-        makeRemoteDirectories(host, getBootstrapHomeByPlatform(platform), remote_tmp_dir);
+        final String remote_tmp_dir = createTempDirPathByPlatform(platform);
+        makeRemoteDirectories(host, getBootstrapHomePathByPlatform(platform), remote_tmp_dir);
         final String bootstrap_jar = uploadBootstrapJar(host);
         uploadLocalClasspathFiles(host, remote_tmp_dir);
         uploadBootstrapConfigurationFile(host, remote_tmp_dir);
@@ -152,7 +176,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
      *
      * @param enabled whether the bootstrap agent must delete the working directory upon normal JVM termination
      */
-    public void setDeleteWorkingDirectoryOnExit(boolean enabled) {
+    public void setDeleteWorkingDirectoryOnExit(final boolean enabled) {
 
         configuration.setDeleteWorkingDirectoryOnExit(enabled);
     }
@@ -163,7 +187,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
      *
      * @param url the url of a resource that must be available in the classpath of started processes
      */
-    public boolean addURL(URL url) {
+    public boolean addURL(final URL url) {
 
         return configuration.addClassPathURL(url);
     }
@@ -174,7 +198,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
      *
      * @param file the path to a resource that must be available in the classpath of started processes and exists on remote hosts
      */
-    public boolean addRemoteFile(String file) {
+    public boolean addRemoteFile(final String file) {
 
         return configuration.addClassPathFile(file);
     }
@@ -185,7 +209,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
      *
      * @param file the local file to add to the classpath of any process started by this process builder
      */
-    public boolean addFile(File file) {
+    public boolean addFile(final File file) {
 
         return uploads.add(file);
     }
@@ -246,12 +270,18 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return addMavenDependency(artifact_coordinate);
     }
 
+    /**
+     * Adds a Maven dependency to the list of dependencies.
+     *
+     * @param artifact_coordinate the maven artifact coordinates
+     * @return whether the artifact was added successfully
+     */
     public boolean addMavenDependency(final String artifact_coordinate) {
 
         return configuration.addMavenArtifact(artifact_coordinate);
     }
 
-    private void makeRemoteDirectories(Host host, final String... directories) throws IOException {
+    private void makeRemoteDirectories(final Host host, final String... directories) throws IOException {
 
         final String mkdir_command = Commands.MAKE_DIRECTORIES.get(host.getPlatform(), directories);
         Process mkdir_process = null;
@@ -310,8 +340,8 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
     private String uploadBootstrapJar(final Host host) throws IOException {
 
         final Platform platform = host.getPlatform();
-        final String bootstrap_home = getBootstrapHomeByPlatform(platform);
-        final String bootstrap_jar = getBootstrapJarByPlatform(platform);
+        final String bootstrap_home = getBootstrapHomePathByPlatform(platform);
+        final String bootstrap_jar = getBootstrapJarPathByPlatform(platform);
         if (always_upload_bootstrap || !existsOnHost(host, bootstrap_jar)) {
             host.upload(getBootstrapJar(FORCE_LOCAL_BOOTSTRAP_JAR_RECONSTRUCTION), bootstrap_home);
             LOGGER.debug("uploading bootstrap.jar to {} on host {}", bootstrap_jar, host);
@@ -353,7 +383,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         return command.toString();
     }
 
-    private static void appendBootstrpAgent(Platform platform, final StringBuilder command, final String bootstrap_jar) {
+    private static void appendBootstrpAgent(final Platform platform, final StringBuilder command, final String bootstrap_jar) {
 
         final String quoted_bootstrap_jar_path = platform.quote(bootstrap_jar);
         command.append(JVM_PARAM_JAVAAGENT);
@@ -381,7 +411,7 @@ public class AgentBasedJavaProcessBuilder extends JavaProcessBuilder {
         if (getMainClassName() == null) { throw new NullPointerException("main class must be specified"); }
     }
 
-    private void appendClassPath(final StringBuilder command, Platform platform, final String remote_tmp_dir) {
+    private void appendClassPath(final StringBuilder command, final Platform platform, final String remote_tmp_dir) {
 
         final char path_separator = platform.getPathSeparator();
         command.append("-cp \".");
