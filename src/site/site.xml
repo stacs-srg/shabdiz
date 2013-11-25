@@ -31,10 +31,10 @@
 
     <!-- Workaround for bug in skin that generates spurious closing header tag. -->
     <bannerRight>
-        <name> </name>
+        <name> sss </name>
     </bannerRight>
     <bannerLeft>
-        <name> </name>
+        <name> ssss </name>
     </bannerLeft>
 
     <body>
@@ -45,7 +45,8 @@
 
         <links>
             <item name="Home" href="index.html"/>
-            <item name="Software" href="software.html"/>
+            <item name="Javadoc" href="apidocs"/>
+            <item name="CI" href="https://builds.cs.st-andrews.ac.uk/job/shabdiz/"/>
             <item name="Contact" href="contact.html"/>
         </links>
 
