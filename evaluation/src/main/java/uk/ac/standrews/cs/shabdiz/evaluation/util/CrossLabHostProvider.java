@@ -16,7 +16,7 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 
 public class CrossLabHostProvider implements Provider<Host> {
 
@@ -62,7 +62,7 @@ public class CrossLabHostProvider implements Provider<Host> {
         try {
             final String host_name = host_names.get(host_index);
             LOGGER.info("initializing SSH host {}", host_name);
-            final SSHjHost host = new SSHjHost(host_name, BlubHostProvider.SSHJ_AUTH);
+            final SSHHost host = new SSHHost(host_name, BlubHostProvider.SSHJ_AUTH);
             LOGGER.info("initialized SSH host {}", host_name);
 
             //            try {

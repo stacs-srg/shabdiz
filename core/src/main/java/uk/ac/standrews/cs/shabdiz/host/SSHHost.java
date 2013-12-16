@@ -27,13 +27,13 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.readLine;
  * 
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) 
  */
-public class SSHjHost extends AbstractHost {
+public class SSHHost extends AbstractHost {
 
     private static final PromiscuousVerifier PROMISCUOUS_HOST_VERIFIER = new PromiscuousVerifier();
     private static final int SSH_TRANSPORT_TIMEOUT_MILLIS = 15000;
     private static final int SSH_CHANNEL_CONNECTION_TIMEOUT_MILLIS = SSH_TRANSPORT_TIMEOUT_MILLIS;
     private static final int SSH_CONNECTION_TIMEOUT = SSH_TRANSPORT_TIMEOUT_MILLIS;
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSHjHost.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSHHost.class);
     private final SSHClient ssh;
     private final Platform platform;
     private boolean destroy_process_forcefully;
@@ -45,7 +45,7 @@ public class SSHjHost extends AbstractHost {
      * @param authentication the authentication method
      * @throws IOException if failure occurs while establishing SSH connection
      */
-    public SSHjHost(final String host_name, final AuthMethod authentication) throws IOException {
+    public SSHHost(final String host_name, final AuthMethod authentication) throws IOException {
 
         this(host_name, SSHClient.DEFAULT_PORT, authentication);
     }
@@ -58,7 +58,7 @@ public class SSHjHost extends AbstractHost {
      * @param authentication the authentication method
      * @throws IOException if failure occurs while establishing SSH connection
      */
-    public SSHjHost(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
+    public SSHHost(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
 
         super(host_name);
         ssh = new SSHClient();
@@ -75,7 +75,7 @@ public class SSHjHost extends AbstractHost {
      * @param platform the platform of this host
      * @throws IOException if failure occurs while establishing SSH connection
      */
-    public SSHjHost(final String host_name, final int ssh_port, final AuthMethod authentication, final Platform platform) throws IOException {
+    public SSHHost(final String host_name, final int ssh_port, final AuthMethod authentication, final Platform platform) throws IOException {
 
         super(host_name);
         this.platform = platform;

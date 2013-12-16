@@ -42,10 +42,10 @@ import static org.junit.Assume.assumeTrue;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @Category(Ignore.class)
-public class SupervisedSSHjHostTest extends Bootstrap {
+public class SupervisedSSHHostTest extends Bootstrap {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedSSHjHostTest.class);
-    private static SSHjHost host;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedSSHHostTest.class);
+    private static SSHHost host;
     private static String host_name;
 
     @BeforeClass
@@ -70,7 +70,7 @@ public class SupervisedSSHjHostTest extends Bootstrap {
 
         final AuthMethod authentication = new AuthPublickey(key_provider);
         host_name = "masih.host.cs.st-andrews.ac.uk";
-        host = new SSHjHost(host_name, authentication);
+        host = new SSHHost(host_name, authentication);
     }
 
     @AfterClass
@@ -84,9 +84,9 @@ public class SupervisedSSHjHostTest extends Bootstrap {
 
         AgentBasedJavaProcessBuilder builder = new AgentBasedJavaProcessBuilder();
         builder.addCurrentJVMClasspath();
-        builder.setMainClass(SupervisedSSHjHostTest.class);
+        builder.setMainClass(SupervisedSSHHostTest.class);
         final Process start = builder.start(host);
-        final Properties properties = Bootstrap.readProperties(SupervisedSSHjHostTest.class, start, new Duration(50, TimeUnit.SECONDS));
+        final Properties properties = Bootstrap.readProperties(SupervisedSSHHostTest.class, start, new Duration(50, TimeUnit.SECONDS));
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             System.out.println(entry.getKey() + "\t\t\t" + entry.getValue());
         }

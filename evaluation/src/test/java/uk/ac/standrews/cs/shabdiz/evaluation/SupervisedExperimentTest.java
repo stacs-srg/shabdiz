@@ -13,7 +13,7 @@ import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
-import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.util.Input;
 import uk.ac.standrews.cs.test.category.Ignore;
 
@@ -21,7 +21,7 @@ import uk.ac.standrews.cs.test.category.Ignore;
 @Category(Ignore.class)
 public class SupervisedExperimentTest {
 
-    private static SSHjHost host;
+    private static SSHHost host;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -43,7 +43,7 @@ public class SupervisedExperimentTest {
         });
 
         final AuthMethod authentication = new AuthPublickey(key_provider);
-        host = new SSHjHost("masih.host.cs.st-andrews.ac.uk", authentication);
+        host = new SSHHost("masih.host.cs.st-andrews.ac.uk", authentication);
     }
 
     @AfterClass

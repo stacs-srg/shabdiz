@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.job.Job;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
@@ -69,7 +69,7 @@ public class SupervisedRemoteTest {
                     return false;
                 }
             });
-            remoteHost = new SSHjHost("project07.cs.st-andrews.ac.uk", new AuthPublickey(provider));
+            remoteHost = new SSHHost("project07.cs.st-andrews.ac.uk", new AuthPublickey(provider));
             final Process worker_process = remoteHost.execute("echo $PATH");
             LOGGER.info("ERR: {}", IOUtils.toString(worker_process.getErrorStream()));
             LOGGER.info("OUT: {}", IOUtils.toString(worker_process.getInputStream()));

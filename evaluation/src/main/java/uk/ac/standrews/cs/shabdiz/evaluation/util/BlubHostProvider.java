@@ -11,7 +11,7 @@ import net.schmizz.sshj.userauth.method.AuthPublickey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
-import uk.ac.standrews.cs.shabdiz.host.SSHjHost;
+import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 import uk.ac.standrews.cs.shabdiz.platform.UnixPlatform;
 import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 
@@ -83,7 +83,7 @@ public class BlubHostProvider implements Provider<Host> {
 
         if (!isOutOfRange(host_index)) {
             final String host_name = BLUB_NODE_HOST_NAME_PREFIX + host_index;
-            return new SSHjHost(host_name, SSHClient.DEFAULT_PORT, SSHJ_AUTH, LINUX_PLATFORM);
+            return new SSHHost(host_name, SSHClient.DEFAULT_PORT, SSHJ_AUTH, LINUX_PLATFORM);
             //            return new SSHHost(host_name, INTERNAL_PUBLIC_KEY_CREDENTIALS);
         }
         throw new NoSuchElementException("cannot instantiate any more hosts; maximum blub hosts available is " + MAX_BLUB_NODES_COUNT);
