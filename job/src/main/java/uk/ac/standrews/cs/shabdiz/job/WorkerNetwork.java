@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.IOException;
@@ -120,6 +121,11 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         worker_manager.addMavenDependency(group_id, artifact_id, version, classifier);
     }
 
+    public void addCurrentJVMClasspath() {
+
+        worker_manager.addCurrentJVMClasspath();
+    }
+
     /**
      * Unexposes the launcher callback server which listens to the worker notifications. Shuts down worker deployment mechanisms.
      * Note that any pending {@link Future} will end in exception.
@@ -168,14 +174,19 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         return worker_manager.equals(that.worker_manager);
     }
 
-    private void expose() throws IOException {
-
-        callback_server.expose();
-    }
-
     InetSocketAddress getCallbackAddress() {
 
         return callback_address;
+    }
+
+    synchronized <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
+
+        id_future_map.put(future_remote.getJobID(), future_remote);
+    }
+
+    private void expose() throws IOException {
+
+        callback_server.expose();
     }
 
     private void releaseAllPendingFutures() {
@@ -187,11 +198,6 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
                 future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
             }
         }
-    }
-
-    synchronized <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
-
-        id_future_map.put(future_remote.getJobID(), future_remote);
     }
 
 }
