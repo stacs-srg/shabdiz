@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import java.net.InetSocketAddress;
@@ -38,7 +39,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.ProcessUtil;
 
-class WorkerManager extends AbstractApplicationManager {
+public class WorkerManager extends AbstractApplicationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerManager.class);
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
@@ -127,9 +128,22 @@ class WorkerManager extends AbstractApplicationManager {
 
         worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
     }
-    
-    public void addCurrentJVMClasspath(){
+
+    public void addCurrentJVMClasspath() {
+
         worker_process_builder.addCurrentJVMClasspath();
+    }
+
+    @Override
+    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
+
+        final Worker worker = descriptor.getApplicationReference();
+        worker.getAddress(); // makes a remote call
+    }
+
+    void shutdown() {
+
+        proxy_factory.shutdown();
     }
 
     private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
@@ -152,17 +166,5 @@ class WorkerManager extends AbstractApplicationManager {
 
         final int worker_port = NetworkUtil.getAddressFromString(properties.getProperty(WorkerMain.WORKER_REMOTE_ADDRESS_KEY)).getPort();
         return new InetSocketAddress(host.getAddress(), worker_port);
-    }
-
-    @Override
-    protected void attemptApplicationCall(final ApplicationDescriptor descriptor) throws Exception {
-
-        final Worker worker = descriptor.getApplicationReference();
-        worker.getAddress(); // makes a remote call
-    }
-
-    void shutdown() {
-
-        proxy_factory.shutdown();
     }
 }

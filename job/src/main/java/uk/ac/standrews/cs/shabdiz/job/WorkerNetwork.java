@@ -81,7 +81,11 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
         worker_manager = new WorkerManager(this);
     }
-
+    
+    public WorkerManager getWorkerManager(){
+        return worker_manager;
+    }
+    
     /**
      * Adds a host to this worker network.
      *
