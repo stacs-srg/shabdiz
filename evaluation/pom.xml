@@ -26,8 +26,9 @@
         <artifactId>shabdiz</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
-    <artifactId>shabdiz-evaluation</artifactId>
+    
+    <groupId>uk.ac.standrews.cs.${parent.artifactId}</groupId>
+    <artifactId>evaluation</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/evaluation</name>
 
@@ -85,12 +86,12 @@
 
         <!-- St Andrews Chord implementation with tests-->
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>${parent.groupId}</groupId>
             <artifactId>stachord</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>${parent.groupId}</groupId>
             <artifactId>stachord</artifactId>
             <version>2.0-SNAPSHOT</version>
             <type>test-jar</type>
@@ -99,17 +100,17 @@
         <!-- Shabdiz Modules-->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-core</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-job</artifactId>
+            <artifactId>job</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-testing</artifactId>
+            <artifactId>testing</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -17,7 +17,7 @@
   ~ along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -27,7 +27,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shabdiz-example</artifactId>
+    <groupId>uk.ac.standrews.cs.${parent.artifactId}</groupId>
+    <artifactId>example</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/example</name>
 
@@ -39,12 +40,12 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-core</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>shabdiz-job</artifactId>
+            <artifactId>job</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
