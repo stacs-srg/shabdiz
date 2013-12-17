@@ -61,7 +61,7 @@ public class NormalOperationTest {
         AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(localhost);
         network = new WorkerNetwork();
         network.add(localhost);
-        network.addMavenDependency("uk.ac.standrews.cs", "shabdiz-job", "1.0-SNAPSHOT", "tests");
+        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
         worker = network.first().getApplicationReference();

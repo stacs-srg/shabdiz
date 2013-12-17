@@ -44,7 +44,7 @@ class WorkerManager extends AbstractApplicationManager {
     private static final Duration DEFAULT_WORKER_DEPLOYMENT_TIMEOUT = new Duration(50, TimeUnit.SECONDS);
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
-    private static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs";
+    private static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs.shabdiz";
     private static final String SHABDIZ_VERSION = "1.0-SNAPSHOT";
     private final AgentBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
@@ -137,7 +137,7 @@ class WorkerManager extends AbstractApplicationManager {
         final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "shabdiz-job", SHABDIZ_VERSION);
+        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "job", SHABDIZ_VERSION);
         process_builder.setAlwaysUploadBootstrap(true);
         return process_builder;
     }
