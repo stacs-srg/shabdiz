@@ -127,6 +127,10 @@ class WorkerManager extends AbstractApplicationManager {
 
         worker_process_builder.addMavenDependency(group_id, artifact_id, version, classifier);
     }
+    
+    public void addCurrentJVMClasspath(){
+        worker_process_builder.addCurrentJVMClasspath();
+    }
 
     private static AgentBasedJavaProcessBuilder createRemoteJavaProcessBuilder() {
 
