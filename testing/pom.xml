@@ -27,7 +27,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>uk.ac.standrews.cs.${parent.artifactId}</groupId>
+    <groupId>uk.ac.standrews.cs.${project.parent.artifactId}</groupId>
     <artifactId>testing</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/testing</name>

@@ -28,7 +28,7 @@
     </parent>
 
 
-    <groupId>uk.ac.standrews.cs.${parent.artifactId}</groupId>
+    <groupId>uk.ac.standrews.cs.${project.parent.artifactId}</groupId>
     <artifactId>core</artifactId>
     <packaging>jar</packaging>
     <name>shabdiz/core</name>
