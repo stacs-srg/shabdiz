@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -28,6 +29,7 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.mashti.jetson.ClientFactory;
@@ -41,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Presents a {@link WorkerRemote worker} that perfoms a given job and notifies the launcher about the completion of the submitted jobs on a given callback address.
+ * Presents a {@link WorkerRemote worker} that performs a given job and notifies the launcher about the completion of the submitted jobs on a given callback address.
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
@@ -50,11 +52,11 @@ public class DefaultWorkerRemote implements WorkerRemote {
     private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new LeanServerFactory<WorkerRemote>(WorkerRemote.class);
     private static final ClientFactory<WorkerCallback> CLIENT_FACTORY = new LeanClientFactory<WorkerCallback>(WorkerCallback.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
-    private final InetSocketAddress local_address;
     private final ListeningExecutorService executor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final Server server;
     private final WorkerCallback callback;
+    private final ExecutorService callback_executor = Executors.newCachedThreadPool(new NamedThreadFactory("worker_callback_", true));
 
     protected DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
@@ -62,19 +64,17 @@ public class DefaultWorkerRemote implements WorkerRemote {
         submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
         executor = createExecutorService();
         server = SERVER_FACTORY.createServer(this);
-        server.setBindAddress(local_address);
-        expose();
-        this.local_address = server.getLocalSocketAddress();
+        init(local_address);
     }
 
     @Override
     public synchronized UUID submit(final Job<? extends Serializable> job) {
 
-        final UUID job_id = generateJobId();
+        final UUID job_id = UUID.randomUUID();
         final ListenableFuture<? extends Serializable> future = executor.submit(job);
         final FutureCallbackNotifier future_callback = new FutureCallbackNotifier(job_id);
 
-        Futures.addCallback(future, future_callback, executor);
+        Futures.addCallback(future, future_callback, callback_executor);
         return job_id;
     }
 
@@ -96,7 +96,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
         executor.shutdownNow();
         try {
-            unexpose();
+            server.unexpose();
         }
         catch (final IOException e) {
             LOGGER.debug("Unable to unexpose the worker server", e);
@@ -111,27 +111,18 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
     public InetSocketAddress getAddress() {
 
-        return local_address;
+        return server.getLocalSocketAddress();
     }
 
     protected ListeningExecutorService createExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory("worker_")));
+        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory("worker_", true)));
     }
 
-    private void expose() throws IOException {
+    private void init(final InetSocketAddress local_address) throws IOException {
 
+        server.setBindAddress(local_address);
         server.expose();
-    }
-
-    private void unexpose() throws IOException {
-
-        server.unexpose();
-    }
-
-    private static synchronized UUID generateJobId() {
-
-        return UUID.randomUUID();
     }
 
     private class FutureCallbackNotifier implements FutureCallback<Serializable> {
@@ -146,17 +137,6 @@ public class DefaultWorkerRemote implements WorkerRemote {
         @Override
         public void onSuccess(final Serializable result) {
 
-            notifyCompletion(job_id, result);
-        }
-
-        @Override
-        public void onFailure(final Throwable error) {
-
-            notifyException(job_id, error);
-        }
-
-        private void notifyCompletion(final UUID job_id, final Serializable result) {
-
             try {
                 callback.notifyCompletion(job_id, result);
                 submitted_jobs.remove(job_id);
@@ -166,10 +146,11 @@ public class DefaultWorkerRemote implements WorkerRemote {
             }
         }
 
-        private void notifyException(final UUID job_id, final Throwable exception) {
+        @Override
+        public void onFailure(final Throwable error) {
 
             try {
-                callback.notifyException(job_id, exception);
+                callback.notifyException(job_id, error);
                 submitted_jobs.remove(job_id);
             }
             catch (final RPCException e) {

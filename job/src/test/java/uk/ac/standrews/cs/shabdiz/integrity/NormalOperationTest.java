@@ -23,14 +23,12 @@ import java.util.concurrent.Future;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
-import uk.ac.standrews.cs.test.category.Ignore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,14 +38,13 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-@Category(Ignore.class)
 public class NormalOperationTest {
 
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
-    private static AbstractHost localhost;
-    private static WorkerNetwork network;
-    private static Worker worker;
+    protected static AbstractHost host;
+    protected static WorkerNetwork network;
+    protected static Worker worker;
 
     /**
      * Sets the up the test.
@@ -57,10 +54,10 @@ public class NormalOperationTest {
     @BeforeClass
     public static void setUp() throws Exception {
 
-        localhost = new LocalHost();
-        AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(localhost);
+        host = new LocalHost();
+        AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
         network = new WorkerNetwork();
-        network.add(localhost);
+        network.add(host);
         network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
@@ -76,7 +73,7 @@ public class NormalOperationTest {
     public static void tearDown() throws Exception {
 
         network.shutdown();
-        localhost.close();
+        host.close();
     }
 
     /**

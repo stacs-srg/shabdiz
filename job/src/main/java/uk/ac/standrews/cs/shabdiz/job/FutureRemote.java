@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import com.google.common.util.concurrent.AbstractFuture;
@@ -49,6 +50,7 @@ class FutureRemote<Result extends Serializable> extends AbstractFuture<Result> {
         return super.cancel(may_interrupt) && cancelOnRemote(may_interrupt);
     }
 
+    @SuppressWarnings("unchecked")
     public boolean set(final Serializable result) {
 
         return super.set((Result) result);
