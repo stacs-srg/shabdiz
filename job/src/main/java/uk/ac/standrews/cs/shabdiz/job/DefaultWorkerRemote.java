@@ -70,25 +70,28 @@ public class DefaultWorkerRemote implements WorkerRemote {
     @Override
     public synchronized UUID submit(final Job<? extends Serializable> job) {
 
-        final UUID job_id = UUID.randomUUID();
+        final UUID id = UUID.randomUUID();
         final ListenableFuture<? extends Serializable> future = executor.submit(job);
-        final FutureCallbackNotifier future_callback = new FutureCallbackNotifier(job_id);
+        final FutureCallbackNotifier future_callback = new FutureCallbackNotifier(id);
 
         Futures.addCallback(future, future_callback, callback_executor);
-        return job_id;
+        LOGGER.debug("submitted job {} with ID {}", job, id);
+        return id;
     }
 
     @Override
-    public synchronized boolean cancel(final UUID job_id, final boolean may_interrupt) throws RPCException {
+    public synchronized boolean cancel(final UUID id, final boolean may_interrupt) throws RPCException {
 
-        if (submitted_jobs.containsKey(job_id)) {
-            final boolean cancelled = submitted_jobs.get(job_id).cancel(may_interrupt);
+        if (submitted_jobs.containsKey(id)) {
+            final boolean cancelled = submitted_jobs.get(id).cancel(may_interrupt);
             if (cancelled) {
-                submitted_jobs.remove(job_id);
+                submitted_jobs.remove(id);
             }
+            LOGGER.debug("cancelling job with ID {}, cancelled? {}", id, cancelled);
             return cancelled;
         }
-        throw new UnknownJobException("Unable to cancel job, worker does not know of any job with the id " + job_id);
+        LOGGER.debug("received cancellation request for a an unknown job with id ", id);
+        throw new UnknownJobException("Unable to cancel job, worker does not know of any job with the id " + id);
     }
 
     @Override
@@ -129,7 +132,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
 
         private final UUID job_id;
 
-        private FutureCallbackNotifier(UUID job_id) {
+        private FutureCallbackNotifier(final UUID job_id) {
 
             this.job_id = job_id;
         }
