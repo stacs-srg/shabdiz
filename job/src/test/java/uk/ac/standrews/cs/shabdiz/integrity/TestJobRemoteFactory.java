@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.integrity;
 
 import uk.ac.standrews.cs.shabdiz.job.Job;
 
 /**
  * A factory for creating test {@link Job} objects.
- * 
+ *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public final class TestJobRemoteFactory {
@@ -36,7 +37,7 @@ public final class TestJobRemoteFactory {
 
     /**
      * Makes a remote job which echos the given message.
-     * 
+     *
      * @param message_to_echo the message to echo
      * @return the job which echos the given message
      */
@@ -47,7 +48,7 @@ public final class TestJobRemoteFactory {
 
     /**
      * Makes a remote job which throws the given exception.
-     * 
+     *
      * @param exception_to_throw the exception to throw
      * @return the job which throws the given exception
      */
@@ -58,14 +59,13 @@ public final class TestJobRemoteFactory {
 
     public static final class EchoRemoteJob implements Job<String> {
 
+        private static final long serialVersionUID = -8715065957655698996L;
         private final String message_to_echo;
 
         public EchoRemoteJob(final String message_to_echo) {
 
             this.message_to_echo = message_to_echo;
         }
-
-        private static final transient long serialVersionUID = -8715065957655698996L;
 
         @Override
         public String call() throws Exception {
@@ -77,18 +77,13 @@ public final class TestJobRemoteFactory {
 
 final class ThrowExceptionRemoteJob implements Job<String> {
 
+    private static final long serialVersionUID = 9089082845434872396L;
     public Exception exception_to_throw;
-
-    public ThrowExceptionRemoteJob() {
-
-    }
 
     ThrowExceptionRemoteJob(final Exception exception_to_throw) {
 
         this.exception_to_throw = exception_to_throw;
     }
-
-    private static final long serialVersionUID = 9089082845434872396L;
 
     @Override
     public String call() throws Exception {
