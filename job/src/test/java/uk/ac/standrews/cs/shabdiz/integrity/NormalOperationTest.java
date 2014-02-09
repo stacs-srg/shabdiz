@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.util.concurrent.ExecutionException;
@@ -58,7 +59,8 @@ public class NormalOperationTest {
         AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
         network = new WorkerNetwork();
         network.add(host);
-        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
+        //        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
+        network.addCurrentJVMClasspath();
         network.deployAll();
         network.awaitAnyOfStates(ApplicationState.RUNNING);
         worker = network.first().getApplicationReference();
