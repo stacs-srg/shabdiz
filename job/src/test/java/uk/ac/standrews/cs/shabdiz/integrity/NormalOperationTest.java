@@ -21,9 +21,12 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.host.AbstractHost;
 import uk.ac.standrews.cs.shabdiz.host.LocalHost;
@@ -41,6 +44,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class NormalOperationTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(NormalOperationTest.class);
     private static final String TEST_EXCEPTION_MESSAGE = "Test Exception Message";
     private static final String HELLO = "hello";
     protected static AbstractHost host;
@@ -59,10 +63,12 @@ public class NormalOperationTest {
         AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
         network = new WorkerNetwork();
         network.add(host);
-        //        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
-        network.addCurrentJVMClasspath();
+        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
+        LOGGER.info("deploying worker network");
         network.deployAll();
+        LOGGER.info("awaiting running state");
         network.awaitAnyOfStates(ApplicationState.RUNNING);
+        LOGGER.info("worker network is running");
         worker = network.first().getApplicationReference();
     }
 
@@ -74,6 +80,7 @@ public class NormalOperationTest {
     @AfterClass
     public static void tearDown() throws Exception {
 
+        LOGGER.info("shutting down network");
         network.shutdown();
         host.close();
     }
@@ -87,7 +94,7 @@ public class NormalOperationTest {
     public void sayHelloTest() throws Exception {
 
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeEchoJob(HELLO));
-        assertEquals(HELLO, future.get());
+        assertEquals(HELLO, future.get(1, TimeUnit.MINUTES));
     }
 
     /**
@@ -102,7 +109,7 @@ public class NormalOperationTest {
         final Future<String> future = worker.submit(TestJobRemoteFactory.makeThrowExceptionJob(npe));
 
         try {
-            future.get(); // Expect the execution exception to be thrown
+            future.get(1, TimeUnit.MINUTES); // Expect the execution exception to be thrown
         }
         catch (final ExecutionException e) {
             final Throwable cause = e.getCause();

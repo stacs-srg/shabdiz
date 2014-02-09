@@ -81,11 +81,12 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         callback_address = callback_server.getLocalSocketAddress(); // Since the initial server port may be zero, get the actual address of the callback server
         worker_manager = new WorkerManager(this);
     }
-    
-    public WorkerManager getWorkerManager(){
+
+    public WorkerManager getWorkerManager() {
+
         return worker_manager;
     }
-    
+
     /**
      * Adds a host to this worker network.
      *
@@ -139,20 +140,18 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     @Override
     public void shutdown() {
 
+        super.shutdown();
         try {
-            try {
-                callback_server.unexpose();
-            }
-            catch (final IOException e) {
-                LOGGER.debug("failed to unexpose callback server", e);
-            }
-            callback_server_factory.shutdown();
-            worker_manager.shutdown();
-            releaseAllPendingFutures(); // Release the futures which are still pending for notification
+            callback_server.unexpose();
         }
-        finally {
-            super.shutdown();
+        catch (final IOException e) {
+            LOGGER.debug("failed to unexpose callback server", e);
         }
+        LOGGER.debug("shutting down callback server factory");
+        callback_server_factory.shutdown();
+        LOGGER.debug("shutting down worker manager");
+        worker_manager.shutdown();
+        releaseAllPendingFutures(); // Release the futures which are still pending for notification
     }
 
     @Override
