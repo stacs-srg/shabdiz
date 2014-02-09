@@ -272,7 +272,7 @@ public class SSHHost extends AbstractHost {
     private void upload(final SFTPClient sftp, final File file, final String destination) throws IOException {
 
         final String path = FilenameUtils.getFullPath(destination);
-        LOGGER.info("path to make on remote {}", path);
+        LOGGER.debug("path to make on remote {}", path);
         sftp.mkdirs(path);
         sftp.put(new FileSystemFile(file), destination);
     }
