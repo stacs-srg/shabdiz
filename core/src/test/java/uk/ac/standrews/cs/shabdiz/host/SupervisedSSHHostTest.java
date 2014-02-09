@@ -106,10 +106,10 @@ public class SupervisedSSHHostTest extends Bootstrap {
         assertFalse(destination.exists());
 
         final Platform platform = host.getPlatform();
-        final String host_tmp = platform.getTempDirectory();
+        final String host_tmp = platform.getTempDirectory() + "masih211/";
 
         host.upload(temp_file, host_tmp);
-        final String tmp_file_path_on_host = host_tmp + platform.getSeparator() + temp_file.getName();
+        final String tmp_file_path_on_host = host_tmp + temp_file.getName();
         final String exists_command = Commands.EXISTS.get(platform, tmp_file_path_on_host);
         final Process exists_process = host.execute(exists_command);
         final String exists_process_output = ProcessUtil.awaitNormalTerminationAndGetOutput(exists_process);

@@ -58,7 +58,6 @@ public class JUnitBootstrapCore extends Bootstrap {
             return new String(Base64.encodeBase64(bytes), UTF8);
         }
         finally {
-
             if (oos != null) {
                 oos.close();
             }

@@ -71,7 +71,7 @@ public class ExperimentRunner extends Parameterized {
         }
 
         if (result.wasSuccessful()) {
-            LOGGER.info("Experiment {} completeted successfully", args_as_string);
+            LOGGER.info("Experiment {} completed successfully", args_as_string);
         }
         else {
             LOGGER.error("Experiment {} had failures", args_as_string);

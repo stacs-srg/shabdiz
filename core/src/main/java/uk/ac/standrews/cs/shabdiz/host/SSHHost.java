@@ -13,6 +13,7 @@ import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.method.AuthMethod;
 import net.schmizz.sshj.xfer.FileSystemFile;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.exec.Commands;
@@ -24,8 +25,8 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap.readLine;
 
 /**
  * Presents a {@link Host} that uses SSH2 to upload, download and execute commands.
- * 
- * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) 
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 public class SSHHost extends AbstractHost {
 
@@ -86,7 +87,14 @@ public class SSHHost extends AbstractHost {
     @Override
     public void upload(final File source, final String destination) throws IOException {
 
-        final String destination_path = SimplePlatform.addTailingSeparator(platform.getSeparator(), destination);
+        final char separator = platform.getSeparator();
+        final String destination_path;
+        if (destination.endsWith(String.valueOf(separator))) {
+            destination_path = SimplePlatform.addTailingSeparator(separator, destination);
+        }
+        else {
+            destination_path = destination;
+        }
         final SFTPClient sftp = ssh.newSFTPClient();
         LOGGER.debug("Uploading {} to {} on host {} ", source, destination, getName());
         upload(sftp, source, destination_path);
@@ -99,7 +107,7 @@ public class SSHHost extends AbstractHost {
         final SFTPClient sftp = ssh.newSFTPClient();
         for (final File source : sources) {
             LOGGER.debug("Uploading {} to {} on host {} ", source, destination, getName());
-            upload(sftp, source, destination_path);
+            upload(sftp, source, destination_path + source.getName());
         }
     }
 
@@ -118,13 +126,13 @@ public class SSHHost extends AbstractHost {
     }
 
     /**
-     * Executes the given {@code command} on this host and returns a {@link Process} corresponding to the executed command. 
+     * Executes the given {@code command} on this host and returns a {@link Process} corresponding to the executed command.
      * This method allows to specify whether to kill the whole process tree when the returned process is {@link Process#destroy() destroyed}.
      *
      * @param command the command to execute on this host
      * @param kill_process_tree whether to kill the process tree of the returned process at the time of destruction
      * @return the spawned process on this host
-     * @throws IOException if a communication failure occurs 
+     * @throws IOException if a communication failure occurs
      */
     public Process execute(final String command, final boolean kill_process_tree) throws IOException {
 
@@ -263,8 +271,10 @@ public class SSHHost extends AbstractHost {
 
     private void upload(final SFTPClient sftp, final File file, final String destination) throws IOException {
 
-        final String file_name = file.getName();
-        sftp.put(new FileSystemFile(file), destination + file_name);
+        final String path = FilenameUtils.getFullPath(destination);
+        LOGGER.info("path to make on remote {}", path);
+        sftp.mkdirs(path);
+        sftp.put(new FileSystemFile(file), destination);
     }
 
     private int readParentProcessID(final Session.Command command_exec) throws IOException {
