@@ -8,9 +8,10 @@
     </appender>
 
     <logger name="net.schmizz" level="ERROR"/>
+    <logger name="org.apache" level="ERROR"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
-    
+
 </configuration>
