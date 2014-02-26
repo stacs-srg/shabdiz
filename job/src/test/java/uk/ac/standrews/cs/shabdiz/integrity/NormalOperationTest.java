@@ -33,6 +33,7 @@ import uk.ac.standrews.cs.shabdiz.host.LocalHost;
 import uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder;
 import uk.ac.standrews.cs.shabdiz.job.Worker;
 import uk.ac.standrews.cs.shabdiz.job.WorkerNetwork;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -64,6 +65,7 @@ public class NormalOperationTest {
         network = new WorkerNetwork();
         network.add(host);
         network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
+        network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
         LOGGER.info("deploying worker network");
         network.deployAll();
         LOGGER.info("awaiting running state");
