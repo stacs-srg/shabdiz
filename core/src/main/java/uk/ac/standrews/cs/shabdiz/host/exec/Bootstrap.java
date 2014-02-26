@@ -40,18 +40,17 @@ import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.shabdiz.util.URLUtils;
 
 /**
- * A Java agent that is capable of adding jar to the JVM class path at runtime. 
+ * A Java agent that is capable of adding jar to the JVM class path at runtime.
  * The jar files may be specified as Maven artifacts, URLs and local files in a configuration file called {@code bootstrap.config}.
  * The bootstrap configuration file must be available in the class path for this class to work.
  * This class automatically deletes the temporary directory at which it finds the bootstrap configuration file.
- * Note by: this class is not designed to be used independently to resolve classpath entries. 
+ * Note by: this class is not designed to be used independently to resolve classpath entries.
  * To start a Java process using this bootstrap mechanism please use {@link AgentBasedJavaProcessBuilder}
- * 
- * If a sub class of this class overrides the {@code main} method, the {@link #printProperties()} method must be called at the end of main method. 
- * 
- * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) 
+ * If a sub class of this class overrides the {@code main} method, the {@link #printProperties()} method must be called at the end of main method.
+ *
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  * @see AgentBasedJavaProcessBuilder
- * */
+ */
 public abstract class Bootstrap {
 
     /** The key of PID property. */
@@ -109,7 +108,7 @@ public abstract class Bootstrap {
             bootstrap.printProperties();
         }
         else {
-            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[]{args});
+            application_bootstrap_class.getMethod("main", String[].class).invoke(null, new Object[] {args});
         }
     }
 
@@ -423,8 +422,10 @@ public abstract class Bootstrap {
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-connector-basic/0.9.0.M3/aether-connector-basic-0.9.0.M3.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-transport-file/0.9.0.M3/aether-transport-file-0.9.0.M3.jar"));
             loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/eclipse/aether/aether-transport-http/0.9.0.M3/aether-transport-http-0.9.0.M3.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/jcl-over-slf4j/1.7.5/jcl-over-slf4j-1.7.5.jar"));
-            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/slf4j-api/1.7.6/slf4j-api-1.7.6.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "org/slf4j/jcl-over-slf4j/1.7.6/jcl-over-slf4j-1.7.6.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "ch/qos/logback/logback-core/1.1.1/logback-core-1.1.1.jar"));
+            loadBootstrapClassPathURL(instrumentation, new URL(MVN_CENTRAL + "ch/qos/logback/logback-classic/1.1.1/logback-classic-1.1.1.jar"));
         }
         catch (final Exception e) {
             throw new RuntimeException("failed to load eclipse aether dependencies", e);
