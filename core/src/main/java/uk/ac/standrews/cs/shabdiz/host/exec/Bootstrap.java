@@ -158,7 +158,9 @@ public abstract class Bootstrap {
         final InputStream in = ClassLoader.getSystemResourceAsStream("bootstrap.config");
         final BootstrapConfiguration configuration = BootstrapConfiguration.read(in);
         in.close();
-        configuration.addFileToDeleteOnExit(tmp_dir.getAbsolutePath());
+        if (!tmp_dir.getAbsolutePath().equals(WORKING_DIRECTORY.getAbsolutePath()) || configuration.delete_working_directory_on_exit) {
+            configuration.addFileToDeleteOnExit(tmp_dir.getAbsolutePath());
+        }
         return configuration;
     }
 
