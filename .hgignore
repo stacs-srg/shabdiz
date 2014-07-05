@@ -1,15 +1,7 @@
-
-syntax: regexp
-.idea$
-syntax: regexp
-.iml$
-syntax: regexp
-^target$
-syntax: regexp
-.DS_Store$
-syntax: regexp
-/target$
-syntax: regexp
-/evaluation/results$
-syntax: regexp
-/evaluation/analysis$
+syntax: glob
+.idea
+*.iml
+target
+.DS_Store
+/evaluation/results
+/evaluation/analysis

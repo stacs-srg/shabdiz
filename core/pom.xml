@@ -38,6 +38,7 @@
         <aetherVersion>0.9.0.M3</aetherVersion>
         <mavenVersion>3.1.1</mavenVersion>
     </properties>
+    
     <build>
         <plugins>
             <plugin>
