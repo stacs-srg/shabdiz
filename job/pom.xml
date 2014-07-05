@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.mashti</groupId>
             <artifactId>jetson</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
