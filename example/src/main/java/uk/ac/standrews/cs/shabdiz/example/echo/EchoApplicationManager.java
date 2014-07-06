@@ -116,7 +116,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
 
         final String random_message = generateRandomString();
         final Echo echo_service = descriptor.getApplicationReference();
-        final String echoed_message = echo_service.echo(random_message);
+        final String echoed_message = echo_service.echo(random_message).get();
         if (!random_message.equals(echoed_message)) { throw new Exception("expected " + random_message + ", but received " + echoed_message); }
     }
 
