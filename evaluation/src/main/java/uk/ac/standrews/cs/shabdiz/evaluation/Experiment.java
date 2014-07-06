@@ -9,7 +9,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -74,7 +74,7 @@ public abstract class Experiment {
     private final ThreadCountGauge thread_count_gauge = new ThreadCountGauge();
     private final SystemLoadAverageGauge system_load_average_gauge = new SystemLoadAverageGauge();
     private final Properties properties = new Properties();
-    private final Provider<Host> host_provider;
+    private final Supplier<Host> host_provider;
     private final ExperimentManager manager;
     private final CsvReporter reporter;
     @Rule
@@ -86,7 +86,7 @@ public abstract class Experiment {
     private BlubPacketsInGangliaGauge ganglia_packets_in;
     private BlubPacketsOutGangliaGauge ganglia_packets_out;
 
-    protected Experiment(final Integer network_size, final Provider<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
+    protected Experiment(final Integer network_size, final Supplier<Host> host_provider, final ExperimentManager manager, final Duration scanner_interval, final Duration scanner_timeout, final int scanner_scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;

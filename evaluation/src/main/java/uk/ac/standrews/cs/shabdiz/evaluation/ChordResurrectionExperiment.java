@@ -1,9 +1,5 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -18,9 +14,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.junit.runners.Parameterized;
 import org.mashti.gauge.Gauge;
 import org.mashti.gauge.Timer;
@@ -85,7 +83,7 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
     private final Set<ApplicationDescriptor> joined_nodes = new HashSet<ApplicationDescriptor>();
     private final Random random;
 
-    public ChordResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
+    public ChordResurrectionExperiment(final int network_size, final Supplier<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
 
         super(network_size, host_provider, manager, kill_portion, scanner_interval, scanner_timeout, scheduler_pool_size, concurrent_scanner_pool_size);
         ring_size_scanner = new ChordRingSizeScanner(scanner_interval, scanner_timeout);
@@ -183,36 +181,35 @@ public class ChordResurrectionExperiment extends ResurrectionExperiment {
 
     private void assembleRing(final Iterable<ApplicationDescriptor> descriptors) throws Exception {
 
-        final List<ListenableFuture<Void>> future_joins = new ArrayList<ListenableFuture<Void>>();
-        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        final List<Future<Void>> future_joins = new ArrayList<Future<Void>>();
+        final ExecutorService executor = Executors.newCachedThreadPool();
         try {
 
             for (final ApplicationDescriptor descriptor : descriptors) {
 
-                final ListenableFuture<Void> future_join = executor.submit(new Callable<Void>() {
+                final Future<Void> future_join = executor.submit(() -> {
 
-                    @Override
-                    public Void call() throws Exception {
-
-                        try {
-                            final ApplicationDescriptor known_node = joinWithRetry(descriptor);
-                            LOGGER.debug("node {} successfully joined {}", descriptor, known_node);
-                        }
-                        catch (final Exception e) {
-                            LOGGER.error("node {} failed to complete join within timeout", descriptor);
-                            LOGGER.error("failed join caused by", e);
-                            throw e;
-                        }
-                        return null; // Void task
+                    try {
+                        final ApplicationDescriptor known_node = joinWithRetry(descriptor);
+                        LOGGER.debug("node {} successfully joined {}", descriptor, known_node);
                     }
+                    catch (final Exception e) {
+                        LOGGER.error("node {} failed to complete join within timeout", descriptor);
+                        LOGGER.error("failed join caused by", e);
+                        throw e;
+                    }
+                    return null; // Void task
                 });
                 future_joins.add(future_join);
             }
-            Futures.allAsList(future_joins).get();
+
+            for (Future<Void> future_join : future_joins) {
+                future_join.get();
+            }
         }
         finally {
             executor.shutdownNow();
-            for (ListenableFuture<Void> deployment : future_joins) {
+            for (Future<Void> deployment : future_joins) {
                 deployment.cancel(true);
             }
         }

@@ -1,7 +1,7 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
 import java.util.concurrent.TimeUnit;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.BlubHostProvider;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
@@ -58,7 +58,7 @@ public final class Constants {
     public static final String PROPERTIES_FILE_NAME = "experiment.properties";
     public static final int EXPERIMENT_TIMEOUT = 1000 * 60 * 30; // 30 minutes timeout for an experiment
     public static final int REPETITIONS = 5;
-    public static final Provider<Host>[] BLUB_HOST_PROVIDER = new Provider[]{new BlubHostProvider()};
+    public static final Supplier<Host>[] BLUB_HOST_PROVIDER = new Supplier[]{new BlubHostProvider()};
     public static final ExperimentManager[] CHORD_MANAGER_FILE_WARM = {ChordManager.FILE_BASED_WARM};
     public static final ExperimentManager[] ECHO_FILE_WARM_MANAGERS = {EchoManager.FILE_BASED_WARM};
     //@formatter:off

@@ -19,23 +19,19 @@
 
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import org.mashti.jetson.ClientFactory;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
-import org.mashti.jetson.exception.RPCException;
 import org.mashti.jetson.lean.LeanClientFactory;
 import org.mashti.jetson.lean.LeanServerFactory;
 import org.mashti.jetson.util.NamedThreadFactory;
@@ -49,61 +45,90 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultWorkerRemote implements WorkerRemote {
 
-    private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new LeanServerFactory<WorkerRemote>(WorkerRemote.class);
-    private static final ClientFactory<WorkerCallback> CLIENT_FACTORY = new LeanClientFactory<WorkerCallback>(WorkerCallback.class);
+    private static final ServerFactory<WorkerRemote> SERVER_FACTORY = new LeanServerFactory<>(WorkerRemote.class);
+    private static final ClientFactory<WorkerCallback> CLIENT_FACTORY = new LeanClientFactory<>(WorkerCallback.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerRemote.class);
-    private final ListeningExecutorService executor;
+    private final ExecutorService executor;
     private final ConcurrentSkipListMap<UUID, Future<? extends Serializable>> submitted_jobs;
     private final Server server;
     private final WorkerCallback callback;
     private final ExecutorService callback_executor = Executors.newCachedThreadPool(new NamedThreadFactory("worker_callback_", true));
+    private static final NotificationErrorHandler NOTIFICATION_ERROR_HANDLER = new NotificationErrorHandler();
 
     protected DefaultWorkerRemote(final InetSocketAddress local_address, final InetSocketAddress callback_address) throws IOException {
 
         callback = CLIENT_FACTORY.get(callback_address);
-        submitted_jobs = new ConcurrentSkipListMap<UUID, Future<? extends Serializable>>();
+        submitted_jobs = new ConcurrentSkipListMap<>();
         executor = createExecutorService();
         server = SERVER_FACTORY.createServer(this);
         init(local_address);
     }
 
     @Override
-    public synchronized UUID submit(final Job<? extends Serializable> job) {
+    public CompletableFuture<Void> submit(final UUID job_id, final Job<? extends Serializable> job) {
 
-        final UUID id = UUID.randomUUID();
-        final ListenableFuture<? extends Serializable> future = executor.submit(job);
-        final FutureCallbackNotifier future_callback = new FutureCallbackNotifier(id);
+        final CompletableFuture<Serializable> future_result = new CompletableFuture<>();
+        submitted_jobs.put(job_id, future_result);
 
-        Futures.addCallback(future, future_callback, callback_executor);
-        LOGGER.debug("submitted job {} with ID {}", job, id);
-        return id;
-    }
+        return CompletableFuture.runAsync(() -> {
 
-    @Override
-    public synchronized boolean cancel(final UUID id, final boolean may_interrupt) throws RPCException {
+            try {
 
-        if (submitted_jobs.containsKey(id)) {
-            final boolean cancelled = submitted_jobs.get(id).cancel(may_interrupt);
-            if (cancelled) {
-                submitted_jobs.remove(id);
+                final Serializable result = job.call();
+                future_result.complete(result);
+
+                LOGGER.debug("job {} completed normally", job_id);
+                callback.notifyCompletion(job_id, result).exceptionally(NOTIFICATION_ERROR_HANDLER);
             }
-            LOGGER.debug("cancelling job with ID {}, cancelled? {}", id, cancelled);
-            return cancelled;
-        }
-        LOGGER.debug("received cancellation request for a an unknown job with id ", id);
-        throw new UnknownJobException("Unable to cancel job, worker does not know of any job with the id " + id);
+            catch (final Throwable error) {
+
+                future_result.completeExceptionally(error);
+
+                LOGGER.debug("job {} completed exceptionally: {}", job_id, error);
+                callback.notifyException(job_id, error).exceptionally(NOTIFICATION_ERROR_HANDLER);
+            }
+            finally {
+                submitted_jobs.remove(job_id);
+            }
+        }, executor);
     }
 
     @Override
-    public synchronized void shutdown() {
+    public CompletableFuture<Boolean> cancel(final UUID id, final boolean may_interrupt) {
 
-        executor.shutdownNow();
-        try {
-            server.unexpose();
-        }
-        catch (final IOException e) {
-            LOGGER.debug("Unable to unexpose the worker server", e);
-        }
+        final CompletableFuture<Boolean> future_cancellation = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            if (submitted_jobs.containsKey(id)) {
+                final boolean cancelled = submitted_jobs.get(id).cancel(may_interrupt);
+                if (cancelled) {
+                    submitted_jobs.remove(id);
+                }
+
+                LOGGER.debug("cancelling job with ID {}, cancelled? {}", id, cancelled);
+                future_cancellation.complete(cancelled);
+            }
+            else {
+                LOGGER.debug("received cancellation request for a an unknown job {} ", id);
+                future_cancellation.completeExceptionally(new UnknownJobException("Unable to cancel job, worker does not know of any job with the id " + id));
+            }
+        }, callback_executor);
+
+        return future_cancellation;
+    }
+
+    @Override
+    public CompletableFuture<Void> shutdown() {
+
+        return CompletableFuture.runAsync(() -> {
+            executor.shutdownNow();
+            try {
+                server.unexpose();
+            }
+            catch (final IOException e) {
+                LOGGER.debug("Unable to unexpose the worker server", e);
+            }
+        }, callback_executor);
     }
 
     /**
@@ -111,15 +136,14 @@ public class DefaultWorkerRemote implements WorkerRemote {
      *
      * @return the address on which this worker is exposed
      */
-
     public InetSocketAddress getAddress() {
 
         return server.getLocalSocketAddress();
     }
 
-    protected ListeningExecutorService createExecutorService() {
+    protected ExecutorService createExecutorService() {
 
-        return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new NamedThreadFactory("worker_", true)));
+        return Executors.newCachedThreadPool(new NamedThreadFactory("worker_", true));
     }
 
     private void init(final InetSocketAddress local_address) throws IOException {
@@ -128,38 +152,13 @@ public class DefaultWorkerRemote implements WorkerRemote {
         server.expose();
     }
 
-    private class FutureCallbackNotifier implements FutureCallback<Serializable> {
-
-        private final UUID job_id;
-
-        private FutureCallbackNotifier(final UUID job_id) {
-
-            this.job_id = job_id;
-        }
+    private static class NotificationErrorHandler implements Function<Throwable, Void> {
 
         @Override
-        public void onSuccess(final Serializable result) {
+        public Void apply(final Throwable notification_error) {
 
-            try {
-                callback.notifyCompletion(job_id, result);
-                submitted_jobs.remove(job_id);
-            }
-            catch (final RPCException e) {
-                LOGGER.error("failed to notify job completion", e);
-            }
-        }
-
-        @Override
-        public void onFailure(final Throwable error) {
-
-            try {
-                callback.notifyException(job_id, error);
-                submitted_jobs.remove(job_id);
-            }
-            catch (final RPCException e) {
-                LOGGER.error("failed to notify job exception", e);
-            }
+            LOGGER.error("failed to notify the callback server", notification_error);
+            return null;
         }
     }
-
 }

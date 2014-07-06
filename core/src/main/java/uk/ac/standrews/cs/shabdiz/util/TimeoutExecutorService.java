@@ -18,7 +18,6 @@
  */
 package uk.ac.standrews.cs.shabdiz.util;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -41,7 +40,7 @@ public final class TimeoutExecutorService extends ThreadPoolExecutor {
 
     private TimeoutExecutorService() {
 
-        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("TimeoutExecutorService_%d").build());
+        super(0, Integer.MAX_VALUE, IDLE_THREAD_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(), new FormattedNameThreadFactory("TimeoutExecutorService_%d"));
     }
 
     /**

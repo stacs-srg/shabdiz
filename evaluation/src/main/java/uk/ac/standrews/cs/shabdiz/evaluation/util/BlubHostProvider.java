@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
 import net.schmizz.sshj.userauth.method.AuthPublickey;
@@ -16,7 +16,7 @@ import uk.ac.standrews.cs.shabdiz.platform.UnixPlatform;
 import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class BlubHostProvider implements Provider<Host> {
+public class BlubHostProvider implements Supplier<Host> {
 
     public static final UnixPlatform LINUX_PLATFORM = new UnixPlatform("Linux");
     public static final AuthPublickey SSHJ_AUTH;

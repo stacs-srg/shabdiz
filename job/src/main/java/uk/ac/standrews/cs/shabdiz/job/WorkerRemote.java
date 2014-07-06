@@ -16,14 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import org.mashti.jetson.exception.RPCException;
 
 /**
  * Presents a special type of worker which is deployed by {@link WorkerNetwork}.
@@ -37,10 +38,9 @@ public interface WorkerRemote {
      *
      * @param job the job to submit
      * @return the unique identifier of the submitted job on this worker
-     * @throws RPCException signals that an RPC error has occurred
      * @see ExecutorService#submit(Callable)
      */
-    UUID submit(Job<? extends Serializable> job) throws RPCException;
+    CompletableFuture<Void> submit(UUID job_id, Job<? extends Serializable> job);
 
     /**
      * Attempts to cancel execution of the task that is identified by the given {@code job_id}.
@@ -49,18 +49,14 @@ public interface WorkerRemote {
      * If the task has already started, then the {@code may_interrupt} parameter determines whether the thread executing this task should be interrupted in an attempt to stop the task.
      *
      * @param job_id the identifier of the job to be cancelled
-     * @param may_interrupt whether the thread executing this task should be interrupted, or the in-progress task shuld be allowed to complete
+     * @param may_interrupt whether the thread executing this task should be interrupted, or the in-progress task should be allowed to complete
      * @return {@code false} if the task could not be cancelled, typically because it has already completed normally; {@code true} otherwise
-     * @throws UnknownJobException if the given job id is not recognised by this worker
-     * @throws RPCException signals that an RPC error has occurred
      * @see Future#cancel(boolean)
      */
-    boolean cancel(UUID job_id, final boolean may_interrupt) throws RPCException;
+    CompletableFuture<Boolean> cancel(UUID job_id, final boolean may_interrupt);
 
     /**
      * Shuts down this worker.
-     *
-     * @throws RPCException if unable to make the remote call
      */
-    void shutdown() throws RPCException;
+    CompletableFuture<Void> shutdown();
 }

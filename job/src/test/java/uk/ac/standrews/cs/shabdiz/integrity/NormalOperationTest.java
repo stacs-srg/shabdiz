@@ -64,7 +64,8 @@ public class NormalOperationTest {
         AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
         network = new WorkerNetwork();
         network.add(host);
-        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "1.0-SNAPSHOT", "tests");
+        network.addCurrentJVMClasspath();
+        //        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "2.0-SNAPSHOT", "tests");
         network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
         LOGGER.info("deploying worker network");
         network.deployAll();

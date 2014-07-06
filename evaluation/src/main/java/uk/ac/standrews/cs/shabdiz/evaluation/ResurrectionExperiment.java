@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ public class ResurrectionExperiment extends Experiment {
     protected final int kill_portion;
     private final Random random;
 
-    public ResurrectionExperiment(final int network_size, final Provider<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
+    public ResurrectionExperiment(final int network_size, final Supplier<Host> host_provider, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_thread_pool_size, final int concurrent_scanner_thread_pool_size) {
 
         super(network_size, host_provider, manager, scanner_interval, scanner_timeout, scheduler_thread_pool_size, concurrent_scanner_thread_pool_size);
         validateKillPortion(kill_portion);

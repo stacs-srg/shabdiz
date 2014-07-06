@@ -1,10 +1,10 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public abstract class FixedSizeHostProvider implements Provider<Host> {
+public abstract class FixedSizeHostProvider implements Supplier<Host> {
 
     private final int size;
 

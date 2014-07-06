@@ -17,23 +17,27 @@
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.standrews.cs.shabdiz.example.echo;
+package uk.ac.standrews.cs.shabdiz.util;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Presents the Echo remote interface.
- *
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-public interface Echo {
+public class FormattedNameThreadFactory implements ThreadFactory {
 
-    /**
-     * Echos a given message.
-     *
-     * @param message the message to echo
-     * @return the future echoed message
-     */
-    CompletableFuture<String> echo(String message);
+    private final AtomicLong count = new AtomicLong();
+    private final String format;
 
+    public FormattedNameThreadFactory(String format) {
+
+        this.format = format;
+    }
+
+    @Override
+    public Thread newThread(final Runnable r) {
+
+        return new Thread(r, String.format(format, count.incrementAndGet()));
+    }
 }

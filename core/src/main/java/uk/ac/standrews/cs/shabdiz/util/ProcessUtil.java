@@ -19,7 +19,6 @@
 
 package uk.ac.standrews.cs.shabdiz.util;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.RuntimeMXBean;
@@ -66,7 +65,7 @@ public final class ProcessUtil {
      */
     public static String awaitNormalTerminationAndGetOutput(final Process process) throws InterruptedException, IOException {
 
-        final ThreadFactory thread_factory = new ThreadFactoryBuilder().setNameFormat("process_util_%d").build();
+        final ThreadFactory thread_factory = new FormattedNameThreadFactory("process_util_%d");
         final ExecutorService executor = Executors.newFixedThreadPool(2, thread_factory);
         try {
             final Future<Void> future_error = executor.submit(new Callable<Void>() {

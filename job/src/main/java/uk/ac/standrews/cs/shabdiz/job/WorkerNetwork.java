@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Future;
 import org.mashti.jetson.Server;
@@ -48,7 +49,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerNetwork.class);
     private static final int EPHEMERAL_PORT = 0;
     private final InetSocketAddress callback_address; // The address on which the callback server is exposed
-    private final ConcurrentSkipListMap<UUID, FutureRemote<? extends Serializable>> id_future_map; // Stores mapping of a job id to the proxy of its pending result
+    private final ConcurrentSkipListMap<UUID, FutureRemote> id_future_map; // Stores mapping of a job id to the proxy of its pending result
     private final Server callback_server; // The server which listens to the callbacks  from workers
     private final WorkerManager worker_manager;
     private final ServerFactory<WorkerCallback> callback_server_factory;
@@ -73,8 +74,8 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     public WorkerNetwork(final int callback_server_port) throws IOException {
 
         super("Shabdiz Worker Network");
-        id_future_map = new ConcurrentSkipListMap<UUID, FutureRemote<? extends Serializable>>();
-        callback_server_factory = new LeanServerFactory<WorkerCallback>(WorkerCallback.class);
+        id_future_map = new ConcurrentSkipListMap<>();
+        callback_server_factory = new LeanServerFactory<>(WorkerCallback.class);
         callback_server = callback_server_factory.createServer(this);
         callback_server.setBindAddress(NetworkUtil.getLocalIPv4InetSocketAddress(callback_server_port));
         expose();
@@ -100,25 +101,29 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
     }
 
     @Override
-    public synchronized void notifyCompletion(final UUID job_id, final Serializable result) {
+    public CompletableFuture<Void> notifyCompletion(final UUID job_id, final Serializable result) {
 
-        if (id_future_map.containsKey(job_id)) {
-            id_future_map.get(job_id).set(result);
-        }
-        else {
-            LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
-        }
+        return CompletableFuture.runAsync(() -> {
+            if (id_future_map.containsKey(job_id)) {
+                id_future_map.get(job_id).complete(result);
+            }
+            else {
+                LOGGER.info("Launcher was notified about an unknown job completion " + job_id);
+            }
+        });
     }
 
     @Override
-    public synchronized void notifyException(final UUID job_id, final Throwable exception) {
+    public CompletableFuture<Void> notifyException(final UUID job_id, final Throwable exception) {
 
-        if (id_future_map.containsKey(job_id)) {
-            id_future_map.get(job_id).setException(exception);
-        }
-        else {
-            LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
-        }
+        return CompletableFuture.runAsync(() -> {
+            if (id_future_map.containsKey(job_id)) {
+                id_future_map.get(job_id).completeExceptionally(exception);
+            }
+            else {
+                LOGGER.info("Launcher was notified about an unknown job exception " + job_id);
+            }
+        });
     }
 
     public void addMavenDependency(final String group_id, final String artifact_id, final String version, final String classifier) {
@@ -182,7 +187,7 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
         return callback_address;
     }
 
-    synchronized <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
+    <Result extends Serializable> void notifyJobSubmission(final FutureRemote<Result> future_remote) {
 
         id_future_map.put(future_remote.getJobID(), future_remote);
     }
@@ -196,11 +201,10 @@ public class WorkerNetwork extends ApplicationNetwork implements WorkerCallback 
 
         final RPCException unexposed_launcher_exception = new TransportException("Launcher is been shut down, no longer can receive notifications from workers");
 
-        for (final FutureRemote<? extends Serializable> future_remote : id_future_map.values()) {
-            if (!future_remote.isDone()) {
-                future_remote.setException(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
-            }
-        }
+        // Tell the pending future that notifications can no longer be received
+        id_future_map.values().stream().filter(future_remote -> !future_remote.isDone()).forEach(future_remote -> {
+            future_remote.completeExceptionally(unexposed_launcher_exception); // Tell the pending future that notifications can no longer be received
+        });
     }
 
 }

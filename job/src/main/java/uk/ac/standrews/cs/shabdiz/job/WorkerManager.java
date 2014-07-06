@@ -46,12 +46,12 @@ public class WorkerManager extends AbstractApplicationManager {
     private static final String DEFAULT_WORKER_JVM_ARGUMENTS = "-Xmx128m"; // add this for debug "-XX:+HeapDumpOnOutOfMemoryError"
     private static final Integer DEFAULT_WORKER_PORT = 0;
     private static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs.shabdiz";
-    private static final String SHABDIZ_VERSION = "1.0-SNAPSHOT";
+    private static final String SHABDIZ_VERSION = "2.0-SNAPSHOT";
     private final AgentBasedJavaProcessBuilder worker_process_builder;
     private final WorkerNetwork network;
     private final ClientFactory<WorkerRemote> proxy_factory;
     private volatile Duration worker_deployment_timeout = DEFAULT_WORKER_DEPLOYMENT_TIMEOUT;
-    private String[] arguments;
+    private final String[] arguments;
 
     public WorkerManager(final WorkerNetwork network) {
 
@@ -59,7 +59,7 @@ public class WorkerManager extends AbstractApplicationManager {
         final InetSocketAddress callback_address = network.getCallbackAddress();
         arguments = WorkerMain.constructCommandLineArguments(callback_address, DEFAULT_WORKER_PORT);
         worker_process_builder = createRemoteJavaProcessBuilder();
-        proxy_factory = new LeanClientFactory<WorkerRemote>(WorkerRemote.class);
+        proxy_factory = new LeanClientFactory<>(WorkerRemote.class);
     }
 
     @Override
@@ -75,7 +75,12 @@ public class WorkerManager extends AbstractApplicationManager {
         final Worker worker = new Worker(network, worker_remote, worker_process, worker_remote_address);
         worker.setWorkerProcessId(pid);
         LOGGER.info("started a worker on {}, pid: {}", worker_remote_address, pid);
+
         return worker;
+
+        //        final InetSocketAddress worker_remote_address = new InetSocketAddress(44555);
+        //        final DefaultWorkerRemote worker_remote = new DefaultWorkerRemote(worker_remote_address, network.getCallbackAddress());
+        //        return new Worker(network, worker_remote, null, worker_remote_address);
     }
 
     @Override
@@ -151,7 +156,7 @@ public class WorkerManager extends AbstractApplicationManager {
         final AgentBasedJavaProcessBuilder process_builder = new AgentBasedJavaProcessBuilder();
         process_builder.setMainClass(WorkerMain.class);
         process_builder.addJVMArgument(DEFAULT_WORKER_JVM_ARGUMENTS);
-        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "job", SHABDIZ_VERSION);
+//        process_builder.addMavenDependency(SHABDIZ_GROUP_ID, "job", SHABDIZ_VERSION);
         process_builder.setAlwaysUploadBootstrap(true);
         return process_builder;
     }

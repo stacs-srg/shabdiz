@@ -20,7 +20,7 @@ package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.Serializable;
 import java.util.UUID;
-import org.mashti.jetson.exception.RPCException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Receives notifications from {@link WorkerRemote remote workers} about the outcome of a submitted job.
@@ -34,16 +34,14 @@ public interface WorkerCallback {
      *
      * @param job_id the globally unique id of the submitted job
      * @param result the result of the completed job
-     * @throws RPCException if unable to contact the correspondence
      */
-    void notifyCompletion(UUID job_id, Serializable result) throws RPCException;
+    CompletableFuture<Void> notifyCompletion(UUID job_id, Serializable result);
 
     /**
      * Notifies the launcher about the exception resulted by executing a job.
      *
      * @param job_id the globally unique id of the submitted job
      * @param exception the exception which occurred when trying to execute a job
-     * @throws RPCException if unable to contact the correspondence
      */
-    void notifyException(UUID job_id, Throwable exception) throws RPCException;
+    CompletableFuture<Void> notifyException(UUID job_id, Throwable exception);
 }

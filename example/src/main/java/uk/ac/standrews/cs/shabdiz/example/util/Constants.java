@@ -10,7 +10,7 @@ public final class Constants {
     /** Shabdiz Maven artifact ID. */
     public static final String SHABDIZ_EXAMPLES_ARTIFACT_ID = "example";
     /** Shabdiz Maven version. */
-    public static final String SHABDIZ_VERSION = "1.0-SNAPSHOT";
+    public static final String SHABDIZ_VERSION = "2.0-SNAPSHOT";
     /** Shabdiz Maven group ID. */
     public static final String SHABDIZ_GROUP_ID = "uk.ac.standrews.cs.shabdiz";
     public static final String MAVEN_COORDINATE_SEPARATOR = ":";

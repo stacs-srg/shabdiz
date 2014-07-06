@@ -1,24 +1,21 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.inject.Provider;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 
-public class CrossLabHostProvider implements Provider<Host> {
+public class CrossLabHostProvider implements Supplier<Host> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CrossLabHostProvider.class);
     private final List<String> host_names;
@@ -83,35 +80,34 @@ public class CrossLabHostProvider implements Provider<Host> {
         }
     }
 
-    private static Set<String> discoverReachableHosts(String host_name_format, int start_index, int end_index) {
+    private static Set<String> discoverReachableHosts(final String host_name_format, final int start_index, final int end_index) {
 
         final Set<String> host_names = new ConcurrentSkipListSet<String>();
-        final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(50));
+        final ExecutorService service = Executors.newFixedThreadPool(50);
         try {
-            final List<ListenableFuture<?>> futures = new ArrayList<ListenableFuture<?>>();
+            final List<Future<?>> futures = new ArrayList<>();
             for (int i = start_index; i <= end_index; i++) {
                 final String host_name = String.format(host_name_format, i);
-                final ListenableFuture<Void> submit = service.submit(new Callable<Void>() {
+                final Future<Void> submit = service.submit(() -> {
 
-                    @Override
-                    public Void call() throws Exception {
-
-                        boolean reachable;
-                        try {
-                            reachable = InetAddress.getByName(host_name).isReachable(5000);
-                        }
-                        catch (IOException e) {
-                            reachable = false;
-                        }
-                        if (reachable) {
-                            host_names.add(host_name);
-                        }
-                        return null;
+                    boolean reachable;
+                    try {
+                        reachable = InetAddress.getByName(host_name).isReachable(5000);
                     }
+                    catch (IOException e) {
+                        reachable = false;
+                    }
+                    if (reachable) {
+                        host_names.add(host_name);
+                    }
+                    return null;
                 });
                 futures.add(submit);
             }
-            Futures.allAsList(futures).get();
+
+            for (Future<?> future : futures) {
+                future.get();
+            }
         }
         catch (Exception e) {
             LOGGER.error("failed to add predefined hosts", e);

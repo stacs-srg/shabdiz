@@ -1,17 +1,14 @@
 package uk.ac.standrews.cs.shabdiz.evaluation;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -98,36 +95,31 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
         LOGGER.info("configuring manager {} for network {}", this, network.getApplicationName());
     }
 
-    protected void uploadToAllHosts(ApplicationNetwork network, final List<File> files, final String destination, final boolean override) throws IOException, InterruptedException, TimeoutException, ExecutionException {
+    protected void uploadToAllHosts(final ApplicationNetwork network, final List<File> files, final String destination, final boolean override) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
-        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        final ExecutorService executor = Executors.newCachedThreadPool();
         try {
-            final List<ListenableFuture<Void>> future_uploads = new ArrayList<ListenableFuture<Void>>();
+            final List<CompletableFuture<Void>> future_uploads = new ArrayList<>();
 
-            for (ApplicationDescriptor descriptor : network) {
+            for (final ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();
-                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+                final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 
-                    @Override
-                    public Void call() throws Exception {
-
-                        final String host_name = host.getName();
-                        LOGGER.info("uploading files to {}", host_name);
-                        try {
-                            uploadToHost(host, destination, override, files);
-                            LOGGER.info("done uploading files to {}", host_name);
-                        }
-                        catch (Exception e) {
-                            LOGGER.error("failed to upload files to " + host_name, e);
-                            throw e;
-                        }
-                        return null;
+                    final String host_name = host.getName();
+                    LOGGER.info("uploading files to {}", host_name);
+                    try {
+                        uploadToHost(host, destination, override, files);
+                        LOGGER.info("done uploading files to {}", host_name);
                     }
-                });
+                    catch (final Exception e) {
+                        LOGGER.error("failed to upload files to " + host_name, e);
+                        throw new RuntimeException(e);
+                    }
+                }, executor);
                 future_uploads.add(future);
             }
 
-            Futures.allAsList(future_uploads).get(FILE_UPLOAD_TIMEOUT.getLength(), FILE_UPLOAD_TIMEOUT.getTimeUnit());
+            CompletableFuture.allOf(future_uploads.toArray(new CompletableFuture[future_uploads.size()])).get(FILE_UPLOAD_TIMEOUT.getLength(), FILE_UPLOAD_TIMEOUT.getTimeUnit());
         }
         finally {
             executor.shutdownNow();
@@ -137,35 +129,30 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
 
     protected void clearCachedShabdizFilesOnAllHosts(ApplicationNetwork network) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
-        LOGGER.info("Attemting to remove all shabdiz cached files on {} hosts", network.size());
-        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        LOGGER.info("Attempting to remove all shabdiz cached files on {} hosts", network.size());
+        final ExecutorService executor = Executors.newCachedThreadPool();
         try {
-            final List<ListenableFuture<Void>> future_deletions = new ArrayList<ListenableFuture<Void>>();
+            final List<CompletableFuture<Void>> future_deletions = new ArrayList<>();
 
-            for (ApplicationDescriptor descriptor : network) {
+            for (final ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();
-                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+                final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 
-                    @Override
-                    public Void call() throws Exception {
-
-                        final String host_name = host.getName();
-                        LOGGER.info("removing shabdiz cached files on {}", host_name);
-                        try {
-                            AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
-                            LOGGER.info("done removing shabdiz cached files on {}", host_name);
-                        }
-                        catch (Exception e) {
-                            LOGGER.error("failed to remove shabdiz cached files on " + host_name, e);
-                            throw e;
-                        }
-                        return null;
+                    final String host_name = host.getName();
+                    LOGGER.info("removing shabdiz cached files on {}", host_name);
+                    try {
+                        AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
+                        LOGGER.info("done removing shabdiz cached files on {}", host_name);
                     }
-                });
+                    catch (final Exception e) {
+                        LOGGER.error("failed to remove shabdiz cached files on " + host_name, e);
+                        throw new RuntimeException(e);
+                    }
+                }, executor);
                 future_deletions.add(future);
             }
 
-            Futures.allAsList(future_deletions).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
+            CompletableFuture.allOf(future_deletions.toArray(new CompletableFuture[future_deletions.size()])).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
         }
         finally {
             executor.shutdownNow();
@@ -176,39 +163,36 @@ public abstract class ExperimentManager extends AbstractApplicationManager {
     protected void resolveMavenArtifactOnAllHosts(ApplicationNetwork network, final String artifact_coordinate) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 
         LOGGER.info("Attempting to resolve {} on {} hosts", artifact_coordinate, network.size());
-        final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+        final ExecutorService executor =Executors.newCachedThreadPool();
         try {
-            final List<ListenableFuture<Void>> future_resolutions = new ArrayList<ListenableFuture<Void>>();
+            final List<CompletableFuture<Void>> future_resolutions = new ArrayList<>();
             final AgentBasedJavaProcessBuilder mock_process_builder = new AgentBasedJavaProcessBuilder();
             mock_process_builder.addMavenDependency(artifact_coordinate);
             mock_process_builder.setMainClassName("main");
 
             for (ApplicationDescriptor descriptor : network) {
                 final Host host = descriptor.getHost();
-                final ListenableFuture<Void> future = executor.submit(new Callable<Void>() {
+                final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 
-                    @Override
-                    public Void call() throws Exception {
-
-                        final String host_name = host.getName();
-                        LOGGER.info("resolving {} on {}", artifact_coordinate, host_name);
-                        try {
-                            final Process start = mock_process_builder.start(host);
-                            start.waitFor();
-                            start.destroy();
-                            LOGGER.info("done resolving {} on {}", artifact_coordinate, host_name);
-                        }
-                        catch (Exception e) {
-                            LOGGER.error("failed to resolve " + artifact_coordinate + " on " + host_name, e);
-                            throw e;
-                        }
-                        return null;
+                    final String host_name = host.getName();
+                    LOGGER.info("resolving {} on {}", artifact_coordinate, host_name);
+                    try {
+                        final Process start = mock_process_builder.start(host);
+                        start.waitFor();
+                        start.destroy();
+                        LOGGER.info("done resolving {} on {}", artifact_coordinate, host_name);
                     }
-                });
+                    catch (Exception e) {
+                        LOGGER.error("failed to resolve " + artifact_coordinate + " on " + host_name, e);
+                        throw new RuntimeException(e);
+                    }
+                }, executor);
+                
                 future_resolutions.add(future);
             }
 
-            Futures.allAsList(future_resolutions).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
+
+            CompletableFuture.allOf(future_resolutions.toArray(new CompletableFuture[future_resolutions.size()])).get(CACHE_DELETION_TIMEOUT.getLength(), CACHE_DELETION_TIMEOUT.getTimeUnit());
         }
         finally {
             executor.shutdownNow();

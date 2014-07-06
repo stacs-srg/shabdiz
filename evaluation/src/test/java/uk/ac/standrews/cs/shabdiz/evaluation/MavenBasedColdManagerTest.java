@@ -3,7 +3,7 @@ package uk.ac.standrews.cs.shabdiz.evaluation;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -31,12 +31,12 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder.
 public class MavenBasedColdManagerTest {
 
     private final Integer network_size;
-    private final Provider<Host> host_provider;
+    private final Supplier<Host> host_provider;
     private final ExperimentManager manager;
     private ApplicationNetwork network;
     private File test_file;
 
-    public MavenBasedColdManagerTest(Integer network_size, Provider<Host> host_provider, final ExperimentManager manager) {
+    public MavenBasedColdManagerTest(Integer network_size, Supplier<Host> host_provider, final ExperimentManager manager) {
 
         this.network_size = network_size;
         this.host_provider = host_provider;

@@ -19,20 +19,19 @@
 
 package uk.ac.standrews.cs.shabdiz.job;
 
-import com.google.common.util.concurrent.AbstractFuture;
 import java.io.Serializable;
 import java.util.UUID;
-import org.mashti.jetson.exception.RPCException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Presents a proxy to the pending result of a {@link Job job}.
  *
- * @param <Result> the type of pending result
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
-class FutureRemote<Result extends Serializable> extends AbstractFuture<Result> {
+class FutureRemote<Result extends Serializable> extends CompletableFuture<Result> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FutureRemote.class);
     private final UUID job_id;
@@ -48,18 +47,6 @@ class FutureRemote<Result extends Serializable> extends AbstractFuture<Result> {
     public boolean cancel(final boolean may_interrupt) {
 
         return super.cancel(may_interrupt) && cancelOnRemote(may_interrupt);
-    }
-
-    @SuppressWarnings("unchecked")
-    public boolean set(final Serializable result) {
-
-        return super.set((Result) result);
-    }
-
-    @Override
-    public boolean setException(final Throwable throwable) {
-
-        return super.setException(throwable);
     }
 
     @Override
@@ -85,9 +72,9 @@ class FutureRemote<Result extends Serializable> extends AbstractFuture<Result> {
     private boolean cancelOnRemote(final boolean may_interrupt) {
 
         try {
-            return proxy.cancel(job_id, may_interrupt);
+            return proxy.cancel(job_id, may_interrupt).get();
         }
-        catch (final RPCException e) {
+        catch (final InterruptedException | ExecutionException e) {
             LOGGER.warn("failed to cancel job on remote", e);
             return false;
         }

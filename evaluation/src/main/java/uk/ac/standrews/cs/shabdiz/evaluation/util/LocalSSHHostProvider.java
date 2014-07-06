@@ -1,12 +1,12 @@
 package uk.ac.standrews.cs.shabdiz.evaluation.util;
 
 import java.io.IOException;
-import javax.inject.Provider;
+import java.util.function.Supplier;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
-public class LocalSSHHostProvider implements Provider<Host> {
+public class LocalSSHHostProvider implements Supplier<Host> {
 
     private final Host local_ssh_host;
 

@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.example.echo;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 import org.mashti.jetson.Server;
 import org.mashti.jetson.ServerFactory;
 import org.mashti.jetson.json.JsonServerFactory;
@@ -55,9 +57,9 @@ public class DefaultEcho implements Echo {
     }
 
     @Override
-    public String echo(final String message) {
+    public CompletableFuture<String> echo(final String message) {
 
-        return message;
+        return CompletableFuture.completedFuture(message);
     }
 
     /** Shuts down this remote interface. */

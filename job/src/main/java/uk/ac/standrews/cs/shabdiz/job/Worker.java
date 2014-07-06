@@ -16,14 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Shabdiz.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package uk.ac.standrews.cs.shabdiz.job;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import org.mashti.jetson.exception.RPCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
 
 /**
@@ -33,6 +38,7 @@ import uk.ac.standrews.cs.shabdiz.util.HashCodeUtil;
  */
 public class Worker implements Comparable<Worker> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Worker.class);
     private final WorkerNetwork network;
     private final Process worker_process;
     private final WorkerRemote proxy;
@@ -68,18 +74,25 @@ public class Worker implements Comparable<Worker> {
      * @param <Result> the type of pending result
      * @param job the job to submit
      * @return the pending result of the job
-     * @throws RPCException if unable to make the remote call
      * @see Future
      * @see ExecutorService#submit(java.util.concurrent.Callable)
      */
-    public <Result extends Serializable> Future<Result> submit(final Job<Result> job) throws RPCException {
+    public <Result extends Serializable> Future<Result> submit(final Job<Result> job){
 
-        synchronized (network) {
-            final UUID job_id = proxy.submit(job);
-            final FutureRemote<Result> future_remote = new FutureRemote<Result>(job_id, proxy);
-            network.notifyJobSubmission(future_remote);
-            return future_remote;
-        }
+        final UUID job_id = UUID.randomUUID();
+        final FutureRemote<Result> future_remote = new FutureRemote<>(job_id, proxy);
+        network.notifyJobSubmission(future_remote);
+
+        final CompletableFuture<Void> job_submission = proxy.submit(job_id, job);
+        job_submission.whenComplete((result, error) -> {
+            
+            if (job_submission.isCompletedExceptionally()) {
+                LOGGER.debug("failed to submit job {} to {} due to {}", job_id, proxy, error);
+                future_remote.completeExceptionally(error);
+            }
+        });
+
+        return future_remote;
     }
 
     /**
@@ -90,7 +103,10 @@ public class Worker implements Comparable<Worker> {
     public void shutdown() throws RPCException {
 
         try {
-            proxy.shutdown();
+            proxy.shutdown().get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw new RPCException(e);
         }
         finally {
             worker_process.destroy();
