@@ -37,8 +37,7 @@
     <properties>
         <repository.type>hg</repository.type>
         <repository.location>http://shabdiz.hg.cs.st-andrews.ac.uk/shabdiz</repository.location>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <jdk.version>1.8</jdk.version>
     </properties>
 
     <ciManagement>
@@ -70,6 +69,7 @@
                     <excludePackageNames>
                         ${project.groupId}.${project.artifactId}.example,${project.groupId}.${project.artifactId}.evaluation
                     </excludePackageNames>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
         </plugins>
