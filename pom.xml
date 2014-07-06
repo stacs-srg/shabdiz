@@ -69,7 +69,6 @@
                     <excludePackageNames>
                         ${project.groupId}.${project.artifactId}.example,${project.groupId}.${project.artifactId}.evaluation
                     </excludePackageNames>
-                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
         </plugins>
