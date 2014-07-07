@@ -36,8 +36,8 @@ public class FormattedNameThreadFactory implements ThreadFactory {
     }
 
     @Override
-    public Thread newThread(final Runnable r) {
+    public Thread newThread(final Runnable task) {
 
-        return new Thread(r, String.format(format, count.incrementAndGet()));
+        return new Thread(task, String.format(format, count.incrementAndGet()));
     }
 }

@@ -1,8 +1,6 @@
 package uk.ac.standrews.cs.shabdiz;
 
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
-import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 public class MockApplicationNetwork extends ApplicationNetwork {
 
@@ -12,7 +10,7 @@ public class MockApplicationNetwork extends ApplicationNetwork {
 
     MockApplicationNetwork() {
 
-        super(NAME, new Duration(5, TimeUnit.SECONDS), new Duration(1, TimeUnit.MINUTES), 50, 50);
+        super(NAME);
         manager = new MockApplicationManager();
     }
 
@@ -50,14 +48,14 @@ public class MockApplicationNetwork extends ApplicationNetwork {
     }
 
     void assertAllNotKilled() {
-        for (ApplicationDescriptor descriptor : this) {
+        for (final ApplicationDescriptor descriptor : this) {
             manager.assertNotKilled(descriptor);
         }
     }
 
     void assertAllInState(final ApplicationState expected_state) {
 
-        for (ApplicationDescriptor descriptor : this) {
+        for (final ApplicationDescriptor descriptor : this) {
             Assert.assertEquals(expected_state, descriptor.getApplicationState());
         }
     }

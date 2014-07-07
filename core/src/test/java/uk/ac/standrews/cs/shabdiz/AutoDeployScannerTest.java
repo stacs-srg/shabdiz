@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.shabdiz;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
@@ -50,14 +49,10 @@ public class AutoDeployScannerTest extends ScannerFunctionalityTest {
     private void assertAwaitDeployedStateTimeout() throws InterruptedException, ExecutionException {
 
         try {
-            TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+            TimeoutExecutorService.awaitCompletion(() -> {
 
-                @Override
-                public Void call() throws Exception {
-
-                    network.awaitAnyOfStates(ApplicationState.DEPLOYED);
-                    return null;
-                }
+                network.awaitAnyOfStates(ApplicationState.DEPLOYED);
+                return null;
             }, AWAIT_STATE_TIMEOUT);
 
             Assert.fail("DEPLOYED state must never be reached since deploy is configured to fail");
