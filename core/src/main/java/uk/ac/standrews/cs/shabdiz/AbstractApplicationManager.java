@@ -22,7 +22,6 @@ package uk.ac.standrews.cs.shabdiz;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import net.schmizz.sshj.transport.TransportException;
@@ -143,19 +142,15 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
     private void checkAuthorityByCommandExecution(final Host host) throws Throwable {
 
         LOGGER.debug("attempting to execute a minimal command on {} to check for authority with the timeout {}", host.getName(), command_execution_timeout);
-        TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+        TimeoutExecutorService.awaitCompletion(() -> {
 
-            @Override
-            public Void call() throws Exception {
-
-                final String cd_command = Commands.CHANGE_DIRECTORY.get(host.getPlatform(), ".");
-                LOGGER.trace("checking authority on host {} by executing {}", host, cd_command);
-                final Process cd_process = host.execute(cd_command);
-                LOGGER.trace("awaiting normal termination of authority check command on host {}", host);
-                final String cd_execution_output = ProcessUtil.awaitNormalTerminationAndGetOutput(cd_process);
-                LOGGER.trace("authority check command output on host {}: {}", host, cd_execution_output);
-                return null; // Void task.
-            }
+            final String cd_command = Commands.CHANGE_DIRECTORY.get(host.getPlatform(), ".");
+            LOGGER.trace("checking authority on host {} by executing {}", host, cd_command);
+            final Process cd_process = host.execute(cd_command);
+            LOGGER.trace("awaiting normal termination of authority check command on host {}", host);
+            final String cd_execution_output = ProcessUtil.awaitNormalTerminationAndGetOutput(cd_process);
+            LOGGER.trace("authority check command output on host {}: {}", host, cd_execution_output);
+            return null; // Void task.
         }, command_execution_timeout);
     }
 
