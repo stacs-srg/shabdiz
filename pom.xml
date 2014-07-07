@@ -38,6 +38,8 @@
         <repository.type>hg</repository.type>
         <repository.location>http://shabdiz.hg.cs.st-andrews.ac.uk/shabdiz</repository.location>
         <jdk.version>1.8</jdk.version>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
     </properties>
 
     <ciManagement>
