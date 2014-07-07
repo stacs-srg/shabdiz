@@ -1,6 +1,8 @@
 package uk.ac.standrews.cs.shabdiz;
 
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import uk.ac.standrews.cs.shabdiz.util.Duration;
 
 public class MockApplicationNetwork extends ApplicationNetwork {
 
@@ -10,7 +12,7 @@ public class MockApplicationNetwork extends ApplicationNetwork {
 
     MockApplicationNetwork() {
 
-        super(NAME);
+        super(NAME, new Duration(5, TimeUnit.SECONDS), new Duration(1, TimeUnit.MINUTES), 50, 50);
         manager = new MockApplicationManager();
     }
 

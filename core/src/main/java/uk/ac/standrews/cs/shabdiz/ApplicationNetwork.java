@@ -502,7 +502,7 @@ public class ApplicationNetwork implements Iterable<ApplicationDescriptor> {
 
     protected ExecutorService createNetworkExecutorService() {
 
-        return Executors.newCachedThreadPool(createThreadFactory(NETWORK_EXECUTOR_THREAD_NAME_FORMAT));
+        return Executors.newFixedThreadPool(10, createThreadFactory(NETWORK_EXECUTOR_THREAD_NAME_FORMAT));
     }
 
     ExecutorService getConcurrentScannerExecutor() {
