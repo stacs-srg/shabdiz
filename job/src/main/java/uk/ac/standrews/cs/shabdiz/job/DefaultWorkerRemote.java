@@ -70,7 +70,7 @@ public class DefaultWorkerRemote implements WorkerRemote {
         final CompletableFuture<Serializable> future_result = new CompletableFuture<>();
         submitted_jobs.put(job_id, future_result);
 
-        return CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
 
             try {
 
@@ -91,6 +91,8 @@ public class DefaultWorkerRemote implements WorkerRemote {
                 submitted_jobs.remove(job_id);
             }
         }, executor);
+
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
