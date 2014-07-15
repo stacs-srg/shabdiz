@@ -94,7 +94,7 @@ public abstract class AbstractApplicationManager implements ApplicationManager {
         }
         else {
             try {
-                if (isReachable(host.getName())) {
+                if (host.isLocal() || isReachable(host.getName())) {
                     checkAuthorityByCommandExecution(host);
                     state = ApplicationState.AUTH;
                 }

@@ -60,7 +60,7 @@ class EchoApplicationManager extends AbstractApplicationManager {
 
         super(timeout);
         process_builder = new AgentBasedJavaProcessBuilder();
-        process_builder.setMainClass(DefaultEcho.class);
+        process_builder.setMainClass(EchoBootstrap.class);
         process_builder.addMavenDependency(Constants.SHABDIZ_GROUP_ID, Constants.SHABDIZ_EXAMPLES_ARTIFACT_ID, Constants.SHABDIZ_VERSION);
     }
 
