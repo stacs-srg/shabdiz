@@ -141,6 +141,14 @@
             <artifactId>sina</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        
+        <!-- AWS API -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.8.4</version>
+        </dependency>
+        
     </dependencies>
 
     <repositories>

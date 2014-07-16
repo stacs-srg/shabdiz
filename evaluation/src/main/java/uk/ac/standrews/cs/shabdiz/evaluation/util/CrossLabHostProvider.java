@@ -28,7 +28,7 @@ public class CrossLabHostProvider implements Supplier<Host> {
 
     public static void main(String[] args) {
 
-        List<String> host_names = new ArrayList<String>();
+        List<String> host_names = new ArrayList<>();
         host_names.addAll(discoverReachableHosts("mac1-%03d-m.cs.st-andrews.ac.uk", 0, 200));
         host_names.addAll(discoverReachableHosts("pc1-%03d-l.cs.st-andrews.ac.uk", 0, 200));
         host_names.addAll(discoverReachableHosts("pc2-%03d-l.cs.st-andrews.ac.uk", 0, 200));
@@ -82,7 +82,7 @@ public class CrossLabHostProvider implements Supplier<Host> {
 
     private static Set<String> discoverReachableHosts(final String host_name_format, final int start_index, final int end_index) {
 
-        final Set<String> host_names = new ConcurrentSkipListSet<String>();
+        final Set<String> host_names = new ConcurrentSkipListSet<>();
         final ExecutorService service = Executors.newFixedThreadPool(50);
         try {
             final List<Future<?>> futures = new ArrayList<>();

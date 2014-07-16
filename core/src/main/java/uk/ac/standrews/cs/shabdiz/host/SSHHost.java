@@ -37,10 +37,11 @@ public class SSHHost extends AbstractHost {
     private static final Logger LOGGER = LoggerFactory.getLogger(SSHHost.class);
     private final SSHClient ssh;
     private final Platform platform;
+    private final String username;
     private boolean destroy_process_forcefully;
 
     /**
-     * Instantiates a new SSH-managed host.
+     * Instantiates a new SSH-managed host. Uses the current username to log into the given host.
      *
      * @param host_name the host name
      * @param authentication the authentication method
@@ -48,7 +49,12 @@ public class SSHHost extends AbstractHost {
      */
     public SSHHost(final String host_name, final AuthMethod authentication) throws IOException {
 
-        this(host_name, SSHClient.DEFAULT_PORT, authentication);
+        this(host_name, Platforms.getCurrentUser(), SSHClient.DEFAULT_PORT, authentication);
+    }
+
+    public SSHHost(final String host_name, final String username, final AuthMethod authentication) throws IOException {
+
+        this(host_name, username, SSHClient.DEFAULT_PORT, authentication);
     }
 
     /**
@@ -59,9 +65,10 @@ public class SSHHost extends AbstractHost {
      * @param authentication the authentication method
      * @throws IOException if failure occurs while establishing SSH connection
      */
-    public SSHHost(final String host_name, final int ssh_port, final AuthMethod authentication) throws IOException {
+    public SSHHost(final String host_name, final String username, final int ssh_port, final AuthMethod authentication) throws IOException {
 
         super(host_name);
+        this.username = username;
         ssh = new SSHClient();
         configureSSHClient(host_name, ssh_port, authentication);
         platform = Platforms.detectPlatform(this);
@@ -76,9 +83,10 @@ public class SSHHost extends AbstractHost {
      * @param platform the platform of this host
      * @throws IOException if failure occurs while establishing SSH connection
      */
-    public SSHHost(final String host_name, final int ssh_port, final AuthMethod authentication, final Platform platform) throws IOException {
+    public SSHHost(final String host_name, final String username, final int ssh_port, final AuthMethod authentication, final Platform platform) throws IOException {
 
         super(host_name);
+        this.username = username;
         this.platform = platform;
         ssh = new SSHClient();
         configureSSHClient(host_name, ssh_port, authentication);
@@ -300,6 +308,6 @@ public class SSHHost extends AbstractHost {
         ssh.loadKnownHosts();
         ssh.addHostKeyVerifier(PROMISCUOUS_HOST_VERIFIER);
         ssh.connect(host_name, ssh_port);
-        ssh.auth(Platforms.getCurrentUser(), authentication);
+        ssh.auth(username, authentication);
     }
 }

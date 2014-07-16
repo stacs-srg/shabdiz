@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.shabdiz.host.Host;
 import uk.ac.standrews.cs.shabdiz.host.SSHHost;
+import uk.ac.standrews.cs.shabdiz.platform.Platforms;
 import uk.ac.standrews.cs.shabdiz.platform.UnixPlatform;
 import uk.ac.standrews.cs.shabdiz.util.ArrayUtil;
 
@@ -25,11 +26,13 @@ public class BlubHostProvider implements Supplier<Host> {
     private static final int MAX_BLUB_NODES_COUNT = MAX_INDEX + 1;
     private static final String BLUB_NODE_HOST_NAME_PREFIX = "compute-0-";
     private static final Integer[] EXCLUDED_INDICES = {};
+
     static {
         final OpenSSHKeyFile key_provider = new OpenSSHKeyFile();
         key_provider.init(new File(System.getProperty("user.home") + File.separator + ".ssh", "id_rsa"));
         SSHJ_AUTH = new AuthPublickey(key_provider);
     }
+
     private final AtomicInteger next_host_index;
 
     public BlubHostProvider() {
@@ -42,8 +45,8 @@ public class BlubHostProvider implements Supplier<Host> {
      * This provider constructs maximum of {@value #MAX_BLUB_NODES_COUNT} hosts.
      *
      * @return a blub node
-     *         throws NoSuchElementException if there are no more hosts left to construct
-     *         throws RuntimeException if construction of a host fails typically due to an IO error
+     * throws NoSuchElementException if there are no more hosts left to construct
+     * throws RuntimeException if construction of a host fails typically due to an IO error
      */
     @Override
     public Host get() {
@@ -69,12 +72,11 @@ public class BlubHostProvider implements Supplier<Host> {
         int host_index;
         do {
             host_index = next_host_index.getAndIncrement();
-        }
-        while (isHostIndexExcluded(host_index));
+        } while (isHostIndexExcluded(host_index));
         return host_index;
     }
 
-    private boolean isHostIndexExcluded(final int host_index) {
+    private static boolean isHostIndexExcluded(final int host_index) {
 
         return ArrayUtil.contains(host_index, EXCLUDED_INDICES);
     }
@@ -83,8 +85,9 @@ public class BlubHostProvider implements Supplier<Host> {
 
         if (!isOutOfRange(host_index)) {
             final String host_name = BLUB_NODE_HOST_NAME_PREFIX + host_index;
-            return new SSHHost(host_name, SSHClient.DEFAULT_PORT, SSHJ_AUTH, LINUX_PLATFORM);
-            //            return new SSHHost(host_name, INTERNAL_PUBLIC_KEY_CREDENTIALS);
+
+            // Specify the platform to speed up the experiment execution 
+            return new SSHHost(host_name, Platforms.getCurrentUser(), SSHClient.DEFAULT_PORT, SSHJ_AUTH, LINUX_PLATFORM);
         }
         throw new NoSuchElementException("cannot instantiate any more hosts; maximum blub hosts available is " + MAX_BLUB_NODES_COUNT);
     }
