@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -13,6 +14,8 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.YIntervalSeries;
 import org.jfree.data.xy.YIntervalSeriesCollection;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.mashti.sight.PlainChartTheme;
 import org.mashti.sina.distribution.statistic.Statistics;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -22,7 +25,9 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.RELATIVE_TIME_IN_SECONDS_PROCESSOR;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getCombinedGaugeCsvStatistics;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 class GaugeCsvAnalyzer implements Analyser {
 
     public static final String X_AXIS_LABEL = "Time Through Experiment (s)";
@@ -71,7 +76,8 @@ class GaugeCsvAnalyzer implements Analyser {
     @Override
     public JFreeChart getChart() throws IOException {
 
-        final JFreeChart chart = new JFreeChart(chart_title, getPlot());
+        final JFreeChart chart = new JFreeChart(chart_title, null, getPlot(), getDataset().getSeriesCount() > 1);
+
         PlainChartTheme.applyTheme(chart);
         return chart;
     }
@@ -82,7 +88,7 @@ class GaugeCsvAnalyzer implements Analyser {
             final ValueAxis x_axis = getXAxis();
             final ValueAxis y_axis = getYAxis();
             final XYItemRenderer error_renderer = getXYItemRenderer();
-            final XYDataset dataset = getXYDataset();
+            final XYDataset dataset = getDataset();
             plot = new XYPlot(dataset, x_axis, y_axis, error_renderer);
             final ValueAxis range_axis = plot.getRangeAxis();
             range_axis.setLowerBound(0);
@@ -90,13 +96,21 @@ class GaugeCsvAnalyzer implements Analyser {
         return plot;
     }
 
-    private XYDataset getXYDataset() throws IOException {
+    @Override
+    public YIntervalSeriesCollection getDataset() throws IOException {
 
         if (xy_dataset == null) {
             xy_dataset = new YIntervalSeriesCollection();
             xy_dataset.addSeries(getYIntervalSeries());
         }
         return xy_dataset;
+    }
+
+    @Override
+    public JSONArray toJSON() throws IOException, JSONException {
+
+
+        return DatasetUtils.toJson(getDataset());
     }
 
     private ValueAxis getYAxis() {
@@ -117,8 +131,7 @@ class GaugeCsvAnalyzer implements Analyser {
             error_renderer.setBaseShapesVisible(false);
             error_renderer.setDrawYError(true);
             return error_renderer;
-        }
-        else {
+        } else {
             return null;
         }
     }

@@ -6,9 +6,15 @@ import java.util.Comparator;
 import java.util.NavigableMap;
 import java.util.Properties;
 import java.util.TreeMap;
-import org.jfree.chart.JFreeChart;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.YIntervalSeriesCollection;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 abstract class OverlaidCrossRepetitionPerPropertyAnalyzer implements Analyser {
 
     private final OverlaidGaugeCsvAnalyzer overlaid_analyzer;
@@ -52,7 +58,7 @@ abstract class OverlaidCrossRepetitionPerPropertyAnalyzer implements Analyser {
 
     protected abstract GaugeCsvAnalyzer getGaugeCsvAnalyser(final File file);
 
-     static String getLabel(final File file, String property_key) throws IOException {
+    static String getLabel(final File file, String property_key) throws IOException {
 
         final Properties[] all_properties = AnalyticsUtil.getAllExperimentPropertiesInPath(file);
         String cached_value = null;
@@ -60,10 +66,21 @@ abstract class OverlaidCrossRepetitionPerPropertyAnalyzer implements Analyser {
             final String value = properties.getProperty(property_key);
             if (cached_value == null) {
                 cached_value = value;
+            } else if (!cached_value.equals(value)) {
+                throw new IllegalStateException("expected uniform property value in directory " + file + " for property " + property_key);
             }
-            else if (!cached_value.equals(value)) { throw new IllegalStateException("expected uniform property value in directory " + file + " for property " + property_key); }
         }
         return cached_value;
+    }
+
+    @Override
+    public YIntervalSeriesCollection getDataset() throws IOException {
+        return overlaid_analyzer.getDataset();
+    }
+
+    @Override
+    public JSONArray toJSON() throws JSONException, IOException {
+        return overlaid_analyzer.toJSON();
     }
 
 }

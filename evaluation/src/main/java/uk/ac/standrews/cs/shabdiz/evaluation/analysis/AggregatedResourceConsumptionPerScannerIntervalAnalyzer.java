@@ -34,7 +34,7 @@ class AggregatedResourceConsumptionPerScannerIntervalAnalyzer extends Aggregated
     @Override
     public String getName() {
 
-        return "Aggregated " + super.getName() + " per Scanner Interval";
+        return "Aggregated " + super.getName() + " per Scan Interval";
     }
 
     @Override

@@ -3,6 +3,8 @@ package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.Stream;
+
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
 import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
@@ -28,7 +30,7 @@ public class TimeToReachStatePerKillPortionAnalyzer extends TimeToReachStateAnal
     }
 
     @Override
-    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
+    public DefaultStatisticalCategoryDataset getDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.MANAGER_PROPERTY, Constants.KILL_PORTION_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();

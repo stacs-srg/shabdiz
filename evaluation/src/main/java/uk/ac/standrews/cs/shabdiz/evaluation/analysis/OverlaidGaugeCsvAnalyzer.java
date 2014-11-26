@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -12,9 +13,13 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.data.xy.YIntervalSeries;
 import org.jfree.data.xy.YIntervalSeriesCollection;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.mashti.sight.PlainChartTheme;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class OverlaidGaugeCsvAnalyzer implements Analyser {
 
     private final NavigableMap<String, GaugeCsvAnalyzer> labeled_analyzers;
@@ -32,7 +37,9 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
 
     public OverlaidGaugeCsvAnalyzer(NavigableMap<String, GaugeCsvAnalyzer> labeled_analyzers) {
 
-        if (labeled_analyzers.isEmpty()) { throw new IllegalArgumentException("at least one analyser must be given"); }
+        if (labeled_analyzers.isEmpty()) {
+            throw new IllegalArgumentException("at least one analyser must be given");
+        }
         this.labeled_analyzers = labeled_analyzers;
         final GaugeCsvAnalyzer first_analyzer = labeled_analyzers.firstEntry().getValue();
         chart_title = first_analyzer.getChartTitle();
@@ -50,9 +57,9 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
     public JFreeChart getChart() throws IOException {
 
         if (chart == null) {
-            final YIntervalSeriesCollection series_collection = getYIntervalSeriesCollection();
+            final YIntervalSeriesCollection series_collection = getDataset();
 
-            chart = ChartFactory.createXYLineChart(chart_title, "Time through experiment (s)", y_axis_label, series_collection, PlotOrientation.VERTICAL, true, false, false);
+            chart = ChartFactory.createXYLineChart(chart_title, "Time through experiment (s)", y_axis_label, series_collection, PlotOrientation.VERTICAL, getDataset().getSeriesCount() > 1, false, false);
             final XYErrorRenderer error_renderer = new XYErrorRenderer();
             error_renderer.setBaseShapesVisible(false);
             error_renderer.setBaseLinesVisible(true);
@@ -65,7 +72,8 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
         return chart;
     }
 
-    public synchronized YIntervalSeriesCollection getYIntervalSeriesCollection() throws IOException {
+    @Override
+    public synchronized YIntervalSeriesCollection getDataset() throws IOException {
 
         if (series_collection == null) {
             series_collection = new YIntervalSeriesCollection();
@@ -76,6 +84,11 @@ public class OverlaidGaugeCsvAnalyzer implements Analyser {
             }
         }
         return series_collection;
+    }
+
+    @Override
+    public JSONArray toJSON() throws JSONException, IOException {
+        return DatasetUtils.toJson(getDataset());
     }
 
     private static NavigableMap<String, GaugeCsvAnalyzer> labelAsRepetitions(final List<GaugeCsvAnalyzer> analyzers) {

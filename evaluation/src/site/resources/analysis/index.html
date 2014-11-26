@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <title>Masih's PhD</title>
+
+    <link rel="stylesheet" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
+
+    <script data-main="scripts/main" src="scripts/lib/require.js"></script>
+    <script src="scripts/lib/papaparse.min.js"></script>
+
+</head>
+<body>
+<div class="container-fluid">
+    <div id="status" style="width: 100%;height: 30px;"></div>
+    <div class="row">
+        <div class="col-md-3 ">
+            <div class="list-group small" id="chart_list"
+                 style="overflow: scroll; margin: 20px">
+            </div>
+        </div>
+
+        <div class="col-md-9 main">
+            <h1 class="page-header" id="main_title"></h1>
+
+            <div id="chart2" style=" width: 100%; height: 500px;"
+                 class="ui-widget-content">
+                <div class="csspinner traditional" id="spinner"
+                     style="float:left; display: none; height: 100%; width: 100%"></div>
+                <div id="chart" style=" width: 100%; height: 100%;"
+                     class="ui-widget-content"></div>
+            </div>
+
+            <div id="data_type_chooser" class="btn-group" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                    <input type="radio" name="data_type"
+                           value="overtime"> Over Time
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" name="data_type"
+                           value="overall"> Overall
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" name="data_type"
+                           value="btraining"> Before Training
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" name="data_type"
+                           value="atraining"> After Training
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" name="data_type"
+                           value="batraining"> Before and After Training
+                </label>
+
+            </div>
+
+            <div id="extras">
+
+
+            </div>
+            <div class="panel-group" id="filter_accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse"
+                               data-parent="#filter_accordion" href="#filter">
+                                Filters
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="filter" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <ul class="nav nav-tabs" id="myTab">
+                                <li class="active"><a href="#churn"
+                                                      data-toggle="tab">Churn</a>
+                                </li>
+                                <li><a href="#workload" data-toggle="tab">Workload</a>
+                                </li>
+                                <li><a href="#peer_configuration"
+                                       data-toggle="tab">Peer Configuration</a>
+                                </li>
+                                <li><a href="#experiment_duration"
+                                       data-toggle="tab">Experiment
+                                    Duration</a></li>
+                                <li><a href="#training_duration"
+                                       data-toggle="tab">Training
+                                    Duration</a></li>
+                                <li><a href="#clustering_algorithm"
+                                       data-toggle="tab">Clustering
+                                    Algorithm</a></li>
+                                <li><a href="#feedback_enabled"
+                                       data-toggle="tab">Application
+                                    Feedback</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="churn">
+                                    <div class="checkbox"
+                                         id="churn_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="workload">
+                                    <div class="checkbox"
+                                         id="workload_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="peer_configuration">
+                                    <div class="checkbox"
+                                         id="peer_configuration_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="experiment_duration">
+                                    <div class="checkbox"
+                                         id="experiment_duration_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="training_duration">
+                                    <div class="checkbox"
+                                         id="training_duration_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="clustering_algorithm">
+                                    <div class="checkbox"
+                                         id="clustering_algorithm_filters"></div>
+                                </div>
+                                <div class="tab-pane" id="feedback_enabled">
+                                    <div class="checkbox"
+                                         id="feedback_enabled_filters"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-group" id="matches_accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse"
+                               data-parent="#matches_accordion" href="#matches">
+                                Matches
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="matches" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <ul class="nav nav-tabs" id="matches_nav"></ul>
+                            <div class="tab-content" id="matches_content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

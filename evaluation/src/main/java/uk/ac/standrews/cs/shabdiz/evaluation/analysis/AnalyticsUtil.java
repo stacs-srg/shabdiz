@@ -184,7 +184,7 @@ final class AnalyticsUtil {
         return point_statistics;
     }
 
-    static Statistics getAgregatedCsvStatistic(final Collection<File> csv_files, CellProcessor[] processors, Integer column_index, boolean header) throws IOException {
+    static Statistics getAggregatedCstStatistic(final Collection<File> csv_files, CellProcessor[] processors, Integer column_index, boolean header) throws IOException {
 
         final Statistics statistics = new Statistics();
         for (File csv : csv_files) {

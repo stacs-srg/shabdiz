@@ -30,7 +30,7 @@ public class TimeToReachStatePerDeploymentStrategyAnalyzer extends TimeToReachSt
     }
 
     @Override
-    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
+    public DefaultStatisticalCategoryDataset getDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.MANAGER_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();

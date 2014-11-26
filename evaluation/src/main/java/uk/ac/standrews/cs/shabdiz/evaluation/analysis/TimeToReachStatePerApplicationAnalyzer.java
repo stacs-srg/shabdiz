@@ -3,6 +3,7 @@ package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
 import org.mashti.sina.distribution.statistic.Statistics;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
@@ -11,12 +12,15 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.GROUP
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.NANOSECOND_TO_SECOND;
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.decorateManagerAsApplicationName;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class TimeToReachStatePerApplicationAnalyzer extends TimeToReachStateAnalyzer {
 
     private TimeToReachStatePerApplicationAnalyzer(String name, File results_path, String duration_property) throws IOException {
 
         super(name, results_path, duration_property);
+        showLegend = false;
     }
 
     @Override
@@ -26,7 +30,7 @@ public class TimeToReachStatePerApplicationAnalyzer extends TimeToReachStateAnal
     }
 
     @Override
-    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
+    public DefaultStatisticalCategoryDataset getDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.MANAGER_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();

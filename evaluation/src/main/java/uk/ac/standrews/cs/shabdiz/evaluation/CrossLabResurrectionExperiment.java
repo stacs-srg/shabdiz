@@ -36,8 +36,6 @@ import static uk.ac.standrews.cs.shabdiz.evaluation.Constants.SCHEDULER_THREAD_P
 @RunWith(Parameterized.class)
 public class CrossLabResurrectionExperiment extends ResurrectionExperiment {
 
-    public static final CrossLabHostProvider CROSS_LAB_HOST_PROVIDER = new CrossLabHostProvider();
-
     public CrossLabResurrectionExperiment(final int network_size, ExperimentManager manager, final int kill_portion, Duration scanner_interval, Duration scanner_timeout, int scheduler_pool_size, int concurrent_scanner_pool_size) {
 
         super(network_size, new CrossLabHostProvider(), manager, kill_portion, scanner_interval, scanner_timeout, scheduler_pool_size, concurrent_scanner_pool_size);

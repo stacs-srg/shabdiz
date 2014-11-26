@@ -16,17 +16,18 @@ public class TimeToReachStatePerScannerIntervalAnalyzer extends TimeToReachState
     private TimeToReachStatePerScannerIntervalAnalyzer(String name, File results_path, String duration_property) throws IOException {
 
         super(name, results_path, duration_property);
-        x_axis_label = "Scanner Interval";
+        x_axis_label = "Scan Interval";
+        showLegend = false;
     }
 
     @Override
     public String getName() {
 
-        return "Time to reach " + name + " per Scanner Interval";
+        return "Time to reach " + name + " per Scan Interval";
     }
 
     @Override
-    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
+    public DefaultStatisticalCategoryDataset getDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.SCANNER_INTERVAL_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();

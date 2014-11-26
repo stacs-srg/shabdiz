@@ -4,19 +4,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.data.xy.YIntervalSeriesCollection;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.mashti.sight.PlainChartTheme;
 import uk.ac.standrews.cs.shabdiz.ApplicationState;
 import uk.ac.standrews.cs.shabdiz.evaluation.util.ApplicationStateCounters;
 
 import static uk.ac.standrews.cs.shabdiz.evaluation.analysis.AnalyticsUtil.getFilesByName;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public class StateChangeOverlaidAnalyzer implements Analyser {
 
     private final List<GaugeCsvAnalyzer> state_analysers;
@@ -25,7 +30,7 @@ public class StateChangeOverlaidAnalyzer implements Analyser {
 
     public StateChangeOverlaidAnalyzer(File results_path) {
 
-        state_analysers = new ArrayList<GaugeCsvAnalyzer>();
+        state_analysers = new ArrayList<>();
         InitializeStateAnalyzers(results_path);
     }
 
@@ -39,7 +44,7 @@ public class StateChangeOverlaidAnalyzer implements Analyser {
     public JFreeChart getChart() throws IOException {
 
         if (chart == null) {
-            final YIntervalSeriesCollection series_collection = getYIntervalSeriesCollection();
+            final YIntervalSeriesCollection series_collection = getDataset();
 
             chart = ChartFactory.createXYLineChart("Change of state over time", "Time through experiment (s)", "Number of instances", series_collection, PlotOrientation.VERTICAL, true, false, false);
             final XYErrorRenderer error_renderer = new XYErrorRenderer();
@@ -55,7 +60,8 @@ public class StateChangeOverlaidAnalyzer implements Analyser {
         return chart;
     }
 
-    public synchronized YIntervalSeriesCollection getYIntervalSeriesCollection() throws IOException {
+    @Override
+    public synchronized YIntervalSeriesCollection getDataset() throws IOException {
 
         if (series_collection == null) {
             series_collection = new YIntervalSeriesCollection();
@@ -64,6 +70,12 @@ public class StateChangeOverlaidAnalyzer implements Analyser {
             }
         }
         return series_collection;
+    }
+
+    @Override
+    public JSONArray toJSON() throws IOException, JSONException {
+
+        return DatasetUtils.toJson(getDataset());
     }
 
     private void InitializeStateAnalyzers(final File results_path) {

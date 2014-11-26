@@ -3,10 +3,15 @@ package uk.ac.standrews.cs.shabdiz.evaluation.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.stream.Stream;
+
+import org.jfree.data.general.Dataset;
 import uk.ac.standrews.cs.shabdiz.evaluation.Constants;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
 
-/** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
+/**
+ * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
+ */
 public abstract class OverlaidResourceConsumptionPerScannerInterval extends OverlaidCrossRepetitionPerPropertyAnalyzer {
 
     static final Comparator<String> STRING_DURATION_COMPARATOR = new Comparator<String>() {
@@ -26,7 +31,7 @@ public abstract class OverlaidResourceConsumptionPerScannerInterval extends Over
     @Override
     public String getName() {
 
-        return super.getName() + " per Scanner Interval";
+        return super.getName() + " per Scan Interval";
     }
 
     protected Comparator<String> getComparator() {

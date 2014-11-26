@@ -17,7 +17,8 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer extends TimeToReachStateA
     private TimeToReachStatePerThreadPoolSizeAnalyzer(String name, File results_path, String duration_property) throws IOException {
 
         super(name, results_path, duration_property);
-        x_axis_label = "Thread pool Size";
+        x_axis_label = "Thread Pool Size";
+        showLegend = false;
     }
 
     @Override
@@ -27,7 +28,7 @@ public class TimeToReachStatePerThreadPoolSizeAnalyzer extends TimeToReachStateA
     }
 
     @Override
-    protected DefaultStatisticalCategoryDataset getStatisticalCategoryDataset() {
+    public DefaultStatisticalCategoryDataset getDataset() {
 
         final Map<String, Statistics> stats_by_application = AnalyticsUtil.getPropertyStatistics(duration_property, experiment_properties, NANOSECOND_TO_SECOND, new String[]{Constants.CONCURRENT_SCANNER_THREAD_POOL_SIZE_PROPERTY});
         final DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
