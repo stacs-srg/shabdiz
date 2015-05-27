@@ -159,9 +159,9 @@
 
     <repositories>
         <repository>
-            <id>org.mashti.maven</id>
-            <name>Mashti Maven Repository</name>
-            <url>http://maven.mashti.org/</url>
+            <id>io.github.masih.maven</id>
+            <name>Masih Maven Repository</name>
+            <url>http://masih.github.io/maven/</url>
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
