@@ -22,6 +22,7 @@ package uk.ac.standrews.cs.shabdiz.integrity;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -64,8 +65,8 @@ public class NormalOperationTest {
         AgentBasedJavaProcessBuilder.clearCachedFilesOnHost(host);
         network = new WorkerNetwork();
         network.add(host);
-        //        network.addCurrentJVMClasspath();
-        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "2.0-SNAPSHOT", "tests");
+        network.addCurrentJVMClasspath();
+//        network.addMavenDependency("uk.ac.standrews.cs.shabdiz", "job", "2.0-SNAPSHOT", "tests");
         network.getWorkerManager().setWorkerDeploymentTimeout(new Duration(5, TimeUnit.MINUTES));
         LOGGER.info("deploying worker network");
         network.deployAll();
