@@ -10,7 +10,7 @@ import uk.ac.standrews.cs.shabdiz.util.Duration;
 public abstract class ScannerFunctionalityTest {
 
     protected static final Duration AWAIT_STATE_TIMEOUT = new Duration(10, TimeUnit.SECONDS);
-    protected static final int SCAN_TEST_TIMEOUT = 60 * 1000;
+    protected static final int SCAN_TEST_TIMEOUT = 3 * 60 * 1000;
     @Rule
     public Timeout timeout = new Timeout(SCAN_TEST_TIMEOUT);
     protected MockApplicationNetwork network;
