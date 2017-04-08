@@ -37,21 +37,5 @@ API Documentation
 The API documentation of the latest Shabdiz build is available here:
  - https://builds.cs.st-andrews.ac.uk/job/shabdiz/javadoc
 
-Build
------
-Shabdiz is a Maven compliant project.
-Please make sure Maven 3.0+ is installed on your machine before attempting to build Shabdiz.
-For more information on how to install Maven, please visit:
- - http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html
-
-To build Shabdiz:
- 1. Clone shabdiz HG repository:
-		hg clone http://quicksilver.hg.cs.st-andrews.ac.uk/shabdiz/
- 2. Change current directory to the cloned shabdiz repository.
- 3. Build using Maven:
- 		mvn clean package
-
-To review the build history of Shabdiz, please visit:
- - https://builds.cs.st-andrews.ac.uk/job/shabdiz/
 
 
