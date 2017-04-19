@@ -27,7 +27,6 @@
         <version>2.0-SNAPSHOT</version>
     </parent>
 
-
     <groupId>uk.ac.standrews.cs.shabdiz</groupId>
     <artifactId>core</artifactId>
     <packaging>jar</packaging>
@@ -38,23 +37,7 @@
         <aetherVersion>0.9.0.M3</aetherVersion>
         <mavenVersion>3.1.1</mavenVersion>
     </properties>
-    
-    <!--<build>-->
-        <!--<plugins>-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-surefire-plugin</artifactId>-->
-                <!--<version>2.16</version>-->
-                <!--<configuration>-->
-                    <!--<parallel>both</parallel>-->
-                    <!--<threadCount>10</threadCount>-->
-                    <!--<forkCount>5</forkCount>-->
-                    <!--<argLine>-Xmx128m</argLine>-->
-                    <!--<reuseForks>false</reuseForks>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-        <!--</plugins>-->
-    <!--</build>-->
+
     <dependencies>
 
         <dependency>
@@ -62,12 +45,6 @@
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.google.guava</groupId>-->
-            <!--<artifactId>guava</artifactId>-->
-            <!--<version>15.0</version>-->
-        <!--</dependency>-->
-
 
         <!-- Required by MavenDependencyResolver -->
         <dependency>
@@ -75,21 +52,25 @@
             <artifactId>aether-impl</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-connector-basic</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-transport-file</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-transport-http</artifactId>
             <version>${aetherVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-aether-provider</artifactId>
@@ -106,6 +87,7 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.50</version>
         </dependency>
+
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jzlib</artifactId>

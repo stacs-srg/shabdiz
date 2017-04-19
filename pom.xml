@@ -24,34 +24,18 @@
 
     <parent>
         <groupId>uk.ac.standrews.cs</groupId>
-        <artifactId>common-pom</artifactId>
+        <artifactId>common-pom-2</artifactId>
         <version>2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>shabdiz</artifactId>
-    <packaging>pom</packaging>
     <version>2.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>shabdiz</name>
+
+    <description>Shabdiz</description>
     <url>https://shabdiz.cs.st-andrews.ac.uk</url>
-
-    <properties>
-        <repository.type>hg</repository.type>
-        <repository.location>http://shabdiz.hg.cs.st-andrews.ac.uk/shabdiz</repository.location>
-        <jdk.version>1.8</jdk.version>
-        <maven.compiler.source>${jdk.version}</maven.compiler.source>
-        <maven.compiler.target>${jdk.version}</maven.compiler.target>
-    </properties>
-
-    <ciManagement>
-        <system>Jenkins</system>
-        <url>https://builds.cs.st-andrews.ac.uk/job/shabdiz</url>
-    </ciManagement>
-
-    <scm>
-        <connection>scm:${repository.type}:${repository.location}</connection>
-        <developerConnection>scm:${repository.type}:${repository.location}</developerConnection>
-        <url>${repository.location}</url>
-    </scm>
+    <inceptionYear>2012</inceptionYear>
 
     <modules>
         <module>core</module>
@@ -61,38 +45,16 @@
         <module>testing</module>
     </modules>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <configuration>
-                    <excludePackageNames>
-                        ${project.groupId}.${project.artifactId}.example,${project.groupId}.${project.artifactId}.evaluation
-                    </excludePackageNames>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.5.4</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <repositories>
+
+        <!-- Repository to which this module is deployed, and others retrieved from.                 -->
+        <!-- This has to be replicated from the parent POM so the parent POM can be found.           -->
         <repository>
             <id>uk.ac.standrews.cs.maven.repository</id>
             <name>School of Computer Science Maven Repository</name>
             <url>http://maven.cs.st-andrews.ac.uk/</url>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
         </repository>
+
     </repositories>
+
 </project>
