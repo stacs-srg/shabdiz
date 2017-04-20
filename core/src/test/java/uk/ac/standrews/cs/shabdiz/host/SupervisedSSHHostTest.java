@@ -42,6 +42,7 @@ import static org.junit.Assume.assumeTrue;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @Category(Ignore.class)
+@org.junit.Ignore
 public class SupervisedSSHHostTest extends Bootstrap {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SupervisedSSHHostTest.class);

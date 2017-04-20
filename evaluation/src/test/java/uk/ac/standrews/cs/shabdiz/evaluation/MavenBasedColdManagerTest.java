@@ -28,6 +28,7 @@ import static uk.ac.standrews.cs.shabdiz.host.exec.AgentBasedJavaProcessBuilder.
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 @RunWith(Parameterized.class)
 @Category(Ignore.class)
+@org.junit.Ignore
 public class MavenBasedColdManagerTest {
 
     private final Integer network_size;

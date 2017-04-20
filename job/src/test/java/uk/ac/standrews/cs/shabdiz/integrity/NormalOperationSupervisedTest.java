@@ -42,6 +42,7 @@ import uk.ac.standrews.cs.test.category.Ignore;
  * @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk)
  */
 @Category(Ignore.class)
+@org.junit.Ignore
 public class NormalOperationSupervisedTest extends NormalOperationTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalOperationSupervisedTest.class);

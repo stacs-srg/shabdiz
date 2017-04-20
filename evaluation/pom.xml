@@ -90,6 +90,7 @@
             <artifactId>stachord</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>stachord</artifactId>
@@ -167,7 +168,6 @@
             </snapshots>
         </repository>
     </repositories>
-
 
     <!-- Evaluation Profile-->
     <profiles>
