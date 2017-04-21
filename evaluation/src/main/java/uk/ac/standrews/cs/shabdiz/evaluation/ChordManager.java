@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.standrews.cs.nds.p2p.interfaces.IKey;
 import uk.ac.standrews.cs.nds.p2p.keys.Key;
 import uk.ac.standrews.cs.nds.p2p.util.SHA1KeyFactory;
-import uk.ac.standrews.cs.nds.util.DiagnosticLevel;
-import uk.ac.standrews.cs.nds.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.ApplicationDescriptor;
 import uk.ac.standrews.cs.shabdiz.ApplicationNetwork;
 import uk.ac.standrews.cs.shabdiz.host.Host;
@@ -24,10 +22,12 @@ import uk.ac.standrews.cs.shabdiz.host.exec.Bootstrap;
 import uk.ac.standrews.cs.shabdiz.host.exec.MavenDependencyResolver;
 import uk.ac.standrews.cs.shabdiz.util.AttributeKey;
 import uk.ac.standrews.cs.shabdiz.util.Duration;
+import uk.ac.standrews.cs.shabdiz.util.NetworkUtil;
 import uk.ac.standrews.cs.shabdiz.util.TimeoutExecutorService;
 import uk.ac.standrews.cs.stachord.impl.ChordNodeFactory;
 import uk.ac.standrews.cs.stachord.interfaces.IChordRemoteReference;
 import uk.ac.standrews.cs.stachord.servers.NodeServer;
+import uk.ac.standrews.cs.utilities.archive.Diagnostic;
 
 /** @author Masih Hajiarabderkani (mh638@st-andrews.ac.uk) */
 public abstract class ChordManager extends ExperimentManager {
@@ -68,7 +68,7 @@ public abstract class ChordManager extends ExperimentManager {
         final IKey previous_key = descriptor.getAttribute(NODE_KEY_KEY);
         final IKey node_key = previous_key == null ? nextPeerKey() : previous_key;
 
-        final Process node_process = process_builder.start(host, "-D" + DiagnosticLevel.NONE.numericalValue(), "-s" + host.getName() + ":" + port, "-x" + node_key.toString(Key.DEFAULT_RADIX));
+        final Process node_process = process_builder.start(host, "-D" + Diagnostic.NONE, "-s" + host.getName() + ":" + port, "-x" + node_key.toString(Key.DEFAULT_RADIX));
         LOGGER.debug("waiting for properties of process on host {}...", host);
 
         final Properties properties = getPropertiesFromProcess(node_process);
