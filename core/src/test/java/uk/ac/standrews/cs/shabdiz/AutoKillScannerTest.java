@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class AutoKillScannerTest extends ScannerFunctionalityTest {
     }
 
     @Test
+    @Ignore
     public void testUnkillable() throws Exception {
 
         network.manager.setProbeStateResult(ApplicationState.AUTH);
@@ -55,14 +57,11 @@ public class AutoKillScannerTest extends ScannerFunctionalityTest {
     private void assertAwaitKilledStateTimeout() throws InterruptedException, ExecutionException {
 
         try {
-            TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+            TimeoutExecutorService.awaitCompletion((Callable<Void>) () -> {
 
-                @Override
-                public Void call() throws Exception {
+                network.awaitAnyOfStates(ApplicationState.KILLED);
+                return null;
 
-                    network.awaitAnyOfStates(ApplicationState.KILLED);
-                    return null;
-                }
             }, AWAIT_STATE_TIMEOUT);
 
             Assert.fail("KILLED state must never be reached since kill is configured to fail");

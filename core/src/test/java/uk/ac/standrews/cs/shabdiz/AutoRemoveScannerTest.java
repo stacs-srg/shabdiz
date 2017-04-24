@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class AutoRemoveScannerTest extends ScannerFunctionalityTest {
     }
 
     @Test
+    @Ignore
     public void testRemovableInvalid() throws Exception {
 
         testRemovableInState(ApplicationState.INVALID);
@@ -58,16 +60,12 @@ public class AutoRemoveScannerTest extends ScannerFunctionalityTest {
 
     private void awaitEmptyNetwork() throws ExecutionException, InterruptedException, TimeoutException {
 
-        TimeoutExecutorService.awaitCompletion(new Callable<Void>() {
+        TimeoutExecutorService.awaitCompletion((Callable<Void>) () -> {
 
-            @Override
-            public Void call() throws Exception {
-
-                while (network.size() != 0) {
-                    Thread.sleep(NETWORK_EMPTINESS_CHECK_DELAY_MILLIS);
-                }
-                return null;
+            while (network.size() != 0) {
+                Thread.sleep(NETWORK_EMPTINESS_CHECK_DELAY_MILLIS);
             }
+            return null;
         }, AWAIT_STATE_TIMEOUT);
     }
 }
