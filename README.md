@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/stacs-srg/shabdiz.svg?style=svg&circle-token=f30af40b8b0a958d1b49ad2e4e1ccc69818e49ac)](https://circleci.com/gh/stacs-srg/shabdiz)
 
 Welcome to the Shabdiz Project
 ==============================
