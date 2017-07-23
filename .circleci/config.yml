@@ -3,6 +3,8 @@ jobs:
   build:
     
     working_directory: ~/shabdiz
+    environment:
+      - MAVEN_OPTS: "-Xms512m -Xmx512m"
 
     docker:
       - image: maven:3.5-jdk-8-alpine
