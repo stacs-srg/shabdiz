@@ -14,14 +14,14 @@ jobs:
       - restore_cache:
           key: shabdiz-{{ checksum "pom.xml" }}
       
-      - run: mvn dependency:go-offline
+      - run: mvn --batch-mode dependency:go-offline
       
       - save_cache:
           paths:
             - ~/.m2
           key: shabdiz-{{ checksum "pom.xml" }}
       
-      - run: mvn clean package
+      - run: mvn --batch-mode clean package
       
       - store_test_results:
           path: target/surefire-reports
