@@ -1,0 +1,33 @@
+version: 2
+jobs:
+  build:
+    
+    working_directory: ~/shabdiz
+    environment:
+      - MAVEN_OPTS: "-Xms512m -Xmx512m"
+
+    docker:
+      - image: maven:3.5-jdk-8-alpine
+        cmd: ["/bin/bash"]
+
+    steps:
+
+      - checkout
+
+      - restore_cache:
+          key: shabdiz-{{ checksum "pom.xml" }}
+      
+      - run: mvn --batch-mode dependency:go-offline
+      
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: shabdiz-{{ checksum "pom.xml" }}
+      
+      - run: mvn --batch-mode clean package
+      
+      - store_test_results:
+          path: target/surefire-reports
+      
+      - store_artifacts:
+          path: target/**.jar
