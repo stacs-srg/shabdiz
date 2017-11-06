@@ -43,7 +43,7 @@ public class MavenDependencyResolver {
     private static final String DEFAULT_REPOSITORY_TYPE = "default";
     private static final ServiceLocatorErrorHandler DEFAULT_ERROR_HANDLER = new ServiceLocatorErrorHandler();
     private static final RemoteRepository MAVEN_CENTRAL_REPOSITORY = new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
-    private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "http://maven.cs.st-andrews.ac.uk/").build();
+    private static final RemoteRepository ST_ANDREWS_CS_MAVEN_REPOSITORY = new RemoteRepository.Builder("uk.ac.standrews.cs.maven.repository", "default", "https://maven.cs.st-andrews.ac.uk/").build();
     private static final RepositorySystem REPOSITORY_SYSTEM = createRepositorySystem();
     private static final int URL_PING_TIMEOUT_MILLIS = 15000;
     private final List<RemoteRepository> repositories;
